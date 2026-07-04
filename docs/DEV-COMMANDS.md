@@ -1,42 +1,60 @@
 # Development Commands
 
-Quick reference for local development (after Phase 1 scaffold exists).
+Quick reference for local development. All Rust commands run from `backend/`.
+
+---
+
+## Setup
+
+```bash
+cd backend
+cp .env.example .env   # adjust DATABASE_URL, API_PORT if needed
+```
 
 ---
 
 ## Database
 
 ```bash
-# Run migrations
+cd backend
+
+# Run migrations (requires DATABASE_URL)
 sqlx migrate run
 
 # Create new migration
 sqlx migrate add <name>
 ```
 
+PostgreSQL 18+ provides native `uuidv7()`. Migrations live in `backend/migrations/`.
+
 ---
 
 ## Tests
 
 ```bash
+cd backend
+
 # Domain unit tests (fast, no infra)
-cargo test -p domain-identity -p domain-commerces -p domain-inventory -p domain-sales -p domain-reports -p domain-shared
+cargo test -p domain-shared
 
-# Integration tests (starts containers)
-cargo test --test integration -- --test-threads=1
+# All workspace tests (includes api-http integration tests)
+cargo test --workspace
 
-# E2E
-cargo test --test e2e
+# Domain coverage gate (CI parity)
+cargo llvm-cov -p domain-shared --fail-under-lines 100 --summary-only
 ```
+
+Future phases add: `domain-identity`, `domain-commerces`, integration, E2E.
 
 ---
 
 ## Quality gates (CI parity)
 
 ```bash
+cd backend
 cargo fmt --check
 cargo clippy --workspace -- -D warnings
-cargo llvm-cov --workspace --html
+cargo llvm-cov -p domain-shared --fail-under-lines 100 --summary-only
 cargo audit
 ```
 
@@ -45,11 +63,14 @@ cargo audit
 ## Run API locally
 
 ```bash
-# From backend/
+cd backend
 cargo run -p api-http
+# GET http://127.0.0.1:8080/health → {"status":"ok"}
 ```
 
-Requires `.env` with `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `ED25519_PRIVATE_KEY` — see `.env.example` *(Phase 1)*.
+If port 8080 is in use, set `API_PORT` in `.env` (e.g. `18080`).
+
+Requires `.env` with `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `ED25519_PRIVATE_KEY` — see `.env.example`. Only `API_HOST` / `API_PORT` are required for `/health` in Phase 1.
 
 ---
 
@@ -62,9 +83,8 @@ Requires `.env` with `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `ED25519_PRIVATE
 
 ---
 
-## Phase 0 documentation (pre-scaffold)
+## Phase 0 documentation validation
 
 ```bash
-chmod +x scripts/validate-phase0-docs.sh
 ./scripts/validate-phase0-docs.sh
 ```

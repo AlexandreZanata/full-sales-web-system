@@ -53,13 +53,14 @@ pip install -r agent-harness/requirements.txt
 
 ## Quick start
 
-**Phase 0 (current):** validate documentation before scaffold:
-
 ```bash
-./scripts/validate-phase0-docs.sh
+cd backend
+cp .env.example .env
+cargo test --workspace
+cargo run -p api-http    # GET /health → {"status":"ok"}
 ```
 
-**After Phase 1 scaffold:** see [DEV-COMMANDS.md](docs/DEV-COMMANDS.md).
+See [DEV-COMMANDS.md](docs/DEV-COMMANDS.md) for migrations, coverage, and CI parity commands.
 
 ---
 

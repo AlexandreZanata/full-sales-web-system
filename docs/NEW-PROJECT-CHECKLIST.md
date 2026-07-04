@@ -47,10 +47,10 @@
 ## Testing (contract-first)
 
 - [x] **Policy documented** — [TESTING-STRATEGY.md](TESTING-STRATEGY.md)
-- [ ] **Unit tests** — after Phase 1 scaffold
+- [x] **Unit tests** — `domain-shared` 100% coverage (Phase 1)
 - [ ] **Integration tests** — after Phase 3
 - [x] **E2E scenarios** — defined in TESTING-STRATEGY (E2E-001..004)
-- [ ] **CI** — after Phase 1 Cargo workspace
+- [x] **CI** — `.github/workflows/ci.yml` (Phase 1)
 - [x] **No mirror tests** — policy in TESTING-STRATEGY
 - [x] **Phase 0 doc validation** — `scripts/validate-phase0-docs.sh`
 
