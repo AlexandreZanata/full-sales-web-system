@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react';
 
 export type AdminUserSummary = {
   email: string;
+  role: string;
 };
 
 export type AdminAuthContextValue = {

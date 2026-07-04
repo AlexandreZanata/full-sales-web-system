@@ -36,6 +36,11 @@ export type ApiRequestOptions = RequestInit & {
 };
 
 let refreshPromise: Promise<boolean> | null = null;
+let onSessionExpired: (() => void) | null = null;
+
+export function setSessionExpiredHandler(handler: (() => void) | null): void {
+  onSessionExpired = handler;
+}
 
 export function getApiBaseUrl(): string {
   const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
@@ -93,7 +98,7 @@ async function throwApiError(response: Response): Promise<never> {
   throw new ApiError(response.status, body);
 }
 
-async function tryRefreshTokens(): Promise<boolean> {
+export async function tryRefreshTokens(): Promise<boolean> {
   if (refreshPromise) {
     return refreshPromise;
   }
@@ -113,6 +118,7 @@ async function tryRefreshTokens(): Promise<boolean> {
 
       if (!response.ok) {
         clearTokens();
+        onSessionExpired?.();
         return false;
       }
 
@@ -120,10 +126,12 @@ async function tryRefreshTokens(): Promise<boolean> {
       setTokens({
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
+        expiresIn: data.expiresIn,
       });
       return true;
     } catch {
       clearTokens();
+      onSessionExpired?.();
       return false;
     } finally {
       refreshPromise = null;

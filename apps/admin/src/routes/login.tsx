@@ -1,9 +1,12 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { useState, type SubmitEvent } from 'react';
 
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { AdminLoginError } from '@/lib/auth/authErrors';
 import { ADMIN_APP_TITLE } from '@/lib/brand';
 
 export const Route = createFileRoute('/login')({
@@ -19,8 +22,29 @@ export const Route = createFileRoute('/login')({
 });
 
 function LoginPage() {
-  const { enterDevShell } = useAdminAuth();
+  const { login, enterDevShell } = useAdminAuth();
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      await login({ email, password });
+      void navigate({ to: '/' });
+    } catch (err) {
+      setError(
+        err instanceof AdminLoginError ? err.message : 'Unable to sign in. Please try again.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   function handleDevEnter() {
     enterDevShell();
@@ -37,20 +61,52 @@ function LoginPage() {
           </p>
           <h1 className="mt-2 text-2xl font-semibold text-foreground">Sign in</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Authentication form will be wired in Phase 29. Use the dev entry below to preview the
-            admin shell.
+            Sign in with an Admin account to access the operations console.
           </p>
         </div>
 
-        {import.meta.env.DEV ? (
-          <Button type="button" className="w-full" onClick={handleDevEnter}>
-            Enter admin shell (dev)
+        <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+            }}
+          />
+          <Input
+            label="Password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+            }}
+          />
+
+          {error ? (
+            <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {error}
+            </p>
+          ) : null}
+
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? 'Signing in…' : 'Sign in'}
           </Button>
-        ) : (
-          <p className="rounded-md border border-hairline bg-surface-muted px-3 py-2 text-sm text-muted-foreground">
-            Login is not available yet.
-          </p>
-        )}
+        </form>
+
+        {import.meta.env.DEV ? (
+          <div className="mt-4 border-t border-hairline pt-4">
+            <Button type="button" variant="secondary" className="w-full" onClick={handleDevEnter}>
+              Enter admin shell (dev)
+            </Button>
+          </div>
+        ) : null}
       </Card>
     </div>
   );
