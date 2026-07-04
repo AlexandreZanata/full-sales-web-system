@@ -277,3 +277,40 @@ export type RecordMovementRequest = {
   quantity: number;
   reason: string;
 };
+
+export type ReportType = 'DailyDriver' | 'CommercePeriod' | 'Consolidated';
+
+export type Report = {
+  id: string;
+  reportType: ReportType;
+  periodStart: string;
+  periodEnd: string;
+  canonicalPayload: string;
+  signature: string;
+  publicKeyId: string;
+  generatedAt: string;
+};
+
+export type GenerateReportRequest = {
+  reportType: ReportType;
+  periodStart: string;
+  periodEnd: string;
+  driverId?: string;
+  commerceId?: string;
+};
+
+export type VerifyReportResponse = {
+  valid: boolean;
+  reportId: string;
+};
+
+export type AuditEvent = {
+  id: string;
+  actorId: string;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  metadata?: Record<string, unknown>;
+  correlationId?: string;
+  createdAt: string;
+};
