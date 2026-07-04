@@ -262,6 +262,48 @@ pub async fn seed_order(env: &TestEnv, commerce_id: Uuid, admin_id: Uuid) -> Uui
     order_id
 }
 
+pub async fn seed_driver_stock(
+    env: &TestEnv,
+    driver_id: Uuid,
+    product_id: Uuid,
+    quantity: i32,
+) {
+    infra_postgres::inventory::upsert_stock_balance(
+        &env.app_pool,
+        env.tenant_id,
+        driver_id,
+        product_id,
+        quantity,
+    )
+    .await
+    .expect("driver stock");
+}
+
+pub async fn seed_delivery_address(env: &TestEnv, commerce_id: Uuid) -> Uuid {
+    let address_id = Uuid::now_v7();
+    infra_postgres::commerces::addresses::insert_address(
+        &env.app_pool,
+        env.tenant_id,
+        infra_postgres::commerces::addresses::AddressInsert {
+            id: address_id,
+            commerce_id,
+            address_type: "Delivery".into(),
+            street: "Rua E2E".into(),
+            number: "100".into(),
+            district: None,
+            city: "SP".into(),
+            state: "SP".into(),
+            postal_code: "01310100".into(),
+            latitude: None,
+            longitude: None,
+            is_primary: true,
+        },
+    )
+    .await
+    .expect("delivery address");
+    address_id
+}
+
 pub async fn login(env: &TestEnv, email: &str, password: &str) -> Value {
     let response = full_app(env.state.clone())
         .oneshot(

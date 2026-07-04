@@ -117,13 +117,19 @@ pub async fn start_delivery_transit(
     Path(id): Path<Uuid>,
 ) -> Result<Json<DeliveryResponse>, ApiError> {
     support::require_assigned_driver(&auth)?;
-    let session = session_from_auth(&auth);
+    let driver_session = session_from_auth(&auth);
+    let admin_session = support::admin_session(&auth);
     let row = support::load_row(&state, &auth, id).await?;
     support::restore(&row, auth.tenant_id)?
         .start_transit(UserId::from_uuid(auth.user_id))
         .map_err(|e| support::map_app_error(e.into()))?;
     infra_postgres::deliveries::start_delivery_transit(
-        &state.app_pool, &session, id, auth.user_id, row.order_id,
+        &state.app_pool,
+        &driver_session,
+        &admin_session,
+        id,
+        auth.user_id,
+        row.order_id,
     )
     .await
     .map_err(support::map_postgres_error)?;

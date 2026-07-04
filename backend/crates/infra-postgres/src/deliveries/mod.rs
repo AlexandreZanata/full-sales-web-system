@@ -344,14 +344,16 @@ async fn start_transit_in_tx(
 
 pub async fn start_delivery_transit(
     pool: &PgPool,
-    session: &SessionContext,
+    driver_session: &SessionContext,
+    admin_session: &SessionContext,
     delivery_id: Uuid,
     driver_id: Uuid,
     order_id: Uuid,
 ) -> Result<(), PostgresError> {
     let mut tx = pool.begin().await?;
-    apply_session_context(&mut tx, session).await?;
+    apply_session_context(&mut tx, driver_session).await?;
     start_transit_in_tx(&mut tx, delivery_id, driver_id).await?;
+    apply_session_context(&mut tx, admin_session).await?;
     orders::update_order_status_in_tx(&mut tx, order_id, "InTransit").await?;
     tx.commit().await?;
     Ok(())
