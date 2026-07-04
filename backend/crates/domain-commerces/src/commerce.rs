@@ -1,4 +1,5 @@
 use domain_shared::TenantId;
+use uuid::Uuid;
 
 use crate::cnpj::Cnpj;
 use crate::commerce_id::CommerceId;
@@ -12,6 +13,7 @@ pub struct Commerce {
     trade_name: String,
     active: bool,
     tenant_id: TenantId,
+    logo_file_id: Option<Uuid>,
 }
 
 pub struct CreateCommerceInput {
@@ -35,6 +37,7 @@ impl Commerce {
                 .unwrap_or_else(|| input.legal_name.trim().to_owned()),
             active: true,
             tenant_id: input.tenant_id,
+            logo_file_id: None,
         }
     }
 
@@ -60,6 +63,15 @@ impl Commerce {
 
     pub fn is_active(&self) -> bool {
         self.active
+    }
+
+    pub fn logo_file_id(&self) -> Option<Uuid> {
+        self.logo_file_id
+    }
+
+    pub fn set_logo_file_id(mut self, logo_file_id: Option<Uuid>) -> Self {
+        self.logo_file_id = logo_file_id;
+        self
     }
 
     pub fn deactivate(self) -> Self {

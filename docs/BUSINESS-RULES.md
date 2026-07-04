@@ -10,6 +10,8 @@
 | BR-IA-002 | `backend/crates/application/src/auth.rs`, `backend/crates/api-http/tests/auth.rs`, `backend/crates/domain-identity/tests/business_rules.rs` |
 | BR-IA-003 | `backend/crates/domain-identity/tests/commerce_contact.rs`, `backend/crates/infra-postgres/tests/identity_profiles.rs` |
 | BR-CO-001 | `backend/crates/domain-commerces/src/cnpj.rs`, `backend/crates/api-http/tests/auth.rs` |
+| BR-CO-004 | `backend/crates/domain-commerces/tests/commerce_address.rs` |
+| BR-CO-005 | `backend/crates/domain-commerces/tests/commerce_address.rs` |
 | BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-002 | `packages/domain/src/value-objects/money.test.ts`, `packages/domain/src/sales/sale-item.test.ts`, `packages/domain/src/sales/sale.test.ts` |
@@ -66,6 +68,24 @@ GIVEN an active Commerce with no Pending sales
 WHEN Admin deactivates the Commerce
 THEN active becomes false
 AND new Sales referencing this Commerce are rejected
+```
+
+### BR-CO-004 — Inactive commerce cannot add delivery addresses
+
+```
+GIVEN a Commerce with active = false
+WHEN a Delivery address is added for order use
+THEN the operation fails with InactiveCommerceCannotAddDeliveryAddress
+AND Billing addresses may still be added for archival purposes
+```
+
+### BR-CO-005 — Order requires valid delivery address
+
+```
+GIVEN an Order being created for Commerce C
+WHEN delivery_address_id references a Billing address, another commerce, or C is inactive
+THEN order creation fails
+AND only a Delivery address belonging to an active Commerce C is accepted
 ```
 
 ---

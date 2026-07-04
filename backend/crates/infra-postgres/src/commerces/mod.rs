@@ -5,6 +5,8 @@ use uuid::Uuid;
 use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
+pub mod addresses;
+
 pub async fn insert_commerce(
     pool: &PgPool,
     tenant_id: TenantId,

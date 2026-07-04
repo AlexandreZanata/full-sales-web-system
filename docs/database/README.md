@@ -10,7 +10,7 @@
 |--------|--------|--------|
 | 00-shared | `shared` | `tenants` |
 | 01-identity | `identity` | `users`, `driver_profiles`, `seller_profiles` |
-| 02-commerces | `commerces` | `commerces` |
+| 02-commerces | `commerces` | `commerces`, `commerce_addresses` |
 | 03-inventory | `inventory` | `products`, `stock_movements`, `stock_balances` |
 | 04-sales | `sales` | `sales`, `sale_items` |
 | 05-reports | `reports` | `signing_keys`, `reports` |
@@ -27,6 +27,26 @@
 | `media` schema + `media.files` (metadata only; bytes in MinIO) | `20260704122200` |
 | RLS tenant isolation on `media.files` | `20260704122200` |
 | `app_user` GRANTs on `media` schema | `20260704122200` |
+
+---
+
+## Phase 09 additions (2026-07-04)
+
+| Change | Migration |
+|--------|-----------|
+| `commerces.commerce_addresses` (Billing/Delivery, primary per type) | `20260704122600` |
+| `commerces.commerces.logo_file_id` → `media.files` (app-validated) | `20260704122700` |
+
+### JSON `address` deprecation path
+
+Legacy `commerces.commerces.address` (JSONB) remains for backward compatibility until Phase 14 (commerce portal API). New address writes use `commerce_addresses`.
+
+**One-time backfill (run before Phase 14 portal go-live):**
+
+1. For each commerce row with non-empty JSON `address`, insert a `Delivery` row in `commerce_addresses` with `is_primary = true` (map JSON keys: `street`, `number`, `district`, `city`, `state`, `postalCode`).
+2. Optionally insert a `Billing` row when JSON contains separate billing fields.
+3. Portal and order APIs (Phases 11–14) read/write `commerce_addresses` only; do not extend the JSON column.
+4. After all tenants are backfilled and portal is live, drop `address` JSONB in a future migration (not Phase 09).
 
 ---
 

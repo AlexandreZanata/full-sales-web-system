@@ -43,6 +43,37 @@
 
 ---
 
+## CommerceAddress
+
+**Definition:** Normalized billing or delivery address for a Commerce — replaces legacy JSON `address` on the commerce row.
+**Enum values (`AddressType`):** `Billing`, `Delivery`
+**Invariant:** At most one `is_primary = true` per (commerce, address_type).
+**Code name:** `CommerceAddress`
+
+---
+
+## AddressType
+
+**Definition:** Classification of a CommerceAddress — billing (invoicing) or delivery (order fulfillment).
+**Enum values:** `Billing`, `Delivery`
+**Code name:** `AddressType`
+
+---
+
+## PostalCode
+
+**Definition:** Brazilian postal code (CEP) Value Object — eight digits, normalized without punctuation.
+**Code name:** `PostalCode`
+
+---
+
+## BrazilianState
+
+**Definition:** Brazilian federative unit (UF) Value Object — two-letter code from the official 27 states.
+**Code name:** `BrazilianState`
+
+---
+
 ## Cnpj
 
 **Definition:** Brazilian company tax identifier Value Object with check-digit validation.
