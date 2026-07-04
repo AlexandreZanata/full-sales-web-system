@@ -19,7 +19,7 @@
     "dev": "pnpm --parallel --filter @full-sales/api --filter @full-sales/web --filter @full-sales/admin dev",
     "dev:web": "pnpm --filter @full-sales/web dev",
     "dev:api": "pnpm --filter @full-sales/api dev",
-    "dev:admin": "pnpm --filter @full-sales/admin dev"
+    "seed:dev": "cd backend && ALLOW_DEV_SEED=1 cargo run -p dev-seed",
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

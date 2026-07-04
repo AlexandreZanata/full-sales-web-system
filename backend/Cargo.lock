@@ -33,6 +33,7 @@ dependencies = [
  "application",
  "axum",
  "chrono",
+ "dev-seed",
  "domain-commerces",
  "domain-deliveries",
  "domain-identity",
@@ -1114,6 +1115,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cd812cc2bc1d69d4764bd80df88b4317eaef9e773c75226407d9bc0876b211c"
 dependencies = [
  "serde_core",
+]
+
+[[package]]
+name = "dev-seed"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "domain-commerces",
+ "domain-identity",
+ "domain-orders",
+ "domain-reports",
+ "domain-sales",
+ "domain-shared",
+ "dotenvy",
+ "ed25519-dalek",
+ "hex",
+ "infra-crypto",
+ "infra-postgres",
+ "serde_json",
+ "sqlx",
+ "testcontainers",
+ "testcontainers-modules",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

@@ -40,6 +40,7 @@ uuid.workspace = true
 
 [dev-dependencies]
 application.workspace = true
+dev-seed.workspace = true
 domain-shared.workspace = true
 infra-crypto.workspace = true
 infra-postgres.workspace = true

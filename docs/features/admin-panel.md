@@ -23,7 +23,11 @@ pnpm test:e2e:admin                         # Playwright (starts dev server)
 
 Vite proxies `/v1` and `/health` to `http://127.0.0.1:8080` (override with `VITE_DEV_API_ORIGIN`).
 
-**Dev login:** open `/login` and sign in with an Admin account (`POST /v1/auth/login`). In dev, **Enter admin shell (dev)** previews the layout without the API.
+**Dev login:** open `/login` and sign in with seeded credentials (`pnpm seed:dev`):
+
+- **Admin:** `admin@test.com` / `secret123`
+
+See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev` usage.
 
 **Test credentials (integration seed):** `admin@test.com` / `secret123` when the API runs with test/seed data.
 
@@ -44,7 +48,7 @@ Vite proxies `/v1` and `/health` to `http://127.0.0.1:8080` (override with `VITE
 | Reports | `/reports`, `/reports/new`, `/reports/$id` | Signed reports + verify link |
 | Audit | `/audit` | Append-only event log |
 
-Full API↔UI matrix: `.local/phases/27-admin-panel-master/documentation/UI-ROUTE-MATRIX.md`
+Full API↔UI matrix: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 
 ---
 

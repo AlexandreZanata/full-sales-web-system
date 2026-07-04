@@ -1,0 +1,39 @@
+[package]
+name = "dev-seed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Idempotent dev database seed for local admin panel data"
+
+[[bin]]
+name = "dev-seed"
+path = "src/main.rs"
+
+[dependencies]
+chrono.workspace = true
+domain-commerces.workspace = true
+domain-identity.workspace = true
+domain-orders.workspace = true
+domain-reports.workspace = true
+domain-sales.workspace = true
+domain-shared.workspace = true
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+hex.workspace = true
+infra-crypto.workspace = true
+infra-postgres.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+dotenvy = "0.15"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+testcontainers = "0.23"
+testcontainers-modules = { version = "0.11", features = ["postgres"] }
+
+[lints]
+workspace = true

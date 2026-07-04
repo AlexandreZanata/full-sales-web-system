@@ -16,6 +16,7 @@ members = [
     "crates/infra-crypto",
     "crates/infra-storage",
     "crates/api-http",
+    "crates/dev-seed",
 ]
 
 [workspace.package]
@@ -60,6 +61,7 @@ infra-crypto = { path = "crates/infra-crypto" }
 infra-postgres = { path = "crates/infra-postgres" }
 infra-redis = { path = "crates/infra-redis" }
 infra-storage = { path = "crates/infra-storage" }
+dev-seed = { path = "crates/dev-seed" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

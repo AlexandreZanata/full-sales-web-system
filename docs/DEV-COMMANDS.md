@@ -31,6 +31,26 @@ See [features/admin-panel.md](features/admin-panel.md) for routes, i18n, and E2E
 
 Copy `.env.example` (root) and `backend/.env.example` for local configuration.
 
+### Dev database seed (Phase 37)
+
+Populates **Dev Tenant** with data for every admin screen. Requires Postgres + migrations applied.
+
+```bash
+pnpm seed:dev
+```
+
+Guard: set `ALLOW_DEV_SEED=1` (the script sets it). Never use in production.
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@test.com` | `secret123` |
+| Driver A | `driver-a@test.com` | `secret123` |
+| Driver B | `driver-b@test.com` | `secret123` |
+| Seller | `seller@test.com` | `secret123` |
+| Commerce contact | `portal@seed-store.com` | `secret123` |
+
+Re-running is idempotent (skips when seed data is already present). Conflicting dev emails in other tenants are removed on seed.
+
 ---
 
 ## Backend (Rust)
