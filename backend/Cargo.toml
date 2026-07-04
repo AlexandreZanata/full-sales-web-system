@@ -5,11 +5,13 @@ members = [
     "crates/domain-identity",
     "crates/domain-commerces",
     "crates/domain-inventory",
+    "crates/domain-media",
     "crates/domain-sales",
     "crates/application",
     "crates/infra-postgres",
     "crates/infra-redis",
     "crates/infra-crypto",
+    "crates/infra-storage",
     "crates/api-http",
 ]
 
@@ -38,16 +40,20 @@ jsonwebtoken = "9"
 redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
 rand = "0.8"
 async-trait = "0.1"
+hex = "0.4"
+sha2 = "0.10"
 
 application = { path = "crates/application" }
 domain-commerces = { path = "crates/domain-commerces" }
 domain-identity = { path = "crates/domain-identity" }
 domain-inventory = { path = "crates/domain-inventory" }
+domain-media = { path = "crates/domain-media" }
 domain-sales = { path = "crates/domain-sales" }
 domain-shared = { path = "crates/domain-shared" }
 infra-crypto = { path = "crates/infra-crypto" }
 infra-postgres = { path = "crates/infra-postgres" }
 infra-redis = { path = "crates/infra-redis" }
+infra-storage = { path = "crates/infra-storage" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

@@ -5,6 +5,7 @@ pub mod commerces;
 pub mod error;
 pub mod identity;
 pub mod inventory;
+pub mod media;
 pub mod reports;
 pub mod rls;
 pub mod sales;

@@ -7,6 +7,7 @@ use domain_shared::TenantId;
 use infra_postgres::commerces;
 use infra_postgres::identity;
 use infra_postgres::inventory;
+use infra_postgres::media;
 use infra_postgres::reports;
 use infra_postgres::sales;
 use infra_postgres::shared;
@@ -241,6 +242,52 @@ async fn rls_reports_isolated() {
         .await
         .expect("list reports B");
     assert!(ids_b.is_empty());
+}
+
+#[tokio::test]
+async fn rls_media_files_isolated() {
+    let pools = setup_pools().await;
+    let fx = seed_two_tenants(&pools.admin, &pools.app).await;
+
+    let file_a = Uuid::now_v7();
+    media::insert_file(
+        &pools.app,
+        fx.tenant_a,
+        media::FileInsert {
+            id: file_a,
+            entity_type: "Product".to_owned(),
+            entity_id: Uuid::now_v7(),
+            bucket: "media".to_owned(),
+            object_key: "tenant-a/product.webp".to_owned(),
+            mime_type: "image/webp".to_owned(),
+            size_bytes: 32,
+            sha256: "a".repeat(64),
+            uploaded_by_user_id: fx.user_a,
+        },
+    )
+    .await
+    .expect("insert file A");
+
+    let ids_a = media::list_file_ids(&pools.app, fx.tenant_a)
+        .await
+        .expect("list files A");
+    assert_eq!(ids_a, vec![file_a]);
+
+    let ids_b = media::list_file_ids(&pools.app, fx.tenant_b)
+        .await
+        .expect("list files B");
+    assert!(ids_b.is_empty());
+
+    let cross = media::find_file_by_id(&pools.app, fx.tenant_a, file_a)
+        .await
+        .expect("find file under tenant A");
+    assert!(cross.is_some());
+
+    let ghost = Uuid::now_v7();
+    let missing = media::find_file_by_id(&pools.app, fx.tenant_b, ghost)
+        .await
+        .expect("find under tenant B");
+    assert!(missing.is_none());
 }
 
 #[tokio::test]

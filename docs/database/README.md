@@ -15,6 +15,17 @@
 | 04-sales | `sales` | `sales`, `sale_items` |
 | 05-reports | `reports` | `signing_keys`, `reports` |
 | 06-audit | `audit` | `events` |
+| 07-media | `media` | `files` |
+
+---
+
+## Phase 07 additions (2026-07-04)
+
+| Change | Migration |
+|--------|-----------|
+| `media` schema + `media.files` (metadata only; bytes in MinIO) | `20260704122200` |
+| RLS tenant isolation on `media.files` | `20260704122200` |
+| `app_user` GRANTs on `media` schema | `20260704122200` |
 
 ---
 
