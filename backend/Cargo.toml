@@ -4,6 +4,8 @@ members = [
     "crates/domain-shared",
     "crates/domain-identity",
     "crates/domain-commerces",
+    "crates/domain-inventory",
+    "crates/domain-sales",
     "crates/application",
     "crates/infra-postgres",
     "crates/infra-redis",
@@ -40,6 +42,8 @@ async-trait = "0.1"
 application = { path = "crates/application" }
 domain-commerces = { path = "crates/domain-commerces" }
 domain-identity = { path = "crates/domain-identity" }
+domain-inventory = { path = "crates/domain-inventory" }
+domain-sales = { path = "crates/domain-sales" }
 domain-shared = { path = "crates/domain-shared" }
 infra-crypto = { path = "crates/infra-crypto" }
 infra-postgres = { path = "crates/infra-postgres" }

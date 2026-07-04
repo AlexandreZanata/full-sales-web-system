@@ -1,0 +1,10 @@
+{
+  "requiredSaleFields": ["id", "commerceId", "driverId", "status", "paymentMethod", "totalAmount", "totalCurrency", "items"],
+  "requiredErrorFields": ["error"],
+  "requiredErrorDetailFields": ["code", "message", "correlationId"],
+  "requiredPaginationFields": ["items", "page", "pageSize", "total"],
+  "createSaleStatus": 201,
+  "validationErrorStatus": 400,
+  "notFoundStatus": 404,
+  "conflictStatus": 409
+}

@@ -194,9 +194,42 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ## OpenAPI
 
-Full schema: `docs/openapi.yaml` *(create in Phase 1 API implementation)*.
+Full schema: [`docs/openapi.yaml`](openapi.yaml) — Phase 3 (sales + products endpoints).
 
-<!--
-Agent: define OpenAPI before handler code.
-See agent-rules/10-api-design/contract-first.md
--->
+### Example: create sale
+
+```http
+POST /v1/sales
+Authorization: Bearer <jwt>
+Content-Type: application/json
+Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+
+{
+  "commerceId": "0192a1b2-c3d4-7890-abcd-ef1234567890",
+  "items": [{ "productId": "0192a1b2-c3d4-7890-abcd-ef1234567891", "quantity": 2 }],
+  "paymentMethod": "cash"
+}
+```
+
+**Response 201:**
+
+```json
+{
+  "id": "0192a1b2-c3d4-7890-abcd-ef1234567892",
+  "commerceId": "0192a1b2-c3d4-7890-abcd-ef1234567890",
+  "driverId": "0192a1b2-c3d4-7890-abcd-ef1234567893",
+  "status": "Pending",
+  "paymentMethod": "Cash",
+  "totalAmount": 2000,
+  "totalCurrency": "BRL",
+  "items": [
+    {
+      "productId": "0192a1b2-c3d4-7890-abcd-ef1234567891",
+      "quantity": 2,
+      "unitPriceAmount": 1000,
+      "unitPriceCurrency": "BRL",
+      "lineTotalAmount": 2000
+    }
+  ]
+}
+```

@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use infra_crypto::JwtService;
 use infra_postgres::PgPool;
-use infra_redis::RefreshTokenStore;
+use infra_redis::{IdempotencyStore, InMemoryIdempotencyStore, RefreshTokenStore};
 
 pub const JWT_SECRET_ENV: &str = "JWT_SECRET";
 
@@ -13,6 +13,7 @@ pub struct AppState {
     pub admin_pool: PgPool,
     pub app_pool: PgPool,
     pub refresh_store: Arc<dyn RefreshTokenStore>,
+    pub idempotency_store: Arc<dyn IdempotencyStore>,
     pub jwt: JwtService,
     pub refresh_ttl: Duration,
 }
@@ -21,5 +22,9 @@ impl AppState {
     pub fn jwt_from_env() -> JwtService {
         let secret = std::env::var(JWT_SECRET_ENV).unwrap_or_else(|_| "dev-only-secret".into());
         JwtService::new(secret, Duration::from_secs(15 * 60))
+    }
+
+    pub fn in_memory_idempotency() -> Arc<dyn IdempotencyStore> {
+        Arc::new(InMemoryIdempotencyStore::new())
     }
 }

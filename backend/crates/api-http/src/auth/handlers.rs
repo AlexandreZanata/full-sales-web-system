@@ -113,7 +113,7 @@ fn map_app_error(err: AppError) -> ApiError {
             ApiError::invalid_credentials()
         }
         AppError::Forbidden => ApiError::forbidden(),
-        AppError::Identity(_) => ApiError::bad_request("INVALID_INPUT"),
+        AppError::Identity(_) => ApiError::bad_request("INVALID_INPUT", "Invalid request"),
         AppError::Commerce(_) => ApiError::invalid_cnpj(),
     }
 }

@@ -77,6 +77,6 @@ fn map_commerce_error(err: application::AppError) -> ApiError {
     match err {
         application::AppError::Commerce(CommerceError::InvalidCnpj) => ApiError::invalid_cnpj(),
         application::AppError::Forbidden => ApiError::forbidden(),
-        _ => ApiError::bad_request("INVALID_INPUT"),
+        _ => ApiError::bad_request("INVALID_INPUT", "Invalid request"),
     }
 }

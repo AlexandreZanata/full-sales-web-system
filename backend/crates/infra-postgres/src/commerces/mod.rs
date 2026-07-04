@@ -44,3 +44,37 @@ pub async fn list_commerce_ids(
     tx.commit().await?;
     Ok(rows)
 }
+
+pub struct CommerceRow {
+    pub id: Uuid,
+    pub cnpj: String,
+    pub legal_name: String,
+    pub trade_name: String,
+    pub active: bool,
+}
+
+pub async fn find_commerce_by_id(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+) -> Result<Option<CommerceRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (Uuid, String, String, String, bool)>(
+        "SELECT id, cnpj, legal_name, trade_name, active
+         FROM commerces.commerces WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(
+        row.map(|(id, cnpj, legal_name, trade_name, active)| CommerceRow {
+            id,
+            cnpj,
+            legal_name,
+            trade_name,
+            active,
+        }),
+    )
+}

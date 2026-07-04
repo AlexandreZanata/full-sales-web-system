@@ -1,8 +1,11 @@
 mod auth;
 mod commerces;
 mod error;
+mod products;
 mod routes;
+mod sales;
 mod state;
+mod validation;
 
 use axum::Router;
 use http::HeaderName;

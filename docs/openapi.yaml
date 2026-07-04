@@ -1,0 +1,327 @@
+openapi: 3.1.0
+info:
+  title: Full Sales Web System API
+  version: 1.0.0
+  description: Driver/seller control system — sales, inventory, commerces (see docs/API-CONTRACT.md)
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: http://127.0.0.1:8080/v1
+    description: Local development
+
+paths:
+  /sales:
+    post:
+      summary: Create sale (UC-001 step 4)
+      operationId: createSale
+      tags: [Sales]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Optional replay key — same response returned on duplicate POST
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSaleRequest'
+      responses:
+        '201':
+          description: Sale created in Pending status
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of the created sale
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/CommerceNotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /sales/{id}:
+    get:
+      summary: Get sale by id
+      operationId: getSale
+      tags: [Sales]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SaleId'
+      responses:
+        '200':
+          description: Sale found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/SaleNotFound'
+
+  /sales/{id}/confirm:
+    post:
+      summary: Confirm sale (UC-001 step 6)
+      operationId: confirmSale
+      tags: [Sales]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SaleId'
+      responses:
+        '200':
+          description: Sale confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/SaleNotFound'
+        '409':
+          description: Invalid transition or insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /products:
+    get:
+      summary: List products (paginated catalog)
+      operationId: listProducts
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated product list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProducts'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    SaleId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    CommerceNotFound:
+      description: Commerce not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    SaleNotFound:
+      description: Sale not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnprocessableEntity:
+      description: Semantic domain error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      additionalProperties: false
+      properties:
+        error:
+          type: object
+          required: [code, message, correlationId]
+          additionalProperties: false
+          properties:
+            code:
+              type: string
+              example: SALE_NOT_FOUND
+            message:
+              type: string
+              example: Sale not found
+            correlationId:
+              type: string
+              format: uuid
+
+    CreateSaleRequest:
+      type: object
+      required: [commerceId, items, paymentMethod]
+      additionalProperties: false
+      properties:
+        commerceId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/CreateSaleItemRequest'
+        paymentMethod:
+          type: string
+          enum: [cash, pix, credit, debit]
+
+    CreateSaleItemRequest:
+      type: object
+      required: [productId, quantity]
+      additionalProperties: false
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+
+    Sale:
+      type: object
+      required:
+        - id
+        - commerceId
+        - driverId
+        - status
+        - paymentMethod
+        - totalAmount
+        - totalCurrency
+        - items
+      properties:
+        id:
+          type: string
+          format: uuid
+        commerceId:
+          type: string
+          format: uuid
+        driverId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [Pending, Confirmed, Cancelled]
+        paymentMethod:
+          type: string
+          enum: [Cash, Pix, Credit, Debit]
+        totalAmount:
+          type: integer
+          description: Total in minor units (centavos)
+        totalCurrency:
+          type: string
+          example: BRL
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleItem'
+
+    SaleItem:
+      type: object
+      required:
+        - productId
+        - quantity
+        - unitPriceAmount
+        - unitPriceCurrency
+        - lineTotalAmount
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+        unitPriceAmount:
+          type: integer
+        unitPriceCurrency:
+          type: string
+        lineTotalAmount:
+          type: integer
+
+    Product:
+      type: object
+      required: [id, name, sku, priceAmount, priceCurrency, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        priceAmount:
+          type: integer
+        priceCurrency:
+          type: string
+        active:
+          type: boolean
+
+    PaginatedProducts:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer

@@ -54,6 +54,7 @@ async fn setup() -> TestEnv {
         admin_pool: admin_pool.clone(),
         app_pool: app_pool.clone(),
         refresh_store: Arc::new(InMemoryRefreshTokenStore::new()),
+        idempotency_store: AppState::in_memory_idempotency(),
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: REFRESH_TOKEN_TTL,
     };

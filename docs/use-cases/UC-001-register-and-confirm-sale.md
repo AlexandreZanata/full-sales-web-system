@@ -71,11 +71,38 @@
 
 ## API mapping
 
-| Step | Endpoint |
-|------|----------|
-| 4 | `POST /v1/sales` |
-| 6 | `POST /v1/sales/{id}/confirm` |
-| AF-2 | `POST /v1/sales/{id}/cancel` |
+| Step | Endpoint | Example |
+|------|----------|---------|
+| 4 | `POST /v1/sales` | See request/response below |
+| 6 | `POST /v1/sales/{id}/confirm` | Returns 409 `INSUFFICIENT_STOCK` when stock insufficient |
+| AF-2 | `POST /v1/sales/{id}/cancel` | *(planned)* |
+
+### Example request (step 4)
+
+```http
+POST /v1/sales
+Authorization: Bearer <jwt>
+Content-Type: application/json
+
+{
+  "commerceId": "<commerce-uuid>",
+  "items": [{ "productId": "<product-uuid>", "quantity": 2 }],
+  "paymentMethod": "cash"
+}
+```
+
+### Example response 201
+
+```json
+{
+  "id": "<sale-uuid>",
+  "status": "Pending",
+  "totalAmount": 2000,
+  "totalCurrency": "BRL",
+  "paymentMethod": "Cash",
+  "items": [{ "productId": "<product-uuid>", "quantity": 2, "lineTotalAmount": 2000 }]
+}
+```
 
 ## Out of scope
 

@@ -34,6 +34,8 @@ dependencies = [
  "axum",
  "domain-commerces",
  "domain-identity",
+ "domain-inventory",
+ "domain-sales",
  "domain-shared",
  "http",
  "infra-crypto",
@@ -57,6 +59,8 @@ version = "0.1.0"
 dependencies = [
  "domain-commerces",
  "domain-identity",
+ "domain-inventory",
+ "domain-sales",
  "domain-shared",
  "thiserror",
  "uuid",
@@ -524,6 +528,29 @@ name = "domain-identity"
 version = "0.1.0"
 dependencies = [
  "domain-shared",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
+name = "domain-inventory"
+version = "0.1.0"
+dependencies = [
+ "domain-shared",
+ "serde",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
+name = "domain-sales"
+version = "0.1.0"
+dependencies = [
+ "domain-commerces",
+ "domain-identity",
+ "domain-inventory",
+ "domain-shared",
+ "serde",
  "thiserror",
  "uuid",
 ]

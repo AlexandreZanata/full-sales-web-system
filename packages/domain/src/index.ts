@@ -15,6 +15,8 @@ export {
   generateSaleId,
   generateCommerceId,
   generateProductId,
+  generateTenantId,
+  generateUserId,
 } from './value-objects/ids.js';
 export type { TenantId, UserId, CommerceId, ProductId, SaleId } from './value-objects/ids.js';
 

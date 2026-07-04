@@ -66,11 +66,67 @@ impl ApiError {
         }
     }
 
-    pub fn bad_request(code: &'static str) -> Self {
+    pub fn bad_request(code: &'static str, message: &'static str) -> Self {
         Self {
             status: StatusCode::BAD_REQUEST,
             code,
-            message: "Invalid request",
+            message,
+        }
+    }
+
+    pub fn sale_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "SALE_NOT_FOUND",
+            message: "Sale not found",
+        }
+    }
+
+    pub fn insufficient_stock() -> Self {
+        Self {
+            status: StatusCode::CONFLICT,
+            code: "INSUFFICIENT_STOCK",
+            message: "Insufficient stock to confirm sale",
+        }
+    }
+
+    pub fn invalid_transition() -> Self {
+        Self {
+            status: StatusCode::CONFLICT,
+            code: "INVALID_SALE_TRANSITION",
+            message: "Sale cannot transition to requested state",
+        }
+    }
+
+    pub fn commerce_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "COMMERCE_NOT_FOUND",
+            message: "Commerce not found",
+        }
+    }
+
+    pub fn product_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "PRODUCT_NOT_FOUND",
+            message: "Product not found",
+        }
+    }
+
+    pub fn inactive_commerce() -> Self {
+        Self {
+            status: StatusCode::UNPROCESSABLE_ENTITY,
+            code: "COMMERCE_INACTIVE",
+            message: "Commerce is inactive",
+        }
+    }
+
+    pub fn inactive_product() -> Self {
+        Self {
+            status: StatusCode::UNPROCESSABLE_ENTITY,
+            code: "INACTIVE_PRODUCT",
+            message: "Inactive product cannot be added to sale",
         }
     }
 
@@ -97,6 +153,12 @@ impl ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         self.into_response("unknown".to_owned())
+    }
+}
+
+impl axum::response::IntoResponse for &ApiError {
+    fn into_response(self) -> Response {
+        self.clone().into_response("unknown".to_owned())
     }
 }
 

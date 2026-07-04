@@ -37,3 +37,11 @@ export function generateCommerceId(): CommerceId {
 export function generateProductId(): ProductId {
   return generateUuid() as ProductId;
 }
+
+export function generateTenantId(): TenantId {
+  return generateUuid() as TenantId;
+}
+
+export function generateUserId(): UserId {
+  return generateUuid() as UserId;
+}

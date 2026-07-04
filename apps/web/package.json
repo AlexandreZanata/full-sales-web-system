@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint . && prettier --check .",
+    "lint": "eslint src && prettier --check 'src/**/*.{ts,tsx}' index.html vite.config.ts vitest.config.ts",
     "test": "vitest run",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "dev": "vite"

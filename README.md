@@ -24,6 +24,7 @@
 | [BUSINESS-RULES.md](docs/BUSINESS-RULES.md) | GIVEN/WHEN/THEN rules |
 | [STATE-MACHINES.md](docs/STATE-MACHINES.md) | Sale and lifecycle transitions |
 | [API-CONTRACT.md](docs/API-CONTRACT.md) | HTTP `/v1/` endpoints |
+| [openapi.yaml](docs/openapi.yaml) | OpenAPI 3.1 schema (Phase 3) |
 | [TESTING-STRATEGY.md](docs/TESTING-STRATEGY.md) | TDD pyramid, CI gates |
 | [SECURITY.md](docs/SECURITY.md) | Auth, RBAC, RLS |
 | [ROADMAP.md](docs/ROADMAP.md) | Build phases 1–6 |

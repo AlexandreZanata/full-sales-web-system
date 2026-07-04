@@ -1,0 +1,18 @@
+[package]
+name = "domain-sales"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+domain-commerces.workspace = true
+domain-identity.workspace = true
+domain-inventory.workspace = true
+domain-shared.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true

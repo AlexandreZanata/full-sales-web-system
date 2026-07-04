@@ -8,7 +8,11 @@ use uuid::Uuid;
 
 pub mod auth;
 pub mod commerces;
+pub mod products;
+pub mod sales;
 pub mod users;
+
+pub use commerces::restore_commerce;
 
 #[derive(Debug, Error)]
 pub enum AppError {

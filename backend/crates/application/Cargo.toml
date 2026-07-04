@@ -8,6 +8,8 @@ publish = false
 [dependencies]
 domain-commerces.workspace = true
 domain-identity.workspace = true
+domain-inventory.workspace = true
+domain-sales.workspace = true
 domain-shared.workspace = true
 thiserror.workspace = true
 uuid.workspace = true

@@ -58,6 +58,7 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         admin_pool,
         app_pool,
         refresh_store,
+        idempotency_store: AppState::in_memory_idempotency(),
         jwt: AppState::jwt_from_env(),
         refresh_ttl: REFRESH_TOKEN_TTL,
     };

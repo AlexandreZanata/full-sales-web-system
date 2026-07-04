@@ -3,6 +3,8 @@ use serde::Serialize;
 
 use crate::auth::{auth_middleware, login, logout, refresh};
 use crate::commerces::create_commerce;
+use crate::products::list_products;
+use crate::sales::{confirm_sale, create_sale, get_sale};
 use crate::state::AppState;
 
 /// API contract: `GET /health` → `{ "status": "ok" }`.
@@ -44,6 +46,10 @@ pub fn v1_router(state: AppState) -> Router {
     let protected = Router::new()
         .route("/v1/auth/logout", post(logout))
         .route("/v1/commerces", post(create_commerce))
+        .route("/v1/sales", post(create_sale))
+        .route("/v1/sales/{id}", get(get_sale))
+        .route("/v1/sales/{id}/confirm", post(confirm_sale))
+        .route("/v1/products", get(list_products))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,
