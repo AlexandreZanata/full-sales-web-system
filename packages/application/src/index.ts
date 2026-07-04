@@ -1,4 +1,4 @@
-import type { DomainScaffold } from '@full-sales/domain';
+import { SaleStatus } from '@full-sales/domain';
 
 /**
  * RFC 9457 / API-CONTRACT.md error shape for client-side handling.
@@ -34,6 +34,6 @@ export class ApplicationError extends Error {
 }
 
 /** Ensures application layer depends on domain package only (scaffold check). */
-export function applicationDomainRef(): DomainScaffold | undefined {
-  return undefined;
+export function applicationDomainRef(): typeof SaleStatus.Pending {
+  return SaleStatus.Pending;
 }

@@ -66,7 +66,29 @@
 ## Money
 
 **Definition:** Monetary amount in minor units (e.g. centavos) with currency code — never floating point.
-**Code name:** `Money`
+**Code name:** `Money`, `Currency`
+
+---
+
+## SaleStatus
+
+**Definition:** Lifecycle state of a `Sale` aggregate.
+**Enum values:** `Pending`, `Confirmed`, `Cancelled`
+**Code name:** `SaleStatus`
+
+---
+
+## FullName
+
+**Definition:** User display name Value Object — minimum two parts, validated at construction.
+**Code name:** `FullName`
+
+---
+
+## Email
+
+**Definition:** Validated email address Value Object for user identity fields.
+**Code name:** `Email`
 
 ---
 

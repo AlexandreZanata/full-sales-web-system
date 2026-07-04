@@ -2,6 +2,16 @@
 
 > Format: GIVEN / WHEN / THEN / AND. Each rule has an ID and maps to domain tests.
 
+**TypeScript domain tests:** `packages/domain/src/**/*.test.ts` (run `pnpm --filter @full-sales/domain test:coverage`).
+
+| Rule ID | Test file(s) |
+|---------|----------------|
+| BR-CO-001 | `packages/domain/src/value-objects/cnpj.test.ts` |
+| BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
+| BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
+| BR-SA-002 | `packages/domain/src/value-objects/money.test.ts`, `packages/domain/src/sales/sale-item.test.ts`, `packages/domain/src/sales/sale.test.ts` |
+| BR-SA-003 | `packages/domain/src/sales/sale.test.ts` |
+
 ---
 
 ## Identity & Access

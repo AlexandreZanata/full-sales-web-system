@@ -1,9 +1,60 @@
-/**
- * Client-side domain shell — business logic lives in Rust (`backend/crates/domain-*`).
- * This package holds shared types for the web client (Phase 1 scaffold).
- */
+// Value objects
+export { Currency } from './value-objects/currency.js';
+export { Money } from './value-objects/money.js';
+export { Quantity } from './value-objects/quantity.js';
+export { Cnpj } from './value-objects/cnpj.js';
+export { Sku } from './value-objects/sku.js';
+export { Email } from './value-objects/email.js';
+export { FullName } from './value-objects/full-name.js';
+export {
+  parseTenantId,
+  parseUserId,
+  parseCommerceId,
+  parseProductId,
+  parseSaleId,
+  generateSaleId,
+  generateCommerceId,
+  generateProductId,
+} from './value-objects/ids.js';
+export type { TenantId, UserId, CommerceId, ProductId, SaleId } from './value-objects/ids.js';
 
-/** Placeholder until OpenAPI-generated types land in Phase 3+. */
-export type DomainScaffold = Record<string, never>;
+// Shared enums
+export { PaymentMethod, parsePaymentMethod } from './shared/payment-method.js';
 
-export const DOMAIN_SCAFFOLD_VERSION = '0.1.0';
+// Aggregates
+export { Commerce } from './commerces/commerce.js';
+export type { CommerceCreateInput } from './commerces/commerce.js';
+export { Product } from './inventory/product.js';
+export type { ProductCreateInput } from './inventory/product.js';
+export { Sale } from './sales/sale.js';
+export type { SaleCreateInput, AddSaleItemInput } from './sales/sale.js';
+export { SaleItem } from './sales/sale-item.js';
+export { SaleStatus } from './sales/sale-status.js';
+
+// Domain events
+export type { DomainEvent } from './events/domain-event.js';
+export type {
+  SaleCreated,
+  SaleConfirmed,
+  SaleCancelled,
+  CommerceCreated,
+} from './events/sale-events.js';
+
+// Errors
+export {
+  DomainError,
+  NegativeMoneyAmountError,
+  InvalidCurrencyError,
+  CurrencyMismatchError,
+  MoneyOverflowError,
+  InvalidQuantityError,
+  InvalidUuidError,
+  InvalidCnpjError,
+  InvalidSkuError,
+  InvalidEmailError,
+  InvalidFullNameError,
+  InactiveProductError,
+  InactiveCommerceError,
+  EmptySaleError,
+  InvalidSaleTransitionError,
+} from './errors/domain-error.js';
