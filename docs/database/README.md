@@ -11,7 +11,7 @@
 | 00-shared | `shared` | `tenants` |
 | 01-identity | `identity` | `users`, `driver_profiles`, `seller_profiles` |
 | 02-commerces | `commerces` | `commerces`, `commerce_addresses` |
-| 03-inventory | `inventory` | `products`, `stock_movements`, `stock_balances` |
+| 03-inventory | `inventory` | `products`, `stock_movements`, `stock_balances`, `product_images`, `stock_reservations` |
 | 04-sales | `sales` | `sales`, `sale_items` |
 | 05-reports | `reports` | `signing_keys`, `reports` |
 | 06-audit | `audit` | `events` |
@@ -27,6 +27,28 @@
 | `media` schema + `media.files` (metadata only; bytes in MinIO) | `20260704122200` |
 | RLS tenant isolation on `media.files` | `20260704122200` |
 | `app_user` GRANTs on `media` schema | `20260704122200` |
+
+---
+
+## Phase 10 additions (2026-07-04)
+
+| Change | Migration |
+|--------|-----------|
+| `products.category`, `products.unit_of_measure` | `20260704122800` |
+| `inventory.product_images` (one primary per product) | `20260704122900` |
+| `inventory.stock_reservations` (RN2, ADR-010) | `20260704123000` |
+
+### Available stock formula (DE-001 / ADR-010)
+
+Tenant-level pool until driver is assigned at picking:
+
+```text
+available(tenant, product) =
+  SUM(stock_balances.quantity WHERE tenant_id AND product_id)
+  − SUM(stock_reservations.quantity_reserved WHERE status = 'Active' AND same tenant/product)
+```
+
+Field sales (`sales.order_id IS NULL`) continue to deduct directly on confirm — no reservation.
 
 ---
 

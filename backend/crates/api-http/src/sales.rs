@@ -128,6 +128,8 @@ pub async fn create_sale(
                 &row.price_currency,
                 auth.tenant_id,
                 row.active,
+                row.category.as_deref(),
+                &row.unit_of_measure,
             )
         })
         .collect::<Result<Vec<_>, _>>()

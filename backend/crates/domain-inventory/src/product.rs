@@ -2,6 +2,7 @@ use domain_shared::{Money, TenantId};
 
 use crate::product_id::ProductId;
 use crate::sku::Sku;
+use crate::unit_of_measure::UnitOfMeasure;
 
 pub struct ProductCreateInput {
     pub id: ProductId,
@@ -10,6 +11,8 @@ pub struct ProductCreateInput {
     pub unit_price: Money,
     pub tenant_id: TenantId,
     pub active: bool,
+    pub category: Option<String>,
+    pub unit_of_measure: UnitOfMeasure,
 }
 
 /// Sellable SKU with name, identifier, and unit price.
@@ -21,6 +24,8 @@ pub struct Product {
     unit_price: Money,
     tenant_id: TenantId,
     active: bool,
+    category: Option<String>,
+    unit_of_measure: UnitOfMeasure,
 }
 
 impl Product {
@@ -32,6 +37,11 @@ impl Product {
             unit_price: input.unit_price,
             tenant_id: input.tenant_id,
             active: input.active,
+            category: input
+                .category
+                .map(|c| c.trim().to_owned())
+                .filter(|c| !c.is_empty()),
+            unit_of_measure: input.unit_of_measure,
         }
     }
 
@@ -57,5 +67,13 @@ impl Product {
 
     pub fn is_active(&self) -> bool {
         self.active
+    }
+
+    pub fn category(&self) -> Option<&str> {
+        self.category.as_deref()
+    }
+
+    pub fn unit_of_measure(&self) -> UnitOfMeasure {
+        self.unit_of_measure
     }
 }

@@ -7,4 +7,7 @@ pub enum PostgresError {
 
     #[error("migration error: {0}")]
     Migration(#[from] sqlx::migrate::MigrateError),
+
+    #[error("insufficient available stock for reservation")]
+    InsufficientAvailableStock,
 }

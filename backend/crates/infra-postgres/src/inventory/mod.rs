@@ -5,6 +5,19 @@ use uuid::Uuid;
 use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
+pub mod product_images;
+pub mod reservations;
+
+pub struct ProductInsert {
+    pub id: Uuid,
+    pub sku: String,
+    pub name: String,
+    pub price_amount: i64,
+    pub price_currency: String,
+    pub category: Option<String>,
+    pub unit_of_measure: String,
+}
+
 pub async fn insert_product(
     pool: &PgPool,
     tenant_id: TenantId,
@@ -14,19 +27,42 @@ pub async fn insert_product(
     price_amount: i64,
     price_currency: &str,
 ) -> Result<(), PostgresError> {
+    insert_product_with_catalog(
+        pool,
+        tenant_id,
+        ProductInsert {
+            id,
+            sku: sku.to_owned(),
+            name: name.to_owned(),
+            price_amount,
+            price_currency: price_currency.to_owned(),
+            category: None,
+            unit_of_measure: "Unit".to_owned(),
+        },
+    )
+    .await
+}
+
+pub async fn insert_product_with_catalog(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product: ProductInsert,
+) -> Result<(), PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     sqlx::query(
         "INSERT INTO inventory.products
-         (id, tenant_id, sku, name, price_amount, price_currency)
-         VALUES ($1, $2, $3, $4, $5, $6)",
+         (id, tenant_id, sku, name, price_amount, price_currency, category, unit_of_measure)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
     )
-    .bind(id)
+    .bind(product.id)
     .bind(tenant_id.as_uuid())
-    .bind(sku)
-    .bind(name)
-    .bind(price_amount)
-    .bind(price_currency)
+    .bind(product.sku)
+    .bind(product.name)
+    .bind(product.price_amount)
+    .bind(product.price_currency)
+    .bind(product.category)
+    .bind(product.unit_of_measure)
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -53,6 +89,8 @@ pub struct ProductRow {
     pub price_amount: i64,
     pub price_currency: String,
     pub active: bool,
+    pub category: Option<String>,
+    pub unit_of_measure: String,
 }
 
 pub async fn list_products(
@@ -63,8 +101,8 @@ pub async fn list_products(
 ) -> Result<Vec<ProductRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool)>(
-        "SELECT id, sku, name, price_amount, price_currency, active
+    let rows = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool, Option<String>, String)>(
+        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
          FROM inventory.products ORDER BY sku LIMIT $1 OFFSET $2",
     )
     .bind(limit)
@@ -75,13 +113,17 @@ pub async fn list_products(
     Ok(rows
         .into_iter()
         .map(
-            |(id, sku, name, price_amount, price_currency, active)| ProductRow {
-                id,
-                sku,
-                name,
-                price_amount,
-                price_currency,
-                active,
+            |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
+                ProductRow {
+                    id,
+                    sku,
+                    name,
+                    price_amount,
+                    price_currency,
+                    active,
+                    category,
+                    unit_of_measure,
+                }
             },
         )
         .collect())
@@ -107,8 +149,8 @@ pub async fn find_products_by_ids(
     }
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool)>(
-        "SELECT id, sku, name, price_amount, price_currency, active
+    let rows = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool, Option<String>, String)>(
+        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
          FROM inventory.products WHERE id = ANY($1)",
     )
     .bind(ids)
@@ -118,13 +160,17 @@ pub async fn find_products_by_ids(
     Ok(rows
         .into_iter()
         .map(
-            |(id, sku, name, price_amount, price_currency, active)| ProductRow {
-                id,
-                sku,
-                name,
-                price_amount,
-                price_currency,
-                active,
+            |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
+                ProductRow {
+                    id,
+                    sku,
+                    name,
+                    price_amount,
+                    price_currency,
+                    active,
+                    category,
+                    unit_of_measure,
+                }
             },
         )
         .collect())

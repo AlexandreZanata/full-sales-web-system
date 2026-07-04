@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::reservation_status::ReservationStatus;
+
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum InventoryError {
     #[error("invalid product id")]
@@ -19,4 +21,28 @@ pub enum InventoryError {
 
     #[error("adjustment reason exceeds maximum length")]
     ReasonTooLong,
+
+    #[error("invalid unit of measure")]
+    InvalidUnitOfMeasure,
+
+    #[error("invalid product image id")]
+    InvalidProductImageId,
+
+    #[error("duplicate primary image for product")]
+    DuplicatePrimaryImage,
+
+    #[error("invalid reservation id")]
+    InvalidReservationId,
+
+    #[error("invalid reservation status")]
+    InvalidReservationStatus,
+
+    #[error("insufficient available stock for reservation")]
+    InsufficientAvailableStock,
+
+    #[error("invalid reservation transition from {from} to {to}")]
+    InvalidReservationTransition {
+        from: ReservationStatus,
+        to: ReservationStatus,
+    },
 }

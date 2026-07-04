@@ -13,6 +13,7 @@
 | BR-CO-004 | `backend/crates/domain-commerces/tests/commerce_address.rs` |
 | BR-CO-005 | `backend/crates/domain-commerces/tests/commerce_address.rs` |
 | BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
+| RN2 | `backend/crates/domain-inventory/tests/stock_reservation.rs`, `backend/crates/infra-postgres/tests/inventory_catalog.rs` |
 | BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-002 | `packages/domain/src/value-objects/money.test.ts`, `packages/domain/src/sales/sale-item.test.ts`, `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-003 | `packages/domain/src/sales/sale.test.ts` |
@@ -120,6 +121,24 @@ WHEN a SaleItem referencing that Product is added
 THEN the operation fails with InactiveProduct
 ```
 
+### RN2 — Reserve on approve, release on cancel, consume on delivery
+
+```
+GIVEN an order in PendingApproval with items within tenant available stock
+WHEN Admin approves
+THEN stock_reservations are created Active
+AND stock_balances quantity is NOT reduced yet
+
+GIVEN an approved order cancelled before InTransit
+WHEN release_reservations runs
+THEN Active reservations become Released
+
+GIVEN an approved order with confirmed delivery
+WHEN consume_reservations runs
+THEN Active reservations become Consumed
+AND StockMovement SaleOutbound reduces driver balance (Phase 12–13)
+```
+
 ---
 
 ## Sales
@@ -199,7 +218,7 @@ Full matrix: extend in use case authorization tables.
 
 | Rule ID | Summary | Phase | Test file (TBD) |
 |---------|---------|-------|-----------------|
-| RN2 | Reserve on approve; deduct on delivery | 10, 12–13 | `domain-orders/tests/reservation.rs` |
+| RN2 | Reserve on approve; deduct on delivery | 10, 12–13 | `domain-inventory/tests/stock_reservation.rs`, `infra-postgres/tests/inventory_catalog.rs` |
 | RN3 | Unit price frozen at order item creation | 11 | `domain-orders/tests/order_item.rs` |
 | RN4 | Proof photo required for Delivered | 12 | `domain-deliveries/tests/proof_required.rs` |
 | RN5 | Partial qty → PartiallyDelivered | 12 | `domain-deliveries/tests/partial_delivery.rs` |

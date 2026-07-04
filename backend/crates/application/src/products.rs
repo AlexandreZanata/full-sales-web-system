@@ -47,6 +47,8 @@ pub fn restore_product(
     price_currency: &str,
     tenant_id: TenantId,
     active: bool,
+    category: Option<&str>,
+    unit_of_measure: &str,
 ) -> Result<Product, ProductsAppError> {
     Ok(Product::create(domain_inventory::ProductCreateInput {
         id: ProductId::from_uuid(id),
@@ -55,6 +57,8 @@ pub fn restore_product(
         unit_price: Money::new(price_amount, Currency::parse(price_currency)?)?,
         tenant_id,
         active,
+        category: category.map(str::to_owned),
+        unit_of_measure: unit_of_measure.parse()?,
     }))
 }
 

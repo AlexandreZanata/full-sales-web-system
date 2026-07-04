@@ -153,7 +153,7 @@ impl Sale {
 mod tests {
     use domain_commerces::{Cnpj, Commerce, CommerceId, CreateCommerceInput};
     use domain_identity::UserId;
-    use domain_inventory::{Product, ProductCreateInput, ProductId, Quantity, Sku};
+    use domain_inventory::{Product, ProductCreateInput, ProductId, Quantity, Sku, UnitOfMeasure};
     use domain_shared::{Currency, Money, TenantId};
 
     use super::*;
@@ -176,6 +176,8 @@ mod tests {
             unit_price: Money::new(1_000, Currency::brl()).expect("price"),
             tenant_id,
             active: true,
+            category: None,
+            unit_of_measure: UnitOfMeasure::Unit,
         })
     }
 

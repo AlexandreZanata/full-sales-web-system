@@ -83,8 +83,31 @@
 
 ## Product
 
-**Definition:** Sellable SKU with name, identifier, and unit price.
+**Definition:** Sellable SKU with name, identifier, unit price, optional category, and unit of measure.
 **Code name:** `Product`
+
+---
+
+## UnitOfMeasure
+
+**Definition:** Catalog unit for a Product — how quantity is expressed on orders and in stock.
+**Enum values:** `Unit`, `Kg`, `Box`, `Liter`
+**Code name:** `UnitOfMeasure`
+
+---
+
+## ProductImage
+
+**Definition:** Gallery image linked to a Product — references `media.files`; one primary per product.
+**Code name:** `ProductImage`
+
+---
+
+## ReservationStatus
+
+**Definition:** Lifecycle state of a `StockReservation`.
+**Enum values:** `Active`, `Released`, `Consumed`
+**Code name:** `ReservationStatus`
 
 ---
 

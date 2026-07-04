@@ -1,0 +1,75 @@
+use domain_shared::TenantId;
+use sqlx::PgPool;
+use uuid::Uuid;
+
+use crate::PostgresError;
+use crate::rls::apply_tenant_context;
+
+pub struct ProductImageInsert {
+    pub id: Uuid,
+    pub product_id: Uuid,
+    pub file_id: Uuid,
+    pub sort_order: i32,
+    pub is_primary: bool,
+}
+
+pub async fn insert_product_image(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    row: ProductImageInsert,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    sqlx::query(
+        "INSERT INTO inventory.product_images
+         (id, tenant_id, product_id, file_id, sort_order, is_primary)
+         VALUES ($1, $2, $3, $4, $5, $6)",
+    )
+    .bind(row.id)
+    .bind(tenant_id.as_uuid())
+    .bind(row.product_id)
+    .bind(row.file_id)
+    .bind(row.sort_order)
+    .bind(row.is_primary)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(())
+}
+
+pub struct ProductImageRow {
+    pub id: Uuid,
+    pub product_id: Uuid,
+    pub file_id: Uuid,
+    pub sort_order: i32,
+    pub is_primary: bool,
+}
+
+pub async fn list_product_images(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product_id: Uuid,
+) -> Result<Vec<ProductImageRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (Uuid, Uuid, Uuid, i32, bool)>(
+        "SELECT id, product_id, file_id, sort_order, is_primary
+         FROM inventory.product_images
+         WHERE product_id = $1
+         ORDER BY sort_order, created_at",
+    )
+    .bind(product_id)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, product_id, file_id, sort_order, is_primary)| ProductImageRow {
+            id,
+            product_id,
+            file_id,
+            sort_order,
+            is_primary,
+        })
+        .collect())
+}
