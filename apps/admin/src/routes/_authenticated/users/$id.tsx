@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { ActiveBadge } from '@/components/users/ActiveBadge';
 import { DriverProfileTab } from '@/components/users/DriverProfileTab';
@@ -14,7 +14,8 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/hooks/useToast';
 import { deactivateUser, fetchUser } from '@/lib/api/users';
-import { USER_ROLE_LABELS } from '@/lib/users/constants';
+import { useI18n } from '@/lib/i18n/context';
+import { translateRole } from '@/lib/i18n/labels';
 
 export const Route = createFileRoute('/_authenticated/users/$id')({
   component: UserDetailPage,
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/_authenticated/users/$id')({
 
 function UserDetailPage() {
   const { id } = Route.useParams();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('overview');
@@ -33,13 +35,16 @@ function UserDetailPage() {
     queryFn: () => fetchUser(id),
   });
 
-  const tabs = [{ id: 'overview', label: 'Overview' }];
-  if (user.data?.role === 'Driver') {
-    tabs.push({ id: 'driver', label: 'Driver profile' });
-  }
-  if (user.data?.role === 'Seller') {
-    tabs.push({ id: 'seller', label: 'Seller profile' });
-  }
+  const tabs = useMemo(() => {
+    const items = [{ id: 'overview', label: t('users.detail.tabs.overview') }];
+    if (user.data?.role === 'Driver') {
+      items.push({ id: 'driver', label: t('users.detail.tabs.driverProfile') });
+    }
+    if (user.data?.role === 'Seller') {
+      items.push({ id: 'seller', label: t('users.detail.tabs.sellerProfile') });
+    }
+    return items;
+  }, [t, user.data?.role]);
 
   async function handleDeactivate() {
     setDeactivating(true);
@@ -47,10 +52,10 @@ function UserDetailPage() {
       await deactivateUser(id);
       await queryClient.invalidateQueries({ queryKey: ['users'] });
       await queryClient.invalidateQueries({ queryKey: ['users', id] });
-      toast.success('User deactivated');
+      toast.success(t('users.toast.deactivated'));
       setConfirmOpen(false);
     } catch {
-      toast.error('Unable to deactivate user');
+      toast.error(t('errors.actionFailed'));
     } finally {
       setDeactivating(false);
     }
@@ -67,8 +72,8 @@ function UserDetailPage() {
   if (!user.data) {
     return (
       <PageHeader
-        title="User not found"
-        back={<PageBackLink label="Back to users" to="/users" />}
+        title={t('users.detail.notFound')}
+        back={<PageBackLink label={t('common.backTo.users')} to="/users" />}
       />
     );
   }
@@ -80,7 +85,7 @@ function UserDetailPage() {
       <PageHeader
         title={detail.name}
         description={detail.email}
-        back={<PageBackLink label="Back to users" to="/users" />}
+        back={<PageBackLink label={t('common.backTo.users')} to="/users" />}
         actions={
           detail.active ? (
             <Button
@@ -89,7 +94,7 @@ function UserDetailPage() {
                 setConfirmOpen(true);
               }}
             >
-              Deactivate
+              {t('users.detail.deactivate')}
             </Button>
           ) : null
         }
@@ -98,11 +103,16 @@ function UserDetailPage() {
       <Tabs tabs={tabs} activeId={activeTab} onChange={setActiveTab}>
         {activeTab === 'overview' ? (
           <Card className="space-y-3">
-            <DetailRow label="Name" value={detail.name} />
-            <DetailRow label="Email" value={detail.email} />
-            <DetailRow label="Role" value={USER_ROLE_LABELS[detail.role]} />
-            <DetailRow label="Status" value={<ActiveBadge active={detail.active} />} />
-            {detail.commerceId ? <DetailRow label="Commerce ID" value={detail.commerceId} /> : null}
+            <DetailRow label={t('forms.fields.name')} value={detail.name} />
+            <DetailRow label={t('forms.fields.email')} value={detail.email} />
+            <DetailRow label={t('forms.fields.role')} value={translateRole(t, detail.role)} />
+            <DetailRow
+              label={t('forms.fields.status')}
+              value={<ActiveBadge active={detail.active} />}
+            />
+            {detail.commerceId ? (
+              <DetailRow label={t('forms.fields.commerceId')} value={detail.commerceId} />
+            ) : null}
           </Card>
         ) : null}
 
@@ -112,9 +122,9 @@ function UserDetailPage() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title="Deactivate user"
-        message="This user will no longer be able to sign in. You can create a new account later if needed."
-        confirmLabel="Deactivate"
+        title={t('users.detail.deactivateDialog.title')}
+        message={t('users.detail.deactivateDialog.message')}
+        confirmLabel={t('users.detail.deactivateDialog.confirm')}
         destructive
         isLoading={deactivating}
         onCancel={() => {

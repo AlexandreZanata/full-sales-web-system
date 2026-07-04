@@ -4,6 +4,7 @@ import { CreateUserForm } from '@/components/users/CreateUserForm';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createUser } from '@/lib/api/users';
+import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/_authenticated/users/new')({
   component: NewUserPage,
@@ -11,13 +12,14 @@ export const Route = createFileRoute('/_authenticated/users/new')({
 
 function NewUserPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <div>
       <PageHeader
-        title="New user"
-        description="Create an account and assign a role."
-        back={<PageBackLink label="Back to users" to="/users" />}
+        title={t('users.create.title')}
+        description={t('users.create.description')}
+        back={<PageBackLink label={t('common.backTo.users')} to="/users" />}
       />
 
       <CreateUserForm

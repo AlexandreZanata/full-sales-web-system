@@ -106,7 +106,7 @@ export function AdminShell({ children }: AdminShellProps) {
           className="fixed inset-0 z-50 md:hidden"
           role="dialog"
           aria-modal="true"
-          aria-label="Navigation menu"
+          aria-label={t('shell.navMenu')}
         >
           <button
             type="button"

@@ -23,12 +23,12 @@ describe('validateCreateSaleForm — Phase 34 contract', () => {
 
   it('given_missing_commerce_when_validate_then_commerce_error', () => {
     const errors = validateCreateSaleForm({ ...validForm, commerceId: '' });
-    expect(errors.commerceId).toBe('Select a commerce');
+    expect(errors.commerceId).toBe('forms.validation.selectCommerce');
   });
 
   it('given_invalid_payment_when_validate_then_payment_error', () => {
     const errors = validateCreateSaleForm({ ...validForm, paymentMethod: '' });
-    expect(errors.paymentMethod).toBe('Select a payment method');
+    expect(errors.paymentMethod).toBe('forms.validation.selectPaymentMethod');
   });
 
   it('given_empty_items_when_validate_then_has_errors', () => {
@@ -36,7 +36,7 @@ describe('validateCreateSaleForm — Phase 34 contract', () => {
       ...validForm,
       items: [{ productId: '', quantity: '' }],
     });
-    expect(errors.itemsRoot).toBe('Add at least one product line');
+    expect(errors.itemsRoot).toBe('forms.validation.itemsRequired');
     expect(hasFormErrors(errors)).toBe(true);
   });
 });

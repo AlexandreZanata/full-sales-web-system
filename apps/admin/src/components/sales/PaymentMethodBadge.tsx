@@ -1,4 +1,5 @@
-import { paymentMethodLabel } from '@/lib/sales/constants';
+import { useI18n } from '@/lib/i18n/context';
+import { translatePaymentMethod } from '@/lib/i18n/labels';
 import { cn } from '@/lib/utils';
 
 type PaymentMethodBadgeProps = {
@@ -7,6 +8,8 @@ type PaymentMethodBadgeProps = {
 };
 
 export function PaymentMethodBadge({ method, className }: PaymentMethodBadgeProps) {
+  const { t } = useI18n();
+
   return (
     <span
       className={cn(
@@ -14,7 +17,7 @@ export function PaymentMethodBadge({ method, className }: PaymentMethodBadgeProp
         className,
       )}
     >
-      {paymentMethodLabel(method)}
+      {translatePaymentMethod(t, method)}
     </span>
   );
 }

@@ -20,23 +20,23 @@ export function validateGenerateReportForm(
   const errors: GenerateReportFormErrors = {};
 
   if (!values.reportType || !REPORT_TYPES.includes(values.reportType)) {
-    errors.reportType = 'Select a report type';
+    errors.reportType = 'forms.validation.selectReportType';
   }
 
   if (!values.periodStart) {
-    errors.periodStart = 'Enter a start date';
+    errors.periodStart = 'forms.validation.periodStartRequired';
   }
 
   if (!values.periodEnd) {
-    errors.periodEnd = 'Enter an end date';
+    errors.periodEnd = 'forms.validation.periodEndRequired';
   }
 
   if (values.periodStart && values.periodEnd && values.periodStart > values.periodEnd) {
-    errors.periodEnd = 'End date must be on or after start date';
+    errors.periodEnd = 'forms.validation.periodEndBeforeStart';
   }
 
   if (!values.driverId) {
-    errors.driverId = 'Select a driver';
+    errors.driverId = 'forms.validation.selectDriver';
   }
 
   return errors;

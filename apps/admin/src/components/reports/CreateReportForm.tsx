@@ -10,8 +10,9 @@ import { ApiError } from '@/lib/api/client';
 import { fetchCommercesForPicker } from '@/lib/api/commerces';
 import type { GenerateReportRequest, Report } from '@/lib/api/types';
 import { fetchDriversForPicker } from '@/lib/api/users';
-import { REPORT_TYPE_LABELS, REPORT_TYPES } from '@/lib/reports/constants';
-import { reportActionErrorMessage } from '@/lib/reports/reportActionErrors';
+import { useI18n } from '@/lib/i18n/context';
+import { reportActionErrorKey, translateFormError, translateReportType } from '@/lib/i18n/labels';
+import { REPORT_TYPES } from '@/lib/reports/constants';
 import {
   hasFormErrors,
   toGenerateReportPayload,
@@ -33,6 +34,7 @@ type CreateReportFormProps = {
 };
 
 export function CreateReportForm({ onSubmit, onSuccess }: CreateReportFormProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<GenerateReportFormValues>(emptyForm);
   const [errors, setErrors] = useState<ReturnType<typeof validateGenerateReportForm>>({});
@@ -59,13 +61,13 @@ export function CreateReportForm({ onSubmit, onSuccess }: CreateReportFormProps)
     setSubmitting(true);
     try {
       const report = await onSubmit(toGenerateReportPayload(values));
-      toast.success('Report generated');
+      toast.success(t('reports.toast.generated'));
       onSuccess(report);
     } catch (error) {
       const message =
         error instanceof ApiError
-          ? reportActionErrorMessage(error.code)
-          : 'Unable to generate report';
+          ? t(reportActionErrorKey(error.code))
+          : t('errors.reports.generateFailed');
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -76,9 +78,9 @@ export function CreateReportForm({ onSubmit, onSuccess }: CreateReportFormProps)
     <Card>
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
         <Select
-          label="Report type"
+          label={t('forms.fields.reportType')}
           value={values.reportType}
-          error={errors.reportType}
+          error={translateFormError(t, errors.reportType)}
           onChange={(event) => {
             setValues((current) => ({
               ...current,
@@ -86,29 +88,29 @@ export function CreateReportForm({ onSubmit, onSuccess }: CreateReportFormProps)
             }));
           }}
         >
-          <option value="">Select report type</option>
+          <option value="">{t('forms.placeholders.selectReportType')}</option>
           {REPORT_TYPES.map((type) => (
             <option key={type} value={type}>
-              {REPORT_TYPE_LABELS[type]}
+              {translateReportType(t, type)}
             </option>
           ))}
         </Select>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            label="Period start"
+            label={t('forms.fields.periodStart')}
             type="date"
             value={values.periodStart}
-            error={errors.periodStart}
+            error={translateFormError(t, errors.periodStart)}
             onChange={(event) => {
               setValues((current) => ({ ...current, periodStart: event.target.value }));
             }}
           />
           <Input
-            label="Period end"
+            label={t('forms.fields.periodEnd')}
             type="date"
             value={values.periodEnd}
-            error={errors.periodEnd}
+            error={translateFormError(t, errors.periodEnd)}
             onChange={(event) => {
               setValues((current) => ({ ...current, periodEnd: event.target.value }));
             }}
@@ -116,15 +118,15 @@ export function CreateReportForm({ onSubmit, onSuccess }: CreateReportFormProps)
         </div>
 
         <Select
-          label="Driver"
+          label={t('forms.fields.driver')}
           value={values.driverId}
-          error={errors.driverId}
+          error={translateFormError(t, errors.driverId)}
           disabled={drivers.isLoading}
           onChange={(event) => {
             setValues((current) => ({ ...current, driverId: event.target.value }));
           }}
         >
-          <option value="">Select driver</option>
+          <option value="">{t('forms.placeholders.selectDriver')}</option>
           {(drivers.data ?? []).map((driver) => (
             <option key={driver.id} value={driver.id}>
               {driver.name}
@@ -133,15 +135,15 @@ export function CreateReportForm({ onSubmit, onSuccess }: CreateReportFormProps)
         </Select>
 
         <Select
-          label="Commerce (optional filter)"
+          label={t('reports.generate.commerceOptional')}
           value={values.commerceId}
-          error={errors.commerceId}
+          error={translateFormError(t, errors.commerceId)}
           disabled={commerces.isLoading}
           onChange={(event) => {
             setValues((current) => ({ ...current, commerceId: event.target.value }));
           }}
         >
-          <option value="">All commerces</option>
+          <option value="">{t('reports.generate.allCommerces')}</option>
           {(commerces.data ?? []).map((commerce) => (
             <option key={commerce.id} value={commerce.id}>
               {commerce.tradeName || commerce.legalName}
@@ -149,12 +151,10 @@ export function CreateReportForm({ onSubmit, onSuccess }: CreateReportFormProps)
           ))}
         </Select>
 
-        <p className="text-xs text-muted-foreground">
-          Empty periods produce a signed report with zero totals (ADR-003).
-        </p>
+        <p className="text-xs text-muted-foreground">{t('reports.generate.adrHint')}</p>
 
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Generating…' : 'Generate report'}
+          {submitting ? t('reports.generate.submitting') : t('reports.generate.submit')}
         </Button>
       </form>
     </Card>

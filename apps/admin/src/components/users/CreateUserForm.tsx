@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { fetchCommercesForPicker } from '@/lib/api/commerces';
 import type { User } from '@/lib/api/types';
-import { USER_ROLE_LABELS, USER_ROLES, type UserRoleOption } from '@/lib/users/constants';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError, translateRole } from '@/lib/i18n/labels';
+import { USER_ROLES, type UserRoleOption } from '@/lib/users/constants';
 import {
   hasCreateUserFormErrors,
   toCreateUserPayload,
@@ -29,6 +31,7 @@ const emptyForm: CreateUserFormValues = {
 };
 
 export function CreateUserForm({ onSubmit, onSuccess }: CreateUserFormProps) {
+  const { t } = useI18n();
   const [values, setValues] = useState<CreateUserFormValues>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof CreateUserFormValues, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -62,7 +65,7 @@ export function CreateUserForm({ onSubmit, onSuccess }: CreateUserFormProps) {
       const user = await onSubmit(toCreateUserPayload(values));
       onSuccess(user);
     } catch {
-      setSubmitError('Unable to create user. Check the form and try again.');
+      setSubmitError(t('errors.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -72,41 +75,41 @@ export function CreateUserForm({ onSubmit, onSuccess }: CreateUserFormProps) {
     <Card>
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
         <Input
-          label="Name"
+          label={t('forms.fields.name')}
           name="name"
           value={values.name}
-          error={errors.name}
+          error={translateFormError(t, errors.name)}
           onChange={(event) => {
             updateField('name', event.target.value);
           }}
         />
         <Input
-          label="Email"
+          label={t('forms.fields.email')}
           name="email"
           type="email"
           autoComplete="off"
           value={values.email}
-          error={errors.email}
+          error={translateFormError(t, errors.email)}
           onChange={(event) => {
             updateField('email', event.target.value);
           }}
         />
         <Input
-          label="Password"
+          label={t('forms.fields.password')}
           name="password"
           type="password"
           autoComplete="new-password"
           value={values.password}
-          error={errors.password}
+          error={translateFormError(t, errors.password)}
           onChange={(event) => {
             updateField('password', event.target.value);
           }}
         />
         <Select
-          label="Role"
+          label={t('forms.fields.role')}
           name="role"
           value={values.role}
-          error={errors.role}
+          error={translateFormError(t, errors.role)}
           onChange={(event) => {
             const role = event.target.value as UserRoleOption | '';
             updateField('role', role);
@@ -115,26 +118,26 @@ export function CreateUserForm({ onSubmit, onSuccess }: CreateUserFormProps) {
             }
           }}
         >
-          <option value="">Select role</option>
+          <option value="">{t('forms.placeholders.selectRole')}</option>
           {USER_ROLES.map((role) => (
             <option key={role} value={role}>
-              {USER_ROLE_LABELS[role]}
+              {translateRole(t, role)}
             </option>
           ))}
         </Select>
 
         {values.role === 'CommerceContact' ? (
           <Select
-            label="Commerce"
+            label={t('forms.fields.commerce')}
             name="commerceId"
             value={values.commerceId}
-            error={errors.commerceId}
+            error={translateFormError(t, errors.commerceId)}
             disabled={commerces.isLoading}
             onChange={(event) => {
               updateField('commerceId', event.target.value);
             }}
           >
-            <option value="">Select commerce</option>
+            <option value="">{t('forms.placeholders.selectCommerce')}</option>
             {commerces.data?.map((commerce) => (
               <option key={commerce.id} value={commerce.id}>
                 {commerce.tradeName || commerce.legalName}
@@ -146,7 +149,7 @@ export function CreateUserForm({ onSubmit, onSuccess }: CreateUserFormProps) {
         {submitError ? <p className="text-sm text-destructive">{submitError}</p> : null}
 
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Creating…' : 'Create user'}
+          {submitting ? t('users.create.submitting') : t('users.create.submit')}
         </Button>
       </form>
     </Card>

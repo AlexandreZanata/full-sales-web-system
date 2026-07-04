@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, ShoppingCart, Truck } from 'lucide-react';
 
-import { DomainStatusBadge } from '@/components/status/DomainStatusBadge';
+import { SaleStatusBadge } from '@/components/sales/SaleStatusBadge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
@@ -15,7 +15,7 @@ import {
   fetchWaitingDeliveriesCount,
 } from '@/lib/api/dashboard';
 import type { SaleSummary } from '@/lib/api/types';
-import { getSaleStatusToken, type SaleStatus } from '@/lib/admin-tokens';
+import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/_authenticated/')({
   component: DashboardPage,
@@ -35,37 +35,20 @@ function formatDateTime(value: string): string {
   }).format(new Date(value));
 }
 
-const saleColumns: DataTableColumn<SaleSummary>[] = [
-  {
-    id: 'createdAt',
-    header: 'Date',
-    cell: (row) => formatDateTime(row.createdAt),
-  },
-  {
-    id: 'status',
-    header: 'Status',
-    cell: (row) => <DomainStatusBadge colors={getSaleStatusToken(row.status as SaleStatus)} />,
-  },
-  {
-    id: 'total',
-    header: 'Total',
-    align: 'right',
-    cell: (row) => formatMoney(row.totalAmount, row.totalCurrency),
-  },
-];
-
 function StatCard({
   title,
   value,
   loading,
   to,
   icon: Icon,
+  viewAllLabel,
 }: {
   title: string;
   value: number | null;
   loading: boolean;
   to: '/orders' | '/deliveries' | '/sales';
   icon: typeof ShoppingCart;
+  viewAllLabel: string;
 }) {
   return (
     <Card className="flex flex-col gap-3 p-5">
@@ -86,7 +69,7 @@ function StatCard({
         to={to}
         className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:underline"
       >
-        View all
+        {viewAllLabel}
         <ArrowRight className="size-4" aria-hidden />
       </Link>
     </Card>
@@ -94,6 +77,7 @@ function StatCard({
 }
 
 function DashboardPage() {
+  const { t } = useI18n();
   const pendingOrders = useQuery({
     queryKey: ['dashboard', 'pendingOrders'],
     queryFn: fetchPendingOrdersCount,
@@ -107,37 +91,57 @@ function DashboardPage() {
     queryFn: () => fetchRecentSales(5),
   });
 
+  const saleColumns: DataTableColumn<SaleSummary>[] = [
+    {
+      id: 'createdAt',
+      header: t('common.table.date'),
+      cell: (row) => formatDateTime(row.createdAt),
+    },
+    {
+      id: 'status',
+      header: t('common.table.status'),
+      cell: (row) => <SaleStatusBadge status={row.status} />,
+    },
+    {
+      id: 'total',
+      header: t('common.table.total'),
+      align: 'right',
+      cell: (row) => formatMoney(row.totalAmount, row.totalCurrency),
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Overview of pending approvals, deliveries, and recent sales."
-      />
+      <PageHeader title={t('dashboard.title')} description={t('dashboard.description')} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <StatCard
-          title="Pending approval"
+          title={t('dashboard.stats.pendingApproval')}
           value={pendingOrders.data ?? null}
           loading={pendingOrders.isLoading}
           to="/orders"
           icon={ShoppingCart}
+          viewAllLabel={t('common.viewAll')}
         />
         <StatCard
-          title="Deliveries waiting"
+          title={t('dashboard.stats.deliveriesWaiting')}
           value={waitingDeliveries.data ?? null}
           loading={waitingDeliveries.isLoading}
           to="/deliveries"
           icon={Truck}
+          viewAllLabel={t('common.viewAll')}
         />
       </div>
 
       <Card className="p-0">
         <div className="border-b border-hairline px-5 py-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-semibold text-foreground">Recent sales</h2>
+            <h2 className="text-base font-semibold text-foreground">
+              {t('dashboard.recentSales.title')}
+            </h2>
             <Link to="/sales">
               <Button variant="secondary" type="button">
-                All sales
+                {t('dashboard.recentSales.viewAll')}
               </Button>
             </Link>
           </div>
@@ -149,7 +153,7 @@ function DashboardPage() {
           </div>
         ) : recentSales.data && recentSales.data.length > 0 ? (
           <DataTable
-            caption="Recent sales"
+            caption={t('dashboard.recentSales.caption')}
             columns={saleColumns}
             rows={recentSales.data}
             getRowKey={(row) => row.id}
@@ -157,7 +161,10 @@ function DashboardPage() {
             className="border-0"
           />
         ) : (
-          <EmptyState title="No recent sales" description="Sales will appear here once recorded." />
+          <EmptyState
+            title={t('dashboard.recentSales.empty.title')}
+            description={t('dashboard.recentSales.empty.description')}
+          />
         )}
       </Card>
     </div>

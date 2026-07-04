@@ -1,5 +1,6 @@
 import type { ReportType } from '@/lib/api/types';
-import { REPORT_TYPE_LABELS } from '@/lib/reports/constants';
+import { useI18n } from '@/lib/i18n/context';
+import { translateReportType } from '@/lib/i18n/labels';
 import { cn } from '@/lib/utils';
 
 type ReportTypeBadgeProps = {
@@ -8,7 +9,7 @@ type ReportTypeBadgeProps = {
 };
 
 export function ReportTypeBadge({ reportType, className }: ReportTypeBadgeProps) {
-  const label = REPORT_TYPE_LABELS[reportType];
+  const { t } = useI18n();
 
   return (
     <span
@@ -18,7 +19,7 @@ export function ReportTypeBadge({ reportType, className }: ReportTypeBadgeProps)
       )}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-foreground" aria-hidden />
-      {label}
+      {translateReportType(t, reportType)}
     </span>
   );
 }

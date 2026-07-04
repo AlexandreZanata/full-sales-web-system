@@ -3,10 +3,11 @@ import { cn } from '@/lib/utils';
 
 type DomainStatusBadgeProps = {
   colors: StatusToken;
+  label: string;
   className?: string;
 };
 
-export function DomainStatusBadge({ colors, className }: DomainStatusBadgeProps) {
+export function DomainStatusBadge({ colors, label, className }: DomainStatusBadgeProps) {
   return (
     <span
       className={cn(
@@ -16,7 +17,7 @@ export function DomainStatusBadge({ colors, className }: DomainStatusBadgeProps)
       )}
     >
       <span className={cn('size-1.5 rounded-full', colors.dot)} aria-hidden />
-      {colors.label}
+      {label}
     </span>
   );
 }

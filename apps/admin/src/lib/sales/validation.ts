@@ -30,11 +30,11 @@ export function validateCreateSaleForm(values: CreateSaleFormValues): CreateSale
   const errors: CreateSaleFormErrors = {};
 
   if (!values.commerceId) {
-    errors.commerceId = 'Select a commerce';
+    errors.commerceId = 'forms.validation.selectCommerce';
   }
 
   if (!values.paymentMethod || !PAYMENT_METHODS.includes(values.paymentMethod)) {
-    errors.paymentMethod = 'Select a payment method';
+    errors.paymentMethod = 'forms.validation.selectPaymentMethod';
   }
 
   const itemErrors: CreateSaleFormErrors['items'] = [];
@@ -45,10 +45,10 @@ export function validateCreateSaleForm(values: CreateSaleFormValues): CreateSale
     const qty = parseQuantity(line.quantity);
 
     if (!line.productId) {
-      lineErrors.productId = 'Select a product';
+      lineErrors.productId = 'forms.validation.selectProduct';
     }
     if (qty === null) {
-      lineErrors.quantity = 'Enter a positive quantity';
+      lineErrors.quantity = 'forms.validation.quantityNonZero';
     }
     if (line.productId && qty !== null) {
       completeLines += 1;
@@ -57,7 +57,7 @@ export function validateCreateSaleForm(values: CreateSaleFormValues): CreateSale
   });
 
   if (completeLines === 0) {
-    errors.itemsRoot = 'Add at least one product line';
+    errors.itemsRoot = 'forms.validation.itemsRequired';
     errors.items = itemErrors;
   } else if (itemErrors.some((line) => Object.keys(line).length > 0)) {
     errors.items = itemErrors;

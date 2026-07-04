@@ -22,13 +22,13 @@ export function validateCreateProductForm(
   const errors: FormErrors<keyof CreateProductFormValues> = {};
 
   if (!values.name.trim()) {
-    errors.name = 'Name is required';
+    errors.name = 'forms.validation.nameRequired';
   }
   if (!values.sku.trim()) {
-    errors.sku = 'SKU is required';
+    errors.sku = 'forms.validation.skuRequired';
   }
   if (parsePriceInput(values.price) === null) {
-    errors.price = 'Enter a valid price';
+    errors.price = 'forms.validation.priceInvalid';
   }
 
   return errors;
@@ -40,10 +40,10 @@ export function validateEditProductForm(
   const errors: FormErrors<keyof EditProductFormValues> = {};
 
   if (!values.name.trim()) {
-    errors.name = 'Name is required';
+    errors.name = 'forms.validation.nameRequired';
   }
   if (parsePriceInput(values.price) === null) {
-    errors.price = 'Enter a valid price';
+    errors.price = 'forms.validation.priceInvalid';
   }
 
   return errors;

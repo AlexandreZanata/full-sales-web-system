@@ -1,14 +1,19 @@
 /**
- * Contract: Phase 34 — payment and declared payment badge helpers.
+ * Contract: Phase 34 — payment and declared payment badge helpers (i18n keys).
  */
 import { describe, expect, it } from 'vitest';
 
-import { declaredPaymentLabel, isDeclaredPayment, paymentMethodLabel } from '@/lib/sales/constants';
+import { en } from '@/lib/i18n/locales/en';
+import { translateDeclaredPayment, translatePaymentMethod } from '@/lib/i18n/labels';
+import { translate } from '@/lib/i18n/translate';
+import { isDeclaredPayment } from '@/lib/sales/constants';
 
-describe('paymentMethodLabel — ADR-006 contract', () => {
+const t = (key: Parameters<typeof translate>[1]) => translate(en, key);
+
+describe('translatePaymentMethod — ADR-006 contract', () => {
   it('when_cash_then_cash_label', () => {
-    expect(paymentMethodLabel('Cash')).toBe('Cash');
-    expect(paymentMethodLabel('cash')).toBe('Cash');
+    expect(translatePaymentMethod(t, 'Cash')).toBe('Cash');
+    expect(translatePaymentMethod(t, 'cash')).toBe('Cash');
   });
 });
 
@@ -24,6 +29,6 @@ describe('isDeclaredPayment — RN-PAG1 contract', () => {
 
   it('when_pix_declared_then_true', () => {
     expect(isDeclaredPayment('Pix', false)).toBe(true);
-    expect(declaredPaymentLabel('Pix', true)).toContain('received');
+    expect(translateDeclaredPayment(t, 'Pix', true)).toContain('received');
   });
 });

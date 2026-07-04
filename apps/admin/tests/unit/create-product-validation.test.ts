@@ -28,7 +28,7 @@ describe('validateCreateProductForm — Phase 32 contract', () => {
       price: '10,00',
       priceCurrency: 'BRL',
     });
-    expect(errors.sku).toBe('SKU is required');
+    expect(errors.sku).toBe('forms.validation.skuRequired');
   });
 });
 
@@ -51,6 +51,6 @@ describe('validateEditProductForm — Phase 32 contract', () => {
       price: '',
       priceCurrency: 'BRL',
     });
-    expect(errors.price).toBe('Enter a valid price');
+    expect(errors.price).toBe('forms.validation.priceInvalid');
   });
 });

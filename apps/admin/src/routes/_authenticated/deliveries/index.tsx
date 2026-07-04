@@ -11,11 +11,10 @@ import { Select } from '@/components/ui/Select';
 import { fetchDeliveries } from '@/lib/api/deliveries';
 import { fetchDriversForPicker } from '@/lib/api/users';
 import type { DeliveryDetail } from '@/lib/api/types';
-import {
-  DELIVERY_STATUS_FILTER_LABELS,
-  type DeliveryStatusFilter,
-} from '@/lib/deliveries/constants';
+import { DELIVERY_STATUS_FILTERS, type DeliveryStatusFilter } from '@/lib/deliveries/constants';
 import { getDeliveryStatusToken, type DeliveryStatus } from '@/lib/admin-tokens';
+import { useI18n } from '@/lib/i18n/context';
+import { deliveryStatusFilterLabel, translateDeliveryStatus } from '@/lib/i18n/labels';
 import { paginatedResponseToTable } from '@/lib/tablePagination';
 
 export const Route = createFileRoute('/_authenticated/deliveries/')({
@@ -23,6 +22,7 @@ export const Route = createFileRoute('/_authenticated/deliveries/')({
 });
 
 function DeliveriesListPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<DeliveryStatusFilter>('');
@@ -48,61 +48,67 @@ function DeliveriesListPage() {
 
   const pagination = deliveries.data ? paginatedResponseToTable(deliveries.data) : null;
 
-  const columns: DataTableColumn<DeliveryDetail>[] = [
-    {
-      id: 'id',
-      header: 'Delivery',
-      cell: (row) => <span className="font-mono text-xs">{row.id.slice(0, 8)}…</span>,
-    },
-    {
-      id: 'orderId',
-      header: 'Order',
-      cell: (row) => (
-        <Link
-          to="/orders/$id"
-          params={{ id: row.orderId }}
-          className="font-mono text-xs hover:underline"
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-        >
-          {row.orderId.slice(0, 8)}…
-        </Link>
-      ),
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: (row) => (
-        <DomainStatusBadge colors={getDeliveryStatusToken(row.status as DeliveryStatus)} />
-      ),
-    },
-    {
-      id: 'driverId',
-      header: 'Driver',
-      cell: (row) => driverNames.get(row.driverId) ?? `${row.driverId.slice(0, 8)}…`,
-    },
-  ];
+  const columns: DataTableColumn<DeliveryDetail>[] = useMemo(
+    () => [
+      {
+        id: 'id',
+        header: t('forms.fields.delivery'),
+        cell: (row) => <span className="font-mono text-xs">{row.id.slice(0, 8)}…</span>,
+      },
+      {
+        id: 'orderId',
+        header: t('forms.fields.order'),
+        cell: (row) => (
+          <Link
+            to="/orders/$id"
+            params={{ id: row.orderId }}
+            className="font-mono text-xs hover:underline"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            {row.orderId.slice(0, 8)}…
+          </Link>
+        ),
+      },
+      {
+        id: 'status',
+        header: t('common.table.status'),
+        cell: (row) => (
+          <DomainStatusBadge
+            colors={getDeliveryStatusToken(row.status as DeliveryStatus)}
+            label={translateDeliveryStatus(t, row.status as DeliveryStatus)}
+          />
+        ),
+      },
+      {
+        id: 'driverId',
+        header: t('forms.fields.driver'),
+        cell: (row) => driverNames.get(row.driverId) ?? `${row.driverId.slice(0, 8)}…`,
+      },
+    ],
+    [t, driverNames],
+  );
 
   return (
     <div>
       <PageHeader
-        title="Deliveries"
-        description="Monitor all deliveries across the fleet (read-only oversight)."
+        title={t('deliveries.list.title')}
+        description={t('deliveries.list.description')}
       />
 
       <div className="mb-4 max-w-xs">
         <Select
-          label="Filter by status"
+          label={t('deliveries.list.filterByStatus')}
           value={statusFilter}
           onChange={(event) => {
             setStatusFilter(event.target.value as DeliveryStatusFilter);
             setPage(1);
           }}
         >
-          {(Object.keys(DELIVERY_STATUS_FILTER_LABELS) as DeliveryStatusFilter[]).map((value) => (
+          {DELIVERY_STATUS_FILTERS.map((value) => (
             <option key={value || 'all'} value={value}>
-              {DELIVERY_STATUS_FILTER_LABELS[value]}
+              {deliveryStatusFilterLabel(t, value)}
             </option>
           ))}
         </Select>
@@ -114,7 +120,7 @@ function DeliveriesListPage() {
         </div>
       ) : deliveries.data && deliveries.data.items.length > 0 ? (
         <DataTable
-          caption="Deliveries"
+          caption={t('deliveries.list.caption')}
           columns={columns}
           rows={deliveries.data.items}
           getRowKey={(row) => row.id}
@@ -126,12 +132,8 @@ function DeliveriesListPage() {
         />
       ) : (
         <EmptyState
-          title="No deliveries found"
-          description={
-            statusFilter
-              ? 'Try another status filter or assign a delivery from an order.'
-              : 'Deliveries appear here once assigned from approved or picking orders.'
-          }
+          title={t('deliveries.list.empty.title')}
+          description={t('deliveries.list.empty.description')}
         />
       )}
     </div>

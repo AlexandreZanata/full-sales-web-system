@@ -4,6 +4,7 @@ import { CreateSaleForm } from '@/components/sales/CreateSaleForm';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createSale } from '@/lib/api/sales';
+import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/_authenticated/sales/new')({
   component: NewSalePage,
@@ -11,13 +12,14 @@ export const Route = createFileRoute('/_authenticated/sales/new')({
 
 function NewSalePage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <div>
       <PageHeader
-        title="New sale"
-        description="Record a field sale on behalf of the tenant."
-        back={<PageBackLink label="Back to sales" to="/sales" />}
+        title={t('sales.create.title')}
+        description={t('sales.create.description')}
+        back={<PageBackLink label={t('common.backTo.sales')} to="/sales" />}
       />
 
       <CreateSaleForm

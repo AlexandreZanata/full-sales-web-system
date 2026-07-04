@@ -33,17 +33,17 @@ describe('validateCreateCommerceForm — Phase 31 contract', () => {
 
   it('given_invalid_cnpj_when_validate_then_cnpj_error', () => {
     const errors = validateCreateCommerceForm({ ...validCommerce, cnpj: '11.111.111/1111-11' });
-    expect(errors.cnpj).toBe('Enter a valid CNPJ');
+    expect(errors.cnpj).toBe('forms.validation.cnpjInvalid');
   });
 
   it('given_empty_legal_name_when_validate_then_required', () => {
     const errors = validateCreateCommerceForm({ ...validCommerce, legalName: '  ' });
-    expect(errors.legalName).toBe('Legal name is required');
+    expect(errors.legalName).toBe('forms.validation.legalNameRequired');
   });
 
   it('given_invalid_contact_email_when_validate_then_email_error', () => {
     const errors = validateCreateCommerceForm({ ...validCommerce, contactEmail: 'bad' });
-    expect(errors.contactEmail).toBe('Enter a valid email address');
+    expect(errors.contactEmail).toBe('forms.validation.emailInvalid');
   });
 });
 
@@ -74,6 +74,6 @@ describe('validateAddressForm — Phase 31 contract', () => {
 
   it('given_missing_type_when_validate_then_type_required', () => {
     const errors = validateAddressForm({ ...validAddress, addressType: '' });
-    expect(errors.addressType).toBe('Select an address type');
+    expect(errors.addressType).toBe('forms.validation.addressTypeRequired');
   });
 });

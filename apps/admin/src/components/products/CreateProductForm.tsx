@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { ApiError } from '@/lib/api/client';
 import type { CreateProductRequest, Product } from '@/lib/api/types';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError } from '@/lib/i18n/labels';
 import {
   hasFormErrors,
   toCreateProductPayload,
   validateCreateProductForm,
   type CreateProductFormValues,
 } from '@/lib/products/validation';
-import { formatApiErrorMessage } from '@/lib/utils';
 
 type CreateProductFormProps = {
   onSubmit: (payload: CreateProductRequest) => Promise<Product>;
@@ -27,6 +27,7 @@ const emptyForm: CreateProductFormValues = {
 };
 
 export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<CreateProductFormValues>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof CreateProductFormValues, string>>>({});
@@ -51,12 +52,8 @@ export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProp
     try {
       const product = await onSubmit(toCreateProductPayload(values));
       onSuccess(product);
-    } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to create product';
-      toast.error(message);
+    } catch {
+      toast.error(t('errors.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -67,36 +64,36 @@ export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProp
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            label="Name"
+            label={t('forms.fields.name')}
             name="name"
             value={values.name}
-            error={errors.name}
+            error={translateFormError(t, errors.name)}
             onChange={(event) => {
               updateField('name', event.target.value);
             }}
           />
           <Input
-            label="SKU"
+            label={t('forms.fields.sku')}
             name="sku"
             value={values.sku}
-            error={errors.sku}
+            error={translateFormError(t, errors.sku)}
             onChange={(event) => {
               updateField('sku', event.target.value);
             }}
           />
           <Input
-            label="Price"
+            label={t('forms.fields.price')}
             name="price"
             inputMode="decimal"
-            placeholder="0,00"
+            placeholder={t('forms.placeholders.price')}
             value={values.price}
-            error={errors.price}
+            error={translateFormError(t, errors.price)}
             onChange={(event) => {
               updateField('price', event.target.value);
             }}
           />
           <Input
-            label="Currency"
+            label={t('forms.fields.currency')}
             name="priceCurrency"
             value={values.priceCurrency}
             onChange={(event) => {
@@ -106,7 +103,7 @@ export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProp
         </div>
 
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Creating…' : 'Create product'}
+          {submitting ? t('products.create.submitting') : t('products.create.submit')}
         </Button>
       </form>
     </Card>

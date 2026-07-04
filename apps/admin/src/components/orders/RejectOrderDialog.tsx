@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Textarea } from '@/components/ui/Textarea';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError } from '@/lib/i18n/labels';
 import {
   hasFormErrors,
   validateRejectOrderForm,
@@ -22,6 +24,7 @@ export function RejectOrderDialog({
   onCancel,
   onConfirm,
 }: RejectOrderDialogProps) {
+  const { t } = useI18n();
   const [values, setValues] = useState<RejectOrderFormValues>({ reason: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof RejectOrderFormValues, string>>>({});
 
@@ -51,14 +54,12 @@ export function RejectOrderDialog({
         aria-labelledby="reject-order-title"
       >
         <h2 id="reject-order-title" className="text-lg font-semibold text-foreground">
-          Reject order
+          {t('orders.rejectDialog.title')}
         </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Provide a reason for rejecting this order. This is required (RN10).
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t('orders.rejectDialog.description')}</p>
         <div className="mt-4">
           <Textarea
-            label="Rejection reason"
+            label={t('forms.fields.rejectionReason')}
             value={values.reason}
             onChange={(event) => {
               setValues({ reason: event.target.value });
@@ -66,17 +67,17 @@ export function RejectOrderDialog({
                 setErrors({});
               }
             }}
-            error={errors.reason}
+            error={translateFormError(t, errors.reason)}
             disabled={isLoading}
             rows={4}
           />
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" onClick={handleCancel} disabled={isLoading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant="danger" onClick={handleConfirm} disabled={isLoading}>
-            {isLoading ? 'Rejecting…' : 'Reject order'}
+            {isLoading ? t('orders.rejectDialog.submitting') : t('orders.rejectDialog.submit')}
           </Button>
         </div>
       </Card>

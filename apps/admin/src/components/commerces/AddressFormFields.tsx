@@ -1,11 +1,9 @@
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import {
-  ADDRESS_TYPE_LABELS,
-  ADDRESS_TYPES,
-  type AddressTypeOption,
-} from '@/lib/commerces/constants';
+import { ADDRESS_TYPES, type AddressTypeOption } from '@/lib/commerces/constants';
 import type { AddressFormValues } from '@/lib/commerces/validation';
+import { useI18n } from '@/lib/i18n/context';
+import { translateAddressType, translateFormError } from '@/lib/i18n/labels';
 
 type AddressFormFieldsProps = {
   values: AddressFormValues;
@@ -20,22 +18,24 @@ export function AddressFormFields({
   showTypeField = true,
   onChange,
 }: AddressFormFieldsProps) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-4">
       {showTypeField ? (
         <Select
-          label="Address type"
+          label={t('forms.fields.addressType')}
           name="addressType"
           value={values.addressType}
-          error={errors.addressType}
+          error={translateFormError(t, errors.addressType)}
           onChange={(event) => {
             onChange('addressType', event.target.value as AddressTypeOption | '');
           }}
         >
-          <option value="">Select type</option>
+          <option value="">{t('forms.placeholders.selectAddressType')}</option>
           {ADDRESS_TYPES.map((type) => (
             <option key={type} value={type}>
-              {ADDRESS_TYPE_LABELS[type]}
+              {translateAddressType(t, type)}
             </option>
           ))}
         </Select>
@@ -43,25 +43,25 @@ export function AddressFormFields({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
-          label="Street"
+          label={t('forms.fields.street')}
           name="street"
           value={values.street}
-          error={errors.street}
+          error={translateFormError(t, errors.street)}
           onChange={(event) => {
             onChange('street', event.target.value);
           }}
         />
         <Input
-          label="Number"
+          label={t('forms.fields.number')}
           name="number"
           value={values.number}
-          error={errors.number}
+          error={translateFormError(t, errors.number)}
           onChange={(event) => {
             onChange('number', event.target.value);
           }}
         />
         <Input
-          label="District"
+          label={t('forms.fields.district')}
           name="district"
           value={values.district}
           onChange={(event) => {
@@ -69,30 +69,30 @@ export function AddressFormFields({
           }}
         />
         <Input
-          label="City"
+          label={t('forms.fields.city')}
           name="city"
           value={values.city}
-          error={errors.city}
+          error={translateFormError(t, errors.city)}
           onChange={(event) => {
             onChange('city', event.target.value);
           }}
         />
         <Input
-          label="State"
+          label={t('forms.fields.state')}
           name="state"
           maxLength={2}
           value={values.state}
-          error={errors.state}
+          error={translateFormError(t, errors.state)}
           onChange={(event) => {
             onChange('state', event.target.value.toUpperCase());
           }}
         />
         <Input
-          label="Postal code"
+          label={t('forms.fields.postalCode')}
           name="postalCode"
           inputMode="numeric"
           value={values.postalCode}
-          error={errors.postalCode}
+          error={translateFormError(t, errors.postalCode)}
           onChange={(event) => {
             onChange('postalCode', event.target.value.replace(/\D/g, '').slice(0, 8));
           }}
@@ -107,11 +107,9 @@ export function AddressFormFields({
             onChange('isPrimary', event.target.checked);
           }}
         />
-        Primary address for this type
+        {t('commerces.addresses.primaryCheckbox')}
       </label>
-      <p className="text-xs text-muted-foreground">
-        Only one primary Billing and one primary Delivery address are allowed per commerce.
-      </p>
+      <p className="text-xs text-muted-foreground">{t('commerces.addresses.primaryConstraint')}</p>
     </div>
   );
 }

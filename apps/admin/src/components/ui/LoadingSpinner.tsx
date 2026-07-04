@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils';
 
 type LoadingSpinnerProps = {
@@ -5,7 +6,9 @@ type LoadingSpinnerProps = {
   label?: string;
 };
 
-export function LoadingSpinner({ className, label = 'Loading' }: LoadingSpinnerProps) {
+export function LoadingSpinner({ className, label }: LoadingSpinnerProps) {
+  const { t } = useI18n();
+
   return (
     <div
       className={cn(
@@ -17,7 +20,7 @@ export function LoadingSpinner({ className, label = 'Loading' }: LoadingSpinnerP
         className="size-4 animate-spin rounded-full border-2 border-hairline border-t-foreground"
         aria-hidden
       />
-      <span>{label}</span>
+      <span>{label ?? t('common.loading.default')}</span>
     </div>
   );
 }

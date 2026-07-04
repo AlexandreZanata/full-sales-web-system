@@ -10,9 +10,14 @@ import { ApiError } from '@/lib/api/client';
 import { fetchCommercesForPicker } from '@/lib/api/commerces';
 import { fetchProductsForPicker } from '@/lib/api/products';
 import type { SaleDetail } from '@/lib/api/types';
+import { useI18n } from '@/lib/i18n/context';
+import {
+  paymentMethodOptionLabel,
+  saleActionErrorKey,
+  translateFormError,
+} from '@/lib/i18n/labels';
 import { randomId } from '@/lib/randomId';
-import { PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from '@/lib/sales/constants';
-import { saleActionErrorMessage } from '@/lib/sales/saleActionErrors';
+import { PAYMENT_METHODS } from '@/lib/sales/constants';
 import {
   hasFormErrors,
   toCreateSalePayload,
@@ -38,6 +43,7 @@ type CreateSaleFormProps = {
 };
 
 export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<CreateSaleFormValues>(emptyForm);
   const [errors, setErrors] = useState<ReturnType<typeof validateCreateSaleForm>>({});
@@ -64,11 +70,11 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
     setSubmitting(true);
     try {
       const sale = await onSubmit(toCreateSalePayload(values), randomId());
-      toast.success('Sale created');
+      toast.success(t('sales.toast.created'));
       onSuccess(sale);
     } catch (error) {
       const message =
-        error instanceof ApiError ? saleActionErrorMessage(error.code) : 'Unable to create sale';
+        error instanceof ApiError ? t(saleActionErrorKey(error.code)) : t('errors.actionFailed');
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -86,15 +92,15 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
     <Card>
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
         <Select
-          label="Commerce"
+          label={t('forms.fields.commerce')}
           value={values.commerceId}
-          error={errors.commerceId}
+          error={translateFormError(t, errors.commerceId)}
           disabled={commerces.isLoading}
           onChange={(event) => {
             setValues((current) => ({ ...current, commerceId: event.target.value }));
           }}
         >
-          <option value="">Select commerce</option>
+          <option value="">{t('forms.placeholders.selectCommerce')}</option>
           {(commerces.data ?? []).map((commerce) => (
             <option key={commerce.id} value={commerce.id}>
               {commerce.tradeName || commerce.legalName}
@@ -103,9 +109,9 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
         </Select>
 
         <Select
-          label="Payment method"
+          label={t('forms.fields.paymentMethod')}
           value={values.paymentMethod}
-          error={errors.paymentMethod}
+          error={translateFormError(t, errors.paymentMethod)}
           onChange={(event) => {
             setValues((current) => ({
               ...current,
@@ -113,30 +119,30 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
             }));
           }}
         >
-          <option value="">Select payment method</option>
+          <option value="">{t('forms.placeholders.selectPaymentMethod')}</option>
           {PAYMENT_METHODS.map((method) => (
             <option key={method} value={method}>
-              {PAYMENT_METHOD_LABELS[method]}
+              {paymentMethodOptionLabel(t, method)}
             </option>
           ))}
         </Select>
 
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Line items
+            {t('forms.sections.lineItems')}
           </p>
           {values.items.map((line, index) => (
             <div key={index} className="grid gap-3 sm:grid-cols-[1fr_8rem_auto]">
               <Select
-                label={index === 0 ? 'Product' : undefined}
+                label={index === 0 ? t('forms.fields.product') : undefined}
                 value={line.productId}
-                error={errors.items?.[index]?.productId}
+                error={translateFormError(t, errors.items?.[index]?.productId)}
                 disabled={products.isLoading}
                 onChange={(event) => {
                   updateLine(index, { productId: event.target.value });
                 }}
               >
-                <option value="">Select product</option>
+                <option value="">{t('forms.placeholders.selectProduct')}</option>
                 {(products.data ?? []).map((product) => (
                   <option key={product.id} value={product.id}>
                     {product.sku} — {product.name}
@@ -144,11 +150,11 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
                 ))}
               </Select>
               <Input
-                label={index === 0 ? 'Qty' : undefined}
+                label={index === 0 ? t('common.table.qty') : undefined}
                 type="number"
                 min={1}
                 value={line.quantity}
-                error={errors.items?.[index]?.quantity}
+                error={translateFormError(t, errors.items?.[index]?.quantity)}
                 onChange={(event) => {
                   updateLine(index, { quantity: event.target.value });
                 }}
@@ -165,7 +171,7 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
                     }));
                   }}
                 >
-                  Remove
+                  {t('sales.create.removeLine')}
                 </Button>
               </div>
             </div>
@@ -180,16 +186,14 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
               }));
             }}
           >
-            Add line
+            {t('sales.create.addLine')}
           </Button>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          Sales are recorded under your admin account as the responsible driver (API limitation).
-        </p>
+        <p className="text-xs text-muted-foreground">{t('sales.create.apiNote')}</p>
 
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Creating…' : 'Create sale'}
+          {submitting ? t('sales.create.submitting') : t('sales.create.submit')}
         </Button>
       </form>
     </Card>

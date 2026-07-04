@@ -42,36 +42,36 @@ export function validateCreateCommerceForm(
   const cnpjDigits = stripCnpj(values.cnpj);
 
   if (!cnpjDigits) {
-    errors.cnpj = 'CNPJ is required';
+    errors.cnpj = 'forms.validation.cnpjRequired';
   } else if (!isValidCnpj(cnpjDigits)) {
-    errors.cnpj = 'Enter a valid CNPJ';
+    errors.cnpj = 'forms.validation.cnpjInvalid';
   }
 
   if (!values.legalName.trim()) {
-    errors.legalName = 'Legal name is required';
+    errors.legalName = 'forms.validation.legalNameRequired';
   }
 
   if (!values.street.trim()) {
-    errors.street = 'Street is required';
+    errors.street = 'forms.validation.streetRequired';
   }
   if (!values.number.trim()) {
-    errors.number = 'Number is required';
+    errors.number = 'forms.validation.numberRequired';
   }
   if (!values.city.trim()) {
-    errors.city = 'City is required';
+    errors.city = 'forms.validation.cityRequired';
   }
   if (!values.state.trim()) {
-    errors.state = 'State is required';
+    errors.state = 'forms.validation.stateRequired';
   } else if (values.state.trim().length !== 2) {
-    errors.state = 'Use a 2-letter state code';
+    errors.state = 'forms.validation.stateInvalid';
   }
   if (!values.postalCode.trim()) {
-    errors.postalCode = 'Postal code is required';
+    errors.postalCode = 'forms.validation.postalCodeRequired';
   }
 
   const email = values.contactEmail.trim();
   if (email && !EMAIL_PATTERN.test(email)) {
-    errors.contactEmail = 'Enter a valid email address';
+    errors.contactEmail = 'forms.validation.emailInvalid';
   }
 
   return errors;
@@ -107,24 +107,24 @@ export function validateAddressForm(
   const errors: FormErrors<keyof AddressFormValues> = {};
 
   if (!values.addressType || !ADDRESS_TYPES.includes(values.addressType)) {
-    errors.addressType = 'Select an address type';
+    errors.addressType = 'forms.validation.addressTypeRequired';
   }
   if (!values.street.trim()) {
-    errors.street = 'Street is required';
+    errors.street = 'forms.validation.streetRequired';
   }
   if (!values.number.trim()) {
-    errors.number = 'Number is required';
+    errors.number = 'forms.validation.numberRequired';
   }
   if (!values.city.trim()) {
-    errors.city = 'City is required';
+    errors.city = 'forms.validation.cityRequired';
   }
   if (!values.state.trim()) {
-    errors.state = 'State is required';
+    errors.state = 'forms.validation.stateRequired';
   } else if (values.state.trim().length !== 2) {
-    errors.state = 'Use a 2-letter state code';
+    errors.state = 'forms.validation.stateInvalid';
   }
   if (!values.postalCode.trim()) {
-    errors.postalCode = 'Postal code is required';
+    errors.postalCode = 'forms.validation.postalCodeRequired';
   }
 
   return errors;

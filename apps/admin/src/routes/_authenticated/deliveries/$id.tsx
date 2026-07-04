@@ -11,6 +11,8 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { fetchDelivery } from '@/lib/api/deliveries';
 import { fetchUser } from '@/lib/api/users';
 import { getDeliveryStatusToken, type DeliveryStatus } from '@/lib/admin-tokens';
+import { useI18n } from '@/lib/i18n/context';
+import { translateDeliveryStatus } from '@/lib/i18n/labels';
 
 export const Route = createFileRoute('/_authenticated/deliveries/$id')({
   component: DeliveryDetailPage,
@@ -18,6 +20,7 @@ export const Route = createFileRoute('/_authenticated/deliveries/$id')({
 
 function DeliveryDetailPage() {
   const { id } = Route.useParams();
+  const { t } = useI18n();
 
   const delivery = useQuery({
     queryKey: ['deliveries', id],
@@ -47,8 +50,8 @@ function DeliveryDetailPage() {
   if (!delivery.data) {
     return (
       <PageHeader
-        title="Delivery not found"
-        back={<PageBackLink label="Back to deliveries" to="/deliveries" />}
+        title={t('deliveries.detail.notFound')}
+        back={<PageBackLink label={t('common.backTo.deliveries')} to="/deliveries" />}
       />
     );
   }
@@ -58,20 +61,23 @@ function DeliveryDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Delivery ${detail.id.slice(0, 8)}…`}
-        description="Read-only delivery oversight — driver actions happen in the field app."
-        back={<PageBackLink label="Back to deliveries" to="/deliveries" />}
+        title={`${t('forms.fields.delivery')} ${detail.id.slice(0, 8)}…`}
+        description={t('deliveries.detail.description')}
+        back={<PageBackLink label={t('common.backTo.deliveries')} to="/deliveries" />}
       />
 
       <Card className="space-y-3 p-5">
         <DetailRow
-          label="Status"
+          label={t('forms.fields.status')}
           value={
-            <DomainStatusBadge colors={getDeliveryStatusToken(detail.status as DeliveryStatus)} />
+            <DomainStatusBadge
+              colors={getDeliveryStatusToken(detail.status as DeliveryStatus)}
+              label={translateDeliveryStatus(t, detail.status as DeliveryStatus)}
+            />
           }
         />
         <DetailRow
-          label="Order"
+          label={t('forms.fields.order')}
           value={
             <Link
               to="/orders/$id"
@@ -83,7 +89,7 @@ function DeliveryDetailPage() {
           }
         />
         <DetailRow
-          label="Driver"
+          label={t('forms.fields.driver')}
           value={
             driver.data ? (
               <Link to="/users/$id" params={{ id: detail.driverId }} className="hover:underline">
@@ -96,7 +102,7 @@ function DeliveryDetailPage() {
         />
         {detail.saleId ? (
           <DetailRow
-            label="Sale"
+            label={t('forms.fields.sale')}
             value={
               <Link to="/sales" className="font-mono text-xs hover:underline">
                 {detail.saleId.slice(0, 8)}…

@@ -16,7 +16,8 @@ import {
   validateAdjustmentForm,
   type AdjustmentFormValues,
 } from '@/lib/inventory/validation';
-import { formatApiErrorMessage } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError } from '@/lib/i18n/labels';
 
 const emptyForm: AdjustmentFormValues = {
   productId: '',
@@ -25,6 +26,7 @@ const emptyForm: AdjustmentFormValues = {
 };
 
 export function AdjustmentForm() {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<AdjustmentFormValues>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof AdjustmentFormValues, string>>>({});
@@ -46,19 +48,14 @@ export function AdjustmentForm() {
     setSubmitting(true);
     try {
       await recordMovement(toAdjustmentPayload(values));
-      toast.success('Stock adjustment recorded');
+      toast.success(t('inventory.toast.adjustmentRecorded'));
       setValues(emptyForm);
     } catch (error) {
       if (error instanceof ApiError && error.code === 'INSUFFICIENT_BALANCE') {
-        const message = formatApiErrorMessage(error.message, 'Insufficient stock balance');
-        toast.error(message);
+        toast.error(t('errors.actionFailed'));
         return;
       }
-      const message =
-        error instanceof ApiError
-          ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to record adjustment';
-      toast.error(message);
+      toast.error(t('errors.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -68,16 +65,16 @@ export function AdjustmentForm() {
     <Card>
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
         <Select
-          label="Product"
+          label={t('forms.fields.product')}
           name="productId"
           value={values.productId}
-          error={errors.productId}
+          error={translateFormError(t, errors.productId)}
           disabled={products.isLoading}
           onChange={(event) => {
             setValues((current) => ({ ...current, productId: event.target.value }));
           }}
         >
-          <option value="">Select product</option>
+          <option value="">{t('forms.placeholders.selectProduct')}</option>
           {products.data?.map((product) => (
             <option key={product.id} value={product.id}>
               {product.sku} — {product.name}
@@ -86,32 +83,30 @@ export function AdjustmentForm() {
         </Select>
 
         <Input
-          label="Quantity"
+          label={t('forms.fields.quantity')}
           name="quantity"
           type="number"
           step="1"
           value={values.quantity}
-          error={errors.quantity}
+          error={translateFormError(t, errors.quantity)}
           onChange={(event) => {
             setValues((current) => ({ ...current, quantity: event.target.value }));
           }}
         />
-        <p className="text-xs text-muted-foreground">
-          Positive adds stock; negative reduces stock. Recorded under your admin account.
-        </p>
+        <p className="text-xs text-muted-foreground">{t('inventory.adjustments.quantityHint')}</p>
 
         <Textarea
-          label="Reason"
+          label={t('forms.fields.reason')}
           name="reason"
           value={values.reason}
-          error={errors.reason}
+          error={translateFormError(t, errors.reason)}
           onChange={(event) => {
             setValues((current) => ({ ...current, reason: event.target.value }));
           }}
         />
 
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Saving…' : 'Record adjustment'}
+          {submitting ? t('inventory.adjustments.submitting') : t('inventory.adjustments.submit')}
         </Button>
       </form>
     </Card>

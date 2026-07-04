@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
 import { upsertSellerProfile } from '@/lib/api/users';
+import { useI18n } from '@/lib/i18n/context';
 import { formatApiErrorMessage } from '@/lib/utils';
 
 type SellerProfileTabProps = {
@@ -22,6 +23,7 @@ const emptyForm: SellerFormValues = {
 };
 
 export function SellerProfileTab({ userId }: SellerProfileTabProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<SellerFormValues>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -38,12 +40,12 @@ export function SellerProfileTab({ userId }: SellerProfileTabProps) {
     setSubmitting(true);
     try {
       await upsertSellerProfile(userId, body);
-      toast.success('Seller profile saved');
+      toast.success(t('users.toast.sellerProfileSaved'));
     } catch (error) {
       const message =
         error instanceof ApiError
           ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to save seller profile';
+          : t('errors.actionFailed');
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -53,7 +55,7 @@ export function SellerProfileTab({ userId }: SellerProfileTabProps) {
   return (
     <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
       <Input
-        label="Operating region"
+        label={t('forms.fields.operatingRegion')}
         name="operatingRegion"
         value={values.operatingRegion}
         onChange={(event) => {
@@ -61,7 +63,7 @@ export function SellerProfileTab({ userId }: SellerProfileTabProps) {
         }}
       />
       <Input
-        label="Monthly target amount"
+        label={t('forms.fields.monthlyTarget')}
         name="monthlyTargetAmount"
         type="number"
         min="0"
@@ -72,7 +74,7 @@ export function SellerProfileTab({ userId }: SellerProfileTabProps) {
         }}
       />
       <Button type="submit" disabled={submitting}>
-        {submitting ? 'Saving…' : 'Save seller profile'}
+        {submitting ? t('users.sellerProfile.saving') : t('users.sellerProfile.save')}
       </Button>
     </form>
   );

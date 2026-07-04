@@ -1,32 +1,40 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { ClipboardList, SlidersHorizontal } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/_authenticated/inventory/')({
   component: InventoryHubPage,
 });
 
-const links = [
-  {
-    to: '/inventory/adjustments',
-    label: 'Adjustments',
-    description: 'Record manual stock corrections with a reason.',
-    icon: SlidersHorizontal,
-  },
-  {
-    to: '/inventory/ledger',
-    label: 'Ledger',
-    description: 'Review paginated movement history by product.',
-    icon: ClipboardList,
-  },
-] as const;
-
 function InventoryHubPage() {
+  const { t } = useI18n();
+
+  const links = useMemo(
+    () =>
+      [
+        {
+          to: '/inventory/adjustments',
+          label: t('inventory.hub.adjustments.title'),
+          description: t('inventory.hub.adjustments.description'),
+          icon: SlidersHorizontal,
+        },
+        {
+          to: '/inventory/ledger',
+          label: t('inventory.hub.ledger.title'),
+          description: t('inventory.hub.ledger.description'),
+          icon: ClipboardList,
+        },
+      ] as const,
+    [t],
+  );
+
   return (
     <div>
-      <PageHeader title="Inventory" description="Stock balances and movement audit trail." />
+      <PageHeader title={t('inventory.hub.title')} description={t('inventory.hub.description')} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         {links.map((item) => (

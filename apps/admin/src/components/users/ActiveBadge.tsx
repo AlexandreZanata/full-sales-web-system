@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils';
 
 type ActiveBadgeProps = {
@@ -5,6 +6,8 @@ type ActiveBadgeProps = {
 };
 
 export function ActiveBadge({ active }: ActiveBadgeProps) {
+  const { t } = useI18n();
+
   return (
     <span
       className={cn(
@@ -14,7 +17,7 @@ export function ActiveBadge({ active }: ActiveBadgeProps) {
           : 'border-hairline text-muted-foreground',
       )}
     >
-      {active ? 'Active' : 'Inactive'}
+      {active ? t('common.active.active') : t('common.active.inactive')}
     </span>
   );
 }

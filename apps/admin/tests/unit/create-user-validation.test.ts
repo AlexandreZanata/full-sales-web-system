@@ -24,17 +24,17 @@ describe('validateCreateUserForm — Phase 30 contract', () => {
 
   it('given_empty_name_when_validate_then_name_required', () => {
     const errors = validateCreateUserForm({ ...validBase, name: '  ' });
-    expect(errors.name).toBe('Name is required');
+    expect(errors.name).toBe('forms.validation.nameRequired');
   });
 
   it('given_invalid_email_when_validate_then_email_error', () => {
     const errors = validateCreateUserForm({ ...validBase, email: 'not-an-email' });
-    expect(errors.email).toBe('Enter a valid email address');
+    expect(errors.email).toBe('forms.validation.emailInvalid');
   });
 
   it('given_short_password_when_validate_then_password_error', () => {
     const errors = validateCreateUserForm({ ...validBase, password: 'short' });
-    expect(errors.password).toBe('Password must be at least 8 characters');
+    expect(errors.password).toBe('forms.validation.passwordMinLength');
   });
 
   it('given_commerce_contact_without_commerce_when_validate_then_commerce_required', () => {
@@ -43,7 +43,7 @@ describe('validateCreateUserForm — Phase 30 contract', () => {
       role: 'CommerceContact',
       commerceId: '',
     });
-    expect(errors.commerceId).toBe('Select a commerce for commerce contacts');
+    expect(errors.commerceId).toBe('forms.validation.commerceContactRequired');
   });
 
   it('given_commerce_contact_with_commerce_when_validate_then_no_errors', () => {

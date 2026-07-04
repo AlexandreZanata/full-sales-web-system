@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { ApiError } from '@/lib/api/client';
 import type { Product } from '@/lib/api/types';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError } from '@/lib/i18n/labels';
 import { formatPriceInput } from '@/lib/products/formatPrice';
 import {
   hasFormErrors,
@@ -13,7 +14,6 @@ import {
   validateEditProductForm,
   type EditProductFormValues,
 } from '@/lib/products/validation';
-import { formatApiErrorMessage } from '@/lib/utils';
 
 type EditProductFormProps = {
   product: Product;
@@ -22,6 +22,7 @@ type EditProductFormProps = {
 };
 
 export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFormProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<EditProductFormValues>({
     name: product.name,
@@ -43,13 +44,9 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
     try {
       const updated = await onSubmit(toUpdateProductPayload(values));
       onUpdated(updated);
-      toast.success('Product updated');
-    } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to update product';
-      toast.error(message);
+      toast.success(t('products.toast.updated'));
+    } catch {
+      toast.error(t('errors.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -58,33 +55,33 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
   return (
     <Card>
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
-        <Input label="SKU" name="sku" value={product.sku} disabled />
+        <Input label={t('forms.fields.sku')} name="sku" value={product.sku} disabled />
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            label="Name"
+            label={t('forms.fields.name')}
             name="name"
             value={values.name}
-            error={errors.name}
+            error={translateFormError(t, errors.name)}
             onChange={(event) => {
               setValues((current) => ({ ...current, name: event.target.value }));
             }}
           />
           <Input
-            label="Price"
+            label={t('forms.fields.price')}
             name="price"
             inputMode="decimal"
             value={values.price}
-            error={errors.price}
+            error={translateFormError(t, errors.price)}
             onChange={(event) => {
               setValues((current) => ({ ...current, price: event.target.value }));
             }}
           />
         </div>
         <Button type="submit" disabled={submitting || !product.active}>
-          {submitting ? 'Saving…' : 'Save changes'}
+          {submitting ? t('products.form.saving') : t('products.form.save')}
         </Button>
         {!product.active ? (
-          <p className="text-sm text-muted-foreground">Inactive products cannot be edited.</p>
+          <p className="text-sm text-muted-foreground">{t('products.detail.inactiveHint')}</p>
         ) : null}
       </form>
     </Card>

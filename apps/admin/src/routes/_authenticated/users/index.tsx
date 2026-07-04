@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ActiveBadge } from '@/components/users/ActiveBadge';
 import { Button } from '@/components/ui/Button';
@@ -11,41 +11,17 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
 import { fetchUsers } from '@/lib/api/users';
 import type { User, UserRole } from '@/lib/api/types';
-import { USER_ROLE_LABELS, USER_ROLES } from '@/lib/users/constants';
+import { useI18n } from '@/lib/i18n/context';
+import { translateRole } from '@/lib/i18n/labels';
+import { USER_ROLES } from '@/lib/users/constants';
 import { paginatedResponseToTable } from '@/lib/tablePagination';
 
 export const Route = createFileRoute('/_authenticated/users/')({
   component: UsersListPage,
 });
 
-const columns: DataTableColumn<User>[] = [
-  {
-    id: 'name',
-    header: 'Name',
-    cell: (row) => (
-      <Link to="/users/$id" params={{ id: row.id }} className="font-medium hover:underline">
-        {row.name}
-      </Link>
-    ),
-  },
-  {
-    id: 'email',
-    header: 'Email',
-    cell: (row) => row.email,
-  },
-  {
-    id: 'role',
-    header: 'Role',
-    cell: (row) => USER_ROLE_LABELS[row.role],
-  },
-  {
-    id: 'active',
-    header: 'Status',
-    cell: (row) => <ActiveBadge active={row.active} />,
-  },
-];
-
 function UsersListPage() {
+  const { t } = useI18n();
   const [page, setPage] = useState(1);
   const [roleFilter, setRoleFilter] = useState<UserRole | ''>('');
   const pageSize = 20;
@@ -57,31 +33,61 @@ function UsersListPage() {
 
   const pagination = users.data ? paginatedResponseToTable(users.data) : null;
 
+  const columns: DataTableColumn<User>[] = useMemo(
+    () => [
+      {
+        id: 'name',
+        header: t('common.table.name'),
+        cell: (row) => (
+          <Link to="/users/$id" params={{ id: row.id }} className="font-medium hover:underline">
+            {row.name}
+          </Link>
+        ),
+      },
+      {
+        id: 'email',
+        header: t('common.table.email'),
+        cell: (row) => row.email,
+      },
+      {
+        id: 'role',
+        header: t('common.table.role'),
+        cell: (row) => translateRole(t, row.role),
+      },
+      {
+        id: 'active',
+        header: t('forms.fields.status'),
+        cell: (row) => <ActiveBadge active={row.active} />,
+      },
+    ],
+    [t],
+  );
+
   return (
     <div>
       <PageHeader
-        title="Users"
-        description="Manage admin, driver, seller, and commerce contact accounts."
+        title={t('users.list.title')}
+        description={t('users.list.description')}
         actions={
           <Link to="/users/new">
-            <Button>New user</Button>
+            <Button>{t('users.list.newUser')}</Button>
           </Link>
         }
       />
 
       <div className="mb-4 max-w-xs">
         <Select
-          label="Filter by role"
+          label={t('users.list.filterByRole')}
           value={roleFilter}
           onChange={(event) => {
             setRoleFilter(event.target.value as UserRole | '');
             setPage(1);
           }}
         >
-          <option value="">All roles</option>
+          <option value="">{t('common.filter.allRoles')}</option>
           {USER_ROLES.map((role) => (
             <option key={role} value={role}>
-              {USER_ROLE_LABELS[role]}
+              {translateRole(t, role)}
             </option>
           ))}
         </Select>
@@ -93,7 +99,7 @@ function UsersListPage() {
         </div>
       ) : users.data && users.data.items.length > 0 ? (
         <DataTable
-          caption="Users"
+          caption={t('users.list.caption')}
           columns={columns}
           rows={users.data.items}
           getRowKey={(row) => row.id}
@@ -102,11 +108,11 @@ function UsersListPage() {
         />
       ) : (
         <EmptyState
-          title="No users found"
+          title={t('users.list.empty.title')}
           description={
             roleFilter
-              ? 'Try another role filter or create a new user.'
-              : 'Create the first user to get started.'
+              ? t('users.list.empty.descriptionFiltered')
+              : t('users.list.empty.descriptionDefault')
           }
         />
       )}

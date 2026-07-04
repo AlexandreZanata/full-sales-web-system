@@ -4,6 +4,7 @@ import { CreateReportForm } from '@/components/reports/CreateReportForm';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { generateReport } from '@/lib/api/reports';
+import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/_authenticated/reports/new')({
   component: NewReportPage,
@@ -11,13 +12,14 @@ export const Route = createFileRoute('/_authenticated/reports/new')({
 
 function NewReportPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <div>
       <PageHeader
-        title="Generate report"
-        description="Create a signed settlement report for a period and scope."
-        back={<PageBackLink label="Back to reports" to="/reports" />}
+        title={t('reports.generate.title')}
+        description={t('reports.generate.description')}
+        back={<PageBackLink label={t('common.backTo.reports')} to="/reports" />}
       />
 
       <CreateReportForm

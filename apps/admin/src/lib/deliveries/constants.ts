@@ -4,10 +4,4 @@ export const DELIVERY_STATUSES: DeliveryStatus[] = ['Waiting', 'InTransit', 'Del
 
 export type DeliveryStatusFilter = DeliveryStatus | '';
 
-export const DELIVERY_STATUS_FILTER_LABELS: Record<DeliveryStatusFilter, string> = {
-  '': 'All statuses',
-  Waiting: 'Waiting',
-  InTransit: 'In transit',
-  Delivered: 'Delivered',
-  Failed: 'Failed',
-};
+export const DELIVERY_STATUS_FILTERS: DeliveryStatusFilter[] = ['', ...DELIVERY_STATUSES];

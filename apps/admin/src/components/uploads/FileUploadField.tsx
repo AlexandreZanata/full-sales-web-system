@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
 import { fetchMediaUrl, uploadMediaFile, type MediaEntityType } from '@/lib/api/uploads';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError } from '@/lib/i18n/labels';
 import { IMAGE_UPLOAD_ACCEPT, IMAGE_UPLOAD_HINT } from '@/lib/uploadAccept';
 import { formatApiErrorMessage } from '@/lib/utils';
 
@@ -24,6 +26,7 @@ export function FileUploadField({
   entityId,
   error,
 }: FileUploadFieldProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
   const [isUploading, setIsUploading] = useState(false);
@@ -83,12 +86,12 @@ export function FileUploadField({
     try {
       const response = await uploadMediaFile(file, entityType, entityId);
       onChange(response.id);
-      toast.success('File uploaded');
+      toast.success(t('uploads.fileUploaded'));
     } catch (caught) {
       const message =
         caught instanceof ApiError
           ? formatApiErrorMessage(caught.message, caught.code)
-          : 'Upload failed';
+          : t('errors.uploadFailed');
       setUploadError(message);
       toast.error(message);
     } finally {
@@ -119,7 +122,7 @@ export function FileUploadField({
             />
           ) : (
             <span className="px-3 text-center text-xs text-muted-foreground">
-              {isUploading ? 'Uploading…' : 'No image'}
+              {isUploading ? t('uploads.uploading') : t('uploads.noImage')}
             </span>
           )}
         </div>
@@ -129,7 +132,7 @@ export function FileUploadField({
             {label}
           </p>
           <p className="text-sm text-muted-foreground">
-            {fileId ? `File ID: ${fileId}` : 'No file selected'}
+            {fileId ? t('uploads.fileId').replace('{id}', fileId) : t('uploads.noFile')}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <input
@@ -145,13 +148,15 @@ export function FileUploadField({
               disabled={isUploading || !entityId}
               onClick={() => inputRef.current?.click()}
             >
-              {isUploading ? 'Uploading…' : 'Upload file'}
+              {isUploading ? t('uploads.uploading') : t('uploads.uploadFile')}
             </Button>
             <p className="text-xs text-muted-foreground">{IMAGE_UPLOAD_HINT}</p>
             {uploadError ? <p className="text-xs text-destructive">{uploadError}</p> : null}
-            {error ? <p className="text-xs text-destructive">{error}</p> : null}
+            {error ? (
+              <p className="text-xs text-destructive">{translateFormError(t, error)}</p>
+            ) : null}
             {remotePreviewFailed && fileId ? (
-              <p className="text-xs text-destructive">Preview unavailable for this file.</p>
+              <p className="text-xs text-destructive">{t('uploads.previewUnavailable')}</p>
             ) : null}
           </div>
         </div>

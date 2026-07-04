@@ -13,7 +13,8 @@ import {
   validateCreateCommerceForm,
   type CreateCommerceFormValues,
 } from '@/lib/commerces/validation';
-import { formatApiErrorMessage } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError } from '@/lib/i18n/labels';
 
 type CreateCommerceFormProps = {
   onSubmit: (payload: CreateCommerceRequest) => Promise<Commerce>;
@@ -35,6 +36,7 @@ const emptyForm: CreateCommerceFormValues = {
 };
 
 export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<CreateCommerceFormValues>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof CreateCommerceFormValues, string>>>({});
@@ -61,16 +63,12 @@ export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormPr
       onSuccess(commerce);
     } catch (error) {
       if (error instanceof ApiError && error.code === 'INVALID_CNPJ') {
-        const message = formatApiErrorMessage(error.message, 'Invalid CNPJ');
+        const message = t('forms.validation.cnpjInvalid');
         setErrors((current) => ({ ...current, cnpj: message }));
         toast.error(message);
         return;
       }
-      const message =
-        error instanceof ApiError
-          ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to create commerce';
-      toast.error(message);
+      toast.error(t('errors.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -81,27 +79,27 @@ export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormPr
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            label="CNPJ"
+            label={t('forms.fields.cnpj')}
             name="cnpj"
             inputMode="numeric"
             autoComplete="off"
             value={values.cnpj}
-            error={errors.cnpj}
+            error={translateFormError(t, errors.cnpj)}
             onChange={(event) => {
               updateField('cnpj', formatCnpjInput(event.target.value));
             }}
           />
           <Input
-            label="Legal name"
+            label={t('forms.fields.legalName')}
             name="legalName"
             value={values.legalName}
-            error={errors.legalName}
+            error={translateFormError(t, errors.legalName)}
             onChange={(event) => {
               updateField('legalName', event.target.value);
             }}
           />
           <Input
-            label="Trade name"
+            label={t('forms.fields.tradeName')}
             name="tradeName"
             value={values.tradeName}
             onChange={(event) => {
@@ -112,29 +110,29 @@ export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormPr
 
         <fieldset className="space-y-4 rounded-lg border border-hairline p-4">
           <legend className="px-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Address
+            {t('forms.sections.address')}
           </legend>
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Street"
+              label={t('forms.fields.street')}
               name="street"
               value={values.street}
-              error={errors.street}
+              error={translateFormError(t, errors.street)}
               onChange={(event) => {
                 updateField('street', event.target.value);
               }}
             />
             <Input
-              label="Number"
+              label={t('forms.fields.number')}
               name="number"
               value={values.number}
-              error={errors.number}
+              error={translateFormError(t, errors.number)}
               onChange={(event) => {
                 updateField('number', event.target.value);
               }}
             />
             <Input
-              label="District"
+              label={t('forms.fields.district')}
               name="district"
               value={values.district}
               onChange={(event) => {
@@ -142,30 +140,30 @@ export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormPr
               }}
             />
             <Input
-              label="City"
+              label={t('forms.fields.city')}
               name="city"
               value={values.city}
-              error={errors.city}
+              error={translateFormError(t, errors.city)}
               onChange={(event) => {
                 updateField('city', event.target.value);
               }}
             />
             <Input
-              label="State"
+              label={t('forms.fields.state')}
               name="state"
               maxLength={2}
               value={values.state}
-              error={errors.state}
+              error={translateFormError(t, errors.state)}
               onChange={(event) => {
                 updateField('state', event.target.value.toUpperCase());
               }}
             />
             <Input
-              label="Postal code"
+              label={t('forms.fields.postalCode')}
               name="postalCode"
               inputMode="numeric"
               value={values.postalCode}
-              error={errors.postalCode}
+              error={translateFormError(t, errors.postalCode)}
               onChange={(event) => {
                 updateField('postalCode', event.target.value.replace(/\D/g, '').slice(0, 8));
               }}
@@ -175,11 +173,11 @@ export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormPr
 
         <fieldset className="space-y-4 rounded-lg border border-hairline p-4">
           <legend className="px-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Contact
+            {t('forms.sections.contact')}
           </legend>
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Phone"
+              label={t('forms.fields.phone')}
               name="contactPhone"
               type="tel"
               value={values.contactPhone}
@@ -188,11 +186,11 @@ export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormPr
               }}
             />
             <Input
-              label="Email"
+              label={t('forms.fields.email')}
               name="contactEmail"
               type="email"
               value={values.contactEmail}
-              error={errors.contactEmail}
+              error={translateFormError(t, errors.contactEmail)}
               onChange={(event) => {
                 updateField('contactEmail', event.target.value);
               }}
@@ -201,7 +199,7 @@ export function CreateCommerceForm({ onSubmit, onSuccess }: CreateCommerceFormPr
         </fieldset>
 
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Creating…' : 'Register commerce'}
+          {submitting ? t('commerces.create.submitting') : t('commerces.create.submit')}
         </Button>
       </form>
     </Card>

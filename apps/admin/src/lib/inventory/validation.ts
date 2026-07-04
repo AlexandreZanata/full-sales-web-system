@@ -12,16 +12,16 @@ export function validateAdjustmentForm(
   const errors: FormErrors<keyof AdjustmentFormValues> = {};
 
   if (!values.productId) {
-    errors.productId = 'Select a product';
+    errors.productId = 'forms.validation.selectProduct';
   }
 
   const quantity = Number.parseInt(values.quantity, 10);
   if (!values.quantity.trim() || Number.isNaN(quantity) || quantity === 0) {
-    errors.quantity = 'Enter a non-zero quantity (negative reduces stock)';
+    errors.quantity = 'forms.validation.quantityAdjustment';
   }
 
   if (!values.reason.trim()) {
-    errors.reason = 'Reason is required';
+    errors.reason = 'forms.validation.reasonRequired';
   }
 
   return errors;

@@ -4,6 +4,7 @@ import { CreateCommerceForm } from '@/components/commerces/CreateCommerceForm';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { createCommerce } from '@/lib/api/commerces';
+import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/_authenticated/commerces/new')({
   component: NewCommercePage,
@@ -11,13 +12,14 @@ export const Route = createFileRoute('/_authenticated/commerces/new')({
 
 function NewCommercePage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <div>
       <PageHeader
-        title="Register commerce"
-        description="Create a new business client with CNPJ and address."
-        back={<PageBackLink label="Back to commerces" to="/commerces" />}
+        title={t('commerces.create.title')}
+        description={t('commerces.create.description')}
+        back={<PageBackLink label={t('common.backTo.commerces')} to="/commerces" />}
       />
 
       <CreateCommerceForm

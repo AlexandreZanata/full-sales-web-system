@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ActiveBadge } from '@/components/users/ActiveBadge';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { fetchProducts } from '@/lib/api/products';
 import type { ProductSummary } from '@/lib/api/types';
+import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';
 import { paginatedResponseToTable } from '@/lib/tablePagination';
 
@@ -17,34 +18,8 @@ export const Route = createFileRoute('/_authenticated/products/')({
   component: ProductsListPage,
 });
 
-const columns: DataTableColumn<ProductSummary>[] = [
-  {
-    id: 'sku',
-    header: 'SKU',
-    cell: (row) => row.sku,
-  },
-  {
-    id: 'name',
-    header: 'Name',
-    cell: (row) => (
-      <Link to="/products/$id" params={{ id: row.id }} className="font-medium hover:underline">
-        {row.name}
-      </Link>
-    ),
-  },
-  {
-    id: 'price',
-    header: 'Price',
-    cell: (row) => formatMoney(row.priceAmount, row.priceCurrency),
-  },
-  {
-    id: 'active',
-    header: 'Status',
-    cell: (row) => <ActiveBadge active={row.active} />,
-  },
-];
-
 function ProductsListPage() {
+  const { t } = useI18n();
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
@@ -55,14 +30,44 @@ function ProductsListPage() {
 
   const pagination = products.data ? paginatedResponseToTable(products.data) : null;
 
+  const columns: DataTableColumn<ProductSummary>[] = useMemo(
+    () => [
+      {
+        id: 'sku',
+        header: t('forms.fields.sku'),
+        cell: (row) => row.sku,
+      },
+      {
+        id: 'name',
+        header: t('common.table.name'),
+        cell: (row) => (
+          <Link to="/products/$id" params={{ id: row.id }} className="font-medium hover:underline">
+            {row.name}
+          </Link>
+        ),
+      },
+      {
+        id: 'price',
+        header: t('forms.fields.price'),
+        cell: (row) => formatMoney(row.priceAmount, row.priceCurrency),
+      },
+      {
+        id: 'active',
+        header: t('forms.fields.status'),
+        cell: (row) => <ActiveBadge active={row.active} />,
+      },
+    ],
+    [t],
+  );
+
   return (
     <div>
       <PageHeader
-        title="Products"
-        description="Manage the product catalog and pricing."
+        title={t('products.list.title')}
+        description={t('products.list.description')}
         actions={
           <Link to="/products/new">
-            <Button>New product</Button>
+            <Button>{t('products.list.newProduct')}</Button>
           </Link>
         }
       />
@@ -73,7 +78,7 @@ function ProductsListPage() {
         </div>
       ) : products.data && products.data.items.length > 0 ? (
         <DataTable
-          caption="Products"
+          caption={t('products.list.caption')}
           columns={columns}
           rows={products.data.items}
           getRowKey={(row) => row.id}
@@ -82,8 +87,8 @@ function ProductsListPage() {
         />
       ) : (
         <EmptyState
-          title="No products found"
-          description="Create the first product to get started."
+          title={t('products.list.empty.title')}
+          description={t('products.list.empty.description')}
         />
       )}
     </div>

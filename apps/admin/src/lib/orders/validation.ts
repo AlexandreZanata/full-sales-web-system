@@ -8,7 +8,7 @@ export type RejectOrderFormErrors = Partial<Record<keyof RejectOrderFormValues, 
 export function validateRejectOrderForm(values: RejectOrderFormValues): RejectOrderFormErrors {
   const errors: RejectOrderFormErrors = {};
   if (!values.reason.trim()) {
-    errors.reason = 'Rejection reason is required';
+    errors.reason = 'forms.validation.rejectionReasonRequired';
   }
   return errors;
 }

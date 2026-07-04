@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
 import { upsertDriverProfile } from '@/lib/api/users';
+import { useI18n } from '@/lib/i18n/context';
 import { formatApiErrorMessage } from '@/lib/utils';
 
 type DriverProfileTabProps = {
@@ -29,6 +30,7 @@ const emptyForm: DriverFormValues = {
 };
 
 export function DriverProfileTab({ userId }: DriverProfileTabProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<DriverFormValues>(emptyForm);
   const [cnhPhotoFileId, setCnhPhotoFileId] = useState('');
@@ -50,12 +52,12 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
     setSubmitting(true);
     try {
       await upsertDriverProfile(userId, body);
-      toast.success('Driver profile saved');
+      toast.success(t('users.toast.driverProfileSaved'));
     } catch (error) {
       const message =
         error instanceof ApiError
           ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to save driver profile';
+          : t('errors.actionFailed');
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -66,7 +68,7 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
     <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
-          label="CNH number"
+          label={t('forms.fields.cnhNumber')}
           name="cnhNumber"
           required
           value={values.cnhNumber}
@@ -75,7 +77,7 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
           }}
         />
         <Input
-          label="CNH category"
+          label={t('forms.fields.cnhCategory')}
           name="cnhCategory"
           required
           value={values.cnhCategory}
@@ -84,7 +86,7 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
           }}
         />
         <Input
-          label="Vehicle plate"
+          label={t('forms.fields.vehiclePlate')}
           name="vehiclePlate"
           required
           value={values.vehiclePlate}
@@ -93,7 +95,7 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
           }}
         />
         <Input
-          label="Vehicle model"
+          label={t('forms.fields.vehicleModel')}
           name="vehicleModel"
           required
           value={values.vehicleModel}
@@ -102,7 +104,7 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
           }}
         />
         <Input
-          label="Vehicle capacity (kg)"
+          label={t('forms.fields.vehicleCapacity')}
           name="vehicleCapacityKg"
           type="number"
           min="0"
@@ -115,7 +117,7 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
       </div>
 
       <FileUploadField
-        label="CNH photo"
+        label={t('forms.fields.cnhNumber')}
         fileId={cnhPhotoFileId}
         onChange={setCnhPhotoFileId}
         entityType="User"
@@ -123,7 +125,7 @@ export function DriverProfileTab({ userId }: DriverProfileTabProps) {
       />
 
       <Button type="submit" disabled={submitting}>
-        {submitting ? 'Saving…' : 'Save driver profile'}
+        {submitting ? t('users.driverProfile.saving') : t('users.driverProfile.save')}
       </Button>
     </form>
   );

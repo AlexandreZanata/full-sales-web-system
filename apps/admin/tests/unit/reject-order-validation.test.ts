@@ -8,13 +8,13 @@ import { hasFormErrors, validateRejectOrderForm } from '@/lib/orders/validation'
 describe('validateRejectOrderForm — RN10 contract', () => {
   it('given_empty_reason_when_validate_then_required_error', () => {
     const errors = validateRejectOrderForm({ reason: '' });
-    expect(errors.reason).toBe('Rejection reason is required');
+    expect(errors.reason).toBe('forms.validation.rejectionReasonRequired');
     expect(hasFormErrors(errors)).toBe(true);
   });
 
   it('given_whitespace_reason_when_validate_then_required_error', () => {
     const errors = validateRejectOrderForm({ reason: '   ' });
-    expect(errors.reason).toBe('Rejection reason is required');
+    expect(errors.reason).toBe('forms.validation.rejectionReasonRequired');
   });
 
   it('given_non_empty_reason_when_validate_then_no_errors', () => {

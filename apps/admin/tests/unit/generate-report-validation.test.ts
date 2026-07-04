@@ -26,7 +26,7 @@ describe('validateGenerateReportForm — Phase 35 contract', () => {
 
   it('given_missing_report_type_when_validate_then_type_error', () => {
     const errors = validateGenerateReportForm({ ...validForm, reportType: '' });
-    expect(errors.reportType).toBe('Select a report type');
+    expect(errors.reportType).toBe('forms.validation.selectReportType');
   });
 
   it('given_end_before_start_when_validate_then_period_error', () => {
@@ -35,12 +35,12 @@ describe('validateGenerateReportForm — Phase 35 contract', () => {
       periodStart: '2026-02-01',
       periodEnd: '2026-01-01',
     });
-    expect(errors.periodEnd).toBe('End date must be on or after start date');
+    expect(errors.periodEnd).toBe('forms.validation.periodEndBeforeStart');
   });
 
   it('given_missing_driver_when_validate_then_driver_error', () => {
     const errors = validateGenerateReportForm({ ...validForm, driverId: '' });
-    expect(errors.driverId).toBe('Select a driver');
+    expect(errors.driverId).toBe('forms.validation.selectDriver');
   });
 });
 

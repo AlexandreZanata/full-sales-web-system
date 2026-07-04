@@ -1,4 +1,6 @@
-import { declaredPaymentLabel, isDeclaredPayment } from '@/lib/sales/constants';
+import { useI18n } from '@/lib/i18n/context';
+import { translateDeclaredPayment } from '@/lib/i18n/labels';
+import { isDeclaredPayment } from '@/lib/sales/constants';
 import { cn } from '@/lib/utils';
 
 type DeclaredPaymentBadgeProps = {
@@ -8,6 +10,7 @@ type DeclaredPaymentBadgeProps = {
 };
 
 export function DeclaredPaymentBadge({ method, received, className }: DeclaredPaymentBadgeProps) {
+  const { t } = useI18n();
   const declared = isDeclaredPayment(method, received);
 
   return (
@@ -22,7 +25,7 @@ export function DeclaredPaymentBadge({ method, received, className }: DeclaredPa
         className,
       )}
     >
-      {declaredPaymentLabel(method, received)}
+      {translateDeclaredPayment(t, method, received)}
     </span>
   );
 }

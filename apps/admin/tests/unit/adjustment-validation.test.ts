@@ -25,7 +25,7 @@ describe('validateAdjustmentForm — Phase 32 contract', () => {
       quantity: '0',
       reason: 'Correction',
     });
-    expect(errors.quantity).toBe('Enter a non-zero quantity (negative reduces stock)');
+    expect(errors.quantity).toBe('forms.validation.quantityAdjustment');
   });
 
   it('given_empty_reason_when_validate_then_reason_required', () => {
@@ -34,7 +34,7 @@ describe('validateAdjustmentForm — Phase 32 contract', () => {
       quantity: '5',
       reason: '  ',
     });
-    expect(errors.reason).toBe('Reason is required');
+    expect(errors.reason).toBe('forms.validation.reasonRequired');
   });
 });
 

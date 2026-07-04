@@ -8,11 +8,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useI18n } from '@/lib/i18n/context';
+import { formatPaginationSummary } from '@/lib/i18n/labels';
 import { fetchAuditEvents } from '@/lib/api/audit';
 import { fetchUsers } from '@/lib/api/users';
 import type { AuditEvent } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/formatDateTime';
-import { formatTablePaginationSummary, paginatedResponseToTable } from '@/lib/tablePagination';
+import { paginatedResponseToTable } from '@/lib/tablePagination';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/_authenticated/audit/')({
@@ -59,10 +60,7 @@ function AuditPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Audit log"
-        description="Append-only audit trail for sensitive actions (RN-PAG3)."
-      />
+      <PageHeader title={t('audit.title')} description={t('audit.description')} />
 
       {events.isLoading ? (
         <div className="flex justify-center py-16">
@@ -72,26 +70,26 @@ function AuditPage() {
         <div className="overflow-hidden rounded-lg border border-hairline bg-surface">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <caption className="sr-only">Audit events</caption>
+              <caption className="sr-only">{t('audit.table.caption')}</caption>
               <thead className="border-b border-hairline bg-surface-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-                    Time
+                    {t('forms.fields.time')}
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-                    Actor
+                    {t('forms.fields.actor')}
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-                    Action
+                    {t('forms.fields.action')}
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-                    Resource
+                    {t('forms.fields.resource')}
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-                    Resource ID
+                    {t('forms.fields.resourceId')}
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-                    Details
+                    {t('forms.fields.details')}
                   </th>
                 </tr>
               </thead>
@@ -115,10 +113,10 @@ function AuditPage() {
           {pagination ? (
             <div
               className="flex flex-col gap-3 border-t border-hairline bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-              aria-label="Table pagination"
+              aria-label={t('common.table.paginationAria')}
             >
               <p className="text-sm text-muted-foreground">
-                {formatTablePaginationSummary(pagination)}
+                {formatPaginationSummary(t, pagination)}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -146,10 +144,7 @@ function AuditPage() {
           ) : null}
         </div>
       ) : (
-        <EmptyState
-          title="No audit events"
-          description="Sensitive actions such as payment declarations will appear here."
-        />
+        <EmptyState title={t('audit.empty.title')} description={t('audit.empty.description')} />
       )}
     </div>
   );
@@ -164,6 +159,7 @@ type AuditEventRowsProps = {
 };
 
 function AuditEventRows({ event, index, actorName, expanded, onToggle }: AuditEventRowsProps) {
+  const { t } = useI18n();
   const hasMetadata = event.metadata !== undefined && Object.keys(event.metadata).length > 0;
 
   return (
@@ -186,7 +182,7 @@ function AuditEventRows({ event, index, actorName, expanded, onToggle }: AuditEv
         <td className="px-4 py-3">
           {hasMetadata ? (
             <Button type="button" variant="secondary" onClick={onToggle}>
-              {expanded ? 'Hide metadata' : 'Show metadata'}
+              {expanded ? t('audit.metadata.hide') : t('audit.metadata.show')}
             </Button>
           ) : (
             <span className="text-xs text-muted-foreground">—</span>

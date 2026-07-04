@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { useToast } from '@/hooks/useToast';
 import { fetchReport, verifyReport } from '@/lib/api/reports';
 import { formatDateTime } from '@/lib/formatDateTime';
+import { useI18n } from '@/lib/i18n/context';
 import { formatReportPeriod } from '@/lib/reports/formatPeriod';
 import { buildReportVerifyUrl } from '@/lib/reports/verifyUrl';
 
@@ -21,6 +22,7 @@ export const Route = createFileRoute('/_authenticated/reports/$id')({
 
 function ReportDetailPage() {
   const { id } = Route.useParams();
+  const { t } = useI18n();
   const toast = useToast();
   const [copying, setCopying] = useState(false);
 
@@ -48,9 +50,9 @@ function ReportDetailPage() {
     setCopying(true);
     try {
       await navigator.clipboard.writeText(buildReportVerifyUrl(id));
-      toast.success('Verify URL copied');
+      toast.success(t('reports.toast.verifyUrlCopied'));
     } catch {
-      toast.error('Unable to copy verify URL');
+      toast.error(t('errors.actionFailed'));
     } finally {
       setCopying(false);
     }
@@ -67,8 +69,8 @@ function ReportDetailPage() {
   if (!report.data) {
     return (
       <PageHeader
-        title="Report not found"
-        back={<PageBackLink label="Back to reports" to="/reports" />}
+        title={t('reports.detail.notFound')}
+        back={<PageBackLink label={t('common.backTo.reports')} to="/reports" />}
       />
     );
   }
@@ -78,13 +80,13 @@ function ReportDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Report ${detail.id.slice(0, 8)}…`}
+        title={`${detail.id.slice(0, 8)}…`}
         description={formatReportPeriod(detail.periodStart, detail.periodEnd)}
-        back={<PageBackLink label="Back to reports" to="/reports" />}
+        back={<PageBackLink label={t('common.backTo.reports')} to="/reports" />}
         actions={
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" disabled={copying} onClick={() => void copyVerifyUrl()}>
-              Copy verify URL
+              {t('reports.detail.copyVerifyUrl')}
             </Button>
             <Button
               variant="secondary"
@@ -92,25 +94,28 @@ function ReportDetailPage() {
                 window.open(buildReportVerifyUrl(id), '_blank', 'noopener,noreferrer');
               }}
             >
-              Open verify endpoint
+              {t('reports.detail.openVerifyEndpoint')}
             </Button>
           </div>
         }
       />
 
       <Card className="space-y-3 p-5">
-        <DetailRow label="Type" value={<ReportTypeBadge reportType={detail.reportType} />} />
         <DetailRow
-          label="Period"
+          label={t('forms.fields.type')}
+          value={<ReportTypeBadge reportType={detail.reportType} />}
+        />
+        <DetailRow
+          label={t('forms.fields.period')}
           value={formatReportPeriod(detail.periodStart, detail.periodEnd)}
         />
-        <DetailRow label="Generated" value={formatDateTime(detail.generatedAt)} />
+        <DetailRow label={t('forms.fields.generated')} value={formatDateTime(detail.generatedAt)} />
         <DetailRow
-          label="Public key"
+          label={t('forms.fields.publicKey')}
           value={<span className="font-mono text-xs">{detail.publicKeyId}</span>}
         />
         <DetailRow
-          label="Signature"
+          label={t('forms.fields.signature')}
           value={
             <span className="break-all font-mono text-xs text-muted-foreground">
               {detail.signature}
@@ -119,20 +124,24 @@ function ReportDetailPage() {
         />
         {verify.data ? (
           <DetailRow
-            label="Verify result"
+            label={t('forms.fields.verifyResult')}
             value={
               <span className={verify.data.valid ? 'text-emerald-700' : 'text-red-700'}>
-                {verify.data.valid ? 'Valid signature' : 'Invalid signature'}
+                {verify.data.valid
+                  ? t('reports.detail.validSignature')
+                  : t('reports.detail.invalidSignature')}
               </span>
             }
           />
         ) : verify.isLoading ? (
-          <DetailRow label="Verify result" value="Checking…" />
+          <DetailRow label={t('forms.fields.verifyResult')} value={t('reports.detail.checking')} />
         ) : null}
       </Card>
 
       <div>
-        <h2 className="mb-3 text-base font-semibold text-foreground">Canonical payload</h2>
+        <h2 className="mb-3 text-base font-semibold text-foreground">
+          {t('reports.detail.canonicalPayload')}
+        </h2>
         <JsonBlock value={payload} defaultOpen />
       </div>
     </div>

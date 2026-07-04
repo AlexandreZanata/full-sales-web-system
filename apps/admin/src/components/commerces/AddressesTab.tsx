@@ -4,10 +4,8 @@ import { AddressFormFields } from '@/components/commerces/AddressFormFields';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
-import { ApiError } from '@/lib/api/client';
 import { createCommerceAddress, updateCommerceAddress } from '@/lib/api/commerces';
 import type { CommerceAddress } from '@/lib/api/types';
-import { ADDRESS_TYPE_LABELS } from '@/lib/commerces/constants';
 import {
   hasFormErrors,
   toAddressPayload,
@@ -15,7 +13,8 @@ import {
   validateAddressForm,
   type AddressFormValues,
 } from '@/lib/commerces/validation';
-import { formatApiErrorMessage } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/context';
+import { translateAddressType } from '@/lib/i18n/labels';
 
 type AddressEditorProps = {
   commerceId: string;
@@ -49,6 +48,7 @@ function toFormValues(address: CommerceAddress): AddressFormValues {
 }
 
 function AddressEditor({ commerceId, initial, onSaved, onCancel }: AddressEditorProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [values, setValues] = useState<AddressFormValues>(
     initial ? toFormValues(initial) : emptyAddressForm,
@@ -72,18 +72,14 @@ function AddressEditor({ commerceId, initial, onSaved, onCancel }: AddressEditor
     try {
       if (initial) {
         await updateCommerceAddress(commerceId, initial.id, toUpdateAddressPayload(values));
-        toast.success('Address updated');
+        toast.success(t('commerces.toast.addressUpdated'));
       } else {
         await createCommerceAddress(commerceId, toAddressPayload(values));
-        toast.success('Address added');
+        toast.success(t('commerces.toast.addressAdded'));
       }
       onSaved();
-    } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to save address';
-      toast.error(message);
+    } catch {
+      toast.error(t('errors.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -100,11 +96,15 @@ function AddressEditor({ commerceId, initial, onSaved, onCancel }: AddressEditor
         />
         <div className="flex flex-wrap gap-2">
           <Button type="submit" disabled={submitting}>
-            {submitting ? 'Saving…' : initial ? 'Save changes' : 'Add address'}
+            {submitting
+              ? t('commerces.addresses.saving')
+              : initial
+                ? t('commerces.addresses.save')
+                : t('commerces.addresses.add')}
           </Button>
           {onCancel ? (
             <Button type="button" variant="secondary" onClick={onCancel}>
-              Cancel
+              {t('common.cancel')}
             </Button>
           ) : null}
         </div>
@@ -120,15 +120,14 @@ type AddressesTabProps = {
 };
 
 export function AddressesTab({ commerceId, addresses, onChanged }: AddressesTabProps) {
+  const { t } = useI18n();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Manage billing and delivery addresses for this commerce.
-        </p>
+        <p className="text-sm text-muted-foreground">{t('commerces.addresses.description')}</p>
         {!showAddForm ? (
           <Button
             type="button"
@@ -137,7 +136,7 @@ export function AddressesTab({ commerceId, addresses, onChanged }: AddressesTabP
               setEditingId(null);
             }}
           >
-            Add address
+            {t('commerces.addresses.add')}
           </Button>
         ) : null}
       </div>
@@ -157,7 +156,7 @@ export function AddressesTab({ commerceId, addresses, onChanged }: AddressesTabP
 
       {addresses.length === 0 && !showAddForm ? (
         <Card>
-          <p className="text-sm text-muted-foreground">No addresses yet.</p>
+          <p className="text-sm text-muted-foreground">{t('commerces.addresses.empty')}</p>
         </Card>
       ) : null}
 
@@ -180,8 +179,8 @@ export function AddressesTab({ commerceId, addresses, onChanged }: AddressesTabP
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-foreground">
-                  {ADDRESS_TYPE_LABELS[address.addressType]}
-                  {address.isPrimary ? ' · Primary' : ''}
+                  {translateAddressType(t, address.addressType)}
+                  {address.isPrimary ? ` · ${t('commerces.addresses.primaryBadge')}` : ''}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {address.street}, {address.number}
@@ -199,7 +198,7 @@ export function AddressesTab({ commerceId, addresses, onChanged }: AddressesTabP
                   setShowAddForm(false);
                 }}
               >
-                Edit
+                {t('common.edit')}
               </Button>
             </div>
           </Card>

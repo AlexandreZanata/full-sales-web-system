@@ -2,7 +2,8 @@ import { type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/lib/i18n/context';
-import { formatTablePaginationSummary, type TablePaginationState } from '@/lib/tablePagination';
+import { formatPaginationSummary } from '@/lib/i18n/labels';
+import type { TablePaginationState } from '@/lib/tablePagination';
 import { cn } from '@/lib/utils';
 
 export type DataTableColumn<T> = {
@@ -108,11 +109,9 @@ export function DataTable<T>({
       {showPagination ? (
         <div
           className="flex flex-col gap-3 border-t border-hairline bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          aria-label="Table pagination"
+          aria-label={t('common.table.paginationAria')}
         >
-          <p className="text-sm text-muted-foreground">
-            {formatTablePaginationSummary(pagination)}
-          </p>
+          <p className="text-sm text-muted-foreground">{formatPaginationSummary(t, pagination)}</p>
           <div className="flex gap-2">
             <Button
               type="button"

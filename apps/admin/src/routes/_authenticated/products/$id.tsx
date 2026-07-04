@@ -14,6 +14,7 @@ import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useToast } from '@/hooks/useToast';
 import { fetchProduct, updateProduct } from '@/lib/api/products';
+import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';
 
 export const Route = createFileRoute('/_authenticated/products/$id')({
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/_authenticated/products/$id')({
 
 function ProductDetailPage() {
   const { id } = Route.useParams();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -38,10 +40,10 @@ function ProductDetailPage() {
       await updateProduct(id, { active: false });
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       await queryClient.invalidateQueries({ queryKey: ['products', id] });
-      toast.success('Product deactivated');
+      toast.success(t('products.toast.deactivated'));
       setConfirmOpen(false);
     } catch {
-      toast.error('Unable to deactivate product');
+      toast.error(t('errors.actionFailed'));
     } finally {
       setDeactivating(false);
     }
@@ -58,8 +60,8 @@ function ProductDetailPage() {
   if (!product.data) {
     return (
       <PageHeader
-        title="Product not found"
-        back={<PageBackLink label="Back to products" to="/products" />}
+        title={t('products.detail.notFound')}
+        back={<PageBackLink label={t('common.backTo.products')} to="/products" />}
       />
     );
   }
@@ -71,7 +73,7 @@ function ProductDetailPage() {
       <PageHeader
         title={detail.name}
         description={detail.sku}
-        back={<PageBackLink label="Back to products" to="/products" />}
+        back={<PageBackLink label={t('common.backTo.products')} to="/products" />}
         actions={
           detail.active ? (
             <Button
@@ -80,7 +82,7 @@ function ProductDetailPage() {
                 setConfirmOpen(true);
               }}
             >
-              Deactivate
+              {t('products.detail.deactivate')}
             </Button>
           ) : null
         }
@@ -89,7 +91,7 @@ function ProductDetailPage() {
       <Card className="space-y-3">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Price
+            {t('forms.fields.price')}
           </span>
           <span className="text-sm text-foreground">
             {formatMoney(detail.priceAmount, detail.priceCurrency)}
@@ -97,7 +99,7 @@ function ProductDetailPage() {
         </div>
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Status
+            {t('forms.fields.status')}
           </span>
           <ActiveBadge active={detail.active} />
         </div>
@@ -118,9 +120,9 @@ function ProductDetailPage() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title="Deactivate product"
-        message="Inactive products are hidden from sales flows. Stock records remain unchanged."
-        confirmLabel="Deactivate"
+        title={t('products.detail.deactivateDialog.title')}
+        message={t('products.detail.deactivateDialog.message')}
+        confirmLabel={t('products.detail.deactivateDialog.confirm')}
         destructive
         isLoading={deactivating}
         onCancel={() => {

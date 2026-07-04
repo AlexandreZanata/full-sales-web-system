@@ -54,16 +54,24 @@ Full API↔UI matrix: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 
 ## i18n
 
-Lightweight locale switcher (`en`, `pt-BR`) with `localStorage` persistence.
+Full locale coverage (`en`, `pt-BR`) with `localStorage` persistence and nested message keys (~220).
 
 | Scope | Keys |
 |-------|------|
 | Sidebar nav | `nav.*` |
 | Login | `auth.*` |
 | Shell / menu | `shell.*` |
-| Shared actions | `common.*` (pagination, confirm dialogs) |
+| Shared actions / tables | `common.*` |
+| Form labels & validation | `forms.fields.*`, `forms.validation.*` |
+| API error mapping | `errors.*` |
+| Status badges | `status.order.*`, `status.sale.*`, `status.delivery.*`, `status.report.*` |
+| Roles / payment / addresses | `role.*`, `payment.*`, `addressType.*` |
+| Domain screens | `dashboard.*`, `users.*`, `commerces.*`, `products.*`, `inventory.*`, `orders.*`, `deliveries.*`, `sales.*`, `reports.*`, `audit.*` |
+| Uploads | `uploads.*` |
 
-Catalogs: `apps/admin/src/lib/i18n/locales/`.
+Helpers: `apps/admin/src/lib/i18n/labels.ts` (`translateOrderStatus`, filter labels, `formatPaginationSummary`, action error keys).
+
+Catalogs: `apps/admin/src/lib/i18n/locales/`. Parity test: `apps/admin/tests/unit/i18n.test.ts`.
 
 ---
 
@@ -111,8 +119,9 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 | 28 | App scaffold, theme, shell, API client |
 | 29 | Login, JWT session, dashboard |
 | 30–35 | Domain screens (users → audit) |
-| 36 | i18n, E2E, route audit, CI, docs |
+| 36 | i18n foundation, E2E, route audit, CI, docs |
+| 38 | Full admin i18n (en + pt-BR, all 23 screens) |
 
 ---
 
-**Updated:** 2026-07-04 (Phase 36)
+**Updated:** 2026-07-04 (Phase 38)

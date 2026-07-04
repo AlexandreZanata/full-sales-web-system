@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils';
 
 type JsonBlockProps = {
@@ -23,6 +24,7 @@ function formatJson(value: unknown): string {
 }
 
 export function JsonBlock({ value, className, defaultOpen = false }: JsonBlockProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(defaultOpen);
   const formatted = formatJson(value);
 
@@ -36,7 +38,7 @@ export function JsonBlock({ value, className, defaultOpen = false }: JsonBlockPr
           setOpen((current) => !current);
         }}
       >
-        <span>JSON payload</span>
+        <span>{t('common.jsonPayload')}</span>
         <span aria-hidden>{open ? '−' : '+'}</span>
       </button>
       {open ? (

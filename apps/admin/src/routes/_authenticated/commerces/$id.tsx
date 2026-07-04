@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { AddressesTab } from '@/components/commerces/AddressesTab';
 import { CommerceLogoSection } from '@/components/commerces/CommerceLogoSection';
@@ -15,6 +15,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/hooks/useToast';
 import { deactivateCommerce, fetchCommerce, fetchCommerceAddresses } from '@/lib/api/commerces';
 import { formatCnpj } from '@/lib/commerces/cnpj';
+import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/_authenticated/commerces/$id')({
   component: CommerceDetailPage,
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/_authenticated/commerces/$id')({
 
 function CommerceDetailPage() {
   const { id } = Route.useParams();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('overview');
@@ -39,10 +41,13 @@ function CommerceDetailPage() {
     enabled: activeTab === 'addresses',
   });
 
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'addresses', label: 'Addresses' },
-  ];
+  const tabs = useMemo(
+    () => [
+      { id: 'overview', label: t('commerces.detail.tabs.overview') },
+      { id: 'addresses', label: t('commerces.detail.tabs.addresses') },
+    ],
+    [t],
+  );
 
   async function handleDeactivate() {
     setDeactivating(true);
@@ -50,10 +55,10 @@ function CommerceDetailPage() {
       await deactivateCommerce(id);
       await queryClient.invalidateQueries({ queryKey: ['commerces'] });
       await queryClient.invalidateQueries({ queryKey: ['commerces', id] });
-      toast.success('Commerce deactivated');
+      toast.success(t('commerces.toast.deactivated'));
       setConfirmOpen(false);
     } catch {
-      toast.error('Unable to deactivate commerce');
+      toast.error(t('errors.actionFailed'));
     } finally {
       setDeactivating(false);
     }
@@ -70,8 +75,8 @@ function CommerceDetailPage() {
   if (!commerce.data) {
     return (
       <PageHeader
-        title="Commerce not found"
-        back={<PageBackLink label="Back to commerces" to="/commerces" />}
+        title={t('commerces.detail.notFound')}
+        back={<PageBackLink label={t('common.backTo.commerces')} to="/commerces" />}
       />
     );
   }
@@ -83,7 +88,7 @@ function CommerceDetailPage() {
       <PageHeader
         title={detail.tradeName || detail.legalName}
         description={formatCnpj(detail.cnpj)}
-        back={<PageBackLink label="Back to commerces" to="/commerces" />}
+        back={<PageBackLink label={t('common.backTo.commerces')} to="/commerces" />}
         actions={
           detail.active ? (
             <Button
@@ -92,7 +97,7 @@ function CommerceDetailPage() {
                 setConfirmOpen(true);
               }}
             >
-              Deactivate
+              {t('commerces.detail.deactivate')}
             </Button>
           ) : null
         }
@@ -102,10 +107,13 @@ function CommerceDetailPage() {
         {activeTab === 'overview' ? (
           <div className="space-y-4">
             <Card className="space-y-3">
-              <DetailRow label="CNPJ" value={formatCnpj(detail.cnpj)} />
-              <DetailRow label="Legal name" value={detail.legalName} />
-              <DetailRow label="Trade name" value={detail.tradeName || '—'} />
-              <DetailRow label="Status" value={<ActiveBadge active={detail.active} />} />
+              <DetailRow label={t('forms.fields.cnpj')} value={formatCnpj(detail.cnpj)} />
+              <DetailRow label={t('forms.fields.legalName')} value={detail.legalName} />
+              <DetailRow label={t('forms.fields.tradeName')} value={detail.tradeName || '—'} />
+              <DetailRow
+                label={t('forms.fields.status')}
+                value={<ActiveBadge active={detail.active} />}
+              />
             </Card>
             <Card>
               <CommerceLogoSection commerceId={id} />
@@ -132,9 +140,9 @@ function CommerceDetailPage() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title="Deactivate commerce"
-        message="Inactive commerces cannot receive new sales. Existing records remain in the system."
-        confirmLabel="Deactivate"
+        title={t('commerces.detail.deactivateDialog.title')}
+        message={t('commerces.detail.deactivateDialog.message')}
+        confirmLabel={t('commerces.detail.deactivateDialog.confirm')}
         destructive
         isLoading={deactivating}
         onCancel={() => {

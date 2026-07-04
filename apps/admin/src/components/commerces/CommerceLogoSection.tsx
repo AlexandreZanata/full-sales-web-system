@@ -2,15 +2,15 @@ import { useState, type SubmitEvent } from 'react';
 
 import { FileUploadField } from '@/components/uploads/FileUploadField';
 import { useToast } from '@/hooks/useToast';
-import { ApiError } from '@/lib/api/client';
 import { updateCommerceLogo } from '@/lib/api/commerces';
-import { formatApiErrorMessage } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/context';
 
 type CommerceLogoSectionProps = {
   commerceId: string;
 };
 
 export function CommerceLogoSection({ commerceId }: CommerceLogoSectionProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const [logoFileId, setLogoFileId] = useState('');
   const [saving, setSaving] = useState(false);
@@ -20,13 +20,9 @@ export function CommerceLogoSection({ commerceId }: CommerceLogoSectionProps) {
     setSaving(true);
     try {
       await updateCommerceLogo(commerceId, fileId);
-      toast.success('Logo updated');
-    } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? formatApiErrorMessage(error.message, error.code)
-          : 'Unable to update logo';
-      toast.error(message);
+      toast.success(t('commerces.toast.logoUpdated'));
+    } catch {
+      toast.error(t('errors.actionFailed'));
       setLogoFileId('');
     } finally {
       setSaving(false);
@@ -41,13 +37,15 @@ export function CommerceLogoSection({ commerceId }: CommerceLogoSectionProps) {
       }}
     >
       <FileUploadField
-        label="Commerce logo"
+        label={t('commerces.logo.label')}
         fileId={logoFileId}
         onChange={(fileId) => void handleLogoChange(fileId)}
         entityType="Commerce"
         entityId={commerceId}
       />
-      {saving ? <p className="text-xs text-muted-foreground">Saving logo…</p> : null}
+      {saving ? (
+        <p className="text-xs text-muted-foreground">{t('commerces.logo.saving')}</p>
+      ) : null}
     </form>
   );
 }

@@ -18,7 +18,7 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
   return (
     <nav
       data-admin-sidebar
-      aria-label="Admin navigation"
+      aria-label={t('shell.adminNav')}
       className={cn('flex flex-col gap-1', className)}
     >
       {adminNavItems.map(({ to, labelKey, icon: Icon }) => (

@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ReportTypeBadge } from '@/components/reports/ReportTypeBadge';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { fetchReports } from '@/lib/api/reports';
 import type { Report } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/formatDateTime';
+import { useI18n } from '@/lib/i18n/context';
 import { formatReportPeriod } from '@/lib/reports/formatPeriod';
 import { paginatedResponseToTable } from '@/lib/tablePagination';
 
@@ -19,6 +20,7 @@ export const Route = createFileRoute('/_authenticated/reports/')({
 });
 
 function ReportsListPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const pageSize = 20;
@@ -30,39 +32,42 @@ function ReportsListPage() {
 
   const pagination = reports.data ? paginatedResponseToTable(reports.data) : null;
 
-  const columns: DataTableColumn<Report>[] = [
-    {
-      id: 'reportType',
-      header: 'Type',
-      cell: (row) => <ReportTypeBadge reportType={row.reportType} />,
-    },
-    {
-      id: 'period',
-      header: 'Period',
-      cell: (row) => formatReportPeriod(row.periodStart, row.periodEnd),
-    },
-    {
-      id: 'generatedAt',
-      header: 'Generated',
-      cell: (row) => formatDateTime(row.generatedAt),
-    },
-    {
-      id: 'publicKeyId',
-      header: 'Key',
-      cell: (row) => (
-        <span className="font-mono text-xs text-muted-foreground">{row.publicKeyId}</span>
-      ),
-    },
-  ];
+  const columns: DataTableColumn<Report>[] = useMemo(
+    () => [
+      {
+        id: 'reportType',
+        header: t('forms.fields.type'),
+        cell: (row) => <ReportTypeBadge reportType={row.reportType} />,
+      },
+      {
+        id: 'period',
+        header: t('forms.fields.period'),
+        cell: (row) => formatReportPeriod(row.periodStart, row.periodEnd),
+      },
+      {
+        id: 'generatedAt',
+        header: t('forms.fields.generated'),
+        cell: (row) => formatDateTime(row.generatedAt),
+      },
+      {
+        id: 'publicKeyId',
+        header: t('forms.fields.publicKey'),
+        cell: (row) => (
+          <span className="font-mono text-xs text-muted-foreground">{row.publicKeyId}</span>
+        ),
+      },
+    ],
+    [t],
+  );
 
   return (
     <div>
       <PageHeader
-        title="Reports"
-        description="Signed settlement reports with Ed25519 integrity proof."
+        title={t('reports.list.title')}
+        description={t('reports.list.description')}
         actions={
           <Link to="/reports/new">
-            <Button>Generate report</Button>
+            <Button>{t('reports.list.generate')}</Button>
           </Link>
         }
       />
@@ -73,7 +78,7 @@ function ReportsListPage() {
         </div>
       ) : reports.data && reports.data.items.length > 0 ? (
         <DataTable
-          caption="Reports"
+          caption={t('reports.list.caption')}
           columns={columns}
           rows={reports.data.items}
           getRowKey={(row) => row.id}
@@ -85,8 +90,8 @@ function ReportsListPage() {
         />
       ) : (
         <EmptyState
-          title="No reports yet"
-          description="Generate a signed report for a driver and period."
+          title={t('reports.list.empty.title')}
+          description={t('reports.list.empty.description')}
         />
       )}
     </div>

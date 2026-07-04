@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Select';
 import type { User } from '@/lib/api/types';
+import { useI18n } from '@/lib/i18n/context';
+import { translateFormError } from '@/lib/i18n/labels';
 
 type AssignDeliveryDialogProps = {
   open: boolean;
@@ -20,6 +22,7 @@ export function AssignDeliveryDialog({
   onCancel,
   onConfirm,
 }: AssignDeliveryDialogProps) {
+  const { t } = useI18n();
   const [driverId, setDriverId] = useState('');
   const [error, setError] = useState('');
 
@@ -27,7 +30,7 @@ export function AssignDeliveryDialog({
 
   function handleConfirm() {
     if (!driverId) {
-      setError('Select a driver');
+      setError('forms.validation.selectDriver');
       return;
     }
     onConfirm(driverId);
@@ -48,14 +51,12 @@ export function AssignDeliveryDialog({
         aria-labelledby="assign-delivery-title"
       >
         <h2 id="assign-delivery-title" className="text-lg font-semibold text-foreground">
-          Assign delivery
+          {t('orders.assignDialog.title')}
         </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Select an active driver to handle this delivery.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t('orders.assignDialog.description')}</p>
         <div className="mt-4">
           <Select
-            label="Driver"
+            label={t('forms.fields.driver')}
             value={driverId}
             onChange={(event) => {
               setDriverId(event.target.value);
@@ -63,10 +64,10 @@ export function AssignDeliveryDialog({
                 setError('');
               }
             }}
-            error={error}
+            error={translateFormError(t, error)}
             disabled={isLoading}
           >
-            <option value="">Select a driver</option>
+            <option value="">{t('forms.placeholders.selectDriver')}</option>
             {drivers.map((driver) => (
               <option key={driver.id} value={driver.id}>
                 {driver.name}
@@ -76,10 +77,10 @@ export function AssignDeliveryDialog({
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" onClick={handleCancel} disabled={isLoading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={isLoading || drivers.length === 0}>
-            {isLoading ? 'Assigning…' : 'Assign driver'}
+            {isLoading ? t('orders.assignDialog.submitting') : t('orders.assignDialog.submit')}
           </Button>
         </div>
       </Card>

@@ -18,27 +18,27 @@ export function validateCreateUserForm(values: CreateUserFormValues): CreateUser
   const email = values.email.trim().toLowerCase();
 
   if (!name) {
-    errors.name = 'Name is required';
+    errors.name = 'forms.validation.nameRequired';
   }
 
   if (!email) {
-    errors.email = 'Email is required';
+    errors.email = 'forms.validation.emailRequired';
   } else if (!EMAIL_PATTERN.test(email)) {
-    errors.email = 'Enter a valid email address';
+    errors.email = 'forms.validation.emailInvalid';
   }
 
   if (!values.password) {
-    errors.password = 'Password is required';
+    errors.password = 'forms.validation.passwordRequired';
   } else if (values.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters';
+    errors.password = 'forms.validation.passwordMinLength';
   }
 
   if (!values.role || !USER_ROLES.includes(values.role)) {
-    errors.role = 'Select a role';
+    errors.role = 'forms.validation.roleRequired';
   }
 
   if (values.role === 'CommerceContact' && !values.commerceId) {
-    errors.commerceId = 'Select a commerce for commerce contacts';
+    errors.commerceId = 'forms.validation.commerceContactRequired';
   }
 
   return errors;

@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { AssignDeliveryDialog } from '@/components/orders/AssignDeliveryDialog';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
@@ -27,7 +27,8 @@ import { fetchProductsForPicker } from '@/lib/api/products';
 import { fetchDriversForPicker } from '@/lib/api/users';
 import type { OrderItem } from '@/lib/api/types';
 import { getDeliveryStatusToken, type DeliveryStatus } from '@/lib/admin-tokens';
-import { orderActionErrorMessage } from '@/lib/orders/orderActionErrors';
+import { useI18n } from '@/lib/i18n/context';
+import { orderActionErrorKey, translateDeliveryStatus } from '@/lib/i18n/labels';
 import { formatMoney } from '@/lib/products/formatPrice';
 import { buildProductNameMap, productDisplayName } from '@/lib/products/productNameMap';
 import { useToast } from '@/hooks/useToast';
@@ -36,47 +37,9 @@ export const Route = createFileRoute('/_authenticated/orders/$id')({
   component: OrderDetailPage,
 });
 
-function buildLineItemColumns(productNames: Map<string, string>): DataTableColumn<OrderItem>[] {
-  return [
-    {
-      id: 'product',
-      header: 'Product',
-      cell: (row) => (
-        <Link
-          to="/products/$id"
-          params={{ id: row.productId }}
-          className="text-sm hover:underline"
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-        >
-          {productDisplayName(productNames, row.productId)}
-        </Link>
-      ),
-    },
-    {
-      id: 'quantity',
-      header: 'Qty',
-      align: 'right',
-      cell: (row) => row.quantity,
-    },
-    {
-      id: 'unitPrice',
-      header: 'Unit price',
-      align: 'right',
-      cell: (row) => formatMoney(row.unitPriceAmount, row.unitPriceCurrency),
-    },
-    {
-      id: 'lineTotal',
-      header: 'Line total',
-      align: 'right',
-      cell: (row) => formatMoney(row.lineTotalAmount, row.unitPriceCurrency),
-    },
-  ];
-}
-
 function OrderDetailPage() {
   const { id } = Route.useParams();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const toast = useToast();
 
@@ -114,7 +77,46 @@ function OrderDetailPage() {
   });
 
   const productNames = buildProductNameMap(products.data ?? []);
-  const lineItemColumns = buildLineItemColumns(productNames);
+
+  const lineItemColumns: DataTableColumn<OrderItem>[] = useMemo(
+    () => [
+      {
+        id: 'product',
+        header: t('common.table.product'),
+        cell: (row) => (
+          <Link
+            to="/products/$id"
+            params={{ id: row.productId }}
+            className="text-sm hover:underline"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            {productDisplayName(productNames, row.productId)}
+          </Link>
+        ),
+      },
+      {
+        id: 'quantity',
+        header: t('common.table.qty'),
+        align: 'right',
+        cell: (row) => row.quantity,
+      },
+      {
+        id: 'unitPrice',
+        header: t('common.table.unitPrice'),
+        align: 'right',
+        cell: (row) => formatMoney(row.unitPriceAmount, row.unitPriceCurrency),
+      },
+      {
+        id: 'lineTotal',
+        header: t('common.table.lineTotal'),
+        align: 'right',
+        cell: (row) => formatMoney(row.lineTotalAmount, row.unitPriceCurrency),
+      },
+    ],
+    [t, productNames],
+  );
 
   async function invalidateOrder() {
     await queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -130,7 +132,7 @@ function OrderDetailPage() {
       toast.success(successMessage);
     } catch (error) {
       const message =
-        error instanceof ApiError ? orderActionErrorMessage(error.code) : 'Action failed';
+        error instanceof ApiError ? t(orderActionErrorKey(error.code)) : t('errors.actionFailed');
       toast.error(message);
     } finally {
       setActionLoading(false);
@@ -148,8 +150,8 @@ function OrderDetailPage() {
   if (!order.data) {
     return (
       <PageHeader
-        title="Order not found"
-        back={<PageBackLink label="Back to orders" to="/orders" />}
+        title={t('orders.detail.notFound')}
+        back={<PageBackLink label={t('common.backTo.orders')} to="/orders" />}
       />
     );
   }
@@ -165,17 +167,17 @@ function OrderDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Order ${detail.id.slice(0, 8)}…`}
-        description={commerce.data?.tradeName || commerce.data?.legalName || 'Order detail'}
-        back={<PageBackLink label="Back to orders" to="/orders" />}
+        title={`${t('forms.fields.order')} ${detail.id.slice(0, 8)}…`}
+        description={commerce.data?.tradeName || commerce.data?.legalName || undefined}
+        back={<PageBackLink label={t('common.backTo.orders')} to="/orders" />}
         actions={
           <div className="flex flex-wrap gap-2">
             {canApprove ? (
               <Button
                 disabled={actionLoading}
-                onClick={() => void runAction(() => approveOrder(id), 'Order approved')}
+                onClick={() => void runAction(() => approveOrder(id), t('orders.toast.approved'))}
               >
-                Approve
+                {t('orders.detail.actions.approve')}
               </Button>
             ) : null}
             {canReject ? (
@@ -186,16 +188,18 @@ function OrderDetailPage() {
                   setRejectOpen(true);
                 }}
               >
-                Reject
+                {t('orders.detail.actions.reject')}
               </Button>
             ) : null}
             {canStartPicking ? (
               <Button
                 variant="secondary"
                 disabled={actionLoading}
-                onClick={() => void runAction(() => startPicking(id), 'Picking started')}
+                onClick={() =>
+                  void runAction(() => startPicking(id), t('orders.detail.actions.startPicking'))
+                }
               >
-                Start picking
+                {t('orders.detail.actions.startPicking')}
               </Button>
             ) : null}
             {canAssignDelivery ? (
@@ -206,7 +210,7 @@ function OrderDetailPage() {
                   setAssignOpen(true);
                 }}
               >
-                Assign delivery
+                {t('orders.detail.actions.assignDelivery')}
               </Button>
             ) : null}
             {canCancel ? (
@@ -217,7 +221,7 @@ function OrderDetailPage() {
                   setCancelOpen(true);
                 }}
               >
-                Cancel order
+                {t('orders.detail.actions.cancel')}
               </Button>
             ) : null}
           </div>
@@ -225,9 +229,12 @@ function OrderDetailPage() {
       />
 
       <Card className="space-y-3 p-5">
-        <DetailRow label="Status" value={<OrderStatusBadge status={detail.status} />} />
         <DetailRow
-          label="Commerce"
+          label={t('forms.fields.status')}
+          value={<OrderStatusBadge status={detail.status} />}
+        />
+        <DetailRow
+          label={t('forms.fields.commerce')}
           value={
             commerce.data ? (
               <Link
@@ -242,18 +249,23 @@ function OrderDetailPage() {
             )
           }
         />
-        <DetailRow label="Total" value={formatMoney(detail.totalAmount, detail.totalCurrency)} />
-        {detail.notes ? <DetailRow label="Notes" value={detail.notes} /> : null}
+        <DetailRow
+          label={t('common.table.total')}
+          value={formatMoney(detail.totalAmount, detail.totalCurrency)}
+        />
+        {detail.notes ? <DetailRow label={t('forms.fields.notes')} value={detail.notes} /> : null}
         {detail.rejectionReason ? (
-          <DetailRow label="Rejection reason" value={detail.rejectionReason} />
+          <DetailRow label={t('forms.fields.rejectionReason')} value={detail.rejectionReason} />
         ) : null}
       </Card>
 
       {detail.delivery ? (
         <Card className="space-y-3 p-5">
-          <h2 className="text-base font-semibold text-foreground">Delivery</h2>
+          <h2 className="text-base font-semibold text-foreground">
+            {t('orders.detail.deliverySection')}
+          </h2>
           <DetailRow
-            label="Delivery ID"
+            label={t('forms.fields.delivery')}
             value={
               <Link
                 to="/deliveries/$id"
@@ -265,10 +277,11 @@ function OrderDetailPage() {
             }
           />
           <DetailRow
-            label="Status"
+            label={t('forms.fields.status')}
             value={
               <DomainStatusBadge
                 colors={getDeliveryStatusToken(detail.delivery.status as DeliveryStatus)}
+                label={translateDeliveryStatus(t, detail.delivery.status as DeliveryStatus)}
               />
             }
           />
@@ -276,9 +289,11 @@ function OrderDetailPage() {
       ) : null}
 
       <div>
-        <h2 className="mb-3 text-base font-semibold text-foreground">Line items</h2>
+        <h2 className="mb-3 text-base font-semibold text-foreground">
+          {t('forms.sections.lineItems')}
+        </h2>
         <DataTable
-          caption="Order line items"
+          caption={t('orders.detail.lineItems')}
           columns={lineItemColumns}
           rows={detail.items}
           getRowKey={(row) => row.id}
@@ -298,13 +313,13 @@ function OrderDetailPage() {
             try {
               await rejectOrder(id, reason);
               await invalidateOrder();
-              toast.success('Order rejected');
+              toast.success(t('orders.toast.rejected'));
               setRejectOpen(false);
             } catch (error) {
               const message =
                 error instanceof ApiError
-                  ? orderActionErrorMessage(error.code)
-                  : 'Unable to reject order';
+                  ? t(orderActionErrorKey(error.code))
+                  : t('errors.actionFailed');
               toast.error(message);
             } finally {
               setActionLoading(false);
@@ -326,13 +341,13 @@ function OrderDetailPage() {
             try {
               await assignDelivery(id, driverId);
               await invalidateOrder();
-              toast.success('Delivery assigned');
+              toast.success(t('orders.toast.deliveryAssigned'));
               setAssignOpen(false);
             } catch (error) {
               const message =
                 error instanceof ApiError
-                  ? orderActionErrorMessage(error.code)
-                  : 'Unable to assign delivery';
+                  ? t(orderActionErrorKey(error.code))
+                  : t('errors.actionFailed');
               toast.error(message);
             } finally {
               setActionLoading(false);
@@ -343,9 +358,9 @@ function OrderDetailPage() {
 
       <ConfirmDialog
         open={cancelOpen}
-        title="Cancel order"
-        message="This releases stock reservations and cannot be undone for in-transit orders."
-        confirmLabel="Cancel order"
+        title={t('orders.cancelDialog.title')}
+        message={t('orders.cancelDialog.message')}
+        confirmLabel={t('orders.cancelDialog.confirm')}
         destructive
         isLoading={actionLoading}
         onCancel={() => {
@@ -353,7 +368,7 @@ function OrderDetailPage() {
         }}
         onConfirm={() => {
           void (async () => {
-            await runAction(() => cancelOrder(id), 'Order cancelled');
+            await runAction(() => cancelOrder(id), t('orders.toast.cancelled'));
             setCancelOpen(false);
           })();
         }}
