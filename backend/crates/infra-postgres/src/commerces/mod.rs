@@ -78,3 +78,42 @@ pub async fn find_commerce_by_id(
         }),
     )
 }
+
+pub async fn list_commerces(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<CommerceRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool)>(
+        "SELECT id, cnpj, legal_name, trade_name, active
+         FROM commerces.commerces ORDER BY cnpj LIMIT $1 OFFSET $2",
+    )
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, cnpj, legal_name, trade_name, active)| CommerceRow {
+            id,
+            cnpj,
+            legal_name,
+            trade_name,
+            active,
+        })
+        .collect())
+}
+
+pub async fn count_commerces(pool: &PgPool, tenant_id: TenantId) -> Result<i64, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM commerces.commerces")
+        .fetch_one(&mut *tx)
+        .await?;
+    tx.commit().await?;
+    Ok(count)
+}

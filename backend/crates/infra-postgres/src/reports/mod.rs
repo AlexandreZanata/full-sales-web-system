@@ -75,3 +75,30 @@ pub async fn list_report_ids(
     tx.commit().await?;
     Ok(rows)
 }
+
+pub struct SigningKeyRow {
+    pub public_key_id: String,
+    pub public_key: Vec<u8>,
+}
+
+pub async fn find_active_signing_key(
+    pool: &PgPool,
+    tenant_id: TenantId,
+) -> Result<Option<SigningKeyRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (String, Vec<u8>)>(
+        "SELECT public_key_id, public_key
+         FROM reports.signing_keys
+         WHERE active = true
+         ORDER BY valid_from DESC
+         LIMIT 1",
+    )
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(|(public_key_id, public_key)| SigningKeyRow {
+        public_key_id,
+        public_key,
+    }))
+}

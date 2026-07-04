@@ -137,6 +137,18 @@ pub struct StockMovementInsert {
     pub movement_type: String,
     pub quantity: i32,
     pub reference_id: Option<Uuid>,
+    pub reason: Option<String>,
+}
+
+pub struct StockMovementRow {
+    pub id: Uuid,
+    pub product_id: Uuid,
+    pub responsible_id: Uuid,
+    pub movement_type: String,
+    pub quantity: i32,
+    pub reference_id: Option<Uuid>,
+    pub reason: Option<String>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
 pub async fn insert_stock_movement(
@@ -148,8 +160,8 @@ pub async fn insert_stock_movement(
     apply_tenant_context(&mut tx, tenant_id).await?;
     sqlx::query(
         "INSERT INTO inventory.stock_movements
-         (id, tenant_id, product_id, responsible_id, movement_type, quantity, reference_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)",
+         (id, tenant_id, product_id, responsible_id, movement_type, quantity, reference_id, reason)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
     )
     .bind(movement.id)
     .bind(tenant_id.as_uuid())
@@ -158,6 +170,7 @@ pub async fn insert_stock_movement(
     .bind(movement.movement_type)
     .bind(movement.quantity)
     .bind(movement.reference_id)
+    .bind(movement.reason)
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -232,4 +245,127 @@ pub async fn get_stock_quantity(
     .await?;
     tx.commit().await?;
     Ok(qty)
+}
+
+pub async fn list_stock_movements_by_reference(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    reference_id: Uuid,
+) -> Result<Vec<StockMovementRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (
+        Uuid,
+        Uuid,
+        Uuid,
+        String,
+        i32,
+        Option<Uuid>,
+        Option<String>,
+        chrono::DateTime<chrono::Utc>,
+    )>(
+        "SELECT id, product_id, responsible_id, movement_type, quantity, reference_id, reason, created_at
+         FROM inventory.stock_movements
+         WHERE reference_id = $1
+         ORDER BY created_at",
+    )
+    .bind(reference_id)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(
+                id,
+                product_id,
+                responsible_id,
+                movement_type,
+                quantity,
+                reference_id,
+                reason,
+                created_at,
+            )| StockMovementRow {
+                id,
+                product_id,
+                responsible_id,
+                movement_type,
+                quantity,
+                reference_id,
+                reason,
+                created_at,
+            },
+        )
+        .collect())
+}
+
+/// Inserts an Adjustment movement with reason and applies signed balance delta atomically.
+pub async fn insert_adjustment_movement(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    driver_id: Uuid,
+    product_id: Uuid,
+    quantity: i32,
+    reason: &str,
+    balance_delta: i32,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+
+    let movement = StockMovementInsert {
+        id: Uuid::now_v7(),
+        product_id,
+        responsible_id: driver_id,
+        movement_type: "Adjustment".to_owned(),
+        quantity,
+        reference_id: None,
+        reason: Some(reason.to_owned()),
+    };
+    sqlx::query(
+        "INSERT INTO inventory.stock_movements
+         (id, tenant_id, product_id, responsible_id, movement_type, quantity, reference_id, reason)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+    )
+    .bind(movement.id)
+    .bind(tenant_id.as_uuid())
+    .bind(movement.product_id)
+    .bind(movement.responsible_id)
+    .bind(movement.movement_type)
+    .bind(movement.quantity)
+    .bind(movement.reference_id)
+    .bind(movement.reason)
+    .execute(&mut *tx)
+    .await?;
+
+    let updated = sqlx::query(
+        "UPDATE inventory.stock_balances
+         SET quantity = quantity + $4, updated_at = now()
+         WHERE tenant_id = $1 AND driver_id = $2 AND product_id = $3
+           AND quantity + $4 >= 0",
+    )
+    .bind(tenant_id.as_uuid())
+    .bind(driver_id)
+    .bind(product_id)
+    .bind(balance_delta)
+    .execute(&mut *tx)
+    .await?;
+
+    if updated.rows_affected() == 0 {
+        if balance_delta < 0 {
+            return Err(PostgresError::from(sqlx::Error::RowNotFound));
+        }
+        sqlx::query(
+            "INSERT INTO inventory.stock_balances (tenant_id, driver_id, product_id, quantity)
+             VALUES ($1, $2, $3, $4)",
+        )
+        .bind(tenant_id.as_uuid())
+        .bind(driver_id)
+        .bind(product_id)
+        .bind(balance_delta)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+    Ok(())
 }

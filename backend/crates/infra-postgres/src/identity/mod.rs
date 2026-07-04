@@ -146,6 +146,53 @@ pub async fn find_user_by_id(
     }))
 }
 
+pub struct UserListRow {
+    pub id: Uuid,
+    pub email: String,
+    pub name: String,
+    pub role: String,
+    pub active: bool,
+}
+
+pub async fn list_users(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<UserListRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool)>(
+        "SELECT id, email, name, role, active
+         FROM identity.users ORDER BY email LIMIT $1 OFFSET $2",
+    )
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, email, name, role, active)| UserListRow {
+            id,
+            email,
+            name,
+            role,
+            active,
+        })
+        .collect())
+}
+
+pub async fn count_users(pool: &PgPool, tenant_id: TenantId) -> Result<i64, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM identity.users")
+        .fetch_one(&mut *tx)
+        .await?;
+    tx.commit().await?;
+    Ok(count)
+}
+
 #[derive(sqlx::FromRow)]
 struct UserRecord {
     id: Uuid,

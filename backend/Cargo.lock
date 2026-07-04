@@ -1179,6 +1179,7 @@ name = "infra-postgres"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "domain-inventory",
  "domain-shared",
  "serde_json",
  "sqlx",

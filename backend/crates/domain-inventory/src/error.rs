@@ -13,4 +13,10 @@ pub enum InventoryError {
 
     #[error("inactive product cannot be added to sale")]
     InactiveProduct,
+
+    #[error("adjustment reason is required")]
+    MissingReason,
+
+    #[error("adjustment reason exceeds maximum length")]
+    ReasonTooLong,
 }

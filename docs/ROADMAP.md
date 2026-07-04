@@ -59,7 +59,7 @@ Build phases aligned with domain dependencies. Local task breakdown: `.local/pha
 ## Phase 6 — Observability & Hardening
 
 - Structured tracing + request correlation
-- Audit log (who did what, when)
+- Audit log (`audit.events` schema — DB layer in Phase 1c; API wiring in Phase 6)
 - Security review: rate limits, RLS audit, secrets rotation doc
 
 **Exit criteria:** OWASP threat table in [SECURITY.md](SECURITY.md) fully mitigated.

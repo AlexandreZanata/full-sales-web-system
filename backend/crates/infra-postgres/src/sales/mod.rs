@@ -6,6 +6,24 @@ use crate::PostgresError;
 use crate::inventory::StockMovementInsert;
 use crate::rls::apply_tenant_context;
 
+pub struct SaleFilters {
+    pub commerce_id: Option<Uuid>,
+    pub driver_id: Option<Uuid>,
+    pub from: Option<chrono::DateTime<chrono::Utc>>,
+    pub to: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+pub struct SaleListRow {
+    pub id: Uuid,
+    pub driver_id: Uuid,
+    pub commerce_id: Uuid,
+    pub status: String,
+    pub payment_method: String,
+    pub total_amount: i64,
+    pub total_currency: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum ConfirmSaleError {
     #[error("insufficient stock")]
@@ -224,11 +242,12 @@ pub async fn confirm_sale_with_stock(
             movement_type: "SaleOutbound".to_owned(),
             quantity: item.quantity,
             reference_id: Some(sale_id),
+            reason: None,
         };
         sqlx::query(
             "INSERT INTO inventory.stock_movements
-             (id, tenant_id, product_id, responsible_id, movement_type, quantity, reference_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)",
+             (id, tenant_id, product_id, responsible_id, movement_type, quantity, reference_id, reason)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
         )
         .bind(movement.id)
         .bind(tenant_id.as_uuid())
@@ -237,6 +256,7 @@ pub async fn confirm_sale_with_stock(
         .bind(movement.movement_type)
         .bind(movement.quantity)
         .bind(movement.reference_id)
+        .bind(movement.reason)
         .execute(&mut *tx)
         .await?;
     }
@@ -264,7 +284,7 @@ pub async fn cancel_sale_status(
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let result = sqlx::query(
-        "UPDATE sales.sales SET status = 'Cancelled'
+        "UPDATE sales.sales SET status = 'Cancelled', cancelled_at = now()
          WHERE id = $1 AND status = 'Pending'",
     )
     .bind(sale_id)
@@ -307,6 +327,94 @@ pub async fn list_sale_ids(pool: &PgPool, tenant_id: TenantId) -> Result<Vec<Uui
         .await?;
     tx.commit().await?;
     Ok(rows)
+}
+
+pub async fn list_sales(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    filters: &SaleFilters,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<SaleListRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (
+        Uuid,
+        Uuid,
+        Uuid,
+        String,
+        String,
+        i64,
+        String,
+        chrono::DateTime<chrono::Utc>,
+    )>(
+        "SELECT id, driver_id, commerce_id, status, payment_method, total_amount, total_currency, created_at
+         FROM sales.sales
+         WHERE ($1::uuid IS NULL OR commerce_id = $1)
+           AND ($2::uuid IS NULL OR driver_id = $2)
+           AND ($3::timestamptz IS NULL OR created_at >= $3)
+           AND ($4::timestamptz IS NULL OR created_at <= $4)
+         ORDER BY created_at DESC
+         LIMIT $5 OFFSET $6",
+    )
+    .bind(filters.commerce_id)
+    .bind(filters.driver_id)
+    .bind(filters.from)
+    .bind(filters.to)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(
+                id,
+                driver_id,
+                commerce_id,
+                status,
+                payment_method,
+                total_amount,
+                total_currency,
+                created_at,
+            )| SaleListRow {
+                id,
+                driver_id,
+                commerce_id,
+                status,
+                payment_method,
+                total_amount,
+                total_currency,
+                created_at,
+            },
+        )
+        .collect())
+}
+
+pub async fn count_sales(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    filters: &SaleFilters,
+) -> Result<i64, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*)
+         FROM sales.sales
+         WHERE ($1::uuid IS NULL OR commerce_id = $1)
+           AND ($2::uuid IS NULL OR driver_id = $2)
+           AND ($3::timestamptz IS NULL OR created_at >= $3)
+           AND ($4::timestamptz IS NULL OR created_at <= $4)",
+    )
+    .bind(filters.commerce_id)
+    .bind(filters.driver_id)
+    .bind(filters.from)
+    .bind(filters.to)
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(count)
 }
 
 pub async fn insert_sale_item(

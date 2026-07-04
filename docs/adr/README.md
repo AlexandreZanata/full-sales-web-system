@@ -14,3 +14,4 @@ Template: `agent-rules/11-documentation-and-glossary/adr-template.md`
 | [ADR-006](ADR-006-payment-method-enum.md) | PaymentMethod enum values | Accepted |
 | [ADR-007](ADR-007-public-report-verify.md) | Public report verification endpoint | Accepted |
 | [ADR-008](ADR-008-hybrid-monorepo.md) | Rust backend + pnpm web client monorepo | Accepted |
+| [ADR-009](ADR-009-ephemeral-state-redis.md) | Redis for ephemeral state; outbox deferred | Accepted |
