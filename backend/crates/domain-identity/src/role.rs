@@ -1,11 +1,14 @@
+use uuid::Uuid;
+
 use crate::error::IdentityError;
 
-/// Authorization profile — Admin | Driver | Seller (GLOSSARY).
+/// Authorization profile — Admin | Driver | Seller | CommerceContact (GLOSSARY).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Role {
     Admin,
     Driver,
     Seller,
+    CommerceContact,
 }
 
 impl Role {
@@ -14,6 +17,7 @@ impl Role {
             "Admin" => Ok(Self::Admin),
             "Driver" => Ok(Self::Driver),
             "Seller" => Ok(Self::Seller),
+            "CommerceContact" => Ok(Self::CommerceContact),
             _ => Err(IdentityError::InvalidRole),
         }
     }
@@ -23,6 +27,7 @@ impl Role {
             Self::Admin => "Admin",
             Self::Driver => "Driver",
             Self::Seller => "Seller",
+            Self::CommerceContact => "CommerceContact",
         }
     }
 

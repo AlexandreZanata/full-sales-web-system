@@ -89,7 +89,12 @@ async fn issue_tokens(
 ) -> Result<Json<TokenResponse>, ApiError> {
     let access = state
         .jwt
-        .issue_access_token(auth.user_id, auth.tenant_id.as_uuid(), auth.role.as_str())
+        .issue_access_token(
+            auth.user_id,
+            auth.tenant_id.as_uuid(),
+            auth.role.as_str(),
+            auth.commerce_id,
+        )
         .map_err(|_| ApiError::internal())?;
 
     let refresh = Uuid::now_v7().to_string();
@@ -127,5 +132,6 @@ fn to_app_record(
         role: record.role,
         password_hash: record.password_hash,
         active: record.active,
+        commerce_id: record.commerce_id,
     }
 }

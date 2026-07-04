@@ -74,11 +74,15 @@ async fn seed_user(env: &TestEnv, email: &str, password: &str, role: &str, activ
     infra_postgres::identity::insert_user(
         &env.app_pool,
         env.tenant_id,
-        id,
-        email,
-        "Test User",
-        role,
-        &hash,
+        infra_postgres::identity::InsertUserParams {
+            id,
+            email,
+            name: "Test User",
+            role,
+            password_hash: &hash,
+            commerce_id: None,
+            profile_file_id: None,
+        },
     )
     .await
     .expect("insert user");
@@ -303,4 +307,50 @@ async fn contract_admin_when_post_commerces_then_created() {
     let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
     assert_eq!(json["cnpj"], "11222333000181");
     assert_eq!(json["legalName"], "Acme Ltda");
+}
+
+// Contract: CommerceContact login includes commerceId in JWT (Phase 08)
+#[tokio::test]
+async fn given_commerce_contact_when_login_then_jwt_contains_commerce_id() {
+    let env = setup().await;
+    let commerce_id = Uuid::now_v7();
+    infra_postgres::commerces::insert_commerce(
+        &env.app_pool,
+        env.tenant_id,
+        commerce_id,
+        "11222333000181",
+        "Store Legal",
+        "Store Trade",
+        serde_json::json!({"city": "SP"}),
+    )
+    .await
+    .expect("commerce");
+
+    let contact_id = Uuid::now_v7();
+    let hash = PasswordHasher::hash("secret123").expect("hash");
+    infra_postgres::identity::insert_user(
+        &env.app_pool,
+        env.tenant_id,
+        infra_postgres::identity::InsertUserParams {
+            id: contact_id,
+            email: "portal@store.com",
+            name: "Portal User",
+            role: "CommerceContact",
+            password_hash: &hash,
+            commerce_id: Some(commerce_id),
+            profile_file_id: None,
+        },
+    )
+    .await
+    .expect("insert commerce contact");
+
+    let tokens = login(&env, "portal@store.com", "secret123").await;
+    let access = tokens["accessToken"].as_str().expect("access");
+    let claims = env
+        .state
+        .jwt
+        .verify_access_token(access)
+        .expect("verify jwt");
+    assert_eq!(claims.role, "CommerceContact");
+    assert_eq!(claims.commerce_id, Some(commerce_id));
 }

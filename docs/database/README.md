@@ -9,13 +9,14 @@
 | Module | Schema | Tables |
 |--------|--------|--------|
 | 00-shared | `shared` | `tenants` |
-| 01-identity | `identity` | `users` |
+| 01-identity | `identity` | `users`, `driver_profiles`, `seller_profiles` |
 | 02-commerces | `commerces` | `commerces` |
 | 03-inventory | `inventory` | `products`, `stock_movements`, `stock_balances` |
 | 04-sales | `sales` | `sales`, `sale_items` |
 | 05-reports | `reports` | `signing_keys`, `reports` |
 | 06-audit | `audit` | `events` |
 | 07-media | `media` | `files` |
+| 01-identity (delta) | `identity` | `users` (+ `commerce_id`, `profile_file_id`), `driver_profiles`, `seller_profiles` |
 
 ---
 
@@ -26,6 +27,16 @@
 | `media` schema + `media.files` (metadata only; bytes in MinIO) | `20260704122200` |
 | RLS tenant isolation on `media.files` | `20260704122200` |
 | `app_user` GRANTs on `media` schema | `20260704122200` |
+
+---
+
+## Phase 08 additions (2026-07-04)
+
+| Change | Migration |
+|--------|-----------|
+| `CommerceContact` role + `commerce_id` / `profile_file_id` on `identity.users` | `20260704122300` |
+| `identity.driver_profiles` (CNH photo → `media.files`) | `20260704122400` |
+| `identity.seller_profiles` | `20260704122500` |
 
 ---
 

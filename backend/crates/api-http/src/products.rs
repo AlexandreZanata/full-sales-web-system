@@ -93,5 +93,6 @@ pub async fn list_products(
 fn require_can_list_products(auth: &AuthUser) -> Result<(), ApiError> {
     match auth.role {
         Role::Admin | Role::Driver | Role::Seller => Ok(()),
+        Role::CommerceContact => Err(ApiError::forbidden()),
     }
 }

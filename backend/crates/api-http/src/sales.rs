@@ -363,6 +363,7 @@ fn parse_sale_status(value: &str) -> Result<SaleStatus, ApiError> {
 fn require_can_record_sale(auth: &AuthUser) -> Result<(), ApiError> {
     match auth.role {
         Role::Admin | Role::Driver | Role::Seller => Ok(()),
+        Role::CommerceContact => Err(ApiError::forbidden()),
     }
 }
 

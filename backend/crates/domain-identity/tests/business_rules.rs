@@ -11,7 +11,10 @@ mod tests {
             email: Email::parse("jane@example.com").expect("email"),
             role: Role::Driver,
             tenant_id: TenantId::generate(),
+            commerce_id: None,
+            profile_file_id: None,
         })
+        .expect("register")
         .deactivate();
 
         assert_eq!(

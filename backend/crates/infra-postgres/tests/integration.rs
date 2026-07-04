@@ -79,22 +79,30 @@ async fn seed_two_tenants(admin: &PgPool, app: &PgPool) -> TenantFixture {
     identity::insert_user(
         app,
         tenant_a,
-        user_a,
-        "a@test.com",
-        "User A",
-        "Admin",
-        "hash-a",
+        identity::InsertUserParams {
+            id: user_a,
+            email: "a@test.com",
+            name: "User A",
+            role: "Admin",
+            password_hash: "hash-a",
+            commerce_id: None,
+            profile_file_id: None,
+        },
     )
     .await
     .expect("insert user A");
     identity::insert_user(
         app,
         tenant_b,
-        user_b,
-        "b@test.com",
-        "User B",
-        "Admin",
-        "hash-b",
+        identity::InsertUserParams {
+            id: user_b,
+            email: "b@test.com",
+            name: "User B",
+            role: "Admin",
+            password_hash: "hash-b",
+            commerce_id: None,
+            profile_file_id: None,
+        },
     )
     .await
     .expect("insert user B");

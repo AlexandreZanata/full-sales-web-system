@@ -1,5 +1,7 @@
 use domain_shared::TenantId;
+use uuid::Uuid;
 
+use crate::commerce_scope::validate_commerce_scope;
 use crate::email::Email;
 use crate::error::IdentityError;
 use crate::full_name::FullName;
@@ -15,6 +17,8 @@ pub struct User {
     role: Role,
     active: bool,
     tenant_id: TenantId,
+    commerce_id: Option<Uuid>,
+    profile_file_id: Option<Uuid>,
 }
 
 pub struct RegisterUserInput {
@@ -23,18 +27,23 @@ pub struct RegisterUserInput {
     pub email: Email,
     pub role: Role,
     pub tenant_id: TenantId,
+    pub commerce_id: Option<Uuid>,
+    pub profile_file_id: Option<Uuid>,
 }
 
 impl User {
-    pub fn register(input: RegisterUserInput) -> Self {
-        Self {
+    pub fn register(input: RegisterUserInput) -> Result<Self, IdentityError> {
+        validate_commerce_scope(input.role, input.commerce_id)?;
+        Ok(Self {
             id: input.id,
             name: input.name,
             email: input.email,
             role: input.role,
             active: true,
             tenant_id: input.tenant_id,
-        }
+            commerce_id: input.commerce_id,
+            profile_file_id: input.profile_file_id,
+        })
     }
 
     pub fn id(&self) -> UserId {
@@ -55,6 +64,14 @@ impl User {
 
     pub fn tenant_id(&self) -> TenantId {
         self.tenant_id
+    }
+
+    pub fn commerce_id(&self) -> Option<Uuid> {
+        self.commerce_id
+    }
+
+    pub fn profile_file_id(&self) -> Option<Uuid> {
+        self.profile_file_id
     }
 
     pub fn is_active(&self) -> bool {

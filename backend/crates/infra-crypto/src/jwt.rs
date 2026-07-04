@@ -19,6 +19,8 @@ pub struct AccessTokenClaims {
     pub sub: Uuid,
     pub tenant_id: Uuid,
     pub role: String,
+    #[serde(rename = "commerceId", skip_serializing_if = "Option::is_none")]
+    pub commerce_id: Option<Uuid>,
     pub exp: u64,
 }
 
@@ -45,6 +47,7 @@ impl JwtService {
         user_id: Uuid,
         tenant_id: Uuid,
         role: &str,
+        commerce_id: Option<Uuid>,
     ) -> Result<String, JwtError> {
         let exp = SystemTime::now()
             .checked_add(self.ttl)
@@ -57,6 +60,7 @@ impl JwtService {
             sub: user_id,
             tenant_id,
             role: role.to_owned(),
+            commerce_id,
             exp,
         };
 
@@ -89,11 +93,25 @@ mod tests {
         let user_id = Uuid::now_v7();
         let tenant_id = Uuid::now_v7();
         let token = jwt
-            .issue_access_token(user_id, tenant_id, "Admin")
+            .issue_access_token(user_id, tenant_id, "Admin", None)
             .expect("issue");
         let claims = jwt.verify_access_token(&token).expect("verify");
         assert_eq!(claims.sub, user_id);
         assert_eq!(claims.tenant_id, tenant_id);
         assert_eq!(claims.role, "Admin");
+        assert!(claims.commerce_id.is_none());
+    }
+
+    #[test]
+    fn given_commerce_contact_when_issue_token_then_commerce_id_in_claims() {
+        let jwt = JwtService::new("test-secret", Duration::from_secs(900));
+        let user_id = Uuid::now_v7();
+        let tenant_id = Uuid::now_v7();
+        let commerce_id = Uuid::now_v7();
+        let token = jwt
+            .issue_access_token(user_id, tenant_id, "CommerceContact", Some(commerce_id))
+            .expect("issue");
+        let claims = jwt.verify_access_token(&token).expect("verify");
+        assert_eq!(claims.commerce_id, Some(commerce_id));
     }
 }

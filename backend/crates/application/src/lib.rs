@@ -35,13 +35,14 @@ pub struct AuthenticatedUser {
     pub user_id: Uuid,
     pub tenant_id: TenantId,
     pub role: Role,
+    pub commerce_id: Option<Uuid>,
 }
 
 pub const ACCESS_TOKEN_TTL: Duration = Duration::from_secs(15 * 60);
 pub const REFRESH_TOKEN_TTL: Duration = Duration::from_secs(7 * 24 * 60 * 60);
 
-pub fn register_user(input: RegisterUserInput) -> User {
-    User::register(input)
+pub fn register_user(input: RegisterUserInput) -> Result<User, AppError> {
+    User::register(input).map_err(AppError::Identity)
 }
 
 pub fn register_commerce(input: CreateCommerceInput) -> Commerce {
@@ -53,6 +54,7 @@ pub fn parse_register_user(
     email: &str,
     role: &str,
     tenant_id: TenantId,
+    commerce_id: Option<Uuid>,
 ) -> Result<User, AppError> {
     Ok(User::register(RegisterUserInput {
         id: UserId::generate(),
@@ -60,7 +62,9 @@ pub fn parse_register_user(
         email: Email::parse(email)?,
         role: Role::parse(role)?,
         tenant_id,
-    }))
+        commerce_id,
+        profile_file_id: None,
+    })?)
 }
 
 pub fn parse_create_commerce(

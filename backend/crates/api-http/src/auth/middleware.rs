@@ -13,6 +13,7 @@ pub struct AuthUser {
     pub user_id: uuid::Uuid,
     pub tenant_id: TenantId,
     pub role: Role,
+    pub commerce_id: Option<uuid::Uuid>,
 }
 
 impl<S> FromRequestParts<S> for AuthUser
@@ -56,6 +57,7 @@ pub async fn auth_middleware(
         user_id: claims.sub,
         tenant_id: TenantId::from_uuid(claims.tenant_id),
         role,
+        commerce_id: claims.commerce_id,
     });
 
     Ok(next.run(request).await)

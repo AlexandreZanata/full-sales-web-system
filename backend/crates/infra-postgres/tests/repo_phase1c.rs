@@ -64,11 +64,15 @@ async fn seed_tenant_with_sale(app: &PgPool, admin: &PgPool) -> (TenantId, Uuid,
     identity::insert_user(
         app,
         tenant,
-        user,
-        "driver@test.com",
-        "Driver",
-        "Driver",
-        "hash",
+        identity::InsertUserParams {
+            id: user,
+            email: "driver@test.com",
+            name: "Driver",
+            role: "Driver",
+            password_hash: "hash",
+            commerce_id: None,
+            profile_file_id: None,
+        },
     )
     .await
     .expect("insert user");

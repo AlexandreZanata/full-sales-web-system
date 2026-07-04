@@ -11,6 +11,7 @@ pub struct LoginUserRecord {
     pub role: String,
     pub password_hash: String,
     pub active: bool,
+    pub commerce_id: Option<Uuid>,
 }
 
 /// BR-IA-002 + credential check — domain rules before token issue.
@@ -30,6 +31,7 @@ pub fn authenticate_login(
         user_id: record.id,
         tenant_id: domain_shared::TenantId::from_uuid(record.tenant_id),
         role: Role::parse(&record.role)?,
+        commerce_id: record.commerce_id,
     })
 }
 
@@ -44,6 +46,7 @@ mod tests {
             role: "Driver".into(),
             password_hash: "hash".into(),
             active,
+            commerce_id: None,
         }
     }
 

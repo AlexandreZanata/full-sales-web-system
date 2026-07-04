@@ -104,7 +104,19 @@ async fn seed_user(
 ) -> Uuid {
     let id = Uuid::now_v7();
     let hash = PasswordHasher::hash("password").expect("hash");
-    infra_postgres::identity::insert_user(pool, tenant_id, id, email, "Test User", role, &hash)
+    infra_postgres::identity::insert_user(
+        pool,
+        tenant_id,
+        infra_postgres::identity::InsertUserParams {
+            id,
+            email,
+            name: "Test User",
+            role,
+            password_hash: &hash,
+            commerce_id: None,
+            profile_file_id: None,
+        },
+    )
         .await
         .expect("user");
     id

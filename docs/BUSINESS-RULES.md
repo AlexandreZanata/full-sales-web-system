@@ -8,6 +8,7 @@
 |---------|----------------|
 | BR-IA-001 | `backend/crates/api-http/tests/auth.rs` |
 | BR-IA-002 | `backend/crates/application/src/auth.rs`, `backend/crates/api-http/tests/auth.rs`, `backend/crates/domain-identity/tests/business_rules.rs` |
+| BR-IA-003 | `backend/crates/domain-identity/tests/commerce_contact.rs`, `backend/crates/infra-postgres/tests/identity_profiles.rs` |
 | BR-CO-001 | `backend/crates/domain-commerces/src/cnpj.rs`, `backend/crates/api-http/tests/auth.rs` |
 | BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
@@ -34,6 +35,15 @@ GIVEN a User with active = false
 WHEN login is attempted with valid credentials
 THEN authentication fails
 AND no tokens are issued
+```
+
+### BR-IA-003 — CommerceContact scoped to own commerce
+
+```
+GIVEN a User with role CommerceContact linked to commerce X
+WHEN they attempt to access portal data for commerce Y
+THEN the operation is rejected with Forbidden
+AND RLS or domain scope checks return empty/forbidden
 ```
 
 ---
@@ -146,14 +156,15 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 
 ## Authorization matrix (summary)
 
-| Action | Admin | Driver | Seller |
-|--------|-------|--------|--------|
-| Register Commerce | Yes | No | No |
-| Register User | Yes | No | No |
-| Create Sale | Yes | Yes | Yes |
-| Confirm Sale | Yes | Yes | Yes |
-| Generate Report | Yes | No* | No |
-| Verify Report signature | Yes | Yes | Yes |
+| Action | Admin | Driver | Seller | CommerceContact |
+|--------|-------|--------|--------|-----------------|
+| Register Commerce | Yes | No | No | No |
+| Register User | Yes | No | No | No |
+| Create Sale | Yes | Yes | Yes | No |
+| Confirm Sale | Yes | Yes | Yes | No |
+| Generate Report | Yes | No* | No | No |
+| Verify Report signature | Yes | Yes | Yes | No |
+| Portal login | No | No | No | Yes |
 
 \* Driver may receive pre-generated reports — refine in use cases.
 
@@ -181,5 +192,5 @@ Full matrix: extend in use case authorization tables.
 | RN-PAG2 | Only responsible seller/driver declares | 13 | `domain-sales/tests/declared_payment.rs` |
 | RN-PAG3 | Declaration changes append audit.events | 13 | `infra-postgres/tests/declared_payment_audit.rs` |
 | RN-PAG4 | Report includes non-fiscal disclaimer | 15 | `domain-reports/tests/settlement_payload.rs` |
-| BR-IA-003 | CommerceContact scoped to own commerce | 08, 14 | `infra-postgres/tests/rls_commerce_contact.rs` |
+| BR-IA-003 | CommerceContact scoped to own commerce | 08, 14 | `domain-identity/tests/commerce_contact.rs` |
 | ~~RN1~~ | ~~Credit limit blocks order~~ | — | **Revoked** (Phase 0d) |

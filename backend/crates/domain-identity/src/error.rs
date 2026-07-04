@@ -17,6 +17,15 @@ pub enum IdentityError {
     #[error("user is inactive")]
     InactiveUser,
 
+    #[error("commerce id required for CommerceContact")]
+    CommerceRequired,
+
+    #[error("commerce id must be null for this role")]
+    InvalidCommerceScope,
+
+    #[error("invalid profile field")]
+    InvalidProfileField,
+
     #[error("forbidden")]
     Forbidden,
 }

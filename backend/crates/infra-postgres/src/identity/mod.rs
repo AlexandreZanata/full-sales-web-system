@@ -5,6 +5,12 @@ use uuid::Uuid;
 use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
+pub mod driver_profiles;
+pub mod seller_profiles;
+
+pub use driver_profiles::{find_driver_profile_by_user_id, insert_driver_profile, DriverProfileInsert, DriverProfileRow};
+pub use seller_profiles::{insert_seller_profile, SellerProfileInsert};
+
 /// Row persisted in `identity.users`.
 #[derive(Debug, Clone)]
 pub struct UserRow {
@@ -13,28 +19,37 @@ pub struct UserRow {
     pub email: String,
 }
 
+pub struct InsertUserParams<'a> {
+    pub id: Uuid,
+    pub email: &'a str,
+    pub name: &'a str,
+    pub role: &'a str,
+    pub password_hash: &'a str,
+    pub commerce_id: Option<Uuid>,
+    pub profile_file_id: Option<Uuid>,
+}
+
 /// Inserts a user under the current RLS tenant context.
 pub async fn insert_user(
     pool: &PgPool,
     tenant_id: TenantId,
-    id: Uuid,
-    email: &str,
-    name: &str,
-    role: &str,
-    password_hash: &str,
+    params: InsertUserParams<'_>,
 ) -> Result<(), PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     sqlx::query(
-        "INSERT INTO identity.users (id, tenant_id, email, name, role, password_hash)
-         VALUES ($1, $2, $3, $4, $5, $6)",
+        "INSERT INTO identity.users
+         (id, tenant_id, email, name, role, password_hash, commerce_id, profile_file_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
     )
-    .bind(id)
+    .bind(params.id)
     .bind(tenant_id.as_uuid())
-    .bind(email)
-    .bind(name)
-    .bind(role)
-    .bind(password_hash)
+    .bind(params.email)
+    .bind(params.name)
+    .bind(params.role)
+    .bind(params.password_hash)
+    .bind(params.commerce_id)
+    .bind(params.profile_file_id)
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -67,7 +82,7 @@ pub async fn find_user_for_login(
     email: &str,
 ) -> Result<Option<LoginUserRecord>, PostgresError> {
     let row = sqlx::query_as::<_, LoginRecord>(
-        "SELECT id, tenant_id, role, password_hash, active
+        "SELECT id, tenant_id, role, password_hash, active, commerce_id
          FROM identity.users WHERE email = $1",
     )
     .bind(email)
@@ -83,7 +98,7 @@ pub async fn find_login_record_by_id(
     user_id: Uuid,
 ) -> Result<Option<LoginUserRecord>, PostgresError> {
     let row = sqlx::query_as::<_, LoginRecord>(
-        "SELECT id, tenant_id, role, password_hash, active
+        "SELECT id, tenant_id, role, password_hash, active, commerce_id
          FROM identity.users WHERE id = $1",
     )
     .bind(user_id)
@@ -101,6 +116,7 @@ pub struct LoginUserRecord {
     pub role: String,
     pub password_hash: String,
     pub active: bool,
+    pub commerce_id: Option<Uuid>,
 }
 
 #[derive(sqlx::FromRow)]
@@ -110,6 +126,7 @@ struct LoginRecord {
     role: String,
     password_hash: String,
     active: bool,
+    commerce_id: Option<Uuid>,
 }
 
 impl From<LoginRecord> for LoginUserRecord {
@@ -120,6 +137,7 @@ impl From<LoginRecord> for LoginUserRecord {
             role: r.role,
             password_hash: r.password_hash,
             active: r.active,
+            commerce_id: r.commerce_id,
         }
     }
 }
