@@ -1,11 +1,13 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { ProductImagePreview } from '@/components/products/ProductImagePreview';
 import { FileUploadField } from '@/components/uploads/FileUploadField';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/hooks/useToast';
-import { attachProductImage, deleteProductImage } from '@/lib/api/products';
+import { attachProductImage, deleteProductImage, fetchProductImages } from '@/lib/api/products';
 import type { ProductImage } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
 
@@ -13,27 +15,37 @@ type ProductImagesSectionProps = {
   productId: string;
 };
 
+function productImagesQueryKey(productId: string) {
+  return ['products', productId, 'images'] as const;
+}
+
 export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
   const { t } = useI18n();
   const toast = useToast();
-  const [images, setImages] = useState<ProductImage[]>([]);
+  const queryClient = useQueryClient();
   const [isPrimaryUpload, setIsPrimaryUpload] = useState(false);
   const [attaching, setAttaching] = useState(false);
   const [uploadKey, setUploadKey] = useState(0);
 
+  const imagesQuery = useQuery({
+    queryKey: productImagesQueryKey(productId),
+    queryFn: () => fetchProductImages(productId),
+  });
+
+  const images = imagesQuery.data?.items ?? [];
+
+  async function invalidateImages() {
+    await queryClient.invalidateQueries({ queryKey: productImagesQueryKey(productId) });
+  }
+
   async function handleUploadComplete(fileId: string) {
     setAttaching(true);
     try {
-      const image = await attachProductImage(productId, {
+      await attachProductImage(productId, {
         fileId,
         isPrimary: isPrimaryUpload,
       });
-      setImages((current) => {
-        const withoutDupes = isPrimaryUpload
-          ? current.map((item) => ({ ...item, isPrimary: false }))
-          : current;
-        return [...withoutDupes, image];
-      });
+      await invalidateImages();
       toast.success(t('products.toast.imageAttached'));
       setIsPrimaryUpload(false);
       setUploadKey((value) => value + 1);
@@ -47,7 +59,7 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
   async function handleDelete(image: ProductImage) {
     try {
       await deleteProductImage(productId, image.id);
-      setImages((current) => current.filter((item) => item.id !== image.id));
+      await invalidateImages();
       toast.success(t('products.toast.imageRemoved'));
     } catch {
       toast.error(t('errors.actionFailed'));
@@ -57,16 +69,11 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
   async function handleSetPrimary(image: ProductImage) {
     try {
       await deleteProductImage(productId, image.id);
-      const attached = await attachProductImage(productId, {
+      await attachProductImage(productId, {
         fileId: image.fileId,
         isPrimary: true,
       });
-      setImages((current) =>
-        current
-          .filter((item) => item.id !== image.id)
-          .map((item) => ({ ...item, isPrimary: false }))
-          .concat(attached),
-      );
+      await invalidateImages();
       toast.success(t('products.toast.primaryImageUpdated'));
     } catch {
       toast.error(t('errors.actionFailed'));
@@ -78,7 +85,7 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
         {t('products.images.title')}
       </p>
-      <p className="text-sm text-muted-foreground">{t('products.images.uploadSessionHint')}</p>
+      <p className="text-sm text-muted-foreground">{t('products.images.uploadHint')}</p>
 
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input
@@ -103,7 +110,15 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
         <p className="text-xs text-muted-foreground">{t('products.images.attaching')}</p>
       ) : null}
 
-      {images.length > 0 ? (
+      {imagesQuery.isLoading ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+      ) : imagesQuery.isError ? (
+        <p className="text-sm text-destructive">{t('products.images.loadError')}</p>
+      ) : images.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('products.images.empty')}</p>
+      ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {images.map((image) => (
             <li
@@ -133,7 +148,7 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
             </li>
           ))}
         </ul>
-      ) : null}
+      )}
     </Card>
   );
 }

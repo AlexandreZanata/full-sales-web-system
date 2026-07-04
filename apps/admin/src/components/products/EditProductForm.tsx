@@ -28,6 +28,8 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
     name: product.name,
     price: formatPriceInput(product.priceAmount),
     priceCurrency: product.priceCurrency,
+    category: product.category ?? '',
+    unitOfMeasure: product.unitOfMeasure ?? 'Unit',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EditProductFormValues, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +46,7 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
     try {
       const updated = await onSubmit(toUpdateProductPayload(values));
       onUpdated(updated);
-      toast.success(t('products.toast.updated'));
+      toast.success(t('products.toast.saved'));
     } catch {
       toast.error(t('errors.actionFailed'));
     } finally {
@@ -55,7 +57,10 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
   return (
     <Card>
       <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
-        <Input label={t('forms.fields.sku')} name="sku" value={product.sku} disabled />
+        <div>
+          <Input label={t('forms.fields.sku')} name="sku" value={product.sku} disabled />
+          <p className="mt-1 text-xs text-muted-foreground">{t('products.form.skuReadOnly')}</p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label={t('forms.fields.name')}
@@ -74,6 +79,23 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
             error={translateFormError(t, errors.price)}
             onChange={(event) => {
               setValues((current) => ({ ...current, price: event.target.value }));
+            }}
+          />
+          <Input
+            label={t('forms.fields.category')}
+            name="category"
+            value={values.category}
+            onChange={(event) => {
+              setValues((current) => ({ ...current, category: event.target.value }));
+            }}
+          />
+          <Input
+            label={t('forms.fields.unitOfMeasure')}
+            name="unitOfMeasure"
+            value={values.unitOfMeasure}
+            error={translateFormError(t, errors.unitOfMeasure)}
+            onChange={(event) => {
+              setValues((current) => ({ ...current, unitOfMeasure: event.target.value }));
             }}
           />
         </div>

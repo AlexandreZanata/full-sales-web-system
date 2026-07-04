@@ -38,6 +38,7 @@ async fn route_smoke_protected_routes_return_unauthorized_not_not_found() {
         ("POST", "/v1/products".into()),
         ("GET", format!("/v1/products/{id}")),
         ("PATCH", format!("/v1/products/{id}")),
+        ("GET", format!("/v1/products/{id}/images")),
         ("POST", format!("/v1/products/{id}/images")),
         ("DELETE", format!("/v1/products/{id}/images/{id}")),
         ("GET", format!("/v1/inventory/products/{id}/balance")),

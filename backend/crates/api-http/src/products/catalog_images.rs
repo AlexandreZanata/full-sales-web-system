@@ -30,6 +30,32 @@ pub struct ProductImageResponse {
     pub is_primary: bool,
 }
 
+#[derive(Serialize)]
+pub struct ProductImagesListResponse {
+    pub items: Vec<ProductImageResponse>,
+}
+
+pub async fn list_product_images(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(product_id): Path<Uuid>,
+) -> Result<Json<ProductImagesListResponse>, ApiError> {
+    require_can_write_products(&auth)?;
+    super::catalog::ensure_product(&state, auth.tenant_id, product_id).await?;
+
+    let rows = infra_postgres::inventory::product_images::list_product_images(
+        &state.app_pool,
+        auth.tenant_id,
+        product_id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    Ok(Json(ProductImagesListResponse {
+        items: rows.iter().map(product_image_response).collect(),
+    }))
+}
+
 pub async fn attach_product_image(
     State(state): State<AppState>,
     auth: AuthUser,

@@ -165,6 +165,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/products`
 
 - **Auth:** Admin, Driver, Seller
+- **Query:** `page`, `pageSize`, `active?` (`true` | `false`; omit for all)
 - **Response 200:** Paginated list
 
 ### `GET /v1/products/{id}`
@@ -177,6 +178,12 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Auth:** Admin
 - **Body:** `{ "name?", "priceAmount?", "priceCurrency?", "active?", "category?", "unitOfMeasure?" }`
 - **Response 200:** Product detail
+
+### `GET /v1/products/{id}/images`
+
+- **Auth:** Admin
+- **Response 200:** `{ "items": ProductImage[] }` — `id`, `fileId`, `isPrimary`, `sortOrder`
+- **404:** `PRODUCT_NOT_FOUND` when product missing in tenant
 
 ### `POST /v1/products/{id}/images`
 
@@ -254,6 +261,13 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ---
 
 ## Portal — Products (Phase 14)
+
+### `GET /v1/public/products`
+
+- **Auth:** none (public catalog)
+- **Tenant:** `PUBLIC_CATALOG_TENANT_ID` env, or dev seed tenant in local environments
+- **Query:** pagination, `category?`
+- **Response 200:** Active products with optional `primaryImageUrl` (presigned ~15 min)
 
 ### `GET /v1/portal/products`
 

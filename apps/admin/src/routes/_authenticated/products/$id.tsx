@@ -28,11 +28,26 @@ function ProductDetailPage() {
   const toast = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
 
   const product = useQuery({
     queryKey: ['products', id],
     queryFn: () => fetchProduct(id),
   });
+
+  async function handleReactivate() {
+    setReactivating(true);
+    try {
+      await updateProduct(id, { active: true });
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['products', id] });
+      toast.success(t('products.toast.reactivated'));
+    } catch {
+      toast.error(t('errors.actionFailed'));
+    } finally {
+      setReactivating(false);
+    }
+  }
 
   async function handleDeactivate() {
     setDeactivating(true);
@@ -84,7 +99,11 @@ function ProductDetailPage() {
             >
               {t('products.detail.deactivate')}
             </Button>
-          ) : null
+          ) : (
+            <Button disabled={reactivating} onClick={() => void handleReactivate()}>
+              {t('products.actions.reactivate')}
+            </Button>
+          )
         }
       />
 

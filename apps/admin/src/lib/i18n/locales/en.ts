@@ -117,6 +117,8 @@ export const en: Messages = {
       postalCode: 'Postal code',
       phone: 'Phone',
       sku: 'SKU',
+      category: 'Category',
+      unitOfMeasure: 'Unit of measure',
       price: 'Price',
       currency: 'Currency',
       quantity: 'Quantity',
@@ -192,6 +194,7 @@ export const en: Messages = {
       stateRequired: 'State is required',
       postalCodeRequired: 'Postal code is required',
       skuRequired: 'SKU is required',
+      unitOfMeasureRequired: 'Unit of measure is required',
       priceInvalid: 'Enter a valid price',
       selectProduct: 'Select a product',
       selectCommerce: 'Select a commerce',
@@ -410,9 +413,12 @@ export const en: Messages = {
       description: 'Manage the product catalog and pricing.',
       newProduct: 'New product',
       caption: 'Products',
+      filterByStatus: 'Filter by status',
+      searchPlaceholder: 'Search by name or SKU',
       empty: {
         title: 'No products found',
         description: 'Create the first product to get started.',
+        descriptionFiltered: 'No products match the current filters.',
       },
     },
     create: {
@@ -423,7 +429,7 @@ export const en: Messages = {
     },
     detail: {
       notFound: 'Product not found',
-      inactiveHint: 'Inactive products cannot be edited.',
+      inactiveHint: 'Inactive products cannot be edited. Reactivate to make changes.',
       deactivate: 'Deactivate product',
       deactivateDialog: {
         title: 'Deactivate product',
@@ -431,9 +437,13 @@ export const en: Messages = {
         confirm: 'Deactivate',
       },
     },
+    actions: {
+      reactivate: 'Reactivate product',
+    },
     form: {
       save: 'Save changes',
       saving: 'Saving…',
+      skuReadOnly: 'SKU cannot be changed after the product is created.',
     },
     images: {
       title: 'Product images',
@@ -446,8 +456,8 @@ export const en: Messages = {
       label: 'Product image',
       setPrimaryUpload: 'Set uploaded image as primary',
       attaching: 'Attaching image…',
-      uploadSessionHint:
-        'Upload images for this product. Images added in this session appear below.',
+      loadError: 'Unable to load product images',
+      empty: 'No images yet. Upload one above.',
     },
     stock: {
       available: 'Available stock',
@@ -456,6 +466,8 @@ export const en: Messages = {
     },
     toast: {
       deactivated: 'Product deactivated',
+      reactivated: 'Product reactivated',
+      saved: 'Product saved',
       updated: 'Product updated',
       imageAttached: 'Image attached',
       imageRemoved: 'Image removed',

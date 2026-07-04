@@ -12,6 +12,8 @@ export type EditProductFormValues = {
   name: string;
   price: string;
   priceCurrency: string;
+  category: string;
+  unitOfMeasure: string;
 };
 
 export type FormErrors<T extends string> = Partial<Record<T, string>>;
@@ -45,6 +47,9 @@ export function validateEditProductForm(
   if (parsePriceInput(values.price) === null) {
     errors.price = 'forms.validation.priceInvalid';
   }
+  if (!values.unitOfMeasure.trim()) {
+    errors.unitOfMeasure = 'forms.validation.unitOfMeasureRequired';
+  }
 
   return errors;
 }
@@ -77,5 +82,7 @@ export function toUpdateProductPayload(values: EditProductFormValues) {
     name: values.name.trim(),
     priceAmount,
     priceCurrency: values.priceCurrency.trim() || 'BRL',
+    category: values.category.trim() || undefined,
+    unitOfMeasure: values.unitOfMeasure.trim(),
   };
 }

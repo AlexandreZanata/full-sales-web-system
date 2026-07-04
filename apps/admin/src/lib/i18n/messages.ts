@@ -123,6 +123,8 @@ export type Messages = {
       postalCode: string;
       phone: string;
       sku: string;
+      category: string;
+      unitOfMeasure: string;
       price: string;
       currency: string;
       quantity: string;
@@ -198,6 +200,7 @@ export type Messages = {
       stateRequired: string;
       postalCodeRequired: string;
       skuRequired: string;
+      unitOfMeasureRequired: string;
       priceInvalid: string;
       selectProduct: string;
       selectCommerce: string;
@@ -415,9 +418,12 @@ export type Messages = {
       description: string;
       newProduct: string;
       caption: string;
+      filterByStatus: string;
+      searchPlaceholder: string;
       empty: {
         title: string;
         description: string;
+        descriptionFiltered: string;
       };
     };
     create: {
@@ -436,9 +442,13 @@ export type Messages = {
         confirm: string;
       };
     };
+    actions: {
+      reactivate: string;
+    };
     form: {
       save: string;
       saving: string;
+      skuReadOnly: string;
     };
     images: {
       title: string;
@@ -451,7 +461,8 @@ export type Messages = {
       label: string;
       setPrimaryUpload: string;
       attaching: string;
-      uploadSessionHint: string;
+      loadError: string;
+      empty: string;
     };
     stock: {
       available: string;
@@ -460,6 +471,8 @@ export type Messages = {
     };
     toast: {
       deactivated: string;
+      reactivated: string;
+      saved: string;
       updated: string;
       imageAttached: string;
       imageRemoved: string;

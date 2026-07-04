@@ -96,10 +96,53 @@ pub struct ProductRow {
 pub async fn list_products(
     pool: &PgPool,
     tenant_id: TenantId,
+    active: Option<bool>,
     limit: i64,
     offset: i64,
 ) -> Result<Vec<ProductRow>, PostgresError> {
-    list_portal_products(pool, tenant_id, None, limit, offset).await
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            String,
+            i64,
+            String,
+            bool,
+            Option<String>,
+            String,
+        ),
+    >(
+        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
+         FROM inventory.products
+         WHERE ($1::bool IS NULL OR active = $1)
+         ORDER BY sku LIMIT $2 OFFSET $3",
+    )
+    .bind(active)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
+                ProductRow {
+                    id,
+                    sku,
+                    name,
+                    price_amount,
+                    price_currency,
+                    active,
+                    category,
+                    unit_of_measure,
+                }
+            },
+        )
+        .collect())
 }
 
 pub async fn list_portal_products(
@@ -173,12 +216,19 @@ pub async fn count_portal_products(
     Ok(count)
 }
 
-pub async fn count_products(pool: &PgPool, tenant_id: TenantId) -> Result<i64, PostgresError> {
+pub async fn count_products(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    active: Option<bool>,
+) -> Result<i64, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM inventory.products")
-        .fetch_one(&mut *tx)
-        .await?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM inventory.products WHERE ($1::bool IS NULL OR active = $1)",
+    )
+    .bind(active)
+    .fetch_one(&mut *tx)
+    .await?;
     tx.commit().await?;
     Ok(count)
 }

@@ -5,8 +5,9 @@ mod support;
 
 use http::StatusCode;
 use serde_json::json;
+use uuid::Uuid;
 
-use support::{request, seed_admin, setup};
+use support::{minimal_webp_bytes, request, seed_admin, setup, upload_multipart};
 
 // Contract: create product → appears in GET list
 #[tokio::test]
@@ -159,4 +160,140 @@ async fn contract_adjustment_when_exceeds_balance_then_422() {
 
     assert_eq!(adj_status, StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(adj_body["error"]["code"], "INSUFFICIENT_BALANCE");
+}
+
+// Contract: attach image → GET list returns same image
+#[tokio::test]
+async fn contract_list_product_images_when_attached_then_returns_items() {
+    let env = setup().await;
+    let (admin_id, admin_token) = seed_admin(&env).await;
+
+    let (create_status, created) = request(
+        &env,
+        "POST",
+        "/v1/products",
+        Some(&admin_token),
+        Some(
+            json!({
+                "name": "Photo Widget",
+                "sku": "IMG-SKU",
+                "priceAmount": 900
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(create_status, StatusCode::CREATED);
+    let product_id = created["id"].as_str().expect("id");
+
+    let webp = minimal_webp_bytes();
+    let (upload_status, upload_body) = upload_multipart(
+        &env,
+        &admin_token,
+        "photo.webp",
+        "image/webp",
+        &webp,
+        "Product",
+        Uuid::parse_str(product_id).expect("uuid"),
+    )
+    .await;
+    assert_eq!(upload_status, StatusCode::OK);
+    let file_id = upload_body["id"].as_str().expect("file id");
+
+    let (attach_status, attach_body) = request(
+        &env,
+        "POST",
+        &format!("/v1/products/{product_id}/images"),
+        Some(&admin_token),
+        Some(
+            json!({
+                "fileId": file_id,
+                "isPrimary": true
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(attach_status, StatusCode::CREATED);
+    let image_id = attach_body["id"].as_str().expect("image id");
+
+    let (list_status, list_body) = request(
+        &env,
+        "GET",
+        &format!("/v1/products/{product_id}/images"),
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(list_status, StatusCode::OK);
+    let items = list_body["items"].as_array().expect("items");
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["id"].as_str(), Some(image_id));
+    assert_eq!(items[0]["fileId"].as_str(), Some(file_id));
+    assert_eq!(items[0]["isPrimary"], true);
+
+    let _ = admin_id;
+}
+
+// Contract: inactive product appears when active=false filter set
+#[tokio::test]
+async fn contract_list_products_when_deactivated_then_visible_with_inactive_filter() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (create_status, created) = request(
+        &env,
+        "POST",
+        "/v1/products",
+        Some(&admin_token),
+        Some(
+            json!({
+                "name": "Inactive Widget",
+                "sku": "INACT-SKU",
+                "priceAmount": 100
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(create_status, StatusCode::CREATED);
+    let product_id = created["id"].as_str().expect("id");
+
+    let (deactivate_status, _) = request(
+        &env,
+        "PATCH",
+        &format!("/v1/products/{product_id}"),
+        Some(&admin_token),
+        Some(json!({ "active": false }).to_string()),
+    )
+    .await;
+    assert_eq!(deactivate_status, StatusCode::OK);
+
+    let (inactive_status, inactive_body) = request(
+        &env,
+        "GET",
+        "/v1/products?page=1&pageSize=50&active=false",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(inactive_status, StatusCode::OK);
+    assert!(
+        inactive_body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p["id"].as_str() == Some(product_id))
+    );
+
+    let (reactivate_status, reactivated) = request(
+        &env,
+        "PATCH",
+        &format!("/v1/products/{product_id}"),
+        Some(&admin_token),
+        Some(json!({ "active": true }).to_string()),
+    )
+    .await;
+    assert_eq!(reactivate_status, StatusCode::OK);
+    assert_eq!(reactivated["active"], true);
 }

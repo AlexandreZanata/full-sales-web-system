@@ -20,11 +20,11 @@ use crate::inventory::{get_stock_balance, list_movements, record_movement};
 use crate::media::{get_media_url, upload_media};
 use crate::portal::{
     cancel_portal_order, create_portal_order, get_portal_order, list_portal_orders,
-    list_portal_products, submit_portal_order, update_portal_order,
+    list_portal_products, list_public_products, submit_portal_order, update_portal_order,
 };
 use crate::products::{
-    attach_product_image, create_product, delete_product_image, get_product, list_products,
-    update_product,
+    attach_product_image, create_product, delete_product_image, get_product, list_product_images,
+    list_products, update_product,
 };
 use crate::reports::{generate_report, get_report, list_reports, verify_report};
 use crate::sales::{
@@ -70,6 +70,7 @@ pub fn v1_router(state: AppState) -> Router {
     let public = Router::new()
         .route("/v1/auth/login", post(login))
         .route("/v1/auth/refresh", post(refresh))
+        .route("/v1/public/products", get(list_public_products))
         .route("/v1/reports/{id}/verify", get(verify_report))
         .with_state(state.clone());
 
@@ -94,7 +95,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/commerces/{id}/logo", put(update_logo))
         .route("/v1/products", get(list_products).post(create_product))
         .route("/v1/products/{id}", get(get_product).patch(update_product))
-        .route("/v1/products/{id}/images", post(attach_product_image))
+        .route(
+            "/v1/products/{id}/images",
+            get(list_product_images).post(attach_product_image),
+        )
         .route(
             "/v1/products/{id}/images/{imageId}",
             axum::routing::delete(delete_product_image),

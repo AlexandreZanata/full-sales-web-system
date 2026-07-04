@@ -40,7 +40,7 @@ See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev`
 | Dashboard | `/` | Stats + recent sales |
 | Users | `/users`, `/users/new`, `/users/$id` | CRUD + profiles |
 | Commerces | `/commerces`, `/commerces/new`, `/commerces/$id` | CRUD + addresses + logo |
-| Products | `/products`, `/products/new`, `/products/$id` | CRUD + images + stock |
+| Products | `/products`, `/products/new`, `/products/$id` | Create, edit, deactivate/reactivate, images, stock |
 | Inventory | `/inventory`, `/inventory/adjustments`, `/inventory/ledger` | Adjustments + ledger |
 | Orders | `/orders`, `/orders/$id` | List + workflow actions |
 | Deliveries | `/deliveries`, `/deliveries/$id` | List + read-only detail |
@@ -121,7 +121,17 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 | 30–35 | Domain screens (users → audit) |
 | 36 | i18n foundation, E2E, route audit, CI, docs |
 | 38 | Full admin i18n (en + pt-BR, all 23 screens) |
+| 40 | Admin product lifecycle — image gallery hydrate, reactivate, list filters |
 
 ---
 
-**Updated:** 2026-07-04 (Phase 38)
+## Products (Phase 40)
+
+- **List:** status filter (active / inactive / all), client-side name/SKU search, empty-state CTA to create
+- **Detail:** edit name, price, category, unit of measure; SKU read-only; deactivate with confirm dialog; reactivate button for inactive products
+- **Images:** `GET /v1/products/{id}/images` hydrates gallery on load; upload, remove, set-primary invalidate the query
+- **Out of scope:** hard delete (`DELETE /v1/products/{id}`) — soft deactivate only per domain rules
+
+---
+
+**Updated:** 2026-07-04 (Phase 40)

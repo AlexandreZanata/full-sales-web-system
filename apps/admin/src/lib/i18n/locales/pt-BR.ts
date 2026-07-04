@@ -117,6 +117,8 @@ export const ptBR: Messages = {
       postalCode: 'CEP',
       phone: 'Telefone',
       sku: 'SKU',
+      category: 'Categoria',
+      unitOfMeasure: 'Unidade de medida',
       price: 'Preço',
       currency: 'Moeda',
       quantity: 'Quantidade',
@@ -192,6 +194,7 @@ export const ptBR: Messages = {
       stateRequired: 'Estado é obrigatório',
       postalCodeRequired: 'CEP é obrigatório',
       skuRequired: 'SKU é obrigatório',
+      unitOfMeasureRequired: 'Unidade de medida é obrigatória',
       priceInvalid: 'Informe um preço válido',
       selectProduct: 'Selecione um produto',
       selectCommerce: 'Selecione um comércio',
@@ -411,9 +414,12 @@ export const ptBR: Messages = {
       description: 'Gerencie o catálogo de produtos e preços.',
       newProduct: 'Novo produto',
       caption: 'Produtos',
+      filterByStatus: 'Filtrar por status',
+      searchPlaceholder: 'Buscar por nome ou SKU',
       empty: {
         title: 'Nenhum produto encontrado',
         description: 'Crie o primeiro produto para começar.',
+        descriptionFiltered: 'Nenhum produto corresponde aos filtros atuais.',
       },
     },
     create: {
@@ -424,7 +430,7 @@ export const ptBR: Messages = {
     },
     detail: {
       notFound: 'Produto não encontrado',
-      inactiveHint: 'Produtos inativos não podem ser editados.',
+      inactiveHint: 'Produtos inativos não podem ser editados. Reative para fazer alterações.',
       deactivate: 'Desativar produto',
       deactivateDialog: {
         title: 'Desativar produto',
@@ -432,9 +438,13 @@ export const ptBR: Messages = {
         confirm: 'Desativar',
       },
     },
+    actions: {
+      reactivate: 'Reativar produto',
+    },
     form: {
       save: 'Salvar alterações',
       saving: 'Salvando…',
+      skuReadOnly: 'O SKU não pode ser alterado após a criação do produto.',
     },
     images: {
       title: 'Imagens do produto',
@@ -447,8 +457,8 @@ export const ptBR: Messages = {
       label: 'Imagem do produto',
       setPrimaryUpload: 'Definir imagem enviada como principal',
       attaching: 'Anexando imagem…',
-      uploadSessionHint:
-        'Envie imagens deste produto. As imagens adicionadas nesta sessão aparecem abaixo.',
+      loadError: 'Não foi possível carregar as imagens do produto',
+      empty: 'Nenhuma imagem ainda. Envie uma acima.',
     },
     stock: {
       available: 'Estoque disponível',
@@ -457,6 +467,8 @@ export const ptBR: Messages = {
     },
     toast: {
       deactivated: 'Produto desativado',
+      reactivated: 'Produto reativado',
+      saved: 'Produto salvo',
       updated: 'Produto atualizado',
       imageAttached: 'Imagem anexada',
       imageRemoved: 'Imagem removida',

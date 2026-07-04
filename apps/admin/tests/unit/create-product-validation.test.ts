@@ -50,6 +50,8 @@ describe('validateEditProductForm — Phase 32 contract', () => {
       name: 'Widget',
       price: '',
       priceCurrency: 'BRL',
+      category: '',
+      unitOfMeasure: 'Unit',
     });
     expect(errors.price).toBe('forms.validation.priceInvalid');
   });

@@ -70,9 +70,10 @@ Admin UI coverage: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 | Method | Path | Auth | Status | Migrations | Rules | Task |
 |--------|------|------|--------|------------|-------|------|
 | POST | `/v1/products` | Admin | ✅ | `203`, `228` | active catalog | 19 |
-| GET | `/v1/products` | Admin, Driver, Seller | ✅ | `203` | pagination | — |
+| GET | `/v1/products` | Admin, Driver, Seller | ✅ | `203` | pagination + `active?` filter | 40 |
 | GET | `/v1/products/{id}` | Admin, Driver, Seller | ✅ | `203` | — | 19 |
-| PATCH | `/v1/products/{id}` | Admin | ✅ | `203`, `228` | deactivate | 19 |
+| PATCH | `/v1/products/{id}` | Admin | ✅ | `203`, `228` | deactivate / reactivate | 40 |
+| GET | `/v1/products/{id}/images` | Admin | ✅ | `229` | list gallery | 40 |
 | POST | `/v1/products/{id}/images` | Admin | ✅ | `229` | one primary | 19 |
 | DELETE | `/v1/products/{id}/images/{imageId}` | Admin | ✅ | `229` | — | 19 |
 
@@ -107,6 +108,7 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 
 | Method | Path | Auth | Status | Migrations | Rules | Task |
 |--------|------|------|--------|------------|-------|------|
+| GET | `/v1/public/products` | Public | ✅ | `228`, `229` | BR-IA-003 | — |
 | GET | `/v1/portal/products` | CommerceContact | ✅ | `228`, `229` | BR-IA-003 | — |
 | GET | `/v1/portal/orders` | CommerceContact | ✅ | `231` | RLS | — |
 | GET | `/v1/portal/orders/{id}` | CommerceContact | ✅ | `231`, `232` | — | — |

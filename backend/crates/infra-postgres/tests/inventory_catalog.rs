@@ -93,6 +93,93 @@ async fn given_catalog_columns_when_insert_product_then_persisted() {
 }
 
 #[tokio::test]
+async fn given_product_images_when_list_then_sorted_by_sort_order() {
+    let pools = setup_pools().await;
+    let tenant = TenantId::generate();
+    infra_postgres::shared::insert_tenant(&pools.admin, tenant, "Tenant")
+        .await
+        .expect("tenant");
+
+    let product_id = seed_product_with_stock(&pools.app, tenant, 1).await;
+    let admin_id = Uuid::now_v7();
+    infra_postgres::identity::insert_user(
+        &pools.app,
+        tenant,
+        infra_postgres::identity::InsertUserParams {
+            id: admin_id,
+            email: "admin@test.com",
+            name: "Admin",
+            role: "Admin",
+            password_hash: "hash",
+            commerce_id: None,
+            profile_file_id: None,
+        },
+    )
+    .await
+    .expect("admin");
+
+    let file_a = Uuid::now_v7();
+    let file_b = Uuid::now_v7();
+    for (file_id, key) in [(file_a, "a.webp"), (file_b, "b.webp")] {
+        infra_postgres::media::insert_file(
+            &pools.app,
+            tenant,
+            infra_postgres::media::FileInsert {
+                id: file_id,
+                entity_type: "Product".to_owned(),
+                entity_id: product_id,
+                bucket: "media".to_owned(),
+                object_key: key.to_owned(),
+                mime_type: "image/webp".to_owned(),
+                size_bytes: 32,
+                sha256: "c".repeat(64),
+                uploaded_by_user_id: admin_id,
+            },
+        )
+        .await
+        .expect("file");
+    }
+
+    let image_a = Uuid::now_v7();
+    let image_b = Uuid::now_v7();
+    product_images::insert_product_image(
+        &pools.app,
+        tenant,
+        product_images::ProductImageInsert {
+            id: image_a,
+            product_id,
+            file_id: file_a,
+            sort_order: 0,
+            is_primary: true,
+        },
+    )
+    .await
+    .expect("first image");
+    product_images::insert_product_image(
+        &pools.app,
+        tenant,
+        product_images::ProductImageInsert {
+            id: image_b,
+            product_id,
+            file_id: file_b,
+            sort_order: 1,
+            is_primary: false,
+        },
+    )
+    .await
+    .expect("second image");
+
+    let rows = product_images::list_product_images(&pools.app, tenant, product_id)
+        .await
+        .expect("list images");
+    assert_eq!(rows.len(), 2);
+    assert_eq!(rows[0].id, image_a);
+    assert_eq!(rows[1].id, image_b);
+    assert!(rows[0].is_primary);
+    assert!(!rows[1].is_primary);
+}
+
+#[tokio::test]
 async fn given_two_primary_images_when_second_insert_then_unique_violation() {
     let pools = setup_pools().await;
     let tenant = TenantId::generate();

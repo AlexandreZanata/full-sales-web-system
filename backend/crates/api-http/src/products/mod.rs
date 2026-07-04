@@ -3,11 +3,11 @@ use axum::{
     extract::{Query, State},
 };
 use domain_identity::Role;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::auth::{AuthUser, require_roles};
 use crate::error::ApiError;
-use crate::pagination::{PaginationQuery, paginate_offset};
+use crate::pagination::paginate_offset;
 use crate::state::AppState;
 
 pub mod catalog;
@@ -47,10 +47,19 @@ pub(crate) fn product_response_from_row(
     }
 }
 
+#[derive(Deserialize)]
+pub struct ListProductsQuery {
+    #[serde(default = "crate::pagination::default_page")]
+    pub page: u32,
+    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
+    pub page_size: u32,
+    pub active: Option<bool>,
+}
+
 pub async fn list_products(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<PaginationQuery>,
+    Query(query): Query<ListProductsQuery>,
 ) -> Result<Json<PaginatedProductsResponse>, ApiError> {
     require_can_read_products(&auth)?;
     let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
@@ -58,15 +67,17 @@ pub async fn list_products(
     let rows = infra_postgres::inventory::list_products(
         &state.app_pool,
         auth.tenant_id,
+        query.active,
         page_size as i64,
         offset,
     )
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let total = infra_postgres::inventory::count_products(&state.app_pool, auth.tenant_id)
-        .await
-        .map_err(|_| ApiError::internal())? as u64;
+    let total =
+        infra_postgres::inventory::count_products(&state.app_pool, auth.tenant_id, query.active)
+            .await
+            .map_err(|_| ApiError::internal())? as u64;
 
     Ok(Json(PaginatedProductsResponse {
         items: rows.iter().map(product_response_from_row).collect(),
@@ -88,4 +99,6 @@ pub(crate) fn require_can_write_products(auth: &AuthUser) -> Result<(), ApiError
 }
 
 pub use catalog::{create_product, get_product, update_product};
-pub use catalog_images::{attach_product_image, delete_product_image};
+pub use catalog_images::{
+    attach_product_image, delete_product_image, list_product_images,
+};
