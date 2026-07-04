@@ -36,7 +36,7 @@ Build phases aligned with domain dependencies. Local task breakdown: `.local/pha
 
 ---
 
-## Phase 4 — Sales
+## Phase 4 — Sales ✅
 
 - Full flow: driver registers sale → confirm → stock deduction
 - Transactional sale + outbound movement (BR-IN-002)

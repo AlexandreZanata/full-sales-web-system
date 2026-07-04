@@ -101,6 +101,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /sales/{id}/cancel:
+    post:
+      summary: Cancel pending sale (UC-001 AF-2)
+      operationId: cancelSale
+      tags: [Sales]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SaleId'
+      responses:
+        '200':
+          description: Sale cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/SaleNotFound'
+        '409':
+          description: Invalid transition (not Pending)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /products:
     get:
       summary: List products (paginated catalog)

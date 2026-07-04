@@ -384,3 +384,101 @@ async fn contract_create_sale_when_idempotency_key_replayed_then_same_response()
         .expect("bytes");
     assert_eq!(first_bytes, second_bytes);
 }
+
+// Contract: UC-001 AF-2 — cancel pending sale → 200 Cancelled, stock unchanged
+#[tokio::test]
+async fn contract_cancel_sale_when_pending_then_200_cancelled() {
+    let env = setup().await;
+    let body = json!({
+        "commerceId": env.commerce_id,
+        "items": [{ "productId": env.product_id, "quantity": 1 }],
+        "paymentMethod": "pix"
+    });
+
+    let create = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/sales")
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+    assert_eq!(create.status(), StatusCode::CREATED);
+    let bytes = axum::body::to_bytes(create.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let created: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+    let sale_id = created["id"].as_str().expect("id");
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/v1/sales/{sale_id}/cancel"))
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+    assert_eq!(json["status"], "Cancelled");
+}
+
+// Contract: UC-001 step 6 — confirm with sufficient stock → 200 Confirmed
+#[tokio::test]
+async fn contract_confirm_sale_when_sufficient_stock_then_200_confirmed() {
+    let env = setup().await;
+    let body = json!({
+        "commerceId": env.commerce_id,
+        "items": [{ "productId": env.product_id, "quantity": 2 }],
+        "paymentMethod": "credit"
+    });
+
+    let create = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/sales")
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+    assert_eq!(create.status(), StatusCode::CREATED);
+    let bytes = axum::body::to_bytes(create.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let created: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+    let sale_id = created["id"].as_str().expect("id");
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/v1/sales/{sale_id}/confirm"))
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+    assert_eq!(json["status"], "Confirmed");
+}

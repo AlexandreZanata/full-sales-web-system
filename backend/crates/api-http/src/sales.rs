@@ -265,6 +265,10 @@ pub async fn confirm_sale(
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::sale_not_found)?;
 
+    if auth.role != Role::Admin && row.driver_id != auth.user_id {
+        return Err(ApiError::sale_not_found());
+    }
+
     if row.status != "Pending" {
         return Err(ApiError::invalid_transition());
     }
@@ -273,36 +277,48 @@ pub async fn confirm_sale(
         .await
         .map_err(|_| ApiError::internal())?;
 
-    for item in &item_rows {
-        let ok = infra_postgres::inventory::decrement_stock_balance(
-            &state.app_pool,
-            auth.tenant_id,
-            auth.user_id,
-            item.product_id,
-            item.quantity,
-        )
+    let items: Vec<infra_postgres::sales::ConfirmSaleItem> = item_rows
+        .iter()
+        .map(|item| infra_postgres::sales::ConfirmSaleItem {
+            product_id: item.product_id,
+            quantity: item.quantity,
+        })
+        .collect();
+
+    infra_postgres::sales::confirm_sale_with_stock(
+        &state.app_pool,
+        auth.tenant_id,
+        auth.user_id,
+        id,
+        &items,
+    )
+    .await
+    .map_err(map_confirm_sale_error)?;
+
+    get_sale(State(state), auth, Path(id)).await
+}
+
+pub async fn cancel_sale(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<Uuid>,
+) -> Result<Json<SaleResponse>, ApiError> {
+    require_can_record_sale(&auth)?;
+
+    let row = infra_postgres::sales::find_sale_by_id(&state.app_pool, auth.tenant_id, id)
         .await
-        .map_err(|_| ApiError::internal())?;
-        if !ok {
-            return Err(ApiError::insufficient_stock());
-        }
-        infra_postgres::inventory::insert_stock_movement(
-            &state.app_pool,
-            auth.tenant_id,
-            infra_postgres::inventory::StockMovementInsert {
-                id: Uuid::now_v7(),
-                product_id: item.product_id,
-                responsible_id: auth.user_id,
-                movement_type: "SaleOutbound".to_owned(),
-                quantity: item.quantity,
-                reference_id: Some(id),
-            },
-        )
-        .await
-        .map_err(|_| ApiError::internal())?;
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::sale_not_found)?;
+
+    if auth.role != Role::Admin && row.driver_id != auth.user_id {
+        return Err(ApiError::sale_not_found());
     }
 
-    let updated = infra_postgres::sales::confirm_sale_status(&state.app_pool, auth.tenant_id, id)
+    if row.status != "Pending" {
+        return Err(ApiError::invalid_transition());
+    }
+
+    let updated = infra_postgres::sales::cancel_sale_status(&state.app_pool, auth.tenant_id, id)
         .await
         .map_err(|_| ApiError::internal())?;
     if !updated {
@@ -370,6 +386,18 @@ fn replay_idempotency(record: IdempotencyRecord) -> Result<Response, ApiError> {
         .header(http::header::CONTENT_TYPE, "application/json")
         .body(axum::body::Body::from(record.body))
         .map_err(|_| ApiError::internal())
+}
+
+fn map_confirm_sale_error(err: infra_postgres::sales::ConfirmSaleError) -> ApiError {
+    match err {
+        infra_postgres::sales::ConfirmSaleError::InsufficientStock => {
+            ApiError::insufficient_stock()
+        }
+        infra_postgres::sales::ConfirmSaleError::InvalidTransition => {
+            ApiError::invalid_transition()
+        }
+        infra_postgres::sales::ConfirmSaleError::Database(_) => ApiError::internal(),
+    }
 }
 
 fn map_sales_app_error(err: application::sales::SalesAppError) -> ApiError {

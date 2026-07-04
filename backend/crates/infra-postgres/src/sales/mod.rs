@@ -3,7 +3,31 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::PostgresError;
+use crate::inventory::StockMovementInsert;
 use crate::rls::apply_tenant_context;
+
+#[derive(Debug, thiserror::Error)]
+pub enum ConfirmSaleError {
+    #[error("insufficient stock")]
+    InsufficientStock,
+
+    #[error("invalid sale transition")]
+    InvalidTransition,
+
+    #[error(transparent)]
+    Database(#[from] PostgresError),
+}
+
+impl From<sqlx::Error> for ConfirmSaleError {
+    fn from(err: sqlx::Error) -> Self {
+        Self::Database(PostgresError::from(err))
+    }
+}
+
+pub struct ConfirmSaleItem {
+    pub product_id: Uuid,
+    pub quantity: i32,
+}
 
 pub struct NewSaleItem {
     pub id: Uuid,
@@ -157,6 +181,90 @@ pub async fn confirm_sale_status(
     apply_tenant_context(&mut tx, tenant_id).await?;
     let result = sqlx::query(
         "UPDATE sales.sales SET status = 'Confirmed', confirmed_at = now()
+         WHERE id = $1 AND status = 'Pending'",
+    )
+    .bind(sale_id)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}
+
+/// BR-IN-002: deduct stock, record SaleOutbound movements, and confirm sale atomically.
+pub async fn confirm_sale_with_stock(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    driver_id: Uuid,
+    sale_id: Uuid,
+    items: &[ConfirmSaleItem],
+) -> Result<(), ConfirmSaleError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+
+    for item in items {
+        let result = sqlx::query(
+            "UPDATE inventory.stock_balances
+             SET quantity = quantity - $4, updated_at = now()
+             WHERE tenant_id = $1 AND driver_id = $2 AND product_id = $3 AND quantity >= $4",
+        )
+        .bind(tenant_id.as_uuid())
+        .bind(driver_id)
+        .bind(item.product_id)
+        .bind(item.quantity)
+        .execute(&mut *tx)
+        .await?;
+        if result.rows_affected() != 1 {
+            return Err(ConfirmSaleError::InsufficientStock);
+        }
+
+        let movement = StockMovementInsert {
+            id: Uuid::now_v7(),
+            product_id: item.product_id,
+            responsible_id: driver_id,
+            movement_type: "SaleOutbound".to_owned(),
+            quantity: item.quantity,
+            reference_id: Some(sale_id),
+        };
+        sqlx::query(
+            "INSERT INTO inventory.stock_movements
+             (id, tenant_id, product_id, responsible_id, movement_type, quantity, reference_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        )
+        .bind(movement.id)
+        .bind(tenant_id.as_uuid())
+        .bind(movement.product_id)
+        .bind(movement.responsible_id)
+        .bind(movement.movement_type)
+        .bind(movement.quantity)
+        .bind(movement.reference_id)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    let status = sqlx::query(
+        "UPDATE sales.sales SET status = 'Confirmed', confirmed_at = now()
+         WHERE id = $1 AND status = 'Pending'",
+    )
+    .bind(sale_id)
+    .execute(&mut *tx)
+    .await?;
+    if status.rows_affected() != 1 {
+        return Err(ConfirmSaleError::InvalidTransition);
+    }
+
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn cancel_sale_status(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    sale_id: Uuid,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query(
+        "UPDATE sales.sales SET status = 'Cancelled'
          WHERE id = $1 AND status = 'Pending'",
     )
     .bind(sale_id)

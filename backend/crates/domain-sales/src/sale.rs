@@ -233,4 +233,59 @@ mod tests {
             }
         ));
     }
+
+    // Contract: STATE-MACHINES — Pending → Cancelled (UC-001 AF-2)
+    #[test]
+    fn given_pending_sale_when_cancel_then_cancelled() {
+        let commerce = sample_commerce();
+        let tenant_id = commerce.tenant_id();
+        let product = sample_product(tenant_id);
+        let sale = Sale::create(SaleCreateInput {
+            id: SaleId::generate(),
+            driver_id: UserId::generate(),
+            commerce,
+            payment_method: PaymentMethod::Cash,
+            tenant_id,
+        })
+        .expect("create")
+        .add_item(AddSaleItemInput {
+            product,
+            quantity: Quantity::of(1).expect("qty"),
+        })
+        .expect("add")
+        .cancel()
+        .expect("cancel");
+        assert_eq!(sale.status(), SaleStatus::Cancelled);
+    }
+
+    // Contract: BR-SA-003 — Confirmed sale cannot be cancelled
+    #[test]
+    fn given_confirmed_sale_when_cancel_then_invalid_transition() {
+        let commerce = sample_commerce();
+        let tenant_id = commerce.tenant_id();
+        let product = sample_product(tenant_id);
+        let sale = Sale::create(SaleCreateInput {
+            id: SaleId::generate(),
+            driver_id: UserId::generate(),
+            commerce,
+            payment_method: PaymentMethod::Debit,
+            tenant_id,
+        })
+        .expect("create")
+        .add_item(AddSaleItemInput {
+            product,
+            quantity: Quantity::of(1).expect("qty"),
+        })
+        .expect("add")
+        .confirm()
+        .expect("confirm");
+        let err = sale.cancel().expect_err("must fail");
+        assert!(matches!(
+            err,
+            SaleError::InvalidTransition {
+                from: SaleStatus::Confirmed,
+                to: SaleStatus::Cancelled
+            }
+        ));
+    }
 }
