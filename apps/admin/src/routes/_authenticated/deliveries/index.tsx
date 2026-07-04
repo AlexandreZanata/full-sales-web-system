@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { DomainStatusBadge } from '@/components/status/DomainStatusBadge';
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
@@ -9,6 +9,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
 import { fetchDeliveries } from '@/lib/api/deliveries';
+import { fetchDriversForPicker } from '@/lib/api/users';
 import type { DeliveryDetail } from '@/lib/api/types';
 import {
   DELIVERY_STATUS_FILTER_LABELS,
@@ -31,6 +32,19 @@ function DeliveriesListPage() {
     queryKey: ['deliveries', page, pageSize, statusFilter],
     queryFn: () => fetchDeliveries({ page, pageSize, status: statusFilter }),
   });
+
+  const drivers = useQuery({
+    queryKey: ['users', 'drivers', 'picker'],
+    queryFn: fetchDriversForPicker,
+  });
+
+  const driverNames = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const driver of drivers.data ?? []) {
+      map.set(driver.id, driver.name);
+    }
+    return map;
+  }, [drivers.data]);
 
   const pagination = deliveries.data ? paginatedResponseToTable(deliveries.data) : null;
 
@@ -66,7 +80,7 @@ function DeliveriesListPage() {
     {
       id: 'driverId',
       header: 'Driver',
-      cell: (row) => <span className="font-mono text-xs">{row.driverId.slice(0, 8)}…</span>,
+      cell: (row) => driverNames.get(row.driverId) ?? `${row.driverId.slice(0, 8)}…`,
     },
   ];
 

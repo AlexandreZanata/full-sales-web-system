@@ -23,53 +23,57 @@ import {
   rejectOrder,
   startPicking,
 } from '@/lib/api/orders';
+import { fetchProductsForPicker } from '@/lib/api/products';
 import { fetchDriversForPicker } from '@/lib/api/users';
 import type { OrderItem } from '@/lib/api/types';
 import { getDeliveryStatusToken, type DeliveryStatus } from '@/lib/admin-tokens';
 import { orderActionErrorMessage } from '@/lib/orders/orderActionErrors';
 import { formatMoney } from '@/lib/products/formatPrice';
+import { buildProductNameMap, productDisplayName } from '@/lib/products/productNameMap';
 import { useToast } from '@/hooks/useToast';
 
 export const Route = createFileRoute('/_authenticated/orders/$id')({
   component: OrderDetailPage,
 });
 
-const lineItemColumns: DataTableColumn<OrderItem>[] = [
-  {
-    id: 'product',
-    header: 'Product',
-    cell: (row) => (
-      <Link
-        to="/products/$id"
-        params={{ id: row.productId }}
-        className="font-mono text-xs hover:underline"
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
-      >
-        {row.productId.slice(0, 8)}…
-      </Link>
-    ),
-  },
-  {
-    id: 'quantity',
-    header: 'Qty',
-    align: 'right',
-    cell: (row) => row.quantity,
-  },
-  {
-    id: 'unitPrice',
-    header: 'Unit price',
-    align: 'right',
-    cell: (row) => formatMoney(row.unitPriceAmount, row.unitPriceCurrency),
-  },
-  {
-    id: 'lineTotal',
-    header: 'Line total',
-    align: 'right',
-    cell: (row) => formatMoney(row.lineTotalAmount, row.unitPriceCurrency),
-  },
-];
+function buildLineItemColumns(productNames: Map<string, string>): DataTableColumn<OrderItem>[] {
+  return [
+    {
+      id: 'product',
+      header: 'Product',
+      cell: (row) => (
+        <Link
+          to="/products/$id"
+          params={{ id: row.productId }}
+          className="text-sm hover:underline"
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
+        >
+          {productDisplayName(productNames, row.productId)}
+        </Link>
+      ),
+    },
+    {
+      id: 'quantity',
+      header: 'Qty',
+      align: 'right',
+      cell: (row) => row.quantity,
+    },
+    {
+      id: 'unitPrice',
+      header: 'Unit price',
+      align: 'right',
+      cell: (row) => formatMoney(row.unitPriceAmount, row.unitPriceCurrency),
+    },
+    {
+      id: 'lineTotal',
+      header: 'Line total',
+      align: 'right',
+      cell: (row) => formatMoney(row.lineTotalAmount, row.unitPriceCurrency),
+    },
+  ];
+}
 
 function OrderDetailPage() {
   const { id } = Route.useParams();
@@ -103,6 +107,14 @@ function OrderDetailPage() {
     queryFn: fetchDriversForPicker,
     enabled: assignOpen,
   });
+
+  const products = useQuery({
+    queryKey: ['products', 'picker'],
+    queryFn: fetchProductsForPicker,
+  });
+
+  const productNames = buildProductNameMap(products.data ?? []);
+  const lineItemColumns = buildLineItemColumns(productNames);
 
   async function invalidateOrder() {
     await queryClient.invalidateQueries({ queryKey: ['orders'] });

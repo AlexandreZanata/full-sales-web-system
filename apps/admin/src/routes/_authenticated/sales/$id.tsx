@@ -15,49 +15,49 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
 import { fetchCommerce } from '@/lib/api/commerces';
+import { fetchProductsForPicker } from '@/lib/api/products';
 import { cancelSale, confirmSale, fetchSale } from '@/lib/api/sales';
 import { fetchUser } from '@/lib/api/users';
 import type { SaleItem } from '@/lib/api/types';
-import { saleActionErrorMessage } from '@/lib/sales/saleActionErrors';
 import { formatMoney } from '@/lib/products/formatPrice';
+import { buildProductNameMap, productDisplayName } from '@/lib/products/productNameMap';
+import { saleActionErrorMessage } from '@/lib/sales/saleActionErrors';
 
 export const Route = createFileRoute('/_authenticated/sales/$id')({
   component: SaleDetailPage,
 });
 
-const lineItemColumns: DataTableColumn<SaleItem>[] = [
-  {
-    id: 'product',
-    header: 'Product',
-    cell: (row) => (
-      <Link
-        to="/products/$id"
-        params={{ id: row.productId }}
-        className="font-mono text-xs hover:underline"
-      >
-        {row.productId.slice(0, 8)}…
-      </Link>
-    ),
-  },
-  {
-    id: 'quantity',
-    header: 'Qty',
-    align: 'right',
-    cell: (row) => row.quantity,
-  },
-  {
-    id: 'unitPrice',
-    header: 'Unit price',
-    align: 'right',
-    cell: (row) => formatMoney(row.unitPriceAmount, row.unitPriceCurrency),
-  },
-  {
-    id: 'lineTotal',
-    header: 'Line total',
-    align: 'right',
-    cell: (row) => formatMoney(row.lineTotalAmount, row.unitPriceCurrency),
-  },
-];
+function buildLineItemColumns(productNames: Map<string, string>): DataTableColumn<SaleItem>[] {
+  return [
+    {
+      id: 'product',
+      header: 'Product',
+      cell: (row) => (
+        <Link to="/products/$id" params={{ id: row.productId }} className="text-sm hover:underline">
+          {productDisplayName(productNames, row.productId)}
+        </Link>
+      ),
+    },
+    {
+      id: 'quantity',
+      header: 'Qty',
+      align: 'right',
+      cell: (row) => row.quantity,
+    },
+    {
+      id: 'unitPrice',
+      header: 'Unit price',
+      align: 'right',
+      cell: (row) => formatMoney(row.unitPriceAmount, row.unitPriceCurrency),
+    },
+    {
+      id: 'lineTotal',
+      header: 'Line total',
+      align: 'right',
+      cell: (row) => formatMoney(row.lineTotalAmount, row.unitPriceCurrency),
+    },
+  ];
+}
 
 function SaleDetailPage() {
   const { id } = Route.useParams();
@@ -94,6 +94,14 @@ function SaleDetailPage() {
     },
     enabled: Boolean(sale.data?.driverId),
   });
+
+  const products = useQuery({
+    queryKey: ['products', 'picker'],
+    queryFn: fetchProductsForPicker,
+  });
+
+  const productNames = buildProductNameMap(products.data ?? []);
+  const lineItemColumns = buildLineItemColumns(productNames);
 
   async function invalidateSale() {
     await queryClient.invalidateQueries({ queryKey: ['sales'] });
