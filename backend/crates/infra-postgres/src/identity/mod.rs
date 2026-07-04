@@ -41,6 +41,15 @@ pub async fn insert_user(
     Ok(())
 }
 
+/// Deactivates a user (admin connection — test/support helper).
+pub async fn deactivate_user(pool: &PgPool, user_id: Uuid) -> Result<(), PostgresError> {
+    sqlx::query("UPDATE identity.users SET active = false WHERE id = $1")
+        .bind(user_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
 /// Lists user ids visible under the current tenant RLS context.
 pub async fn list_user_ids(pool: &PgPool, tenant_id: TenantId) -> Result<Vec<Uuid>, PostgresError> {
     let mut tx = pool.begin().await?;
@@ -50,6 +59,69 @@ pub async fn list_user_ids(pool: &PgPool, tenant_id: TenantId) -> Result<Vec<Uui
         .await?;
     tx.commit().await?;
     Ok(rows)
+}
+
+/// Finds login credentials by email (admin connection — pre-tenant lookup).
+pub async fn find_user_for_login(
+    pool: &PgPool,
+    email: &str,
+) -> Result<Option<LoginUserRecord>, PostgresError> {
+    let row = sqlx::query_as::<_, LoginRecord>(
+        "SELECT id, tenant_id, role, password_hash, active
+         FROM identity.users WHERE email = $1",
+    )
+    .bind(email)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.map(LoginUserRecord::from))
+}
+
+/// Finds login credentials by user id (admin connection).
+pub async fn find_login_record_by_id(
+    pool: &PgPool,
+    user_id: Uuid,
+) -> Result<Option<LoginUserRecord>, PostgresError> {
+    let row = sqlx::query_as::<_, LoginRecord>(
+        "SELECT id, tenant_id, role, password_hash, active
+         FROM identity.users WHERE id = $1",
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.map(LoginUserRecord::from))
+}
+
+/// Login credential row for authentication use cases.
+#[derive(Debug, Clone)]
+pub struct LoginUserRecord {
+    pub id: Uuid,
+    pub tenant_id: Uuid,
+    pub role: String,
+    pub password_hash: String,
+    pub active: bool,
+}
+
+#[derive(sqlx::FromRow)]
+struct LoginRecord {
+    id: Uuid,
+    tenant_id: Uuid,
+    role: String,
+    password_hash: String,
+    active: bool,
+}
+
+impl From<LoginRecord> for LoginUserRecord {
+    fn from(r: LoginRecord) -> Self {
+        Self {
+            id: r.id,
+            tenant_id: r.tenant_id,
+            role: r.role,
+            password_hash: r.password_hash,
+            active: r.active,
+        }
+    }
 }
 
 /// Finds a user by id within tenant RLS scope.

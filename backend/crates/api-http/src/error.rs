@@ -1,11 +1,10 @@
 use axum::{
     Json,
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
     response::{IntoResponse, Response},
 };
 use serde::Serialize;
 
-/// RFC 9457 / API-CONTRACT.md error envelope.
 #[derive(Debug, Clone, Serialize)]
 pub struct ApiErrorBody {
     pub error: ApiErrorDetail,
@@ -35,6 +34,54 @@ impl ApiError {
         }
     }
 
+    pub fn unauthorized() -> Self {
+        Self {
+            status: StatusCode::UNAUTHORIZED,
+            code: "UNAUTHORIZED",
+            message: "Authentication required",
+        }
+    }
+
+    pub fn invalid_credentials() -> Self {
+        Self {
+            status: StatusCode::UNAUTHORIZED,
+            code: "INVALID_CREDENTIALS",
+            message: "Invalid credentials",
+        }
+    }
+
+    pub fn forbidden() -> Self {
+        Self {
+            status: StatusCode::FORBIDDEN,
+            code: "FORBIDDEN",
+            message: "Forbidden",
+        }
+    }
+
+    pub fn invalid_cnpj() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "INVALID_CNPJ",
+            message: "Invalid CNPJ check digits",
+        }
+    }
+
+    pub fn bad_request(code: &'static str) -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code,
+            message: "Invalid request",
+        }
+    }
+
+    pub fn internal() -> Self {
+        Self {
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            code: "INTERNAL_ERROR",
+            message: "Internal server error",
+        }
+    }
+
     pub fn into_response(self, correlation_id: String) -> Response {
         let body = ApiErrorBody {
             error: ApiErrorDetail {
@@ -47,13 +94,19 @@ impl ApiError {
     }
 }
 
-pub async fn not_found_handler(headers: HeaderMap) -> Response {
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        self.into_response("unknown".to_owned())
+    }
+}
+
+pub async fn not_found_handler(headers: http::HeaderMap) -> Response {
     correlation_id_from_headers(&headers)
         .map(|id| ApiError::not_found().into_response(id))
         .unwrap_or_else(|| ApiError::not_found().into_response("unknown".to_owned()))
 }
 
-fn correlation_id_from_headers(headers: &HeaderMap) -> Option<String> {
+fn correlation_id_from_headers(headers: &http::HeaderMap) -> Option<String> {
     headers
         .get("x-request-id")
         .and_then(|v| v.to_str().ok())

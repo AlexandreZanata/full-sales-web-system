@@ -6,7 +6,9 @@
 
 | Rule ID | Test file(s) |
 |---------|----------------|
-| BR-CO-001 | `packages/domain/src/value-objects/cnpj.test.ts` |
+| BR-IA-001 | `backend/crates/api-http/tests/auth.rs` |
+| BR-IA-002 | `backend/crates/application/src/auth.rs`, `backend/crates/api-http/tests/auth.rs`, `backend/crates/domain-identity/tests/business_rules.rs` |
+| BR-CO-001 | `backend/crates/domain-commerces/src/cnpj.rs`, `backend/crates/api-http/tests/auth.rs` |
 | BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-002 | `packages/domain/src/value-objects/money.test.ts`, `packages/domain/src/sales/sale-item.test.ts`, `packages/domain/src/sales/sale.test.ts` |

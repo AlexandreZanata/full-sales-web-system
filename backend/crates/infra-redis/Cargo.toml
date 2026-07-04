@@ -6,8 +6,15 @@ license.workspace = true
 publish = false
 
 [dependencies]
+async-trait.workspace = true
 domain-shared.workspace = true
-tokio.workspace = true
+redis.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+uuid.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [lints]
 workspace = true

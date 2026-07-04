@@ -6,7 +6,12 @@ license.workspace = true
 publish = false
 
 [dependencies]
+argon2.workspace = true
 domain-shared.workspace = true
+jsonwebtoken.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
 
 [lints]
 workspace = true

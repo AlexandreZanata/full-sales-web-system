@@ -2,6 +2,8 @@
 resolver = "2"
 members = [
     "crates/domain-shared",
+    "crates/domain-identity",
+    "crates/domain-commerces",
     "crates/application",
     "crates/infra-postgres",
     "crates/infra-redis",
@@ -29,8 +31,15 @@ tower-http = { version = "0.6", features = ["request-id", "trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 uuid = { version = "1", features = ["serde", "v7"] }
+argon2 = "0.5"
+jsonwebtoken = "9"
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+rand = "0.8"
+async-trait = "0.1"
 
 application = { path = "crates/application" }
+domain-commerces = { path = "crates/domain-commerces" }
+domain-identity = { path = "crates/domain-identity" }
 domain-shared = { path = "crates/domain-shared" }
 infra-crypto = { path = "crates/infra-crypto" }
 infra-postgres = { path = "crates/infra-postgres" }

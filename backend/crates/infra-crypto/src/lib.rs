@@ -1,6 +1,7 @@
-//! Ed25519 signing adapter — implemented in Phase 5.
+//! Password hashing (Argon2id) and JWT access tokens.
 
-/// Placeholder until crypto adapter lands in Phase 5.
-pub fn crate_version() -> &'static str {
-    env!("CARGO_PKG_VERSION")
-}
+pub mod jwt;
+pub mod password;
+
+pub use jwt::{AccessTokenClaims, JwtError, JwtService};
+pub use password::{PasswordError, PasswordHasher};

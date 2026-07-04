@@ -1,6 +1,83 @@
-//! Application use cases — orchestration layer (implemented in later phases).
+use std::time::Duration;
 
-/// Crate version for health/diagnostic stubs.
-pub fn crate_version() -> &'static str {
-    env!("CARGO_PKG_VERSION")
+use domain_commerces::{Cnpj, Commerce, CommerceId, CreateCommerceInput};
+use domain_identity::{Email, FullName, IdentityError, RegisterUserInput, Role, User, UserId};
+use domain_shared::TenantId;
+use thiserror::Error;
+use uuid::Uuid;
+
+pub mod auth;
+pub mod commerces;
+pub mod users;
+
+#[derive(Debug, Error)]
+pub enum AppError {
+    #[error("invalid credentials")]
+    InvalidCredentials,
+
+    #[error(transparent)]
+    Identity(#[from] IdentityError),
+
+    #[error(transparent)]
+    Commerce(#[from] domain_commerces::CommerceError),
+
+    #[error("forbidden")]
+    Forbidden,
+}
+
+/// Authenticated principal returned after successful login.
+#[derive(Debug, Clone)]
+pub struct AuthenticatedUser {
+    pub user_id: Uuid,
+    pub tenant_id: TenantId,
+    pub role: Role,
+}
+
+pub const ACCESS_TOKEN_TTL: Duration = Duration::from_secs(15 * 60);
+pub const REFRESH_TOKEN_TTL: Duration = Duration::from_secs(7 * 24 * 60 * 60);
+
+pub fn register_user(input: RegisterUserInput) -> User {
+    User::register(input)
+}
+
+pub fn register_commerce(input: CreateCommerceInput) -> Commerce {
+    Commerce::create(input)
+}
+
+pub fn parse_register_user(
+    name: &str,
+    email: &str,
+    role: &str,
+    tenant_id: TenantId,
+) -> Result<User, AppError> {
+    Ok(User::register(RegisterUserInput {
+        id: UserId::generate(),
+        name: FullName::parse(name)?,
+        email: Email::parse(email)?,
+        role: Role::parse(role)?,
+        tenant_id,
+    }))
+}
+
+pub fn parse_create_commerce(
+    cnpj: &str,
+    legal_name: &str,
+    trade_name: Option<&str>,
+    tenant_id: TenantId,
+) -> Result<Commerce, AppError> {
+    Ok(Commerce::create(CreateCommerceInput {
+        id: CommerceId::generate(),
+        cnpj: Cnpj::parse(cnpj)?,
+        legal_name: legal_name.to_owned(),
+        trade_name: trade_name.map(str::to_owned),
+        tenant_id,
+    }))
+}
+
+pub fn ensure_admin_can_register_commerce(role: Role) -> Result<(), AppError> {
+    if role.can_register_commerce() {
+        Ok(())
+    } else {
+        Err(AppError::Forbidden)
+    }
 }
