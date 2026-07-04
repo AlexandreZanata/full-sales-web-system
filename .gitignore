@@ -1,0 +1,39 @@
+# Local agent overrides (harness convention)
+.local/
+
+# Cursor task-scoped rules (temporary)
+.cursor/rules/_task-active.mdc
+
+# Dependencies
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+.nuxt/
+target/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and coverage
+*.log
+coverage/
+.nyc_output/
+
+# Python (harness tooling)
+__pycache__/
+*.py[cod]
+.venv/
+venv/

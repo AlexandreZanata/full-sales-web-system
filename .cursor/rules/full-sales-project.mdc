@@ -1,0 +1,39 @@
+---
+description: Full Sales Web System — project context and doc-first workflow
+alwaysApply: true
+---
+
+# Full Sales Web System
+
+Rust backend: driver/seller control — inventory, commerces, sales, signed reports.
+
+**Product spec:** [docs/PROJECT-OVERVIEW.md](docs/PROJECT-OVERVIEW.md)  
+**Stack:** Rust, Axum, PostgreSQL, Redis, Ed25519 — see [docs/TECH-STACK.md](docs/TECH-STACK.md)
+
+Sales web platform. All code, comments, docs, commits, and agent output in **English**.
+
+## Before domain or API code
+
+1. Read `AGENTS.md` and [docs/PROJECT-OVERVIEW.md](docs/PROJECT-OVERVIEW.md).
+2. Check active task in `.local/phases/` — read `README.md` + `TASKS.md` + `documentation/`.
+3. Resolve [docs/OPEN-DECISIONS.md](docs/OPEN-DECISIONS.md) — **ask user** if unresolved.
+4. `./agent-harness/resolve-rules.sh <keywords>` for harness rules.
+5. Terms: [docs/GLOSSARY.md](docs/GLOSSARY.md). Tests: [docs/BUSINESS-RULES.md](docs/BUSINESS-RULES.md). API: [docs/API-CONTRACT.md](docs/API-CONTRACT.md).
+
+## Architecture (from docs + agent-rules)
+
+- Bounded contexts: Identity, Commerces, Inventory, Sales, Reports — see PROJECT-OVERVIEW
+- Hexagonal: domain crates never import sqlx/axum/redis
+- Multi-tenant: PostgreSQL RLS
+- Security: JWT + RBAC middleware — [docs/SECURITY.md](docs/SECURITY.md)
+- Tests: contract-first — [docs/TESTING-STRATEGY.md](docs/TESTING-STRATEGY.md)
+
+## Task keyword hints
+
+| Area | Keywords |
+|------|----------|
+| Rust / domain | `rust domain layer state event` |
+| Sales | `api sale state contract validation` |
+| Auth | `auth authentication authorization rbac` |
+| Reports / crypto | `audit encryption signature` |
+| Inventory | `query cache validation` |
