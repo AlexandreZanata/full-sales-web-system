@@ -81,6 +81,7 @@ export type Messages = {
       unitPrice: string;
       lineTotal: string;
       paginationAria: string;
+      actions: string;
     };
     pagination: {
       summary: string;
@@ -442,9 +443,14 @@ export type Messages = {
         message: string;
         confirm: string;
       };
+      tabs: {
+        overview: string;
+        images: string;
+      };
     };
     actions: {
       reactivate: string;
+      manageImages: string;
     };
     form: {
       save: string;

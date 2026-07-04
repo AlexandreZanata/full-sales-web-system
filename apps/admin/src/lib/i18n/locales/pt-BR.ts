@@ -75,6 +75,7 @@ export const ptBR: Messages = {
       unitPrice: 'Preço unit.',
       lineTotal: 'Total linha',
       paginationAria: 'Paginação da tabela',
+      actions: 'Ações',
     },
     pagination: {
       summary: 'Página {page} de {totalPages} ({total} no total)',
@@ -438,9 +439,14 @@ export const ptBR: Messages = {
         message: 'Este produto será oculto de novas vendas e pedidos.',
         confirm: 'Desativar',
       },
+      tabs: {
+        overview: 'Detalhes',
+        images: 'Imagens',
+      },
     },
     actions: {
       reactivate: 'Reativar produto',
+      manageImages: 'Imagens',
     },
     form: {
       save: 'Salvar alterações',

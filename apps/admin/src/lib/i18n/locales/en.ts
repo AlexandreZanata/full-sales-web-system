@@ -75,6 +75,7 @@ export const en: Messages = {
       unitPrice: 'Unit price',
       lineTotal: 'Line total',
       paginationAria: 'Table pagination',
+      actions: 'Actions',
     },
     pagination: {
       summary: 'Page {page} of {totalPages} ({total} total)',
@@ -437,9 +438,14 @@ export const en: Messages = {
         message: 'This product will be hidden from new sales and orders.',
         confirm: 'Deactivate',
       },
+      tabs: {
+        overview: 'Details',
+        images: 'Images',
+      },
     },
     actions: {
       reactivate: 'Reactivate product',
+      manageImages: 'Images',
     },
     form: {
       save: 'Save changes',

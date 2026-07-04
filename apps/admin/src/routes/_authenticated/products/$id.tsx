@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { EditProductForm } from '@/components/products/EditProductForm';
 import { ProductImagesSection } from '@/components/products/ProductImagesSection';
@@ -12,20 +12,30 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/hooks/useToast';
 import { fetchProduct, updateProduct } from '@/lib/api/products';
 import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';
 
+type ProductDetailSearch = {
+  tab?: 'overview' | 'images';
+};
+
 export const Route = createFileRoute('/_authenticated/products/$id')({
+  validateSearch: (search: Record<string, unknown>): ProductDetailSearch => ({
+    tab: search.tab === 'images' ? 'images' : 'overview',
+  }),
   component: ProductDetailPage,
 });
 
 function ProductDetailPage() {
   const { id } = Route.useParams();
+  const { tab: initialTab } = Route.useSearch();
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const toast = useToast();
+  const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [reactivating, setReactivating] = useState(false);
@@ -34,6 +44,14 @@ function ProductDetailPage() {
     queryKey: ['products', id],
     queryFn: () => fetchProduct(id),
   });
+
+  const tabs = useMemo(
+    () => [
+      { id: 'overview', label: t('products.detail.tabs.overview') },
+      { id: 'images', label: t('products.detail.tabs.images') },
+    ],
+    [t],
+  );
 
   async function handleReactivate() {
     setReactivating(true);
@@ -107,35 +125,49 @@ function ProductDetailPage() {
         }
       />
 
-      <Card className="space-y-3">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            {t('forms.fields.price')}
-          </span>
-          <span className="text-sm text-foreground">
-            {formatMoney(detail.priceAmount, detail.priceCurrency)}
-          </span>
-        </div>
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            {t('forms.fields.status')}
-          </span>
-          <ActiveBadge active={detail.active} />
-        </div>
-      </Card>
-
-      <StockBalanceCard productId={id} />
-
-      <EditProductForm
-        product={detail}
-        onSubmit={(body) => updateProduct(id, body)}
-        onUpdated={() => {
-          void queryClient.invalidateQueries({ queryKey: ['products'] });
-          void queryClient.invalidateQueries({ queryKey: ['products', id] });
+      <Tabs
+        tabs={tabs}
+        activeId={activeTab}
+        onChange={(tabId) => {
+          if (tabId === 'overview' || tabId === 'images') {
+            setActiveTab(tabId);
+          }
         }}
-      />
+      >
+        {activeTab === 'overview' ? (
+          <div className="space-y-4">
+            <Card className="space-y-3">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {t('forms.fields.price')}
+                </span>
+                <span className="text-sm text-foreground">
+                  {formatMoney(detail.priceAmount, detail.priceCurrency)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {t('forms.fields.status')}
+                </span>
+                <ActiveBadge active={detail.active} />
+              </div>
+            </Card>
 
-      <ProductImagesSection productId={id} />
+            <StockBalanceCard productId={id} />
+
+            <EditProductForm
+              product={detail}
+              onSubmit={(body) => updateProduct(id, body)}
+              onUpdated={() => {
+                void queryClient.invalidateQueries({ queryKey: ['products'] });
+                void queryClient.invalidateQueries({ queryKey: ['products', id] });
+              }}
+            />
+          </div>
+        ) : null}
+
+        {activeTab === 'images' ? <ProductImagesSection productId={id} /> : null}
+      </Tabs>
 
       <ConfirmDialog
         open={confirmOpen}

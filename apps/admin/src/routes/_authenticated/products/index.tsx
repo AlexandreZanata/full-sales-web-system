@@ -78,6 +78,25 @@ function ProductsListPage() {
         header: t('forms.fields.status'),
         cell: (row) => <ActiveBadge active={row.active} />,
       },
+      {
+        id: 'actions',
+        header: t('common.table.actions'),
+        align: 'right',
+        cell: (row) => (
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link to="/products/$id" params={{ id: row.id }}>
+              <Button variant="secondary" className="h-8 min-h-8 px-3 text-xs">
+                {t('common.edit')}
+              </Button>
+            </Link>
+            <Link to="/products/$id" params={{ id: row.id }} search={{ tab: 'images' }}>
+              <Button variant="secondary" className="h-8 min-h-8 px-3 text-xs">
+                {t('products.actions.manageImages')}
+              </Button>
+            </Link>
+          </div>
+        ),
+      },
     ],
     [t],
   );
