@@ -158,3 +158,28 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 \* Driver may receive pre-generated reports — refine in use cases.
 
 Full matrix: extend in use case authorization tables.
+
+---
+
+## Domain expansion (planned — Phases 07–15)
+
+> Full GIVEN/WHEN/THEN in `.local/phases/0d-domain-expansion/documentation/BUSINESS-RULES-EXPANSION.md`.  
+> Implement and promote to this file per phase. **RN1 credit limit revoked.**
+
+| Rule ID | Summary | Phase | Test file (TBD) |
+|---------|---------|-------|-----------------|
+| RN2 | Reserve on approve; deduct on delivery | 10, 12–13 | `domain-orders/tests/reservation.rs` |
+| RN3 | Unit price frozen at order item creation | 11 | `domain-orders/tests/order_item.rs` |
+| RN4 | Proof photo required for Delivered | 12 | `domain-deliveries/tests/proof_required.rs` |
+| RN5 | Partial qty → PartiallyDelivered | 12 | `domain-deliveries/tests/partial_delivery.rs` |
+| RN6 | Cancel before InTransit releases reservation | 11 | `domain-orders/tests/cancel_order.rs` |
+| RN7 | Mime + size validation before storage | 07 | `domain-media/tests/upload_validation.rs` |
+| RN8 | Role-scoped RLS visibility | 08, 11–12, 14 | `infra-postgres/tests/rls_expansion.rs` |
+| RN9 | Reports exclude non-final orders | 15 | `domain-reports/tests/settlement_payload.rs` |
+| RN10 | Reject requires rejection_reason | 11 | `domain-orders/tests/reject_order.rs` |
+| RN-PAG1 | Declaration optional — never blocks sales | 13 | `domain-sales/tests/declared_payment.rs` |
+| RN-PAG2 | Only responsible seller/driver declares | 13 | `domain-sales/tests/declared_payment.rs` |
+| RN-PAG3 | Declaration changes append audit.events | 13 | `infra-postgres/tests/declared_payment_audit.rs` |
+| RN-PAG4 | Report includes non-fiscal disclaimer | 15 | `domain-reports/tests/settlement_payload.rs` |
+| BR-IA-003 | CommerceContact scoped to own commerce | 08, 14 | `infra-postgres/tests/rls_commerce_contact.rs` |
+| ~~RN1~~ | ~~Credit limit blocks order~~ | — | **Revoked** (Phase 0d) |

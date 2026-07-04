@@ -15,14 +15,15 @@
 ## Role
 
 **Definition:** Authorization profile for a User.
-**Enum values:** `Admin`, `Driver`, `Seller`
+**Enum values:** `Admin`, `Driver`, `Seller`, `CommerceContact`
 **Code name:** `Role`
 
 | Role | Typical permissions |
 |------|---------------------|
-| Admin | Manage users, commerces, reports |
-| Driver | Record sales, view assigned stock |
-| Seller | Record sales (field seller variant) |
+| Admin | Manage users, commerces, reports; approve orders |
+| Driver | Record sales, view assigned stock; confirm deliveries |
+| Seller | Record sales (field seller variant); create orders on visit |
+| CommerceContact | Commerce portal — create/view orders for own commerce |
 
 ---
 
@@ -107,9 +108,61 @@
 
 ---
 
+## Order
+
+**Definition:** Commerce or seller **intent** to buy — approval and fulfillment lifecycle before stock is deducted.
+**Not the same as:** Sale (Order is intent; Sale is the delivery fact)
+**State values:** `Draft`, `PendingApproval`, `Approved`, `Picking`, `InTransit`, `Delivered`, `PartiallyDelivered`, `Rejected`
+**Code name:** `Order`
+
+---
+
+## OrderItem
+
+**Definition:** Single product line on an Order — requested quantity, optional delivered quantity, unit price **frozen at order creation** (RN3).
+**Code name:** `OrderItem`
+
+---
+
+## Delivery
+
+**Definition:** Fulfillment step for an Order — assigned driver, proof photo, geo, received-by name.
+**State values:** `Waiting`, `InTransit`, `Delivered`, `Failed`
+**Cardinality:** One Delivery per Order in v1 (DE-004)
+**Code name:** `Delivery`
+
+---
+
+## StockReservation
+
+**Definition:** Quantity held against tenant available stock when an Order is approved — not yet deducted from driver balance.
+**Enum values (`ReservationStatus`):** `Active`, `Released`, `Consumed`
+**Scope:** Tenant pool until driver assigned; consumed on delivery confirm (ADR-010)
+**Code name:** `StockReservation`
+
+---
+
+## CommerceContact
+
+**Definition:** User with role `CommerceContact` — portal login scoped to a single `commerce_id` via RLS.
+**Not the same as:** Commerce (the business client record)
+**Code name:** `CommerceContact` (role context; entity is `User`)
+
+---
+
+## DeclaredPayment
+
+**Definition:** Seller or driver **assertion** of payment received for a Sale — not verified by the platform (RN-PAG1–RN-PAG4).
+**Fields on Sale:** `declared_payment_method`, `declared_payment_received`, `declared_payment_at`, `declared_payment_by_user_id`, `declared_payment_notes`
+**Not the same as:** `PaymentMethod` (expected method at sale creation, ADR-006)
+**Code name:** `DeclaredPayment`
+
+---
+
 ## Sale
 
-**Definition:** Commercial transaction linking driver, commerce, line items, payment method, and total.
+**Definition:** Commercial transaction linking driver, commerce, line items, payment method, and total — the **fact** of what was delivered.
+**Not the same as:** Order (field sales have `order_id = NULL`; portal sales link to Order after delivery)
 **Not the same as:** StockMovement (sale triggers outbound movement)
 **State values:** `Pending`, `Confirmed`, `Cancelled`
 **Code name:** `Sale`

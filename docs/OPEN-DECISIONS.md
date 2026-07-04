@@ -29,3 +29,20 @@ When deciding, create `docs/adr/NNN-short-title.md` using `agent-rules/11-docume
 | [ADR-005](adr/ADR-005-inventory-driver-scope.md) | Inventory scoped per driver (`stock:{driver_id}:{product_id}`) | 2026-07-04 |
 | [ADR-006](adr/ADR-006-payment-method-enum.md) | `Cash`, `Pix`, `Credit`, `Debit` | 2026-07-04 |
 | [ADR-007](adr/ADR-007-public-report-verify.md) | `GET /v1/reports/{id}/verify` is public (rate limited) | 2026-07-04 |
+| [ADR-010](adr/ADR-010-stock-reservation-tenant-pool.md) | Stock reservations — tenant pool until driver assigned (DE-001) | 2026-07-04 |
+| [ADR-011](adr/ADR-011-object-storage-minio.md) | Self-hosted MinIO for object storage (DE-009) | 2026-07-04 |
+
+### Domain expansion (DE-002…DE-008, DE-010)
+
+Non-schema ADRs recorded in [.local/phases/0d-domain-expansion/documentation/OPEN-DECISIONS-EXPANSION.md](../.local/phases/0d-domain-expansion/documentation/OPEN-DECISIONS-EXPANSION.md):
+
+| ID | Decision |
+|----|----------|
+| DE-002 | Always admin approves seller/portal orders |
+| DE-003 | Manual follow-up for partial delivery |
+| DE-004 | Order : Delivery 1:1 in v1 |
+| DE-005 | Defer per-commerce price lists |
+| DE-006 | Payment declaration optional forever |
+| DE-007 | Single declarer per sale |
+| DE-008 | Undeclared payment — report listing only |
+| DE-010 | Keep `payment_method` as expected; declared fields separate |

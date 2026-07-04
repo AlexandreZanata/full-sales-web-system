@@ -15,3 +15,5 @@ Template: `agent-rules/11-documentation-and-glossary/adr-template.md`
 | [ADR-007](ADR-007-public-report-verify.md) | Public report verification endpoint | Accepted |
 | [ADR-008](ADR-008-hybrid-monorepo.md) | Rust backend + pnpm web client monorepo | Accepted |
 | [ADR-009](ADR-009-ephemeral-state-redis.md) | Redis for ephemeral state; outbox deferred | Accepted |
+| [ADR-010](ADR-010-stock-reservation-tenant-pool.md) | Stock reservations — tenant pool until driver assigned | Accepted |
+| [ADR-011](ADR-011-object-storage-minio.md) | Self-hosted MinIO for object storage | Accepted |

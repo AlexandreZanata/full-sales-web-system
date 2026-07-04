@@ -1,6 +1,6 @@
 # Database modules
 
-> PostgreSQL bounded contexts — one schema per module. Authoritative specs live in `.local/phases/01b-database-modularization/modules/` and `.local/phases/01c-database-hardening/modules/`.
+> PostgreSQL bounded contexts — one schema per module. **Implemented schema:** `backend/migrations/`. **Expansion specs:** `.local/phases/0d-domain-expansion/` and phases 07–15.
 
 ---
 
@@ -44,7 +44,7 @@ Run: `cd backend && sqlx migrate run`
 
 All tenant-scoped tables use `app.tenant_id` session variable. Application role: `app_user` (see migration `20260704121000_shared_app_role.sql`).
 
-Standard policy pattern: `.local/phases/01b-database-modularization/documentation/RLS-POLICY-STANDARD.md`
+Standard policy pattern: tenant isolation via `app.tenant_id` (see migrations + integration tests).
 
 Integration tests: `cargo test -p infra-postgres --test integration rls_` and `cargo test -p infra-postgres --test repo_phase1c`
 
@@ -54,13 +54,14 @@ Integration tests: `cargo test -p infra-postgres --test integration rls_` and `c
 
 | Document | Path |
 |----------|------|
-| Module map | `.local/phases/01b-database-modularization/documentation/MODULE-MAP.md` |
-| Cross-module refs | `.local/phases/01b-database-modularization/documentation/CROSS-MODULE-INTERACTIONS.md` |
-| Entity specs | `.local/phases/01b-database-modularization/modules/*/ENTITY-SPEC-*.md` |
-| Audit module (1c) | `.local/phases/01c-database-hardening/modules/06-audit/` |
-| Migration specs | `modules/*/migrations/MIGRATION-SPEC-*.md` |
+| Live DDL | `backend/migrations/` |
+| Expansion module map | `.local/phases/0d-domain-expansion/documentation/MODULE-MAP-EXPANSION.md` |
+| Expansion planning | `.local/phases/0d-domain-expansion/documentation/` |
+| Pending entity specs | `.local/phases/07-media/` … `15-reports-settlement/` |
 
-Promote finalized specs here when stable (`docs/database/modules/NN-name/`).
+Phases 01b/01c local spec folders were removed after completion; historical specs remain in git history.
+
+Promote finalized expansion specs to `docs/database/modules/NN-name/` when stable.
 
 ---
 
@@ -72,3 +73,5 @@ Promote finalized specs here when stable (`docs/database/modules/NN-name/`).
 | [ADR-002](../adr/ADR-002-tenant-platform-org.md) | Tenant = platform org |
 | [ADR-005](../adr/ADR-005-inventory-driver-scope.md) | Driver-scoped inventory |
 | [ADR-009](../adr/ADR-009-ephemeral-state-redis.md) | Redis for idempotency / refresh sessions; outbox deferred |
+| [ADR-010](../adr/ADR-010-stock-reservation-tenant-pool.md) | Stock reservations — tenant pool until driver assigned |
+| [ADR-011](../adr/ADR-011-object-storage-minio.md) | Self-hosted MinIO for media bytes |
