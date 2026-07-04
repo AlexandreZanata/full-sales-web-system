@@ -34,8 +34,11 @@ cd backend
 # Run migrations (requires DATABASE_URL)
 sqlx migrate run
 
-# Create new migration
-sqlx migrate add <name>
+# RLS integration tests (requires Docker)
+cargo test -p infra-postgres --test integration rls_
+
+# Create new migration (requires matching MIGRATION-SPEC in phase 1b docs)
+sqlx migrate add <module>_<name>
 ```
 
 PostgreSQL 18+ provides native `uuidv7()`. Migrations live in `backend/migrations/`.
@@ -58,6 +61,13 @@ cargo llvm-cov -p domain-shared --fail-under-lines 100 --summary-only
 ```
 
 Future phases add: `domain-identity`, `domain-commerces`, integration, E2E.
+
+RLS isolation (Phase 1b):
+
+```bash
+cd backend
+cargo test -p infra-postgres --test integration rls_
+```
 
 ---
 

@@ -11,6 +11,7 @@
 ## Architecture and domain
 
 - [x] **Layers defined** — [ARCHITECTURE.md](ARCHITECTURE.md)
+- [x] **Database modules** — [database/README.md](database/README.md) (Phase 1b entity + migration specs)
 - [x] **Entities and aggregates** — [DOMAIN-MODEL.md](DOMAIN-MODEL.md)
 - [x] **Value Objects** — Cnpj, Money, FullName, etc. in domain model
 - [x] **Business rules** — [BUSINESS-RULES.md](BUSINESS-RULES.md)
@@ -48,7 +49,7 @@
 
 - [x] **Policy documented** — [TESTING-STRATEGY.md](TESTING-STRATEGY.md)
 - [x] **Unit tests** — `domain-shared` 100% coverage (Phase 1)
-- [ ] **Integration tests** — after Phase 3
+- [x] **Integration tests** — RLS isolation per module (`infra-postgres`, Phase 1b)
 - [x] **E2E scenarios** — defined in TESTING-STRATEGY (E2E-001..004)
 - [x] **CI** — `.github/workflows/ci.yml` (Phase 1)
 - [x] **No mirror tests** — policy in TESTING-STRATEGY

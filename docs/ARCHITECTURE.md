@@ -69,6 +69,8 @@ CREATE POLICY tenant_isolation ON sales
 
 See [ADR-002](adr/ADR-002-tenant-platform-org.md) for `tenant_id` semantics.
 
+Database module specs and migration order: [database/README.md](database/README.md).
+
 ---
 
 ## Repository layout (hybrid monorepo)
