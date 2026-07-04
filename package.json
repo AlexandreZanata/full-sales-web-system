@@ -14,9 +14,10 @@
     "verify": "pnpm lint && pnpm test && pnpm build && pnpm verify:backend",
     "verify:backend": "cd backend && cargo fmt --check && cargo clippy --workspace -- -D warnings && cargo test --workspace",
     "validate:openapi": "npx --yes @apidevtools/swagger-cli validate docs/openapi.yaml",
-    "dev": "pnpm --parallel --filter @full-sales/api --filter @full-sales/web dev",
+    "dev": "pnpm --parallel --filter @full-sales/api --filter @full-sales/web --filter @full-sales/admin dev",
     "dev:web": "pnpm --filter @full-sales/web dev",
-    "dev:api": "pnpm --filter @full-sales/api dev"
+    "dev:api": "pnpm --filter @full-sales/api dev",
+    "dev:admin": "pnpm --filter @full-sales/admin dev"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
