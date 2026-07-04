@@ -7,6 +7,7 @@ members = [
     "crates/domain-inventory",
     "crates/domain-media",
     "crates/domain-sales",
+    "crates/domain-orders",
     "crates/application",
     "crates/infra-postgres",
     "crates/infra-redis",
@@ -49,6 +50,7 @@ domain-identity = { path = "crates/domain-identity" }
 domain-inventory = { path = "crates/domain-inventory" }
 domain-media = { path = "crates/domain-media" }
 domain-sales = { path = "crates/domain-sales" }
+domain-orders = { path = "crates/domain-orders" }
 domain-shared = { path = "crates/domain-shared" }
 infra-crypto = { path = "crates/infra-crypto" }
 infra-postgres = { path = "crates/infra-postgres" }

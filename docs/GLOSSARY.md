@@ -166,7 +166,7 @@
 
 **Definition:** Commerce or seller **intent** to buy — approval and fulfillment lifecycle before stock is deducted.
 **Not the same as:** Sale (Order is intent; Sale is the delivery fact)
-**State values:** `Draft`, `PendingApproval`, `Approved`, `Picking`, `InTransit`, `Delivered`, `PartiallyDelivered`, `Rejected`
+**State values:** `Draft`, `PendingApproval`, `Approved`, `Picking`, `InTransit`, `Delivered`, `PartiallyDelivered`, `Rejected`, `Cancelled`
 **Code name:** `Order`
 
 ---

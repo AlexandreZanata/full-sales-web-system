@@ -55,19 +55,15 @@ async fn tenant_product_available(
     Ok((balance - reserved).max(0) as i32)
 }
 
-/// Reserves stock for order approval (RN2). Uses advisory locks to prevent oversell.
-pub async fn reserve_stock_for_order(
-    pool: &PgPool,
-    tenant_id: TenantId,
+/// Reserves stock within an existing transaction (RN2).
+pub async fn reserve_stock_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    tenant_id: Uuid,
     lines: &[ReservationLine],
 ) -> Result<(), PostgresError> {
     if lines.is_empty() {
         return Ok(());
     }
-
-    let mut tx = pool.begin().await?;
-    apply_tenant_context(&mut tx, tenant_id).await?;
-    let tenant_uuid = tenant_id.as_uuid();
 
     let mut demand: std::collections::HashMap<Uuid, i32> = std::collections::HashMap::new();
     for line in lines {
@@ -75,8 +71,8 @@ pub async fn reserve_stock_for_order(
     }
 
     for (product_id, qty) in &demand {
-        lock_product(&mut tx, tenant_uuid, *product_id).await?;
-        let available = tenant_product_available(&mut tx, tenant_uuid, *product_id).await?;
+        lock_product(tx, tenant_id, *product_id).await?;
+        let available = tenant_product_available(tx, tenant_id, *product_id).await?;
         if available < *qty {
             return Err(PostgresError::InsufficientAvailableStock);
         }
@@ -89,18 +85,46 @@ pub async fn reserve_stock_for_order(
              VALUES ($1, $2, $3, $4, $5, $6, $7, 'Active')",
         )
         .bind(line.id)
-        .bind(tenant_uuid)
+        .bind(tenant_id)
         .bind(line.order_id)
         .bind(line.order_item_id)
         .bind(line.product_id)
         .bind(line.driver_id)
         .bind(line.quantity)
-        .execute(&mut *tx)
+        .execute(&mut **tx)
         .await?;
     }
 
+    Ok(())
+}
+
+/// Reserves stock for order approval (RN2). Uses advisory locks to prevent oversell.
+pub async fn reserve_stock_for_order(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    lines: &[ReservationLine],
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    reserve_stock_in_tx(&mut tx, tenant_id.as_uuid(), lines).await?;
     tx.commit().await?;
     Ok(())
+}
+
+/// RN6 — releases Active reservations within an existing transaction.
+pub async fn release_reservations_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    order_id: Uuid,
+) -> Result<u64, PostgresError> {
+    let result = sqlx::query(
+        "UPDATE inventory.stock_reservations
+         SET status = 'Released', released_at = now()
+         WHERE order_id = $1 AND status = 'Active'",
+    )
+    .bind(order_id)
+    .execute(&mut **tx)
+    .await?;
+    Ok(result.rows_affected())
 }
 
 /// RN6 — releases Active reservations when an order is cancelled before InTransit.
@@ -111,16 +135,9 @@ pub async fn release_reservations(
 ) -> Result<u64, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let result = sqlx::query(
-        "UPDATE inventory.stock_reservations
-         SET status = 'Released', released_at = now()
-         WHERE order_id = $1 AND status = 'Active'",
-    )
-    .bind(order_id)
-    .execute(&mut *tx)
-    .await?;
+    let released = release_reservations_in_tx(&mut tx, order_id).await?;
     tx.commit().await?;
-    Ok(result.rows_affected())
+    Ok(released)
 }
 
 /// RN2 — marks Active reservations Consumed on delivery confirm (deduction in Phase 12–13).

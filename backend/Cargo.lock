@@ -60,6 +60,7 @@ dependencies = [
  "domain-commerces",
  "domain-identity",
  "domain-inventory",
+ "domain-orders",
  "domain-sales",
  "domain-shared",
  "thiserror",
@@ -1160,6 +1161,19 @@ dependencies = [
  "sha2 0.10.9",
  "thiserror",
  "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "domain-orders"
+version = "0.1.0"
+dependencies = [
+ "domain-commerces",
+ "domain-identity",
+ "domain-inventory",
+ "domain-shared",
+ "serde",
+ "thiserror",
  "uuid",
 ]
 

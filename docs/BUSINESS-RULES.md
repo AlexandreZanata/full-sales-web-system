@@ -14,6 +14,9 @@
 | BR-CO-005 | `backend/crates/domain-commerces/tests/commerce_address.rs` |
 | BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
 | RN2 | `backend/crates/domain-inventory/tests/stock_reservation.rs`, `backend/crates/infra-postgres/tests/inventory_catalog.rs` |
+| RN3 | `backend/crates/domain-orders/tests/order_item.rs` |
+| RN6 | `backend/crates/domain-orders/tests/cancel_order.rs`, `backend/crates/application/src/orders.rs` |
+| RN10 | `backend/crates/domain-orders/tests/reject_order.rs` |
 | BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-002 | `packages/domain/src/value-objects/money.test.ts`, `packages/domain/src/sales/sale-item.test.ts`, `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-003 | `packages/domain/src/sales/sale.test.ts` |
@@ -139,6 +142,37 @@ THEN Active reservations become Consumed
 AND StockMovement SaleOutbound reduces driver balance (Phase 12–13)
 ```
 
+### RN3 — Unit price frozen at order item creation
+
+```
+GIVEN a product price changes after an order item is added in Draft
+WHEN the order is fulfilled
+THEN line uses unit_price frozen at item creation
+AND total is computed from frozen line totals only
+```
+
+### RN6 — Cancel before InTransit releases reservation
+
+```
+GIVEN an order in Approved or Picking (not InTransit)
+WHEN the order is cancelled
+THEN status becomes Cancelled
+AND all Active stock_reservations for the order become Released
+
+GIVEN an order in InTransit
+WHEN cancel is attempted
+THEN the operation fails with InvalidOrderTransition
+```
+
+### RN10 — Reject requires rejection reason
+
+```
+GIVEN an order in PendingApproval
+WHEN Admin rejects without a non-empty rejection_reason
+THEN rejection fails with RejectionReasonRequired
+AND status remains PendingApproval
+```
+
 ---
 
 ## Sales
@@ -222,9 +256,9 @@ Full matrix: extend in use case authorization tables.
 | RN3 | Unit price frozen at order item creation | 11 | `domain-orders/tests/order_item.rs` |
 | RN4 | Proof photo required for Delivered | 12 | `domain-deliveries/tests/proof_required.rs` |
 | RN5 | Partial qty → PartiallyDelivered | 12 | `domain-deliveries/tests/partial_delivery.rs` |
-| RN6 | Cancel before InTransit releases reservation | 11 | `domain-orders/tests/cancel_order.rs` |
+| RN6 | Cancel before InTransit releases reservation | 11 | `domain-orders/tests/cancel_order.rs`, `application/src/orders.rs` |
 | RN7 | Mime + size validation before storage | 07 | `domain-media/tests/upload_validation.rs` |
-| RN8 | Role-scoped RLS visibility | 08, 11–12, 14 | `infra-postgres/tests/rls_expansion.rs` |
+| RN8 | Role-scoped RLS visibility | 08, 11–12, 14 | `infra-postgres/tests/orders.rs` |
 | RN9 | Reports exclude non-final orders | 15 | `domain-reports/tests/settlement_payload.rs` |
 | RN10 | Reject requires rejection_reason | 11 | `domain-orders/tests/reject_order.rs` |
 | RN-PAG1 | Declaration optional — never blocks sales | 13 | `domain-sales/tests/declared_payment.rs` |

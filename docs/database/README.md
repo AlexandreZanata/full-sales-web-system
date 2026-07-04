@@ -16,6 +16,7 @@
 | 05-reports | `reports` | `signing_keys`, `reports` |
 | 06-audit | `audit` | `events` |
 | 07-media | `media` | `files` |
+| 08-orders | `orders` | `orders`, `order_items` |
 | 01-identity (delta) | `identity` | `users` (+ `commerce_id`, `profile_file_id`), `driver_profiles`, `seller_profiles` |
 
 ---
@@ -27,6 +28,19 @@
 | `media` schema + `media.files` (metadata only; bytes in MinIO) | `20260704122200` |
 | RLS tenant isolation on `media.files` | `20260704122200` |
 | `app_user` GRANTs on `media` schema | `20260704122200` |
+
+---
+
+## Phase 11 additions (2026-07-04)
+
+| Change | Migration |
+|--------|-----------|
+| `orders` schema + `orders.orders` | `20260704123100` |
+| `orders.order_items` (frozen unit price RN3) | `20260704123200` |
+| Role-scoped RLS (`Admin` all; `CommerceContact` own commerce; `Seller` own created) | `20260704123100` |
+| Session vars: `app.role`, `app.user_id`, `app.commerce_id` | `infra-postgres/rls.rs` |
+
+Domain crate: `domain-orders`. Application: `approve_order`, `cancel_order`.
 
 ---
 
