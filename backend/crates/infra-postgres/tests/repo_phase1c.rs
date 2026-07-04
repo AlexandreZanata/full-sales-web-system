@@ -240,6 +240,7 @@ async fn given_sales_when_list_by_commerce_filter_then_matching_only() {
     let filters = SaleFilters {
         commerce_id: Some(commerce),
         driver_id: None,
+        status: None,
         from: None,
         to: None,
     };
@@ -386,6 +387,7 @@ async fn given_sales_when_date_filter_then_respects_range() {
     let filters = SaleFilters {
         commerce_id: None,
         driver_id: Some(user),
+        status: None,
         from: Some(now - Duration::hours(1)),
         to: Some(now + Duration::hours(1)),
     };
@@ -398,6 +400,7 @@ async fn given_sales_when_date_filter_then_respects_range() {
     let empty = SaleFilters {
         commerce_id: None,
         driver_id: Some(user),
+        status: None,
         from: Some(now + Duration::hours(2)),
         to: None,
     };

@@ -78,6 +78,87 @@ pub async fn find_delivery_by_id(
     }))
 }
 
+pub struct DeliveryFilters {
+    pub driver_id: Option<Uuid>,
+    pub status: Option<String>,
+}
+
+pub async fn list_deliveries(
+    pool: &PgPool,
+    session: &SessionContext,
+    filters: &DeliveryFilters,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<DeliveryRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let rows = sqlx::query_as::<_, (Uuid, Uuid, Uuid, String)>(
+        "SELECT id, order_id, driver_id, status FROM deliveries.deliveries
+         WHERE ($1::uuid IS NULL OR driver_id = $1)
+           AND ($2::text IS NULL OR status = $2)
+         ORDER BY created_at DESC
+         LIMIT $3 OFFSET $4",
+    )
+    .bind(filters.driver_id)
+    .bind(filters.status.as_deref())
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, order_id, driver_id, status)| DeliveryRow {
+            id,
+            order_id,
+            driver_id,
+            status,
+        })
+        .collect())
+}
+
+pub async fn count_deliveries(
+    pool: &PgPool,
+    session: &SessionContext,
+    filters: &DeliveryFilters,
+) -> Result<i64, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM deliveries.deliveries
+         WHERE ($1::uuid IS NULL OR driver_id = $1)
+           AND ($2::text IS NULL OR status = $2)",
+    )
+    .bind(filters.driver_id)
+    .bind(filters.status.as_deref())
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(count)
+}
+
+pub async fn find_delivery_by_order_id(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+) -> Result<Option<DeliveryRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let row = sqlx::query_as::<_, (Uuid, Uuid, Uuid, String)>(
+        "SELECT id, order_id, driver_id, status FROM deliveries.deliveries WHERE order_id = $1",
+    )
+    .bind(order_id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(|(id, order_id, driver_id, status)| DeliveryRow {
+        id,
+        order_id,
+        driver_id,
+        status,
+    }))
+}
+
 /// Phase 12 preview — atomic confirm: delivery (driver RLS), then order/sale/stock (admin).
 pub async fn confirm_delivery_transaction(
     pool: &PgPool,

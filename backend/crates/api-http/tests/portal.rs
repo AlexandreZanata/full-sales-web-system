@@ -64,6 +64,7 @@ async fn setup() -> PortalEnv {
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: application::REFRESH_TOKEN_TTL,
         storage: Arc::new(InMemoryObjectStorage::new()),
+        report_signing_key: None,
     };
 
     let commerce_a = Uuid::now_v7();

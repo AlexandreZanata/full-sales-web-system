@@ -11,13 +11,18 @@ path = "src/main.rs"
 
 [dependencies]
 application.workspace = true
-axum.workspace = true
+axum = { workspace = true, features = ["multipart"] }
 domain-commerces.workspace = true
+domain-deliveries.workspace = true
 domain-identity.workspace = true
 domain-inventory.workspace = true
+domain-media.workspace = true
 domain-orders.workspace = true
+domain-reports.workspace = true
 domain-sales.workspace = true
 domain-shared.workspace = true
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+hex.workspace = true
 http.workspace = true
 infra-crypto.workspace = true
 infra-postgres.workspace = true

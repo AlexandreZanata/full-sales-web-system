@@ -255,21 +255,76 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 
 ---
 
-## Authorization matrix (summary)
+## API authorization matrix
 
-| Action | Admin | Driver | Seller | CommerceContact |
-|--------|-------|--------|--------|-----------------|
-| Register Commerce | Yes | No | No | No |
-| Register User | Yes | No | No | No |
-| Create Sale | Yes | Yes | Yes | No |
-| Confirm Sale | Yes | Yes | Yes | No |
-| Generate Report | Yes | No* | No | No |
-| Verify Report signature | Yes | Yes | Yes | No |
-| Portal login | No | No | No | Yes |
+> Source of truth: `backend/crates/api-http/src/routes.rs` + per-handler `require_*` checks.  
+> **Yes** = allowed · **No** = 403 Forbidden · **Own** = scoped to authenticated user · **Scoped** = entity ownership / JWT commerce · **Public** = no Bearer token.
 
-\* Driver may receive pre-generated reports — refine in use cases.
+| Route | Admin | Driver | Seller | CommerceContact | Public |
+|-------|-------|--------|--------|-----------------|--------|
+| `GET /health` | Public | Public | Public | Public | Yes |
+| `GET /v1/` | Public | Public | Public | Public | Yes |
+| `POST /v1/auth/login` | Public | Public | Public | Public | Yes |
+| `POST /v1/auth/refresh` | Public | Public | Public | Public | Yes |
+| `POST /v1/auth/logout` | Yes | Yes | Yes | Yes | No |
+| `POST /v1/users` | Yes | No | No | No | No |
+| `GET /v1/users` | Yes | No | No | No | No |
+| `GET /v1/users/{id}` | Yes | No | No | No | No |
+| `PATCH /v1/users/{id}/deactivate` | Yes | No | No | No | No |
+| `PUT /v1/users/{id}/driver-profile` | Yes | No | No | No | No |
+| `PUT /v1/users/{id}/seller-profile` | Yes | No | No | No | No |
+| `POST /v1/commerces` | Yes | No | No | No | No |
+| `GET /v1/commerces` | Yes | Yes | Yes | No | No |
+| `GET /v1/commerces/{id}` | Yes | Yes | Yes | No | No |
+| `PATCH /v1/commerces/{id}/deactivate` | Yes | No | No | No | No |
+| `GET /v1/commerces/{id}/addresses` | Yes | Yes | Yes | No | No |
+| `POST /v1/commerces/{id}/addresses` | Yes | No | No | No | No |
+| `PATCH /v1/commerces/{id}/addresses/{addressId}` | Yes | No | No | No | No |
+| `PUT /v1/commerces/{id}/logo` | Yes | No | No | No | No |
+| `POST /v1/products` | Yes | No | No | No | No |
+| `GET /v1/products` | Yes | Yes | Yes | No | No |
+| `GET /v1/products/{id}` | Yes | Yes | Yes | No | No |
+| `PATCH /v1/products/{id}` | Yes | No | No | No | No |
+| `POST /v1/products/{id}/images` | Yes | No | No | No | No |
+| `DELETE /v1/products/{id}/images/{imageId}` | Yes | No | No | No | No |
+| `GET /v1/inventory/products/{productId}/balance` | Yes | Yes | Yes | No | No |
+| `POST /v1/inventory/movements` | Yes | No | No | No | No |
+| `GET /v1/inventory/products/{productId}/movements` | Yes | No | No | No | No |
+| `POST /v1/sales` | Yes | Yes | Yes | No | No |
+| `GET /v1/sales` | Yes | Own | No | No | No |
+| `GET /v1/sales/{id}` | Yes | Own | No | No | No |
+| `POST /v1/sales/{id}/confirm` | Yes | Yes | Yes | No | No |
+| `POST /v1/sales/{id}/cancel` | Yes | Yes | Yes | No | No |
+| `POST /v1/sales/{id}/declare-payment` | No | Own | No | No | No |
+| `GET /v1/portal/products` | No | No | No | Yes | No |
+| `GET /v1/portal/orders` | No | No | No | Scoped | No |
+| `GET /v1/portal/orders/{id}` | No | No | No | Scoped | No |
+| `POST /v1/portal/orders` | No | No | No | Scoped | No |
+| `PUT /v1/portal/orders/{id}` | No | No | No | Scoped | No |
+| `DELETE /v1/portal/orders/{id}` | No | No | No | Scoped | No |
+| `POST /v1/portal/orders/{id}/submit` | No | No | No | Scoped | No |
+| `GET /v1/orders` | Yes | No | No | No | No |
+| `GET /v1/orders/{id}` | Yes | No | No | No | No |
+| `POST /v1/orders/{id}/approve` | Yes | No | No | No | No |
+| `POST /v1/orders/{id}/reject` | Yes | No | No | No | No |
+| `POST /v1/orders/{id}/cancel` | Yes | No | No | No | No |
+| `POST /v1/orders/{id}/start-picking` | Yes | No | No | No | No |
+| `POST /v1/orders/{id}/delivery` | Yes | No | No | No | No |
+| `GET /v1/deliveries` | Yes | Own | No | No | No |
+| `GET /v1/deliveries/{id}` | Yes | Own | No | No | No |
+| `POST /v1/deliveries/{id}/start-transit` | No | Own | No | No | No |
+| `POST /v1/deliveries/{id}/confirm` | No | Own | No | No | No |
+| `POST /v1/media/upload` | Yes | Scoped | Scoped | Scoped | No |
+| `GET /v1/media/{id}/url` | Yes | Scoped | Scoped | Scoped | No |
+| `POST /v1/reports` | Yes | No | No | No | No |
+| `GET /v1/reports` | Yes | No | No | No | No |
+| `GET /v1/reports/{id}` | Yes | Own | No | No | No |
+| `GET /v1/reports/{id}/verify` | Public | Public | Public | Public | Yes |
+| `GET /v1/audit/events` | — | — | — | — | Not implemented |
 
-Full matrix: extend in use case authorization tables.
+**Media scoped access:** Admin — all entities. Driver — own `User`, any `Product`, assigned `Delivery`. Seller — any `Product`. CommerceContact — own `Commerce` only.
+
+**Portal scoped access:** CommerceContact JWT `commerceId` — RLS limits orders to own commerce (BR-IA-003).
 
 ---
 

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Full Sales Web System API
   version: 1.0.0
-  description: Driver/seller control system — sales, inventory, commerces (see docs/API-CONTRACT.md)
+  description: Driver/seller control system — full REST surface (see docs/API-CONTRACT.md)
 
 servers:
   - url: https://api.example.com/v1
@@ -11,6 +11,540 @@ servers:
     description: Local development
 
 paths:
+  /auth/login:
+    post:
+      summary: Login (public, rate limited)
+      operationId: login
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Tokens issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '429':
+          description: Rate limited
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      operationId: refreshToken
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: New tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      summary: Revoke refresh token
+      operationId: logout
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users:
+    post:
+      summary: Register user (Admin)
+      operationId: createUser
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    get:
+      summary: List users (Admin)
+      operationId: listUsers
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsers'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}:
+    get:
+      summary: Get user by id (Admin)
+      operationId: getUser
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  /users/{id}/deactivate:
+    patch:
+      summary: Deactivate user (Admin)
+      operationId: deactivateUser
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{id}/driver-profile:
+    put:
+      summary: Upsert driver profile (Admin)
+      operationId: upsertDriverProfile
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverProfileRequest'
+      responses:
+        '200':
+          description: Profile saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverProfile'
+
+  /users/{id}/seller-profile:
+    put:
+      summary: Upsert seller profile (Admin)
+      operationId: upsertSellerProfile
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SellerProfileRequest'
+      responses:
+        '200':
+          description: Profile saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerProfile'
+
+  /commerces:
+    post:
+      summary: Register commerce (Admin)
+      operationId: createCommerce
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommerceRequest'
+      responses:
+        '201':
+          description: Commerce created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commerce'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    get:
+      summary: List commerces
+      operationId: listCommerces
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated commerces
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCommerces'
+
+  /commerces/{id}:
+    get:
+      summary: Get commerce by id
+      operationId: getCommerce
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommerceId'
+      responses:
+        '200':
+          description: Commerce found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commerce'
+        '404':
+          $ref: '#/components/responses/CommerceNotFound'
+
+  /commerces/{id}/deactivate:
+    patch:
+      summary: Deactivate commerce (Admin)
+      operationId: deactivateCommerce
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommerceId'
+      responses:
+        '200':
+          description: Commerce deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commerce'
+
+  /commerces/{id}/addresses:
+    get:
+      summary: List commerce addresses
+      operationId: listCommerceAddresses
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommerceId'
+      responses:
+        '200':
+          description: Address list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommerceAddress'
+    post:
+      summary: Create commerce address (Admin)
+      operationId: createCommerceAddress
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommerceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommerceAddressRequest'
+      responses:
+        '201':
+          description: Address created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceAddress'
+
+  /commerces/{id}/addresses/{addressId}:
+    patch:
+      summary: Update commerce address (Admin)
+      operationId: updateCommerceAddress
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommerceId'
+        - $ref: '#/components/parameters/AddressId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommerceAddressRequest'
+      responses:
+        '200':
+          description: Address updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceAddress'
+
+  /commerces/{id}/logo:
+    put:
+      summary: Set commerce logo (Admin)
+      operationId: updateCommerceLogo
+      tags: [Commerces]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CommerceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileId]
+              properties:
+                fileId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Logo updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commerce'
+
+  /products:
+    get:
+      summary: List products (paginated catalog)
+      operationId: listProducts
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated product list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProducts'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Create product (Admin)
+      operationId: createProduct
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+
+  /products/{id}:
+    get:
+      summary: Get product by id
+      operationId: getProduct
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+        '404':
+          $ref: '#/components/responses/ProductNotFound'
+    patch:
+      summary: Update product (Admin)
+      operationId: updateProduct
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+
+  /products/{id}/images:
+    post:
+      summary: Attach product image (Admin)
+      operationId: attachProductImage
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileId]
+              properties:
+                fileId:
+                  type: string
+                  format: uuid
+                isPrimary:
+                  type: boolean
+      responses:
+        '201':
+          description: Image attached
+
+  /products/{id}/images/{imageId}:
+    delete:
+      summary: Remove product image (Admin)
+      operationId: deleteProductImage
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Image removed
+
+  /inventory/products/{productId}/balance:
+    get:
+      summary: Get stock balance
+      operationId: getStockBalance
+      tags: [Inventory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductIdPath'
+      responses:
+        '200':
+          description: Available balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockBalance'
+
+  /inventory/movements:
+    post:
+      summary: Record adjustment movement (Admin)
+      operationId: recordMovement
+      tags: [Inventory]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordMovementRequest'
+      responses:
+        '201':
+          description: Movement recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMovement'
+
+  /inventory/products/{productId}/movements:
+    get:
+      summary: List stock movements (Admin audit)
+      operationId: listMovements
+      tags: [Inventory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductIdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated movements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockMovements'
+
   /sales:
     post:
       summary: Create sale (UC-001 step 4)
@@ -52,6 +586,41 @@ paths:
           $ref: '#/components/responses/CommerceNotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
+    get:
+      summary: List sales
+      operationId: listSales
+      tags: [Sales]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: commerceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SaleStatus'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated sales
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSales'
 
   /sales/{id}:
     get:
@@ -128,25 +697,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /products:
-    get:
-      summary: List products (paginated catalog)
-      operationId: listProducts
-      tags: [Products]
+  /sales/{id}/declare-payment:
+    post:
+      summary: Declare payment received (Driver owner)
+      operationId: declareSalePayment
+      tags: [Sales]
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SaleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeclarePaymentRequest'
       responses:
         '200':
-          description: Paginated product list
+          description: Declaration recorded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedProducts'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: '#/components/schemas/Sale'
+        '403':
+          description: UNAUTHORIZED_PAYMENT_DECLARATION
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /portal/products:
     get:
@@ -196,6 +774,41 @@ paths:
         '201':
           description: Draft order created
 
+  /portal/orders/{id}:
+    get:
+      summary: Get portal order
+      operationId: getPortalOrder
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order found
+    put:
+      summary: Update draft order
+      operationId: updatePortalOrder
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Draft updated
+    delete:
+      summary: Cancel draft order
+      operationId: cancelPortalOrder
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '204':
+          description: Draft cancelled
+
   /portal/orders/{id}/submit:
     post:
       summary: Submit draft order
@@ -210,6 +823,58 @@ paths:
           description: PendingApproval
         '409':
           $ref: '#/components/responses/InvalidOrderTransition'
+
+  /orders:
+    get:
+      summary: List orders (Admin)
+      operationId: listOrders
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+        - name: commerceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrders'
+
+  /orders/{id}:
+    get:
+      summary: Get order detail (Admin)
+      operationId: getOrder
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order detail
+        '404':
+          $ref: '#/components/responses/OrderNotFound'
 
   /orders/{id}/approve:
     post:
@@ -251,6 +916,273 @@ paths:
         '400':
           description: REJECTION_REASON_REQUIRED
 
+  /orders/{id}/cancel:
+    post:
+      summary: Cancel order (Admin)
+      operationId: cancelOrder
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Cancelled
+        '409':
+          $ref: '#/components/responses/InvalidOrderTransition'
+
+  /orders/{id}/start-picking:
+    post:
+      summary: Start picking (Admin)
+      operationId: startPicking
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Picking
+        '409':
+          $ref: '#/components/responses/InvalidOrderTransition'
+
+  /orders/{id}/delivery:
+    post:
+      summary: Assign delivery to order (Admin)
+      operationId: createOrderDelivery
+      tags: [Deliveries]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [driverId]
+              properties:
+                driverId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Delivery created (Waiting)
+
+  /deliveries:
+    get:
+      summary: List deliveries
+      operationId: listDeliveries
+      tags: [Deliveries]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated deliveries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDeliveries'
+
+  /deliveries/{id}:
+    get:
+      summary: Get delivery by id
+      operationId: getDelivery
+      tags: [Deliveries]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DeliveryId'
+      responses:
+        '200':
+          description: Delivery found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        '404':
+          $ref: '#/components/responses/DeliveryNotFound'
+
+  /deliveries/{id}/start-transit:
+    post:
+      summary: Start delivery transit (assigned Driver)
+      operationId: startDeliveryTransit
+      tags: [Deliveries]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DeliveryId'
+      responses:
+        '200':
+          description: InTransit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+
+  /deliveries/{id}/confirm:
+    post:
+      summary: Confirm delivery (assigned Driver)
+      operationId: confirmDelivery
+      tags: [Deliveries]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DeliveryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmDeliveryRequest'
+      responses:
+        '200':
+          description: Delivered with saleId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        '422':
+          description: PROOF_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /media/upload:
+    post:
+      summary: Upload media file
+      operationId: uploadMedia
+      tags: [Media]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, entityType, entityId]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                entityType:
+                  type: string
+                entityId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: File stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaUploadResponse'
+        '400':
+          description: INVALID_MIME or FILE_TOO_LARGE
+
+  /media/{id}/url:
+    get:
+      summary: Get presigned download URL
+      operationId: getMediaUrl
+      tags: [Media]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MediaId'
+      responses:
+        '200':
+          description: Presigned URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaUrlResponse'
+        '404':
+          $ref: '#/components/responses/MediaNotFound'
+
+  /reports:
+    post:
+      summary: Generate signed report (Admin)
+      operationId: generateReport
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateReportRequest'
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '503':
+          description: SIGNING_KEY_UNAVAILABLE
+    get:
+      summary: List reports (Admin)
+      operationId: listReports
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated reports
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReports'
+
+  /reports/{id}:
+    get:
+      summary: Get report by id
+      operationId: getReport
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: Report metadata + payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '404':
+          $ref: '#/components/responses/ReportNotFound'
+
+  /reports/{id}/verify:
+    get:
+      summary: Verify report signature (public, rate limited)
+      operationId: verifyReport
+      tags: [Reports]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyReportResponse'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -259,13 +1191,6 @@ components:
       bearerFormat: JWT
 
   parameters:
-    SaleId:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
     Page:
       name: page
       in: query
@@ -281,7 +1206,70 @@ components:
         minimum: 1
         maximum: 50
         default: 20
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CommerceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AddressId:
+      name: addressId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProductId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProductIdPath:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SaleId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     OrderId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DeliveryId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MediaId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReportId:
       name: id
       in: path
       required: true
@@ -298,6 +1286,12 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InvalidCredentials:
+      description: Invalid credentials
       content:
         application/json:
           schema:
@@ -326,8 +1320,44 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+    ProductNotFound:
+      description: Product not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
     SaleNotFound:
       description: Sale not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    OrderNotFound:
+      description: Order not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UserNotFound:
+      description: User not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    DeliveryNotFound:
+      description: Delivery not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    MediaNotFound:
+      description: Media not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ReportNotFound:
+      description: Report not found
       content:
         application/json:
           schema:
@@ -340,6 +1370,43 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
 
   schemas:
+    ErrorCode:
+      type: string
+      description: Machine-readable error codes returned in error.code
+      enum:
+        - NOT_FOUND
+        - UNAUTHORIZED
+        - INVALID_CREDENTIALS
+        - FORBIDDEN
+        - INVALID_CNPJ
+        - VALIDATION_ERROR
+        - SALE_NOT_FOUND
+        - INSUFFICIENT_STOCK
+        - INVALID_SALE_TRANSITION
+        - COMMERCE_NOT_FOUND
+        - PRODUCT_NOT_FOUND
+        - COMMERCE_INACTIVE
+        - INACTIVE_PRODUCT
+        - ORDER_NOT_FOUND
+        - INVALID_ORDER_TRANSITION
+        - INVALID_DELIVERY_ADDRESS
+        - REJECTION_REASON_REQUIRED
+        - USER_NOT_FOUND
+        - UNAUTHORIZED_PAYMENT_DECLARATION
+        - INSUFFICIENT_BALANCE
+        - MEDIA_NOT_FOUND
+        - INVALID_MIME
+        - FILE_TOO_LARGE
+        - DELIVERY_NOT_FOUND
+        - PROOF_REQUIRED
+        - INVALID_DELIVERY_TRANSITION
+        - REPORT_NOT_FOUND
+        - SIGNING_KEY_UNAVAILABLE
+        - INTERNAL_ERROR
+        - REASON_REQUIRED
+        - INVALID_MOVEMENT_TYPE
+        - DELIVERY_EXISTS
+
     ErrorResponse:
       type: object
       required: [error]
@@ -351,7 +1418,9 @@ components:
           additionalProperties: false
           properties:
             code:
-              type: string
+              oneOf:
+                - $ref: '#/components/schemas/ErrorCode'
+                - type: string
               example: SALE_NOT_FOUND
             message:
               type: string
@@ -359,6 +1428,425 @@ components:
             correlationId:
               type: string
               format: uuid
+
+    PaginationMeta:
+      type: object
+      required: [page, pageSize, total]
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      additionalProperties: false
+      properties:
+        refreshToken:
+          type: string
+
+    LoginResponse:
+      type: object
+      required: [accessToken, refreshToken, expiresIn]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+
+    CreateUserRequest:
+      type: object
+      required: [name, email, password, role]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        role:
+          type: string
+        commerceId:
+          type: string
+          format: uuid
+
+    User:
+      type: object
+      required: [id, name, email, role, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        active:
+          type: boolean
+        commerceId:
+          type: string
+          format: uuid
+
+    PaginatedUsers:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+
+    DriverProfileRequest:
+      type: object
+      required: [cnhNumber, cnhCategory, vehiclePlate, vehicleModel]
+      properties:
+        cnhNumber:
+          type: string
+        cnhCategory:
+          type: string
+        cnhPhotoFileId:
+          type: string
+          format: uuid
+        vehiclePlate:
+          type: string
+        vehicleModel:
+          type: string
+        vehicleCapacityKg:
+          type: number
+
+    DriverProfile:
+      type: object
+      required: [userId, cnhNumber, cnhCategory, vehiclePlate, vehicleModel]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        cnhNumber:
+          type: string
+        cnhCategory:
+          type: string
+        cnhPhotoFileId:
+          type: string
+          format: uuid
+        vehiclePlate:
+          type: string
+        vehicleModel:
+          type: string
+
+    SellerProfileRequest:
+      type: object
+      properties:
+        operatingRegion:
+          type: string
+        monthlyTargetAmount:
+          type: integer
+
+    SellerProfile:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        operatingRegion:
+          type: string
+        monthlyTargetAmount:
+          type: integer
+
+    CreateCommerceRequest:
+      type: object
+      required: [cnpj, legalName, address, contact]
+      properties:
+        cnpj:
+          type: string
+        legalName:
+          type: string
+        tradeName:
+          type: string
+        address:
+          type: object
+        contact:
+          type: object
+
+    Commerce:
+      type: object
+      required: [id, cnpj, legalName, tradeName, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        cnpj:
+          type: string
+        legalName:
+          type: string
+        tradeName:
+          type: string
+        active:
+          type: boolean
+
+    PaginatedCommerces:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Commerce'
+
+    CommerceAddress:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [Billing, Delivery]
+        street:
+          type: string
+        number:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        isPrimary:
+          type: boolean
+
+    CreateCommerceAddressRequest:
+      type: object
+      required: [type, street, number, district, city, state, postalCode]
+      properties:
+        type:
+          type: string
+          enum: [Billing, Delivery]
+        street:
+          type: string
+        number:
+          type: string
+        complement:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        isPrimary:
+          type: boolean
+
+    UpdateCommerceAddressRequest:
+      type: object
+      properties:
+        street:
+          type: string
+        number:
+          type: string
+        complement:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        isPrimary:
+          type: boolean
+
+    CreateProductRequest:
+      type: object
+      required: [name, sku, priceAmount]
+      properties:
+        name:
+          type: string
+        sku:
+          type: string
+        priceAmount:
+          type: integer
+        priceCurrency:
+          type: string
+          default: BRL
+        category:
+          type: string
+        unitOfMeasure:
+          type: string
+          default: Unit
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        priceAmount:
+          type: integer
+        priceCurrency:
+          type: string
+        active:
+          type: boolean
+        category:
+          type: string
+        unitOfMeasure:
+          type: string
+
+    Product:
+      type: object
+      required: [id, name, sku, priceAmount, priceCurrency, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        priceAmount:
+          type: integer
+        priceCurrency:
+          type: string
+        active:
+          type: boolean
+
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            category:
+              type: string
+            unitOfMeasure:
+              type: string
+
+    PaginatedProducts:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+
+    StockBalance:
+      type: object
+      required: [productId, available]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        available:
+          type: integer
+
+    RecordMovementRequest:
+      type: object
+      required: [productId, movementType, quantity]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        movementType:
+          type: string
+          enum: [Adjustment]
+        quantity:
+          type: integer
+        reason:
+          type: string
+
+    StockMovement:
+      type: object
+      required: [id, productId, responsibleId, movementType, quantity, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        responsibleId:
+          type: string
+          format: uuid
+        movementType:
+          type: string
+        quantity:
+          type: integer
+        referenceId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedStockMovements:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/StockMovement'
+
+    PaymentMethod:
+      type: string
+      enum: [cash, pix, credit, debit]
+
+    PaymentMethodResponse:
+      type: string
+      enum: [Cash, Pix, Credit, Debit]
+
+    SaleStatus:
+      type: string
+      enum: [Pending, Confirmed, Cancelled]
+
+    OrderStatus:
+      type: string
+      enum:
+        - Draft
+        - PendingApproval
+        - Approved
+        - Rejected
+        - Picking
+        - InTransit
+        - PartiallyDelivered
+        - Delivered
+        - Cancelled
+
+    DeclaredPaymentMethod:
+      type: string
+      description: Declared payment method on sale (domain-specific values)
 
     CreateSaleRequest:
       type: object
@@ -374,8 +1862,7 @@ components:
           items:
             $ref: '#/components/schemas/CreateSaleItemRequest'
         paymentMethod:
-          type: string
-          enum: [cash, pix, credit, debit]
+          $ref: '#/components/schemas/PaymentMethod'
 
     CreateSaleItemRequest:
       type: object
@@ -388,6 +1875,17 @@ components:
         quantity:
           type: integer
           minimum: 1
+
+    DeclarePaymentRequest:
+      type: object
+      required: [method, received]
+      properties:
+        method:
+          type: string
+        received:
+          type: boolean
+        notes:
+          type: string
 
     Sale:
       type: object
@@ -411,11 +1909,9 @@ components:
           type: string
           format: uuid
         status:
-          type: string
-          enum: [Pending, Confirmed, Cancelled]
+          $ref: '#/components/schemas/SaleStatus'
         paymentMethod:
-          type: string
-          enum: [Cash, Pix, Credit, Debit]
+          $ref: '#/components/schemas/PaymentMethodResponse'
         totalAmount:
           type: integer
           description: Total in minor units (centavos)
@@ -448,35 +1944,225 @@ components:
         lineTotalAmount:
           type: integer
 
-    Product:
+    PaginatedSales:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  commerceId:
+                    type: string
+                    format: uuid
+                  driverId:
+                    type: string
+                    format: uuid
+                  status:
+                    $ref: '#/components/schemas/SaleStatus'
+                  paymentMethod:
+                    $ref: '#/components/schemas/PaymentMethodResponse'
+                  totalAmount:
+                    type: integer
+                  totalCurrency:
+                    type: string
+                  declaredPaymentMethod:
+                    type: string
+                  declaredPaymentReceived:
+                    type: boolean
+                  createdAt:
+                    type: string
+                    format: date-time
+
+    PaginatedOrders:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                  commerceId:
+                    type: string
+                    format: uuid
+                  totalAmount:
+                    type: integer
+                  totalCurrency:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+
+    Delivery:
       type: object
-      required: [id, name, sku, priceAmount, priceCurrency, active]
+      required: [id, orderId, driverId, status]
       properties:
         id:
           type: string
           format: uuid
-        name:
+        orderId:
           type: string
-        sku:
+          format: uuid
+        driverId:
           type: string
-        priceAmount:
-          type: integer
-        priceCurrency:
+          format: uuid
+        status:
           type: string
-        active:
-          type: boolean
+        saleId:
+          type: string
+          format: uuid
 
-    PaginatedProducts:
+    ConfirmDeliveryRequest:
       type: object
-      required: [items, page, pageSize, total]
+      required: [proofFileId, items]
       properties:
+        proofFileId:
+          type: string
+          format: uuid
         items:
           type: array
+          minItems: 1
           items:
-            $ref: '#/components/schemas/Product'
-        page:
+            type: object
+            required: [orderItemId, quantityDelivered]
+            properties:
+              orderItemId:
+                type: string
+                format: uuid
+              quantityDelivered:
+                type: integer
+        latitude:
+          type: number
+        longitude:
+          type: number
+        receivedByName:
+          type: string
+
+    PaginatedDeliveries:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Delivery'
+
+    MediaUploadResponse:
+      type: object
+      required: [id, entityType, entityId, mimeType, sizeBytes, sha256]
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        mimeType:
+          type: string
+        sizeBytes:
           type: integer
-        pageSize:
-          type: integer
-        total:
-          type: integer
+        sha256:
+          type: string
+
+    MediaUrlResponse:
+      type: object
+      required: [url, expiresAt]
+      properties:
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+
+    GenerateReportRequest:
+      type: object
+      required: [reportType, periodStart, periodEnd]
+      properties:
+        reportType:
+          type: string
+          enum: [DailyDriver, CommercePeriod, Consolidated]
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        driverId:
+          type: string
+          format: uuid
+        commerceId:
+          type: string
+          format: uuid
+
+    Report:
+      type: object
+      required:
+        - id
+        - reportType
+        - periodStart
+        - periodEnd
+        - canonicalPayload
+        - signature
+        - publicKeyId
+        - generatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        reportType:
+          type: string
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        canonicalPayload:
+          type: string
+        signature:
+          type: string
+        publicKeyId:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+
+    PaginatedReports:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Report'
+
+    VerifyReportResponse:
+      type: object
+      required: [valid, reportId]
+      properties:
+        valid:
+          type: boolean
+        reportId:
+          type: string
+          format: uuid

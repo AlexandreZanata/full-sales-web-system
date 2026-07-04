@@ -58,6 +58,7 @@ async fn setup() -> TestEnv {
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
+        report_signing_key: None,
     };
 
     TestEnv {

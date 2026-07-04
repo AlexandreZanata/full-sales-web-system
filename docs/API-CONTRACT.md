@@ -77,6 +77,31 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Auth:** Admin
 - **Response 200:** Paginated user list
 
+### `GET /v1/users/{id}`
+
+- **Auth:** Admin
+- **Response 200 / 404:** `USER_NOT_FOUND`
+
+### `PATCH /v1/users/{id}/deactivate`
+
+- **Auth:** Admin
+- **Effect:** Sets `active = false` (idempotent)
+- **Response 200:** User (no password fields)
+
+### `PUT /v1/users/{id}/driver-profile`
+
+- **Auth:** Admin
+- **Body:** `{ "cnhNumber", "cnhCategory", "cnhPhotoFileId?", "vehiclePlate", "vehicleModel", "vehicleCapacityKg?" }`
+- **Precondition:** User role `Driver`
+- **Response 200:** DriverProfile
+
+### `PUT /v1/users/{id}/seller-profile`
+
+- **Auth:** Admin
+- **Body:** `{ "operatingRegion?", "monthlyTargetAmount?" }`
+- **Precondition:** User role `Seller`
+- **Response 200:** SellerProfile
+
 ---
 
 ## Commerces
@@ -97,6 +122,35 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Auth:** Admin, Driver, Seller
 - **Response 200 / 404**
 
+### `PATCH /v1/commerces/{id}/deactivate`
+
+- **Auth:** Admin
+- **Effect:** Sets `active = false` (BR-CO-002)
+- **Response 200:** Commerce
+
+### `GET /v1/commerces/{id}/addresses`
+
+- **Auth:** Admin, Driver, Seller
+- **Response 200:** Address list (Billing and Delivery types)
+
+### `POST /v1/commerces/{id}/addresses`
+
+- **Auth:** Admin
+- **Body:** `{ "type", "street", "number", "complement?", "district", "city", "state", "postalCode", "isPrimary?" }` — `type`: `"Billing"` \| `"Delivery"`
+- **Response 201:** CommerceAddress
+
+### `PATCH /v1/commerces/{id}/addresses/{addressId}`
+
+- **Auth:** Admin
+- **Body:** partial address fields + `isPrimary?`
+- **Response 200:** CommerceAddress
+
+### `PUT /v1/commerces/{id}/logo`
+
+- **Auth:** Admin
+- **Body:** `{ "fileId" }` — media file from `POST /v1/media/upload`
+- **Response 200:** Commerce
+
 ---
 
 ## Products
@@ -112,6 +166,28 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Auth:** Admin, Driver, Seller
 - **Response 200:** Paginated list
 
+### `GET /v1/products/{id}`
+
+- **Auth:** Admin, Driver, Seller
+- **Response 200 / 404:** `PRODUCT_NOT_FOUND`
+
+### `PATCH /v1/products/{id}`
+
+- **Auth:** Admin
+- **Body:** `{ "name?", "priceAmount?", "priceCurrency?", "active?", "category?", "unitOfMeasure?" }`
+- **Response 200:** Product detail
+
+### `POST /v1/products/{id}/images`
+
+- **Auth:** Admin
+- **Body:** `{ "fileId", "isPrimary?" }`
+- **Response 201:** ProductImage
+
+### `DELETE /v1/products/{id}/images/{imageId}`
+
+- **Auth:** Admin
+- **Response 204**
+
 ---
 
 ## Inventory
@@ -124,8 +200,14 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `POST /v1/inventory/movements`
 
 - **Auth:** Admin (adjustments); system on sale confirm
-- **Body:** `{ "productId", "movementType", "quantity", "reason?" }`
+- **Body:** `{ "productId", "movementType", "quantity", "reason?" }` — API accepts `movementType: "Adjustment"` only; `reason` required
 - **Response 201:** StockMovement
+
+### `GET /v1/inventory/products/{productId}/movements`
+
+- **Auth:** Admin
+- **Query:** pagination
+- **Response 200:** Paginated StockMovement list (append-only audit read)
 
 ---
 
@@ -158,8 +240,15 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/sales`
 
 - **Auth:** Admin, Driver (own sales filter)
-- **Query:** `commerceId?`, `from?`, `to?`, pagination
+- **Query:** `commerceId?`, `from?`, `to?`, `status?`, pagination
 - **Response 200:** Paginated list
+
+### `POST /v1/sales/{id}/declare-payment`
+
+- **Auth:** Driver (must match `sale.driver_id` — RN-PAG2)
+- **Body:** `{ "method", "received", "notes?" }` — `method`: declared payment method string
+- **Response 200:** Sale with declaration fields
+- **Response 403:** `UNAUTHORIZED_PAYMENT_DECLARATION`
 
 ---
 
@@ -215,6 +304,18 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ## Admin — Orders (Phase 14)
 
+### `GET /v1/orders`
+
+- **Auth:** Admin
+- **Query:** `status?`, `commerceId?`, `from?`, `to?`, pagination
+- **Response 200:** Paginated order summaries
+
+### `GET /v1/orders/{id}`
+
+- **Auth:** Admin
+- **Response 200:** Order detail + optional delivery summary
+- **Response 404:** `ORDER_NOT_FOUND`
+
 ### `POST /v1/orders/{id}/approve`
 
 - **Auth:** Admin
@@ -229,6 +330,73 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Response 200:** `Rejected`
 - **Response 400:** `REJECTION_REASON_REQUIRED`
 
+### `POST /v1/orders/{id}/cancel`
+
+- **Auth:** Admin
+- **Precondition:** Approved or Picking (not InTransit — RN6)
+- **Response 200:** `Cancelled` + reservations released
+- **Response 409:** `INVALID_ORDER_TRANSITION`
+
+### `POST /v1/orders/{id}/start-picking`
+
+- **Auth:** Admin
+- **Precondition:** `Approved`
+- **Response 200:** `Picking`
+- **Response 409:** `INVALID_ORDER_TRANSITION`
+
+---
+
+## Deliveries
+
+### `POST /v1/orders/{id}/delivery`
+
+- **Auth:** Admin
+- **Body:** `{ "driverId" }`
+- **Precondition:** Order `Approved` or `Picking`; no existing delivery (1:1)
+- **Response 201:** Delivery in `Waiting` status
+
+### `GET /v1/deliveries`
+
+- **Auth:** Admin (all); Driver (own via RLS)
+- **Query:** `status?`, pagination
+- **Response 200:** Paginated delivery list
+
+### `GET /v1/deliveries/{id}`
+
+- **Auth:** Admin; Driver (assigned)
+- **Response 200 / 404:** `DELIVERY_NOT_FOUND`
+
+### `POST /v1/deliveries/{id}/start-transit`
+
+- **Auth:** Assigned Driver
+- **Effect:** Delivery → `InTransit`; order → `InTransit`
+- **Response 200:** Delivery
+
+### `POST /v1/deliveries/{id}/confirm`
+
+- **Auth:** Assigned Driver
+- **Body:** `{ "proofFileId", "items": [{ "orderItemId", "quantityDelivered" }], "latitude?", "longitude?", "receivedByName?" }`
+- **Precondition:** `InTransit`; proof required (RN4)
+- **Response 200:** Delivery `Delivered` + `saleId` on response
+- **Response 422:** `PROOF_REQUIRED`
+
+---
+
+## Media
+
+### `POST /v1/media/upload`
+
+- **Auth:** Admin; Driver/Seller/CommerceContact (entity-scoped — see BUSINESS-RULES matrix)
+- **Content-Type:** `multipart/form-data` — fields: `file`, `entityType`, `entityId`
+- **Response 201:** `{ "id", "entityType", "entityId", "mimeType", "sizeBytes", "sha256" }`
+- **Response 400:** `INVALID_MIME`, `FILE_TOO_LARGE`
+
+### `GET /v1/media/{id}/url`
+
+- **Auth:** Same scope as upload for the file's entity
+- **Response 200:** `{ "url", "expiresAt" }` — presigned URL (~15 min TTL)
+- **Response 404:** `MEDIA_NOT_FOUND`
+
 ---
 
 ## Reports
@@ -236,13 +404,20 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `POST /v1/reports`
 
 - **Auth:** Admin
-- **Body:** `{ "reportType", "periodStart", "periodEnd", "driverId?", "commerceId?" }`
+- **Body:** `{ "reportType", "periodStart", "periodEnd", "driverId?", "commerceId?" }` — `reportType`: `"DailyDriver"` \| `"CommercePeriod"` \| `"Consolidated"`
 - **Response 201:** Report with `id`, `signature`, `publicKeyId`
+
+### `GET /v1/reports`
+
+- **Auth:** Admin
+- **Query:** pagination
+- **Response 200:** Paginated report list
 
 ### `GET /v1/reports/{id}`
 
-- **Auth:** Admin, Driver (if scoped)
+- **Auth:** Admin; Driver (when `driverId` in canonical payload matches JWT user)
 - **Response 200:** Report metadata + payload
+- **Response 404:** `REPORT_NOT_FOUND`
 
 ### `GET /v1/reports/{id}/verify`
 
@@ -262,7 +437,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ## OpenAPI
 
-Full schema: [`docs/openapi.yaml`](openapi.yaml) — Phase 3 (sales + products endpoints).
+Full schema: [`docs/openapi.yaml`](openapi.yaml) — all implemented `/v1/*` routes (Phases 16–25).
 
 ### Example: create sale
 

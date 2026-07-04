@@ -1,13 +1,19 @@
 mod admin_orders;
 mod auth;
 mod commerces;
+mod deliveries;
 mod error;
+mod inventory;
+mod media;
+mod pagination;
 mod portal;
 mod products;
+mod reports;
 mod routes;
 mod sales;
 mod session;
 mod state;
+mod users;
 mod validation;
 
 use axum::Router;

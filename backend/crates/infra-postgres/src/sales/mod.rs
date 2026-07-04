@@ -9,6 +9,7 @@ use crate::rls::{apply_session_context, apply_tenant_context, SessionContext};
 pub struct SaleFilters {
     pub commerce_id: Option<Uuid>,
     pub driver_id: Option<Uuid>,
+    pub status: Option<String>,
     pub from: Option<chrono::DateTime<chrono::Utc>>,
     pub to: Option<chrono::DateTime<chrono::Utc>>,
 }
@@ -390,13 +391,15 @@ pub async fn list_sales(
          FROM sales.sales
          WHERE ($1::uuid IS NULL OR commerce_id = $1)
            AND ($2::uuid IS NULL OR driver_id = $2)
-           AND ($3::timestamptz IS NULL OR created_at >= $3)
-           AND ($4::timestamptz IS NULL OR created_at <= $4)
+           AND ($3::text IS NULL OR status = $3)
+           AND ($4::timestamptz IS NULL OR created_at >= $4)
+           AND ($5::timestamptz IS NULL OR created_at <= $5)
          ORDER BY created_at DESC
-         LIMIT $5 OFFSET $6",
+         LIMIT $6 OFFSET $7",
     )
     .bind(filters.commerce_id)
     .bind(filters.driver_id)
+    .bind(filters.status.as_deref())
     .bind(filters.from)
     .bind(filters.to)
     .bind(limit)
@@ -442,11 +445,13 @@ pub async fn count_sales(
          FROM sales.sales
          WHERE ($1::uuid IS NULL OR commerce_id = $1)
            AND ($2::uuid IS NULL OR driver_id = $2)
-           AND ($3::timestamptz IS NULL OR created_at >= $3)
-           AND ($4::timestamptz IS NULL OR created_at <= $4)",
+           AND ($3::text IS NULL OR status = $3)
+           AND ($4::timestamptz IS NULL OR created_at >= $4)
+           AND ($5::timestamptz IS NULL OR created_at <= $5)",
     )
     .bind(filters.commerce_id)
     .bind(filters.driver_id)
+    .bind(filters.status.as_deref())
     .bind(filters.from)
     .bind(filters.to)
     .fetch_one(&mut *tx)

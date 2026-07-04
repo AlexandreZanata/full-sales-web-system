@@ -8,8 +8,14 @@ use crate::rls::apply_tenant_context;
 pub mod driver_profiles;
 pub mod seller_profiles;
 
-pub use driver_profiles::{find_driver_profile_by_user_id, insert_driver_profile, DriverProfileInsert, DriverProfileRow};
-pub use seller_profiles::{insert_seller_profile, SellerProfileInsert};
+pub use driver_profiles::{
+    find_driver_profile_by_user_id, insert_driver_profile, upsert_driver_profile,
+    DriverProfileInsert, DriverProfileRow,
+};
+pub use seller_profiles::{
+    find_seller_profile_by_user_id, insert_seller_profile, upsert_seller_profile,
+    SellerProfileInsert, SellerProfileRow,
+};
 
 /// Row persisted in `identity.users`.
 #[derive(Debug, Clone)]
@@ -142,26 +148,59 @@ impl From<LoginRecord> for LoginUserRecord {
     }
 }
 
+/// Full user detail visible under tenant RLS.
+#[derive(Debug, Clone)]
+pub struct UserDetailRow {
+    pub id: Uuid,
+    pub email: String,
+    pub name: String,
+    pub role: String,
+    pub active: bool,
+    pub commerce_id: Option<Uuid>,
+}
+
 /// Finds a user by id within tenant RLS scope.
 pub async fn find_user_by_id(
     pool: &PgPool,
     tenant_id: TenantId,
     user_id: Uuid,
-) -> Result<Option<UserRow>, PostgresError> {
+) -> Result<Option<UserDetailRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, UserRecord>(
-        "SELECT id, tenant_id, email FROM identity.users WHERE id = $1",
+    let row = sqlx::query_as::<_, UserDetailRecord>(
+        "SELECT id, email, name, role, active, commerce_id
+         FROM identity.users WHERE id = $1",
     )
     .bind(user_id)
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(|r| UserRow {
+    Ok(row.map(|r| UserDetailRow {
         id: r.id,
-        tenant_id: TenantId::from_uuid(r.tenant_id),
         email: r.email,
+        name: r.name,
+        role: r.role,
+        active: r.active,
+        commerce_id: r.commerce_id,
     }))
+}
+
+/// Deactivates a user under tenant RLS (sets `active = false`).
+pub async fn deactivate_user_tenant(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    user_id: Uuid,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query(
+        "UPDATE identity.users SET active = false WHERE id = $1 AND active = true",
+    )
+    .bind(user_id)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
 }
 
 pub struct UserListRow {
@@ -212,8 +251,11 @@ pub async fn count_users(pool: &PgPool, tenant_id: TenantId) -> Result<i64, Post
 }
 
 #[derive(sqlx::FromRow)]
-struct UserRecord {
+struct UserDetailRecord {
     id: Uuid,
-    tenant_id: Uuid,
     email: String,
+    name: String,
+    role: String,
+    active: bool,
+    commerce_id: Option<Uuid>,
 }

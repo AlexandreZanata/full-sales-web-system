@@ -162,6 +162,94 @@ impl ApiError {
         }
     }
 
+    pub fn user_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "USER_NOT_FOUND",
+            message: "User not found",
+        }
+    }
+
+    pub fn unauthorized_payment_declaration() -> Self {
+        Self {
+            status: StatusCode::FORBIDDEN,
+            code: "UNAUTHORIZED_PAYMENT_DECLARATION",
+            message: "Only the responsible driver may declare payment",
+        }
+    }
+
+    pub fn insufficient_balance() -> Self {
+        Self {
+            status: StatusCode::UNPROCESSABLE_ENTITY,
+            code: "INSUFFICIENT_BALANCE",
+            message: "Insufficient stock balance for adjustment",
+        }
+    }
+
+    pub fn media_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "MEDIA_NOT_FOUND",
+            message: "Media file not found",
+        }
+    }
+
+    pub fn invalid_mime() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "INVALID_MIME",
+            message: "File mime type is not allowed",
+        }
+    }
+
+    pub fn file_too_large() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "FILE_TOO_LARGE",
+            message: "File exceeds maximum upload size",
+        }
+    }
+
+    pub fn delivery_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "DELIVERY_NOT_FOUND",
+            message: "Delivery not found",
+        }
+    }
+
+    pub fn proof_required() -> Self {
+        Self {
+            status: StatusCode::UNPROCESSABLE_ENTITY,
+            code: "PROOF_REQUIRED",
+            message: "Proof photo is required for delivery confirmation",
+        }
+    }
+
+    pub fn invalid_delivery_transition() -> Self {
+        Self {
+            status: StatusCode::CONFLICT,
+            code: "INVALID_DELIVERY_TRANSITION",
+            message: "Delivery cannot transition to requested state",
+        }
+    }
+
+    pub fn report_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "REPORT_NOT_FOUND",
+            message: "Report not found",
+        }
+    }
+
+    pub fn signing_key_unavailable() -> Self {
+        Self {
+            status: StatusCode::SERVICE_UNAVAILABLE,
+            code: "SIGNING_KEY_UNAVAILABLE",
+            message: "Report signing key is not configured",
+        }
+    }
+
     pub fn internal() -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,

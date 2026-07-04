@@ -208,6 +208,134 @@ pub async fn find_products_by_ids(
         .collect())
 }
 
+pub async fn find_product_by_id(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+) -> Result<Option<ProductRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool, Option<String>, String)>(
+        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
+         FROM inventory.products WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(
+        |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
+            ProductRow {
+                id,
+                sku,
+                name,
+                price_amount,
+                price_currency,
+                active,
+                category,
+                unit_of_measure,
+            }
+        },
+    ))
+}
+
+pub struct ProductUpdate {
+    pub name: Option<String>,
+    pub price_amount: Option<i64>,
+    pub price_currency: Option<String>,
+    pub active: Option<bool>,
+    pub category: Option<String>,
+    pub unit_of_measure: Option<String>,
+}
+
+pub async fn update_product(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+    update: &ProductUpdate,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query(
+        "UPDATE inventory.products SET
+           name = COALESCE($2, name),
+           price_amount = COALESCE($3, price_amount),
+           price_currency = COALESCE($4, price_currency),
+           active = COALESCE($5, active),
+           category = COALESCE($6, category),
+           unit_of_measure = COALESCE($7, unit_of_measure)
+         WHERE id = $1",
+    )
+    .bind(id)
+    .bind(update.name.as_deref())
+    .bind(update.price_amount)
+    .bind(update.price_currency.as_deref())
+    .bind(update.active)
+    .bind(update.category.as_deref())
+    .bind(update.unit_of_measure.as_deref())
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}
+
+pub async fn list_stock_movements_by_product(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product_id: Uuid,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<StockMovementRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (
+        Uuid,
+        Uuid,
+        Uuid,
+        String,
+        i32,
+        Option<Uuid>,
+        Option<String>,
+        chrono::DateTime<chrono::Utc>,
+    )>(
+        "SELECT id, product_id, responsible_id, movement_type, quantity, reference_id, reason, created_at
+         FROM inventory.stock_movements
+         WHERE product_id = $1
+         ORDER BY created_at DESC
+         LIMIT $2 OFFSET $3",
+    )
+    .bind(product_id)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(
+                id,
+                product_id,
+                responsible_id,
+                movement_type,
+                quantity,
+                reference_id,
+                reason,
+                created_at,
+            )| StockMovementRow {
+                id,
+                product_id,
+                responsible_id,
+                movement_type,
+                quantity,
+                reference_id,
+                reason,
+                created_at,
+            },
+        )
+        .collect())
+}
+
 pub struct StockMovementInsert {
     pub id: Uuid,
     pub product_id: Uuid,

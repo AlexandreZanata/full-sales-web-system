@@ -57,6 +57,7 @@ async fn setup() -> TestEnv {
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: application::REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
+        report_signing_key: None,
     };
 
     let driver_id = seed_user(&app_pool, tenant_id, "driver@test.com", "Driver").await;

@@ -87,3 +87,37 @@ pub async fn find_driver_profile_by_user_id(
         },
     ))
 }
+
+pub async fn upsert_driver_profile(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    profile: DriverProfileInsert,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    sqlx::query(
+        "INSERT INTO identity.driver_profiles
+         (user_id, tenant_id, cnh_number, cnh_category, cnh_photo_file_id,
+          vehicle_plate, vehicle_model, vehicle_capacity_kg)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (user_id) DO UPDATE SET
+           cnh_number = EXCLUDED.cnh_number,
+           cnh_category = EXCLUDED.cnh_category,
+           cnh_photo_file_id = EXCLUDED.cnh_photo_file_id,
+           vehicle_plate = EXCLUDED.vehicle_plate,
+           vehicle_model = EXCLUDED.vehicle_model,
+           vehicle_capacity_kg = EXCLUDED.vehicle_capacity_kg",
+    )
+    .bind(profile.user_id)
+    .bind(tenant_id.as_uuid())
+    .bind(profile.cnh_number)
+    .bind(profile.cnh_category)
+    .bind(profile.cnh_photo_file_id)
+    .bind(profile.vehicle_plate)
+    .bind(profile.vehicle_model)
+    .bind(profile.vehicle_capacity_kg)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(())
+}

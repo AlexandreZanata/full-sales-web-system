@@ -74,6 +74,62 @@ pub async fn list_product_images(
         .collect())
 }
 
+pub async fn find_product_image_by_id(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+) -> Result<Option<ProductImageRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (Uuid, Uuid, Uuid, i32, bool)>(
+        "SELECT id, product_id, file_id, sort_order, is_primary
+         FROM inventory.product_images WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(|(id, product_id, file_id, sort_order, is_primary)| ProductImageRow {
+        id,
+        product_id,
+        file_id,
+        sort_order,
+        is_primary,
+    }))
+}
+
+pub async fn clear_primary_for_product(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product_id: Uuid,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    sqlx::query(
+        "UPDATE inventory.product_images SET is_primary = false WHERE product_id = $1",
+    )
+    .bind(product_id)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn delete_product_image(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query("DELETE FROM inventory.product_images WHERE id = $1")
+        .bind(id)
+        .execute(&mut *tx)
+        .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}
+
 pub struct PrimaryProductImageRow {
     pub product_id: Uuid,
     pub bucket: String,

@@ -62,6 +62,7 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         jwt: AppState::jwt_from_env(),
         refresh_ttl: REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
+        report_signing_key: AppState::report_signing_key_from_env(),
     };
 
     Ok(full_app(state))

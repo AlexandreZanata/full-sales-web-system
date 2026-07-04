@@ -3,7 +3,7 @@ use domain_commerces::CommerceError;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::auth::{AuthUser, require_admin};
+use crate::auth::{require_admin, AuthUser};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -63,14 +63,24 @@ pub async fn create_commerce(
 
     Ok((
         http::StatusCode::CREATED,
-        Json(CommerceResponse {
+        Json(commerce_response_from_row(&infra_postgres::commerces::CommerceRow {
             id: commerce.id().as_uuid(),
             cnpj: commerce.cnpj().as_str().to_owned(),
             legal_name: commerce.legal_name().to_owned(),
             trade_name: commerce.trade_name().to_owned(),
             active: commerce.is_active(),
-        }),
+        })),
     ))
+}
+
+pub(crate) fn commerce_response_from_row(row: &infra_postgres::commerces::CommerceRow) -> CommerceResponse {
+    CommerceResponse {
+        id: row.id,
+        cnpj: row.cnpj.clone(),
+        legal_name: row.legal_name.clone(),
+        trade_name: row.trade_name.clone(),
+        active: row.active,
+    }
 }
 
 fn map_commerce_error(err: application::AppError) -> ApiError {
@@ -80,3 +90,13 @@ fn map_commerce_error(err: application::AppError) -> ApiError {
         _ => ApiError::bad_request("INVALID_INPUT", "Invalid request"),
     }
 }
+
+mod addresses_handlers;
+mod addresses_manage;
+mod addresses_support;
+mod read;
+
+pub use addresses_handlers::{create_address, list_addresses};
+pub use addresses_manage::{update_address, update_logo};
+pub use addresses_support::AddressResponse;
+pub use read::{deactivate_commerce, get_commerce, list_commerces};

@@ -70,3 +70,11 @@ pub fn require_admin(user: &AuthUser) -> Result<(), ApiError> {
         Err(ApiError::forbidden())
     }
 }
+
+pub fn require_roles(user: &AuthUser, allowed: &[Role]) -> Result<(), ApiError> {
+    if allowed.contains(&user.role) {
+        Ok(())
+    } else {
+        Err(ApiError::forbidden())
+    }
+}

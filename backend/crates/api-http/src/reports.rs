@@ -1,0 +1,87 @@
+mod support;
+
+use axum::{Json, extract::{Path, Query, State}, http::StatusCode, response::Response};
+use uuid::Uuid;
+
+use crate::auth::{require_admin, AuthUser};
+use crate::error::ApiError;
+use crate::state::AppState;
+use crate::validation::ValidatedJson;
+
+pub use support::{
+    GenerateReportRequest, PaginatedReportsResponse, ReportResponse, ReportsQuery,
+    VerifyReportResponse,
+};
+
+pub async fn generate_report(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    ValidatedJson(body): ValidatedJson<GenerateReportRequest>,
+) -> Result<Response, ApiError> {
+    require_admin(&auth)?;
+    let signing_key = state
+        .report_signing_key
+        .as_ref()
+        .ok_or_else(ApiError::signing_key_unavailable)?;
+    let (report_id, row) = support::build_and_persist(&state, auth.tenant_id, &body, signing_key).await?;
+    let location = format!("/v1/reports/{report_id}");
+    let payload = serde_json::to_vec(&support::report_to_response(&row)).map_err(|_| ApiError::internal())?;
+    Response::builder()
+        .status(StatusCode::CREATED)
+        .header(http::header::CONTENT_TYPE, "application/json")
+        .header(
+            http::header::LOCATION,
+            http::HeaderValue::from_str(&location).map_err(|_| ApiError::internal())?,
+        )
+        .body(axum::body::Body::from(payload))
+        .map_err(|_| ApiError::internal())
+}
+
+pub async fn list_reports(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Query(query): Query<ReportsQuery>,
+) -> Result<Json<PaginatedReportsResponse>, ApiError> {
+    require_admin(&auth)?;
+    let page_size = query.page_size.clamp(1, 50);
+    let page = query.page.max(1);
+    let offset = ((page - 1) as i64) * (page_size as i64);
+    let rows = infra_postgres::reports::list_reports(
+        &state.app_pool,
+        auth.tenant_id,
+        page_size as i64,
+        offset,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
+    let total = infra_postgres::reports::list_report_ids(&state.app_pool, auth.tenant_id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .len() as u64;
+    Ok(Json(PaginatedReportsResponse {
+        items: rows.iter().map(support::report_to_response).collect(),
+        page,
+        page_size,
+        total,
+    }))
+}
+
+pub async fn get_report(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<Uuid>,
+) -> Result<Json<ReportResponse>, ApiError> {
+    let row = infra_postgres::reports::find_report_by_id(&state.app_pool, auth.tenant_id, id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::report_not_found)?;
+    support::ensure_can_read_report(&auth, &row.canonical_payload)?;
+    Ok(Json(support::report_to_response(&row)))
+}
+
+pub async fn verify_report(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<VerifyReportResponse>, ApiError> {
+    Ok(Json(support::verify(&state, id).await?))
+}

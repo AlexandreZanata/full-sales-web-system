@@ -192,6 +192,55 @@ pub async fn list_addresses_by_commerce(
         .collect())
 }
 
+pub struct AddressUpdate {
+    pub street: Option<String>,
+    pub number: Option<String>,
+    pub district: Option<String>,
+    pub city: Option<String>,
+    pub state: Option<String>,
+    pub postal_code: Option<String>,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+    pub is_primary: Option<bool>,
+}
+
+pub async fn update_address(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+    update: &AddressUpdate,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query(
+        "UPDATE commerces.commerce_addresses SET
+           street = COALESCE($2, street),
+           number = COALESCE($3, number),
+           district = COALESCE($4, district),
+           city = COALESCE($5, city),
+           state = COALESCE($6, state),
+           postal_code = COALESCE($7, postal_code),
+           latitude = COALESCE($8, latitude),
+           longitude = COALESCE($9, longitude),
+           is_primary = COALESCE($10, is_primary)
+         WHERE id = $1",
+    )
+    .bind(id)
+    .bind(update.street.as_deref())
+    .bind(update.number.as_deref())
+    .bind(update.district.as_deref())
+    .bind(update.city.as_deref())
+    .bind(update.state.as_deref())
+    .bind(update.postal_code.as_deref())
+    .bind(update.latitude)
+    .bind(update.longitude)
+    .bind(update.is_primary)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}
+
 pub async fn update_commerce_logo(
     pool: &PgPool,
     tenant_id: TenantId,

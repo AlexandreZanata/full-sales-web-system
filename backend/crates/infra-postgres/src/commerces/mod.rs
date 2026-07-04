@@ -119,3 +119,21 @@ pub async fn count_commerces(pool: &PgPool, tenant_id: TenantId) -> Result<i64, 
     tx.commit().await?;
     Ok(count)
 }
+
+/// Deactivates a commerce under tenant RLS (sets `active = false`).
+pub async fn deactivate_commerce(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    commerce_id: Uuid,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query(
+        "UPDATE commerces.commerces SET active = false WHERE id = $1 AND active = true",
+    )
+    .bind(commerce_id)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}
