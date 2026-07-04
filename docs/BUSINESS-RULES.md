@@ -15,6 +15,8 @@
 | BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
 | RN2 | `backend/crates/domain-inventory/tests/stock_reservation.rs`, `backend/crates/infra-postgres/tests/inventory_catalog.rs` |
 | RN3 | `backend/crates/domain-orders/tests/order_item.rs` |
+| RN4 | `backend/crates/domain-deliveries/tests/proof_required.rs` |
+| RN5 | `backend/crates/domain-deliveries/tests/partial_delivery.rs` |
 | RN6 | `backend/crates/domain-orders/tests/cancel_order.rs`, `backend/crates/application/src/orders.rs` |
 | RN10 | `backend/crates/domain-orders/tests/reject_order.rs` |
 | BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
@@ -173,6 +175,32 @@ THEN rejection fails with RejectionReasonRequired
 AND status remains PendingApproval
 ```
 
+### RN4 — Proof photo required for delivery confirmation
+
+```
+GIVEN a delivery InTransit
+WHEN the assigned driver confirms without proof_file_id
+THEN confirmation fails with ProofRequired
+AND delivery status remains InTransit
+
+GIVEN a delivery InTransit with valid proof_file_id
+WHEN the assigned driver confirms
+THEN delivery status becomes Delivered
+```
+
+### RN5 — Partial delivery sets PartiallyDelivered
+
+```
+GIVEN an order InTransit with items where quantity_delivered < quantity_requested
+WHEN delivery is confirmed
+THEN order status becomes PartiallyDelivered
+AND quantity_delivered is persisted on each order item
+
+GIVEN all items fully delivered
+WHEN delivery is confirmed
+THEN order status becomes Delivered
+```
+
 ---
 
 ## Sales
@@ -258,7 +286,7 @@ Full matrix: extend in use case authorization tables.
 | RN5 | Partial qty → PartiallyDelivered | 12 | `domain-deliveries/tests/partial_delivery.rs` |
 | RN6 | Cancel before InTransit releases reservation | 11 | `domain-orders/tests/cancel_order.rs`, `application/src/orders.rs` |
 | RN7 | Mime + size validation before storage | 07 | `domain-media/tests/upload_validation.rs` |
-| RN8 | Role-scoped RLS visibility | 08, 11–12, 14 | `infra-postgres/tests/orders.rs` |
+| RN8 | Role-scoped RLS visibility | 08, 11–12, 14 | `infra-postgres/tests/orders.rs`, `infra-postgres/tests/deliveries.rs` |
 | RN9 | Reports exclude non-final orders | 15 | `domain-reports/tests/settlement_payload.rs` |
 | RN10 | Reject requires rejection_reason | 11 | `domain-orders/tests/reject_order.rs` |
 | RN-PAG1 | Declaration optional — never blocks sales | 13 | `domain-sales/tests/declared_payment.rs` |

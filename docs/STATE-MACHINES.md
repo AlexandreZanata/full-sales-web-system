@@ -117,3 +117,32 @@ Movements are **append-only** — no edits or deletes. Corrections via compensat
 **Side effects on `PendingApproval → Approved`:** RN2 — `StockReservation` (`Active`) in same transaction as status update.
 
 **Side effects on cancel from `Approved`/`Picking`:** RN6 — Active reservations become `Released`.
+
+---
+
+## Delivery (`DeliveryStatus`)
+
+| State | Description |
+|-------|-------------|
+| `Waiting` | Created with assigned driver; not yet en route |
+| `InTransit` | Driver started transit |
+| `Delivered` | Confirmed with proof photo (RN4) |
+| `Failed` | Delivery could not be completed |
+
+### Valid transitions
+
+| From | To | Trigger | Allowed roles |
+|------|-----|---------|---------------|
+| — | `Waiting` | `Delivery.create` | Admin |
+| `Waiting` | `InTransit` | `Delivery.start_transit` | Assigned Driver |
+| `InTransit` | `Delivered` | `Delivery.confirm` | Assigned Driver |
+| `Waiting` / `InTransit` | `Failed` | mark failed | Admin |
+
+### Invalid transitions (must error)
+
+| From | To | Error |
+|------|-----|-------|
+| `InTransit` | `Delivered` (no proof) | `ProofRequired` (RN4) |
+| Confirm by non-assigned driver | — | `DriverNotAssigned` |
+
+**Side effects on `InTransit → Delivered`:** Order → `Delivered` or `PartiallyDelivered` (RN5); sale created; stock deducted; reservations consumed (Phase 12 preview TX).

@@ -52,6 +52,20 @@ impl OrderItem {
         self.quantity_delivered
     }
 
+    pub fn apply_delivered_quantity(
+        &mut self,
+        quantity_delivered: Quantity,
+    ) -> Result<(), domain_inventory::InventoryError> {
+        if quantity_delivered.value() > self.quantity_requested.value() {
+            return Err(domain_inventory::InventoryError::InvalidQuantity);
+        }
+        if quantity_delivered.value() == 0 {
+            return Err(domain_inventory::InventoryError::InvalidQuantity);
+        }
+        self.quantity_delivered = Some(quantity_delivered);
+        Ok(())
+    }
+
     pub fn unit_price(&self) -> &Money {
         &self.unit_price
     }

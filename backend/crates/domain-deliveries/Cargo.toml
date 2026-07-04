@@ -1,21 +1,22 @@
 [package]
-name = "application"
+name = "domain-deliveries"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish = false
 
 [dependencies]
-domain-commerces.workspace = true
-domain-deliveries.workspace = true
 domain-identity.workspace = true
-domain-inventory.workspace = true
 domain-media.workspace = true
 domain-orders.workspace = true
-domain-sales.workspace = true
 domain-shared.workspace = true
+serde.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
+
+[dev-dependencies]
+domain-commerces.workspace = true
+domain-inventory.workspace = true
 
 [lints]
 workspace = true

@@ -6,6 +6,7 @@ pub mod error;
 pub mod identity;
 pub mod inventory;
 pub mod media;
+pub mod deliveries;
 pub mod orders;
 pub mod reports;
 pub mod rls;

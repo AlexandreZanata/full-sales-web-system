@@ -10,7 +10,7 @@ pub mod order_status;
 pub mod reservation_port;
 
 pub use error::OrderError;
-pub use order::{AddOrderItemInput, Order, OrderCreateInput};
+pub use order::{AddOrderItemInput, DeliveredItemInput, Order, OrderCreateInput};
 pub use order_id::OrderId;
 pub use order_item::OrderItem;
 pub use order_item_id::OrderItemId;

@@ -34,6 +34,12 @@ pub enum OrderError {
     #[error("invalid order transition: {from} → {to}")]
     InvalidTransition { from: OrderStatus, to: OrderStatus },
 
+    #[error("invalid delivered quantity for order item")]
+    InvalidDeliveredQuantity,
+
+    #[error("order item not found")]
+    OrderItemNotFound,
+
     #[error("insufficient available stock for order approval")]
     InsufficientAvailableStock,
 }

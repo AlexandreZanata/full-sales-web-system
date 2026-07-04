@@ -17,6 +17,7 @@
 | 06-audit | `audit` | `events` |
 | 07-media | `media` | `files` |
 | 08-orders | `orders` | `orders`, `order_items` |
+| 09-deliveries | `deliveries` | `deliveries` |
 | 01-identity (delta) | `identity` | `users` (+ `commerce_id`, `profile_file_id`), `driver_profiles`, `seller_profiles` |
 
 ---
@@ -28,6 +29,18 @@
 | `media` schema + `media.files` (metadata only; bytes in MinIO) | `20260704122200` |
 | RLS tenant isolation on `media.files` | `20260704122200` |
 | `app_user` GRANTs on `media` schema | `20260704122200` |
+
+---
+
+## Phase 12 additions (2026-07-04)
+
+| Change | Migration |
+|--------|-----------|
+| `deliveries` schema + `deliveries.deliveries` (1:1 order, DE-004) | `20260704123300` |
+| Driver-scoped RLS on deliveries (`Admin` all; `Driver` own `driver_id`) | `20260704123300` |
+| Driver delivery confirm access on orders + order_items | `20260704123400` |
+
+Domain crate: `domain-deliveries`. Application: `confirm_delivery` (preview TX). Infra: `confirm_delivery_transaction` — delivery + order + sale + stock movement + consume reservations.
 
 ---
 

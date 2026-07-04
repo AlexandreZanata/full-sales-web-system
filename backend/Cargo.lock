@@ -58,8 +58,10 @@ name = "application"
 version = "0.1.0"
 dependencies = [
  "domain-commerces",
+ "domain-deliveries",
  "domain-identity",
  "domain-inventory",
+ "domain-media",
  "domain-orders",
  "domain-sales",
  "domain-shared",
@@ -1128,6 +1130,21 @@ name = "domain-commerces"
 version = "0.1.0"
 dependencies = [
  "domain-shared",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
+name = "domain-deliveries"
+version = "0.1.0"
+dependencies = [
+ "domain-commerces",
+ "domain-identity",
+ "domain-inventory",
+ "domain-media",
+ "domain-orders",
+ "domain-shared",
+ "serde",
  "thiserror",
  "uuid",
 ]

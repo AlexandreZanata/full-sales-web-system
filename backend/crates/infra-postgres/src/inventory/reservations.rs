@@ -140,6 +140,22 @@ pub async fn release_reservations(
     Ok(released)
 }
 
+/// RN2 — marks Active reservations Consumed within an existing transaction.
+pub async fn consume_reservations_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    order_id: Uuid,
+) -> Result<u64, PostgresError> {
+    let result = sqlx::query(
+        "UPDATE inventory.stock_reservations
+         SET status = 'Consumed', consumed_at = now()
+         WHERE order_id = $1 AND status = 'Active'",
+    )
+    .bind(order_id)
+    .execute(&mut **tx)
+    .await?;
+    Ok(result.rows_affected())
+}
+
 /// RN2 — marks Active reservations Consumed on delivery confirm (deduction in Phase 12–13).
 pub async fn consume_reservations(
     pool: &PgPool,
@@ -148,16 +164,9 @@ pub async fn consume_reservations(
 ) -> Result<u64, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let result = sqlx::query(
-        "UPDATE inventory.stock_reservations
-         SET status = 'Consumed', consumed_at = now()
-         WHERE order_id = $1 AND status = 'Active'",
-    )
-    .bind(order_id)
-    .execute(&mut *tx)
-    .await?;
+    let consumed = consume_reservations_in_tx(&mut tx, order_id).await?;
     tx.commit().await?;
-    Ok(result.rows_affected())
+    Ok(consumed)
 }
 
 pub async fn tenant_available_for_product(

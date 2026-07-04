@@ -145,6 +145,22 @@ pub async fn cancel_order_transaction(
     Ok(())
 }
 
+pub async fn update_order_status_in_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    order_id: Uuid,
+    status: &str,
+) -> Result<(), PostgresError> {
+    let result = sqlx::query("UPDATE orders.orders SET status = $2 WHERE id = $1")
+        .bind(order_id)
+        .bind(status)
+        .execute(&mut **tx)
+        .await?;
+    if result.rows_affected() == 0 {
+        return Err(PostgresError::Database(sqlx::Error::RowNotFound));
+    }
+    Ok(())
+}
+
 async fn insert_order_in_tx(
     tx: &mut Transaction<'_, Postgres>,
     tenant_id: TenantId,

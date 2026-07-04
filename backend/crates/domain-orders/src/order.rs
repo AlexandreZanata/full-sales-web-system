@@ -24,6 +24,11 @@ pub struct OrderCreateInput {
     pub notes: Option<String>,
 }
 
+pub struct DeliveredItemInput {
+    pub order_item_id: OrderItemId,
+    pub quantity_delivered: Quantity,
+}
+
 pub struct AddOrderItemInput {
     pub item_id: OrderItemId,
     pub product: Product,
@@ -183,6 +188,44 @@ impl Order {
 
     pub fn mark_in_transit(mut self) -> Result<Self, OrderError> {
         self.transition_to(OrderStatus::InTransit)?;
+        Ok(self)
+    }
+
+    /// RN5 — records delivered quantities and transitions to Delivered or PartiallyDelivered.
+    pub fn confirm_delivery(
+        mut self,
+        items: &[DeliveredItemInput],
+    ) -> Result<Self, OrderError> {
+        if self.status != OrderStatus::InTransit {
+            return Err(OrderError::InvalidTransition {
+                from: self.status,
+                to: OrderStatus::Delivered,
+            });
+        }
+        if items.len() != self.items.len() {
+            return Err(OrderError::InvalidDeliveredQuantity);
+        }
+
+        let mut any_partial = false;
+        for input in items {
+            let item = self
+                .items
+                .iter_mut()
+                .find(|i| i.id() == input.order_item_id)
+                .ok_or(OrderError::OrderItemNotFound)?;
+            item.apply_delivered_quantity(input.quantity_delivered)
+                .map_err(|_| OrderError::InvalidDeliveredQuantity)?;
+            if input.quantity_delivered.value() < item.quantity_requested().value() {
+                any_partial = true;
+            }
+        }
+
+        let target = if any_partial {
+            OrderStatus::PartiallyDelivered
+        } else {
+            OrderStatus::Delivered
+        };
+        self.transition_to(target)?;
         Ok(self)
     }
 
