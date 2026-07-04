@@ -18,3 +18,12 @@ export function toTablePagination(meta: PaginationMeta): TablePaginationState {
     total: meta.total,
   };
 }
+
+export function paginatedResponseToTable(meta: {
+  page: number;
+  pageSize: number;
+  total: number;
+}): TablePaginationState {
+  const totalPages = Math.max(1, Math.ceil(meta.total / meta.pageSize));
+  return { page: meta.page, totalPages, total: meta.total };
+}

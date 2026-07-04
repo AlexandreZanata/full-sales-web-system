@@ -41,3 +41,60 @@ export type TokenResponse = {
   refreshToken: string;
   expiresIn: number;
 };
+
+export type UserRole = 'Admin' | 'Driver' | 'Seller' | 'CommerceContact';
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  active: boolean;
+  commerceId?: string;
+};
+
+export type CreateUserRequest = {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  commerceId?: string;
+};
+
+export type DriverProfile = {
+  userId: string;
+  cnhNumber: string;
+  cnhCategory: string;
+  cnhPhotoFileId?: string;
+  vehiclePlate: string;
+  vehicleModel: string;
+  vehicleCapacityKg?: number;
+};
+
+export type DriverProfileRequest = {
+  cnhNumber: string;
+  cnhCategory: string;
+  cnhPhotoFileId?: string;
+  vehiclePlate: string;
+  vehicleModel: string;
+  vehicleCapacityKg?: number;
+};
+
+export type SellerProfile = {
+  userId: string;
+  operatingRegion?: string;
+  monthlyTargetAmount?: number;
+};
+
+export type SellerProfileRequest = {
+  operatingRegion?: string;
+  monthlyTargetAmount?: number;
+};
+
+export type CommerceSummary = {
+  id: string;
+  cnpj: string;
+  legalName: string;
+  tradeName: string;
+  active: boolean;
+};

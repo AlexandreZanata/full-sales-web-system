@@ -195,6 +195,29 @@ export async function apiPost<T>(path: string, body: object, init?: ApiRequestOp
   });
 }
 
+export async function apiPut<T>(path: string, body: object, init?: ApiRequestOptions): Promise<T> {
+  return apiFetch<T>(path, {
+    ...init,
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers as Record<string, string> | undefined),
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function apiPatch<T>(path: string, init?: ApiRequestOptions): Promise<T> {
+  return apiFetch<T>(path, {
+    ...init,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers as Record<string, string> | undefined),
+    },
+  });
+}
+
 export function isUnauthorizedError(error: unknown): boolean {
   return error instanceof ApiError && error.status === 401;
 }

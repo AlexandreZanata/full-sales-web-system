@@ -21,6 +21,8 @@ import { Route as AuthenticatedInventoryIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedDeliveriesIndexRouteImport } from './routes/_authenticated/deliveries/index'
 import { Route as AuthenticatedCommercesIndexRouteImport } from './routes/_authenticated/commerces/index'
 import { Route as AuthenticatedAuditIndexRouteImport } from './routes/_authenticated/audit/index'
+import { Route as AuthenticatedUsersNewRouteImport } from './routes/_authenticated/users/new'
+import { Route as AuthenticatedUsersIdRouteImport } from './routes/_authenticated/users/$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -87,10 +89,22 @@ const AuthenticatedAuditIndexRoute = AuthenticatedAuditIndexRouteImport.update({
   path: '/audit/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedUsersNewRoute = AuthenticatedUsersNewRouteImport.update({
+  id: '/users/new',
+  path: '/users/new',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedUsersIdRoute = AuthenticatedUsersIdRouteImport.update({
+  id: '/users/$id',
+  path: '/users/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/users/$id': typeof AuthenticatedUsersIdRoute
+  '/users/new': typeof AuthenticatedUsersNewRoute
   '/audit/': typeof AuthenticatedAuditIndexRoute
   '/commerces/': typeof AuthenticatedCommercesIndexRoute
   '/deliveries/': typeof AuthenticatedDeliveriesIndexRoute
@@ -104,6 +118,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
+  '/users/$id': typeof AuthenticatedUsersIdRoute
+  '/users/new': typeof AuthenticatedUsersNewRoute
   '/audit': typeof AuthenticatedAuditIndexRoute
   '/commerces': typeof AuthenticatedCommercesIndexRoute
   '/deliveries': typeof AuthenticatedDeliveriesIndexRoute
@@ -119,6 +135,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/users/$id': typeof AuthenticatedUsersIdRoute
+  '/_authenticated/users/new': typeof AuthenticatedUsersNewRoute
   '/_authenticated/audit/': typeof AuthenticatedAuditIndexRoute
   '/_authenticated/commerces/': typeof AuthenticatedCommercesIndexRoute
   '/_authenticated/deliveries/': typeof AuthenticatedDeliveriesIndexRoute
@@ -134,6 +152,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/users/$id'
+    | '/users/new'
     | '/audit/'
     | '/commerces/'
     | '/deliveries/'
@@ -147,6 +167,8 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/'
+    | '/users/$id'
+    | '/users/new'
     | '/audit'
     | '/commerces'
     | '/deliveries'
@@ -161,6 +183,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/'
+    | '/_authenticated/users/$id'
+    | '/_authenticated/users/new'
     | '/_authenticated/audit/'
     | '/_authenticated/commerces/'
     | '/_authenticated/deliveries/'
@@ -263,11 +287,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/users/new': {
+      id: '/_authenticated/users/new'
+      path: '/users/new'
+      fullPath: '/users/new'
+      preLoaderRoute: typeof AuthenticatedUsersNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/users/$id': {
+      id: '/_authenticated/users/$id'
+      path: '/users/$id'
+      fullPath: '/users/$id'
+      preLoaderRoute: typeof AuthenticatedUsersIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedUsersIdRoute: typeof AuthenticatedUsersIdRoute
+  AuthenticatedUsersNewRoute: typeof AuthenticatedUsersNewRoute
   AuthenticatedAuditIndexRoute: typeof AuthenticatedAuditIndexRoute
   AuthenticatedCommercesIndexRoute: typeof AuthenticatedCommercesIndexRoute
   AuthenticatedDeliveriesIndexRoute: typeof AuthenticatedDeliveriesIndexRoute
@@ -281,6 +321,8 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedUsersIdRoute: AuthenticatedUsersIdRoute,
+  AuthenticatedUsersNewRoute: AuthenticatedUsersNewRoute,
   AuthenticatedAuditIndexRoute: AuthenticatedAuditIndexRoute,
   AuthenticatedCommercesIndexRoute: AuthenticatedCommercesIndexRoute,
   AuthenticatedDeliveriesIndexRoute: AuthenticatedDeliveriesIndexRoute,
