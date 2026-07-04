@@ -12,19 +12,21 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import type { MessageKey } from '@/lib/i18n/messages';
+
 export const adminNavItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/users', label: 'Users', icon: Users },
-  { to: '/commerces', label: 'Commerces', icon: Store },
-  { to: '/products', label: 'Products', icon: Package },
-  { to: '/inventory', label: 'Inventory', icon: Warehouse },
-  { to: '/orders', label: 'Orders', icon: ShoppingCart },
-  { to: '/deliveries', label: 'Deliveries', icon: Truck },
-  { to: '/sales', label: 'Sales', icon: ClipboardList },
-  { to: '/reports', label: 'Reports', icon: FileBarChart },
-  { to: '/audit', label: 'Audit', icon: ScrollText },
+  { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { to: '/users', labelKey: 'nav.users', icon: Users },
+  { to: '/commerces', labelKey: 'nav.commerces', icon: Store },
+  { to: '/products', labelKey: 'nav.products', icon: Package },
+  { to: '/inventory', labelKey: 'nav.inventory', icon: Warehouse },
+  { to: '/orders', labelKey: 'nav.orders', icon: ShoppingCart },
+  { to: '/deliveries', labelKey: 'nav.deliveries', icon: Truck },
+  { to: '/sales', labelKey: 'nav.sales', icon: ClipboardList },
+  { to: '/reports', labelKey: 'nav.reports', icon: FileBarChart },
+  { to: '/audit', labelKey: 'nav.audit', icon: ScrollText },
 ] as const satisfies ReadonlyArray<{
   to: string;
-  label: string;
+  labelKey: MessageKey;
   icon: LucideIcon;
 }>;

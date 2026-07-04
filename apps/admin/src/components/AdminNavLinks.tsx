@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 
 import { BrandMark } from '@/components/BrandMark';
+import { useI18n } from '@/lib/i18n/context';
 import { adminTokens } from '@/lib/admin-tokens';
 import { BRAND_NAME } from '@/lib/brand';
 import { adminNavItems } from '@/lib/admin-nav';
@@ -12,13 +13,15 @@ type AdminNavLinksProps = {
 };
 
 export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
+  const { t } = useI18n();
+
   return (
     <nav
       data-admin-sidebar
       aria-label="Admin navigation"
       className={cn('flex flex-col gap-1', className)}
     >
-      {adminNavItems.map(({ to, label, icon: Icon }) => (
+      {adminNavItems.map(({ to, labelKey, icon: Icon }) => (
         <Link
           key={to}
           to={to}
@@ -28,7 +31,7 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
           onClick={onNavigate}
         >
           <Icon className="size-4 shrink-0" aria-hidden />
-          {label}
+          {t(labelKey)}
         </Link>
       ))}
     </nav>
@@ -36,6 +39,8 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
 }
 
 export function AdminBrand({ className }: { className?: string }) {
+  const { t } = useI18n();
+
   return (
     <div className={cn(adminTokens.shellBrandBar, className)}>
       <div className="flex items-center gap-3">
@@ -44,7 +49,9 @@ export function AdminBrand({ className }: { className?: string }) {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             {BRAND_NAME}
           </p>
-          <p className="mt-1 text-lg font-semibold leading-tight text-foreground">Admin</p>
+          <p className="mt-1 text-lg font-semibold leading-tight text-foreground">
+            {t('auth.adminLabel')}
+          </p>
         </div>
       </div>
     </div>

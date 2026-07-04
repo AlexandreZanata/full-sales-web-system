@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useI18n } from '@/lib/i18n/context';
 import { fetchAuditEvents } from '@/lib/api/audit';
 import { fetchUsers } from '@/lib/api/users';
 import type { AuditEvent } from '@/lib/api/types';
@@ -19,6 +20,7 @@ export const Route = createFileRoute('/_authenticated/audit/')({
 });
 
 function AuditPage() {
+  const { t } = useI18n();
   const [page, setPage] = useState(1);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
   const pageSize = 20;
@@ -127,7 +129,7 @@ function AuditPage() {
                     setPage(pagination.page - 1);
                   }}
                 >
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <Button
                   type="button"
@@ -137,7 +139,7 @@ function AuditPage() {
                     setPage(pagination.page + 1);
                   }}
                 >
-                  Next
+                  {t('common.next')}
                 </Button>
               </div>
             </div>

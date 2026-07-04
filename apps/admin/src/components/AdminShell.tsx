@@ -5,7 +5,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { AdminBrand, AdminNavLinks } from '@/components/AdminNavLinks';
 import { BrandMark } from '@/components/BrandMark';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/lib/i18n/context';
 import { BRAND_NAME } from '@/lib/brand';
 import { adminTokens } from '@/lib/admin-tokens';
 import { cn } from '@/lib/utils';
@@ -16,6 +18,7 @@ type AdminShellProps = {
 
 export function AdminShell({ children }: AdminShellProps) {
   const { user, logout } = useAdminAuth();
+  const { t } = useI18n();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
@@ -45,8 +48,9 @@ export function AdminShell({ children }: AdminShellProps) {
         <Button
           type="button"
           variant="ghost"
+          className="min-h-10 min-w-10"
           aria-expanded={mobileNavOpen}
-          aria-label="Open navigation menu"
+          aria-label={t('shell.openNav')}
           onClick={() => {
             setMobileNavOpen(true);
           }}
@@ -60,12 +64,14 @@ export function AdminShell({ children }: AdminShellProps) {
               {BRAND_NAME}
             </p>
             <p className="mt-1 truncate text-lg font-semibold leading-tight text-foreground">
-              Admin
+              {t('auth.adminLabel')}
             </p>
           </div>
         </div>
         <Button
           variant="ghost"
+          className="min-h-10 min-w-10"
+          aria-label={t('auth.logout')}
           onClick={() => {
             void handleLogout();
           }}
@@ -76,7 +82,8 @@ export function AdminShell({ children }: AdminShellProps) {
 
       <AdminBrand className="col-start-1 row-start-1 hidden md:flex" />
       <header className={cn('col-start-2 row-start-1 hidden md:flex', adminTokens.shellHeaderBar)}>
-        <span className="ml-auto text-sm text-muted-foreground">{user?.email}</span>
+        <LocaleSwitcher className="mr-auto" />
+        <span className="text-sm text-muted-foreground">{user?.email}</span>
         <Button
           variant="ghost"
           onClick={() => {
@@ -84,7 +91,7 @@ export function AdminShell({ children }: AdminShellProps) {
           }}
         >
           <LogOut className="size-4" />
-          Logout
+          {t('auth.logout')}
         </Button>
       </header>
       <aside className="col-start-1 row-start-2 hidden flex-col border-r border-hairline bg-surface md:flex">
@@ -104,18 +111,19 @@ export function AdminShell({ children }: AdminShellProps) {
           <button
             type="button"
             className="absolute inset-0 bg-foreground/40"
-            aria-label="Close navigation menu"
+            aria-label={t('shell.closeNav')}
             onClick={() => {
               setMobileNavOpen(false);
             }}
           />
           <aside className="relative flex h-full w-[min(100%,18rem)] flex-col bg-surface shadow-lg">
             <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
-              <span className="text-sm font-semibold text-foreground">Menu</span>
+              <span className="text-sm font-semibold text-foreground">{t('shell.menu')}</span>
               <Button
                 type="button"
                 variant="ghost"
-                aria-label="Close menu"
+                className="min-h-10 min-w-10"
+                aria-label={t('shell.closeMenu')}
                 onClick={() => {
                   setMobileNavOpen(false);
                 }}

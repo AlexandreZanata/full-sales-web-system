@@ -3,9 +3,11 @@ import { useState, type SubmitEvent } from 'react';
 
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { BrandMark } from '@/components/BrandMark';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { useI18n } from '@/lib/i18n/context';
 import { AdminLoginError } from '@/lib/auth/authErrors';
 import { ADMIN_APP_TITLE } from '@/lib/brand';
 
@@ -23,6 +25,7 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   const { login, enterDevShell } = useAdminAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,20 +57,21 @@ function LoginPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-surface-muted px-4">
       <Card className="w-full max-w-md">
+        <div className="mb-4 flex justify-end">
+          <LocaleSwitcher />
+        </div>
         <div className="mb-6">
           <BrandMark size="lg" className="mb-4" />
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             {ADMIN_APP_TITLE}
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-foreground">Sign in</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Sign in with an Admin account to access the operations console.
-          </p>
+          <h1 className="mt-2 text-2xl font-semibold text-foreground">{t('auth.signInTitle')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('auth.signInDescription')}</p>
         </div>
 
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
           <Input
-            label="Email"
+            label={t('auth.email')}
             name="email"
             type="email"
             autoComplete="username"
@@ -78,7 +82,7 @@ function LoginPage() {
             }}
           />
           <Input
-            label="Password"
+            label={t('auth.password')}
             name="password"
             type="password"
             autoComplete="current-password"
@@ -96,14 +100,14 @@ function LoginPage() {
           ) : null}
 
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? t('auth.signingIn') : t('auth.signIn')}
           </Button>
         </form>
 
         {import.meta.env.DEV ? (
           <div className="mt-4 border-t border-hairline pt-4">
             <Button type="button" variant="secondary" className="w-full" onClick={handleDevEnter}>
-              Enter admin shell (dev)
+              {t('auth.devEnter')}
             </Button>
           </div>
         ) : null}

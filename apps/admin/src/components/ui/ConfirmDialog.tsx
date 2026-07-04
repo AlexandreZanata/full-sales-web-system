@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { useI18n } from '@/lib/i18n/context';
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -16,12 +17,15 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Confirm',
+  confirmLabel,
   onConfirm,
   onCancel,
   destructive = false,
   isLoading = false,
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
+  const resolvedConfirmLabel = confirmLabel ?? t('common.confirm');
+
   if (!open) return null;
 
   return (
@@ -40,14 +44,14 @@ export function ConfirmDialog({
         </div>
         <div className="mt-6 flex shrink-0 justify-end gap-2">
           <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant={destructive ? 'danger' : 'primary'}
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? 'Working…' : confirmLabel}
+            {isLoading ? t('common.working') : resolvedConfirmLabel}
           </Button>
         </div>
       </Card>

@@ -20,6 +20,15 @@ pnpm lint && pnpm test && pnpm build
 | Web | `pnpm dev:web` | `http://127.0.0.1:5173` |
 | Admin | `pnpm dev:admin` | `http://127.0.0.1:5174` |
 
+Admin quality gates:
+
+```bash
+pnpm --filter @full-sales/admin lint test build
+pnpm test:e2e:admin    # Playwright — login, orders, mobile nav
+```
+
+See [features/admin-panel.md](features/admin-panel.md) for routes, i18n, and E2E details.
+
 Copy `.env.example` (root) and `backend/.env.example` for local configuration.
 
 ---

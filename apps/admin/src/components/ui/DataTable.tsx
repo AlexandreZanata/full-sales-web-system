@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/lib/i18n/context';
 import { formatTablePaginationSummary, type TablePaginationState } from '@/lib/tablePagination';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +42,7 @@ export function DataTable<T>({
   density = 'default',
   className,
 }: DataTableProps<T>) {
+  const { t } = useI18n();
   const padding = cellPadding[density];
   const showPagination = pagination !== null && onPageChange !== undefined;
 
@@ -120,7 +122,7 @@ export function DataTable<T>({
                 onPageChange(pagination.page - 1);
               }}
             >
-              Previous
+              {t('common.previous')}
             </Button>
             <Button
               type="button"
@@ -130,7 +132,7 @@ export function DataTable<T>({
                 onPageChange(pagination.page + 1);
               }}
             >
-              Next
+              {t('common.next')}
             </Button>
           </div>
         </div>

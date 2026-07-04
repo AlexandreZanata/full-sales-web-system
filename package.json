@@ -11,6 +11,8 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
+    "test:e2e": "playwright test",
+    "test:e2e:admin": "playwright test e2e/admin-login.spec.ts e2e/admin-orders.spec.ts e2e/admin-mobile.spec.ts",
     "verify": "pnpm lint && pnpm test && pnpm build && pnpm verify:backend",
     "verify:backend": "cd backend && cargo fmt --check && cargo clippy --workspace -- -D warnings && cargo test --workspace",
     "validate:openapi": "npx --yes @apidevtools/swagger-cli validate docs/openapi.yaml",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.55.0",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",

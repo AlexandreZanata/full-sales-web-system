@@ -94,3 +94,9 @@ jobs:
 
       - name: pnpm build
         run: pnpm build
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium
+
+      - name: Admin E2E (Playwright)
+        run: pnpm test:e2e:admin

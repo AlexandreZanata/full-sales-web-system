@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { AdminAuthProvider } from '@/auth/AdminAuthProvider';
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { ToastProvider } from '@/components/ToastProvider';
+import { I18nProvider } from '@/lib/i18n/context';
 import { router } from '@/router';
 
 function AdminRouter() {
@@ -20,10 +21,12 @@ function AdminRouter() {
 
 export function App() {
   return (
-    <ToastProvider>
-      <AdminAuthProvider>
-        <AdminRouter />
-      </AdminAuthProvider>
-    </ToastProvider>
+    <I18nProvider>
+      <ToastProvider>
+        <AdminAuthProvider>
+          <AdminRouter />
+        </AdminAuthProvider>
+      </ToastProvider>
+    </I18nProvider>
   );
 }
