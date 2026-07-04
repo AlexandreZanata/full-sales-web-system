@@ -17,6 +17,8 @@ serde_json.workspace = true
 sha2.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
+printpdf = "0.7"
+rust_xlsxwriter = "0.79"
 ed25519-dalek = { version = "2", features = ["rand_core"] }
 
 [dev-dependencies]

@@ -75,3 +75,7 @@ pub fn assembly_with_sales(sales: Vec<ReportSaleFact>) -> ReportAssemblyInput {
         sales,
     }
 }
+
+pub fn empty_report_canonical() -> String {
+    r#"{"declaredSettlement":{"byPaymentMethod":{},"currency":"BRL","disclaimer":"Self-declared by seller. Not fiscal or bank proof.","totalDeclaredCents":0},"driverId":"0190f1a2-b3c4-5678-9abc-def012345678","period":{"end":"2026-07-07T23:59:59Z","start":"2026-07-01T00:00:00Z"},"sales":[],"version":2}"#.to_string()
+}

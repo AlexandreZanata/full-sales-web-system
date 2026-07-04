@@ -73,6 +73,7 @@ async fn route_smoke_protected_routes_return_unauthorized_not_not_found() {
         ("GET", "/v1/reports".into()),
         ("POST", "/v1/reports".into()),
         ("GET", format!("/v1/reports/{id}")),
+        ("GET", format!("/v1/reports/{id}/export?format=csv")),
         ("GET", "/v1/audit/events".into()),
         ("GET", "/v1/settings".into()),
         ("PATCH", "/v1/settings".into()),

@@ -458,6 +458,16 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Response 200:** Report metadata + payload
 - **Response 404:** `REPORT_NOT_FOUND`
 
+### `GET /v1/reports/{id}/export`
+
+- **Auth:** Admin
+- **Query:** `format=pdf|csv|xlsx`
+- **Response 200:** File stream (`Content-Disposition: attachment; filename="report-{type}-{periodStart}.{ext}"`)
+- **Response 400:** `UNSUPPORTED_FORMAT`
+- **Response 404:** `REPORT_NOT_FOUND`
+
+Derived from signed canonical JSON — verification remains on `GET …/verify`.
+
 ### `GET /v1/reports/{id}/verify`
 
 - **Auth:** Public (rate limited by IP — ADR-007)

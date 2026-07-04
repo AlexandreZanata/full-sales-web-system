@@ -678,10 +678,18 @@ export const ptBR: Messages = {
       invalidSignature: 'Assinatura inválida',
       checking: 'Verificando…',
       canonicalPayload: 'Payload canônico',
+      download: 'Baixar',
+    },
+    export: {
+      pdf: 'PDF',
+      csv: 'CSV',
+      xlsx: 'Excel',
+      exporting: 'Exportando…',
     },
     toast: {
       generated: 'Relatório gerado',
       verifyUrlCopied: 'URL de verificação copiada',
+      exported: 'Relatório baixado',
     },
   },
   audit: {

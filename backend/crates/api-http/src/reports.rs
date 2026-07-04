@@ -1,3 +1,4 @@
+mod export;
 mod support;
 
 use axum::{
@@ -85,6 +86,8 @@ pub async fn get_report(
     support::ensure_can_read_report(&auth, &row.canonical_payload)?;
     Ok(Json(support::report_to_response(&row)))
 }
+
+pub use export::export_report;
 
 pub async fn verify_report(
     State(state): State<AppState>,

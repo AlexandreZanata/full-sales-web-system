@@ -10,11 +10,18 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useToast } from '@/hooks/useToast';
-import { fetchReport, verifyReport } from '@/lib/api/reports';
+import {
+  downloadReportExport,
+  fetchReport,
+  verifyReport,
+  type ReportExportFormat,
+} from '@/lib/api/reports';
 import { formatDateTime } from '@/lib/formatDateTime';
 import { useI18n } from '@/lib/i18n/context';
 import { formatReportPeriod } from '@/lib/reports/formatPeriod';
 import { buildReportVerifyUrl } from '@/lib/reports/verifyUrl';
+
+const EXPORT_FORMATS: ReportExportFormat[] = ['pdf', 'csv', 'xlsx'];
 
 export const Route = createFileRoute('/_authenticated/reports/$id')({
   component: ReportDetailPage,
@@ -25,6 +32,7 @@ function ReportDetailPage() {
   const { t } = useI18n();
   const toast = useToast();
   const [copying, setCopying] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<ReportExportFormat | null>(null);
 
   const report = useQuery({
     queryKey: ['reports', id],
@@ -58,6 +66,24 @@ function ReportDetailPage() {
     }
   }
 
+  async function handleExport(format: ReportExportFormat) {
+    setExportingFormat(format);
+    try {
+      const { blob, filename } = await downloadReportExport(id, format);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      toast.success(t('reports.toast.exported'));
+    } catch {
+      toast.error(t('errors.actionFailed'));
+    } finally {
+      setExportingFormat(null);
+    }
+  }
+
   if (report.isLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -85,6 +111,23 @@ function ReportDetailPage() {
         back={<PageBackLink label={t('common.backTo.reports')} to="/reports" />}
         actions={
           <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {t('reports.detail.download')}
+              </span>
+              {EXPORT_FORMATS.map((format) => (
+                <Button
+                  key={format}
+                  variant="secondary"
+                  disabled={exportingFormat !== null}
+                  onClick={() => void handleExport(format)}
+                >
+                  {exportingFormat === format
+                    ? t('reports.export.exporting')
+                    : t(`reports.export.${format}`)}
+                </Button>
+              ))}
+            </div>
             <Button variant="secondary" disabled={copying} onClick={() => void copyVerifyUrl()}>
               {t('reports.detail.copyVerifyUrl')}
             </Button>

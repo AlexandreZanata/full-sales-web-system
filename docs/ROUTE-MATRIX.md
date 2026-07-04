@@ -170,6 +170,7 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 | POST | `/v1/reports` | Admin | ✅ | `208`, `209`, `221` | UC-002, ADR-003, v2 payload | 24 |
 | GET | `/v1/reports` | Admin | ✅ | `209` | list by period | 24 |
 | GET | `/v1/reports/{id}` | Admin, Driver scoped | ✅ | `209` | — | 24 |
+| GET | `/v1/reports/{id}/export` | Admin | ✅ | `209`, `236` | PDF/CSV/XLSX derived view | 42 |
 | GET | `/v1/reports/{id}/verify` | 🔒 public rate limit | ✅ | `209` | ADR-007, BR-RE-002 | 24 |
 
 ---

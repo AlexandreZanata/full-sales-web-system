@@ -1237,6 +1237,46 @@ paths:
         '404':
           $ref: '#/components/responses/ReportNotFound'
 
+  /reports/{id}/export:
+    get:
+      summary: Download report export (Admin)
+      operationId: exportReport
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [pdf, csv, xlsx]
+      responses:
+        '200':
+          description: Exported file (PDF, CSV, or XLSX)
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+        '400':
+          description: Unsupported format
+        '404':
+          $ref: '#/components/responses/ReportNotFound'
+
   /reports/{id}/verify:
     get:
       summary: Verify report signature (public, rate limited)

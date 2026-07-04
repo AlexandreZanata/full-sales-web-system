@@ -45,7 +45,7 @@ See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev`
 | Orders | `/orders`, `/orders/$id` | List + workflow actions |
 | Deliveries | `/deliveries`, `/deliveries/$id` | List + read-only detail |
 | Sales | `/sales`, `/sales/new`, `/sales/$id` | List + create + confirm/cancel |
-| Reports | `/reports`, `/reports/new`, `/reports/$id` | Signed reports + verify link |
+| Reports | `/reports`, `/reports/new`, `/reports/$id` | Signed reports, verify link, PDF/CSV/Excel export |
 | Settings | `/settings` | Tenant site name + logo |
 | Audit | `/audit` | Append-only event log |
 

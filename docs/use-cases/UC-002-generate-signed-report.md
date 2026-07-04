@@ -66,10 +66,10 @@
 |------|----------|
 | 1–6 | `POST /v1/reports` |
 | 7–8 | `GET /v1/reports/{id}/verify` |
+| Export | `GET /v1/reports/{id}/export?format=pdf\|csv\|xlsx` |
 
 ## Out of scope
 
 - ICP-Brasil qualified signature
-- PDF export (future)
 
 See [DIGITAL-SIGNATURE.md](../DIGITAL-SIGNATURE.md).

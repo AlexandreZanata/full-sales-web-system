@@ -677,10 +677,18 @@ export const en: Messages = {
       invalidSignature: 'Invalid signature',
       checking: 'Checking…',
       canonicalPayload: 'Canonical payload',
+      download: 'Download',
+    },
+    export: {
+      pdf: 'PDF',
+      csv: 'CSV',
+      xlsx: 'Excel',
+      exporting: 'Exporting…',
     },
     toast: {
       generated: 'Report generated',
       verifyUrlCopied: 'Verify URL copied',
+      exported: 'Report downloaded',
     },
   },
   audit: {

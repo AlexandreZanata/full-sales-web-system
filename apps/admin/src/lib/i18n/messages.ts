@@ -682,10 +682,18 @@ export type Messages = {
       invalidSignature: string;
       checking: string;
       canonicalPayload: string;
+      download: string;
+    };
+    export: {
+      pdf: string;
+      csv: string;
+      xlsx: string;
+      exporting: string;
     };
     toast: {
       generated: string;
       verifyUrlCopied: string;
+      exported: string;
     };
   };
   audit: {

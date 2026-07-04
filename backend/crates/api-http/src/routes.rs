@@ -26,7 +26,7 @@ use crate::products::{
     attach_product_image, create_product, delete_product_image, get_product, list_product_images,
     list_products, update_product,
 };
-use crate::reports::{generate_report, get_report, list_reports, verify_report};
+use crate::reports::{export_report, generate_report, get_report, list_reports, verify_report};
 use crate::sales::{
     cancel_sale, confirm_sale, create_sale, declare_sale_payment, get_sale, list_sales,
 };
@@ -150,6 +150,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/settings/logo", put(update_site_logo))
         .route("/v1/reports", post(generate_report).get(list_reports))
         .route("/v1/reports/{id}", get(get_report))
+        .route("/v1/reports/{id}/export", get(export_report))
         .route("/v1/audit/events", get(list_audit_events))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
