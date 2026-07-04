@@ -366,6 +366,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 - **Auth:** Admin; Driver (assigned)
 - **Response 200 / 404:** `DELIVERY_NOT_FOUND`
+- **Response body:** delivery fields plus `orderItems[]` (`id`, `productId`, `quantity`) for driver confirm UI
 
 ### `POST /v1/deliveries/{id}/start-transit`
 

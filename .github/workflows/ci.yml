@@ -107,6 +107,9 @@ jobs:
       - name: Field E2E (Playwright)
         run: pnpm test:e2e:field
 
+      - name: Integration E2E (skips if API unavailable)
+        run: pnpm test:e2e:integration
+
   kmp:
     runs-on: ubuntu-latest
     defaults:

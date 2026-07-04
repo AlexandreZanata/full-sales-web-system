@@ -15,6 +15,7 @@
     "test:e2e:admin": "playwright test e2e/admin-login.spec.ts e2e/admin-orders.spec.ts e2e/admin-mobile.spec.ts",
     "test:e2e:portal": "playwright test e2e/portal-*.spec.ts --config=playwright.portal.config.ts",
     "test:e2e:field": "playwright test e2e/field-*.spec.ts --config=playwright.field.config.ts",
+    "test:e2e:integration": "playwright test --config=playwright.integration.config.ts",
     "verify": "pnpm lint && pnpm test && pnpm build && pnpm verify:backend",
     "verify:backend": "cd backend && cargo fmt --check && cargo clippy --workspace -- -D warnings && cargo test --workspace",
     "validate:openapi": "npx --yes @apidevtools/swagger-cli validate docs/openapi.yaml",

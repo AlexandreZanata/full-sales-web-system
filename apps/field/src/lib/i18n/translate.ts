@@ -28,3 +28,9 @@ export function paymentMethodLabel(messages: Messages, method: string): string {
   const label = translate(messages, key);
   return label === key ? method : label;
 }
+
+export function deliveryStatusLabel(messages: Messages, status: string): string {
+  const key = `deliveryStatus.${status}` as MessageKey;
+  const label = translate(messages, key);
+  return label === key ? status : label;
+}

@@ -1,5 +1,5 @@
 export type Messages = {
-  nav: { sales: string; newSale: string };
+  nav: { sales: string; newSale: string; deliveries: string };
   auth: {
     signIn: string;
     signingIn: string;
@@ -55,11 +55,27 @@ export type Messages = {
     credit: string;
     debit: string;
   };
+  deliveries: {
+    title: string;
+    detail: string;
+    startTransit: string;
+    confirm: string;
+    proofPhoto: string;
+    empty: string;
+    orderId: string;
+  };
+  deliveryStatus: {
+    Waiting: string;
+    InTransit: string;
+    Delivered: string;
+    Failed: string;
+  };
 };
 
 export type MessageKey =
   | 'nav.sales'
   | 'nav.newSale'
+  | 'nav.deliveries'
   | 'auth.signIn'
   | 'auth.signingIn'
   | 'auth.signInTitle'
@@ -104,4 +120,15 @@ export type MessageKey =
   | 'paymentMethods.cash'
   | 'paymentMethods.pix'
   | 'paymentMethods.credit'
-  | 'paymentMethods.debit';
+  | 'paymentMethods.debit'
+  | 'deliveries.title'
+  | 'deliveries.detail'
+  | 'deliveries.startTransit'
+  | 'deliveries.confirm'
+  | 'deliveries.proofPhoto'
+  | 'deliveries.empty'
+  | 'deliveries.orderId'
+  | 'deliveryStatus.Waiting'
+  | 'deliveryStatus.InTransit'
+  | 'deliveryStatus.Delivered'
+  | 'deliveryStatus.Failed';

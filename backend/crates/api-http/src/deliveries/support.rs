@@ -46,6 +46,14 @@ pub struct ConfirmDeliveryRequest {
 }
 
 #[derive(Serialize)]
+pub struct DeliveryOrderItemResponse {
+    pub id: Uuid,
+    #[serde(rename = "productId")]
+    pub product_id: Uuid,
+    pub quantity: i32,
+}
+
+#[derive(Serialize)]
 pub struct DeliveryResponse {
     pub id: Uuid,
     #[serde(rename = "orderId")]
@@ -55,6 +63,8 @@ pub struct DeliveryResponse {
     pub status: DeliveryStatus,
     #[serde(rename = "saleId", skip_serializing_if = "Option::is_none")]
     pub sale_id: Option<Uuid>,
+    #[serde(rename = "orderItems", skip_serializing_if = "Option::is_none")]
+    pub order_items: Option<Vec<DeliveryOrderItemResponse>>,
 }
 
 #[derive(Serialize)]
@@ -250,6 +260,7 @@ pub fn delivery_response(
         driver_id,
         status,
         sale_id,
+        order_items: None,
     }
 }
 

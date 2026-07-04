@@ -111,9 +111,25 @@ pub async fn get_delivery(
     Path(id): Path<Uuid>,
 ) -> Result<Json<DeliveryResponse>, ApiError> {
     support::require_delivery_reader(&auth)?;
-    Ok(Json(support::row_to_response(
-        support::load_row(&state, &auth, id).await?,
-    )))
+    let row = support::load_row(&state, &auth, id).await?;
+    let order_id = row.order_id;
+    let mut response = support::row_to_response(row);
+    let admin_session = support::admin_session(&auth);
+    let items =
+        infra_postgres::orders::list_order_items(&state.app_pool, &admin_session, order_id)
+            .await
+            .map_err(|_| ApiError::internal())?;
+    response.order_items = Some(
+        items
+            .into_iter()
+            .map(|item| support::DeliveryOrderItemResponse {
+                id: item.id,
+                product_id: item.product_id,
+                quantity: item.quantity_requested,
+            })
+            .collect(),
+    );
+    Ok(Json(response))
 }
 
 pub async fn start_delivery_transit(

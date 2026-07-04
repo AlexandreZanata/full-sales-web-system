@@ -5,7 +5,7 @@ const FIELD_URL = `http://127.0.0.1:${FIELD_PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['field-sale.spec.ts', 'field-responsive.spec.ts'],
+  testMatch: ['field-sale.spec.ts', 'field-responsive.spec.ts', 'field-delivery.spec.ts'],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,

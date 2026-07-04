@@ -1,7 +1,7 @@
 import type { Messages } from '@/lib/i18n/messages';
 
 export const ptBR: Messages = {
-  nav: { sales: 'Vendas', newSale: 'Nova venda' },
+  nav: { sales: 'Vendas', newSale: 'Nova venda', deliveries: 'Entregas' },
   auth: {
     signIn: 'Entrar',
     signingIn: 'Entrando…',
@@ -56,5 +56,20 @@ export const ptBR: Messages = {
     pix: 'PIX',
     credit: 'Crédito',
     debit: 'Débito',
+  },
+  deliveries: {
+    title: 'Minhas entregas',
+    detail: 'Detalhe da entrega',
+    startTransit: 'Iniciar trânsito',
+    confirm: 'Confirmar entrega',
+    proofPhoto: 'Foto do comprovante',
+    empty: 'Nenhuma entrega atribuída.',
+    orderId: 'Pedido',
+  },
+  deliveryStatus: {
+    Waiting: 'Aguardando',
+    InTransit: 'Em trânsito',
+    Delivered: 'Entregue',
+    Failed: 'Falhou',
   },
 };

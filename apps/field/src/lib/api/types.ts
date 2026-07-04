@@ -75,3 +75,20 @@ export type TokenResponse = {
 export type SaleStatus = 'Pending' | 'Confirmed' | 'Cancelled';
 
 export type PaymentMethod = 'cash' | 'pix' | 'credit' | 'debit';
+
+export type DeliveryOrderItem = {
+  id: string;
+  productId: string;
+  quantity: number;
+};
+
+export type DeliveryDetail = {
+  id: string;
+  orderId: string;
+  driverId: string;
+  status: string;
+  saleId?: string;
+  orderItems?: DeliveryOrderItem[];
+};
+
+export type DeliverySummary = DeliveryDetail;

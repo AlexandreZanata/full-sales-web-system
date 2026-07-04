@@ -1,7 +1,7 @@
 import type { Messages } from '@/lib/i18n/messages';
 
 export const en: Messages = {
-  nav: { sales: 'Sales', newSale: 'New sale' },
+  nav: { sales: 'Sales', newSale: 'New sale', deliveries: 'Deliveries' },
   auth: {
     signIn: 'Sign in',
     signingIn: 'Signing in…',
@@ -56,5 +56,20 @@ export const en: Messages = {
     pix: 'PIX',
     credit: 'Credit',
     debit: 'Debit',
+  },
+  deliveries: {
+    title: 'My deliveries',
+    detail: 'Delivery detail',
+    startTransit: 'Start transit',
+    confirm: 'Confirm delivery',
+    proofPhoto: 'Proof photo',
+    empty: 'No deliveries assigned.',
+    orderId: 'Order',
+  },
+  deliveryStatus: {
+    Waiting: 'Waiting',
+    InTransit: 'In transit',
+    Delivered: 'Delivered',
+    Failed: 'Failed',
   },
 };

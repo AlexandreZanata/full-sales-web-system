@@ -1,6 +1,6 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import { LogOut, Plus, Receipt } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { LogOut, Plus, Receipt, Truck } from 'lucide-react';
+import { type ReactNode, useMemo } from 'react';
 
 import { useFieldAuth } from '@/auth/useFieldAuth';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
@@ -10,15 +10,35 @@ import { cn } from '@/lib/utils';
 
 type FieldShellProps = { children: ReactNode };
 
-const NAV = [
-  { to: '/', labelKey: 'nav.sales' as const, icon: Receipt },
-  { to: '/sales/new', labelKey: 'nav.newSale' as const, icon: Plus },
-];
+type NavItem = {
+  to: string;
+  labelKey: 'nav.sales' | 'nav.newSale' | 'nav.deliveries';
+  icon: typeof Receipt;
+};
+
+function navForRole(role?: string): NavItem[] {
+  if (role === 'Driver') {
+    return [
+      { to: '/deliveries', labelKey: 'nav.deliveries', icon: Truck },
+      { to: '/', labelKey: 'nav.sales', icon: Receipt },
+    ];
+  }
+  return [
+    { to: '/', labelKey: 'nav.sales', icon: Receipt },
+    { to: '/sales/new', labelKey: 'nav.newSale', icon: Plus },
+  ];
+}
+
+function isActive(pathname: string, to: string): boolean {
+  if (to === '/') return pathname === '/';
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
 
 export function FieldShell({ children }: FieldShellProps) {
   const { t } = useI18n();
   const { logout, user } = useFieldAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const nav = useMemo(() => navForRole(user?.role), [user?.role]);
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
@@ -27,13 +47,13 @@ export function FieldShell({ children }: FieldShellProps) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{t('auth.fieldLabel')}</span>
             <nav className="hidden gap-1 md:flex" aria-label="Main">
-              {NAV.map(({ to, labelKey, icon: Icon }) => (
+              {nav.map(({ to, labelKey, icon: Icon }) => (
                 <Link
                   key={to}
                   to={to}
                   className={cn(
                     'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium',
-                    pathname === to
+                    isActive(pathname, to)
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-surface-muted',
                   )}
@@ -59,14 +79,19 @@ export function FieldShell({ children }: FieldShellProps) {
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-4 pb-24 md:pb-6">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 border-t border-hairline bg-surface md:hidden" aria-label="Mobile">
-        <div className="mx-auto grid max-w-3xl grid-cols-2">
-          {NAV.map(({ to, labelKey, icon: Icon }) => (
+        <div
+          className={cn(
+            'mx-auto grid max-w-3xl',
+            nav.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+          )}
+        >
+          {nav.map(({ to, labelKey, icon: Icon }) => (
             <Link
               key={to}
               to={to}
               className={cn(
                 'flex flex-col items-center gap-1 py-2 text-xs font-medium',
-                pathname === to ? 'text-foreground' : 'text-muted-foreground',
+                isActive(pathname, to) ? 'text-foreground' : 'text-muted-foreground',
               )}
             >
               <Icon className="size-5" aria-hidden />

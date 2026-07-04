@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedDeliveriesIndexRouteImport } from './routes/_authenticated/deliveries/index'
 import { Route as AuthenticatedSalesNewRouteImport } from './routes/_authenticated/sales/new'
 import { Route as AuthenticatedSalesIdRouteImport } from './routes/_authenticated/sales/$id'
+import { Route as AuthenticatedDeliveriesIdRouteImport } from './routes/_authenticated/deliveries/$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -29,6 +31,12 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDeliveriesIndexRoute =
+  AuthenticatedDeliveriesIndexRouteImport.update({
+    id: '/deliveries/',
+    path: '/deliveries/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSalesNewRoute = AuthenticatedSalesNewRouteImport.update({
   id: '/sales/new',
   path: '/sales/new',
@@ -39,39 +47,65 @@ const AuthenticatedSalesIdRoute = AuthenticatedSalesIdRouteImport.update({
   path: '/sales/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDeliveriesIdRoute =
+  AuthenticatedDeliveriesIdRouteImport.update({
+    id: '/deliveries/$id',
+    path: '/deliveries/$id',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/deliveries/$id': typeof AuthenticatedDeliveriesIdRoute
   '/sales/$id': typeof AuthenticatedSalesIdRoute
   '/sales/new': typeof AuthenticatedSalesNewRoute
+  '/deliveries/': typeof AuthenticatedDeliveriesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
+  '/deliveries/$id': typeof AuthenticatedDeliveriesIdRoute
   '/sales/$id': typeof AuthenticatedSalesIdRoute
   '/sales/new': typeof AuthenticatedSalesNewRoute
+  '/deliveries': typeof AuthenticatedDeliveriesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/deliveries/$id': typeof AuthenticatedDeliveriesIdRoute
   '/_authenticated/sales/$id': typeof AuthenticatedSalesIdRoute
   '/_authenticated/sales/new': typeof AuthenticatedSalesNewRoute
+  '/_authenticated/deliveries/': typeof AuthenticatedDeliveriesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/sales/$id' | '/sales/new'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/deliveries/$id'
+    | '/sales/$id'
+    | '/sales/new'
+    | '/deliveries/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/sales/$id' | '/sales/new'
+  to:
+    | '/login'
+    | '/'
+    | '/deliveries/$id'
+    | '/sales/$id'
+    | '/sales/new'
+    | '/deliveries'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/'
+    | '/_authenticated/deliveries/$id'
     | '/_authenticated/sales/$id'
     | '/_authenticated/sales/new'
+    | '/_authenticated/deliveries/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -102,6 +136,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/deliveries/': {
+      id: '/_authenticated/deliveries/'
+      path: '/deliveries'
+      fullPath: '/deliveries/'
+      preLoaderRoute: typeof AuthenticatedDeliveriesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/sales/new': {
       id: '/_authenticated/sales/new'
       path: '/sales/new'
@@ -116,19 +157,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSalesIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/deliveries/$id': {
+      id: '/_authenticated/deliveries/$id'
+      path: '/deliveries/$id'
+      fullPath: '/deliveries/$id'
+      preLoaderRoute: typeof AuthenticatedDeliveriesIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedDeliveriesIdRoute: typeof AuthenticatedDeliveriesIdRoute
   AuthenticatedSalesIdRoute: typeof AuthenticatedSalesIdRoute
   AuthenticatedSalesNewRoute: typeof AuthenticatedSalesNewRoute
+  AuthenticatedDeliveriesIndexRoute: typeof AuthenticatedDeliveriesIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedDeliveriesIdRoute: AuthenticatedDeliveriesIdRoute,
   AuthenticatedSalesIdRoute: AuthenticatedSalesIdRoute,
   AuthenticatedSalesNewRoute: AuthenticatedSalesNewRoute,
+  AuthenticatedDeliveriesIndexRoute: AuthenticatedDeliveriesIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
