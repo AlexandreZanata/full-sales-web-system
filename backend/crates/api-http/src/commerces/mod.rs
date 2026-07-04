@@ -27,6 +27,8 @@ pub struct CommerceResponse {
     #[serde(rename = "tradeName")]
     pub trade_name: String,
     pub active: bool,
+    #[serde(rename = "logoFileId", skip_serializing_if = "Option::is_none")]
+    pub logo_file_id: Option<Uuid>,
 }
 
 pub async fn create_commerce(
@@ -70,6 +72,7 @@ pub async fn create_commerce(
                 legal_name: commerce.legal_name().to_owned(),
                 trade_name: commerce.trade_name().to_owned(),
                 active: commerce.is_active(),
+                logo_file_id: None,
             },
         )),
     ))
@@ -84,6 +87,7 @@ pub(crate) fn commerce_response_from_row(
         legal_name: row.legal_name.clone(),
         trade_name: row.trade_name.clone(),
         active: row.active,
+        logo_file_id: row.logo_file_id,
     }
 }
 

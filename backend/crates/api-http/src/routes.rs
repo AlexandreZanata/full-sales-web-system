@@ -30,6 +30,7 @@ use crate::reports::{generate_report, get_report, list_reports, verify_report};
 use crate::sales::{
     cancel_sale, confirm_sale, create_sale, declare_sale_payment, get_sale, list_sales,
 };
+use crate::settings::{get_settings, patch_settings, update_site_logo};
 use crate::state::AppState;
 use crate::users::{
     create_user, deactivate_user, get_user, list_users, upsert_driver_profile,
@@ -145,6 +146,8 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/deliveries/{id}/confirm", post(confirm_delivery))
         .route("/v1/media/upload", post(upload_media))
         .route("/v1/media/{id}/url", get(get_media_url))
+        .route("/v1/settings", get(get_settings).patch(patch_settings))
+        .route("/v1/settings/logo", put(update_site_logo))
         .route("/v1/reports", post(generate_report).get(list_reports))
         .route("/v1/reports/{id}", get(get_report))
         .route("/v1/audit/events", get(list_audit_events))

@@ -116,7 +116,7 @@ function CommerceDetailPage() {
               />
             </Card>
             <Card>
-              <CommerceLogoSection commerceId={id} />
+              <CommerceLogoSection commerceId={id} logoFileId={detail.logoFileId} />
             </Card>
           </div>
         ) : null}

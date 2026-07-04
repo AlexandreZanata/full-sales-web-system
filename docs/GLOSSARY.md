@@ -35,6 +35,15 @@
 
 ---
 
+## SiteSettings
+
+**Definition:** Tenant-level branding configuration — public display name and logo shown in admin, portal, and field app shells.
+**Not the same as:** Commerce logo (`logo_file_id` on a Commerce row — per-store branding)
+**Storage:** `shared.tenants.display_name`, `shared.tenants.logo_file_id` → `media.files`
+**Code name:** `SiteSettings`
+
+---
+
 ## Commerce
 
 **Definition:** Registered business client (store/company) where sales occur — identified by CNPJ.

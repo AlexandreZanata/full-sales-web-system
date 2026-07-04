@@ -12,6 +12,7 @@ export const ptBR: Messages = {
     sales: 'Vendas',
     reports: 'Relatórios',
     audit: 'Auditoria',
+    settings: 'Configurações',
   },
   auth: {
     signIn: 'Entrar',
@@ -473,6 +474,30 @@ export const ptBR: Messages = {
       imageAttached: 'Imagem anexada',
       imageRemoved: 'Imagem removida',
       primaryImageUpdated: 'Imagem principal atualizada',
+    },
+  },
+  settings: {
+    title: 'Configurações',
+    description: 'Configure o nome e o logo do site exibidos nos aplicativos.',
+    loadError: 'Não foi possível carregar as configurações do site.',
+    identity: {
+      title: 'Identidade do site',
+      displayName: 'Nome de exibição',
+      save: 'Salvar alterações',
+      saving: 'Salvando…',
+    },
+    logo: {
+      title: 'Logo do site',
+      description: 'Envie PNG ou JPEG. Exibido no admin, portal e field.',
+      label: 'Logo do site',
+      saving: 'Salvando logo…',
+    },
+    validation: {
+      displayNameTooLong: 'O nome de exibição deve ter no máximo 200 caracteres',
+    },
+    toast: {
+      identitySaved: 'Configurações do site salvas',
+      logoSaved: 'Logo do site atualizado',
     },
   },
   inventory: {

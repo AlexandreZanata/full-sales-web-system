@@ -1,9 +1,8 @@
 import { Link } from '@tanstack/react-router';
 
-import { BrandMark } from '@/components/BrandMark';
+import { SiteBrand } from '@/components/SiteBrand';
 import { useI18n } from '@/lib/i18n/context';
 import { adminTokens } from '@/lib/admin-tokens';
-import { BRAND_NAME } from '@/lib/brand';
 import { adminNavItems } from '@/lib/admin-nav';
 import { cn } from '@/lib/utils';
 
@@ -39,21 +38,5 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
 }
 
 export function AdminBrand({ className }: { className?: string }) {
-  const { t } = useI18n();
-
-  return (
-    <div className={cn(adminTokens.shellBrandBar, className)}>
-      <div className="flex items-center gap-3">
-        <BrandMark size="md" />
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            {BRAND_NAME}
-          </p>
-          <p className="mt-1 text-lg font-semibold leading-tight text-foreground">
-            {t('auth.adminLabel')}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  return <SiteBrand className={className} subtitleKey="auth.adminLabel" />;
 }

@@ -117,6 +117,15 @@ No DDL changes — `reports.reports.canonical_payload` structure only. Spec: [mo
 
 ---
 
+## Phase 41 additions (2026-07-04)
+
+| Change | Migration |
+|--------|-----------|
+| `shared.tenants.display_name`, `logo_file_id` (tenant site branding) | `20260704123600` |
+| `GRANT SELECT, UPDATE ON shared.tenants TO app_user` | `20260704123600` |
+
+---
+
 ## Phase 09 additions (2026-07-04)
 
 | Change | Migration |

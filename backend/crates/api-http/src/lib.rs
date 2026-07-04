@@ -14,6 +14,7 @@ mod reports;
 mod routes;
 mod sales;
 mod session;
+mod settings;
 mod state;
 mod users;
 mod validation;

@@ -18,6 +18,7 @@ export type Messages = {
     sales: string;
     reports: string;
     audit: string;
+    settings: string;
   };
   auth: {
     signIn: string;
@@ -477,6 +478,30 @@ export type Messages = {
       imageAttached: string;
       imageRemoved: string;
       primaryImageUpdated: string;
+    };
+  };
+  settings: {
+    title: string;
+    description: string;
+    loadError: string;
+    identity: {
+      title: string;
+      displayName: string;
+      save: string;
+      saving: string;
+    };
+    logo: {
+      title: string;
+      description: string;
+      label: string;
+      saving: string;
+    };
+    validation: {
+      displayNameTooLong: string;
+    };
+    toast: {
+      identitySaved: string;
+      logoSaved: string;
     };
   };
   inventory: {

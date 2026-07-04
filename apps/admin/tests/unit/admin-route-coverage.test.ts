@@ -20,8 +20,8 @@ describe('admin route coverage — Phase 36 contract', () => {
     }
   });
 
-  it('lists_all_10_admin_panel_routes', () => {
-    expect(adminNavItems).toHaveLength(10);
+  it('lists_all_11_admin_panel_routes', () => {
+    expect(adminNavItems).toHaveLength(11);
     expect(adminNavItems.map((item) => item.to)).toEqual([
       '/',
       '/users',
@@ -33,6 +33,7 @@ describe('admin route coverage — Phase 36 contract', () => {
       '/sales',
       '/reports',
       '/audit',
+      '/settings',
     ]);
   });
 });

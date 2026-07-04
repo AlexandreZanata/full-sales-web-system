@@ -1,5 +1,5 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import { LayoutGrid, LogOut, Package, ShoppingCart } from 'lucide-react';
+import { LayoutGrid, LogIn, LogOut, Package, ShoppingCart } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 import { usePortalAuth } from '@/auth/usePortalAuth';
@@ -7,6 +7,7 @@ import { useCart } from '@/cart/CartProvider';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/lib/i18n/context';
+import { useSiteSettings } from '@/lib/settings/useSiteSettings';
 import { cn } from '@/lib/utils';
 
 type PortalShellProps = {
@@ -24,14 +25,24 @@ export function PortalShell({ children }: PortalShellProps) {
   const { logout, user } = usePortalAuth();
   const { itemCount } = useCart();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const settings = useSiteSettings(Boolean(user));
+  const headerTitle = settings.data?.displayName ?? t('auth.portalLabel');
+  const headerLogoUrl = settings.data?.logoUrl;
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <header className="sticky top-0 z-20 border-b border-hairline bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-3">
+            {headerLogoUrl ? (
+              <img
+                src={headerLogoUrl}
+                alt=""
+                className="size-8 shrink-0 rounded-md border border-hairline object-cover"
+              />
+            ) : null}
             <span className="text-sm font-semibold tracking-tight text-foreground">
-              {t('auth.portalLabel')}
+              {headerTitle}
             </span>
             <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
               {NAV_ITEMS.map(({ to, labelKey, icon: Icon }) => (
@@ -59,12 +70,21 @@ export function PortalShell({ children }: PortalShellProps) {
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
             {user ? (
-              <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
-            ) : null}
-            <Button variant="ghost" className="h-9 px-2" onClick={() => void logout()}>
-              <LogOut className="size-4" aria-hidden />
-              <span className="sr-only md:not-sr-only md:ml-2">{t('auth.logout')}</span>
-            </Button>
+              <>
+                <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
+                <Button variant="ghost" className="h-9 px-2" onClick={() => void logout()}>
+                  <LogOut className="size-4" aria-hidden />
+                  <span className="sr-only md:not-sr-only md:ml-2">{t('auth.logout')}</span>
+                </Button>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" className="h-9 px-2">
+                  <LogIn className="size-4" aria-hidden />
+                  <span className="sr-only md:not-sr-only md:ml-2">{t('auth.signIn')}</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>

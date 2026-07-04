@@ -12,6 +12,7 @@ pub mod ids;
 mod orders;
 mod reports;
 mod sales;
+mod site_settings;
 mod users;
 
 pub use error::{DevSeedError, DevSeedResult};
@@ -36,6 +37,9 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     let foundation = foundation::seed_foundation(&pools.admin, &pools.app)
         .await
         .map_err(|e| wrap_step("foundation", e))?;
+    site_settings::seed_tenant_site_settings(&pools.app, foundation.tenant_id)
+        .await
+        .map_err(|e| wrap_step("site_settings", e))?;
     let users = users::seed_users(&pools.admin, &pools.app, foundation.tenant_id)
         .await
         .map_err(|e| wrap_step("users", e))?;

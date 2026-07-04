@@ -9,6 +9,7 @@ pub enum FileEntityType {
     User,
     Commerce,
     Delivery,
+    Tenant,
 }
 
 impl FileEntityType {
@@ -18,6 +19,7 @@ impl FileEntityType {
             Self::User => "User",
             Self::Commerce => "Commerce",
             Self::Delivery => "Delivery",
+            Self::Tenant => "Tenant",
         }
     }
 }
@@ -37,6 +39,7 @@ impl FromStr for FileEntityType {
             "User" => Ok(Self::User),
             "Commerce" => Ok(Self::Commerce),
             "Delivery" => Ok(Self::Delivery),
+            "Tenant" => Ok(Self::Tenant),
             _ => Err(MediaError::InvalidEntityType),
         }
     }

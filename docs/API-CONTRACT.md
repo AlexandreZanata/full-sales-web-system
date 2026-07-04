@@ -400,6 +400,27 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ---
 
+## Site settings
+
+### `GET /v1/settings`
+
+- **Auth:** Any authenticated role in tenant
+- **Response 200:** `{ "displayName", "logoFileId?", "logoUrl?" }` — `logoUrl` presigned when logo exists
+
+### `PATCH /v1/settings`
+
+- **Auth:** Admin
+- **Body:** `{ "displayName?" }`
+- **Response 200:** Updated settings
+
+### `PUT /v1/settings/logo`
+
+- **Auth:** Admin
+- **Body:** `{ "fileId" }` — upload via `POST /v1/media/upload` with `entityType: "Tenant"` first
+- **Response 200:** Updated settings with presigned `logoUrl`
+
+---
+
 ## Media
 
 ### `POST /v1/media/upload`

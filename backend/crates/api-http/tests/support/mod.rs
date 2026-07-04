@@ -29,6 +29,10 @@ pub struct TestEnv {
 }
 
 pub async fn setup() -> TestEnv {
+    setup_with_tenant(domain_shared::TenantId::generate()).await
+}
+
+pub async fn setup_with_tenant(tenant_id: domain_shared::TenantId) -> TestEnv {
     let container = Postgres::default()
         .with_tag("18-alpine")
         .start()
@@ -48,7 +52,6 @@ pub async fn setup() -> TestEnv {
 
     let app_pool = infra_postgres::connect(&app_url).await.expect("app pool");
 
-    let tenant_id = domain_shared::TenantId::generate();
     infra_postgres::shared::insert_tenant(&admin_pool, tenant_id, "Test Tenant")
         .await
         .expect("tenant");

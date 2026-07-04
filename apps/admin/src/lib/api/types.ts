@@ -157,6 +157,7 @@ export type Commerce = {
   legalName: string;
   tradeName: string;
   active: boolean;
+  logoFileId?: string;
 };
 
 export type CommerceSummary = Commerce;

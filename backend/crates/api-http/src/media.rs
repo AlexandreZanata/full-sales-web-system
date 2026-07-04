@@ -80,3 +80,11 @@ pub async fn get_media_url(
     let presigned = support::presign(&state, &row.bucket, &row.object_key).await?;
     Ok(Json(presigned))
 }
+
+pub async fn presign_object(
+    state: &AppState,
+    bucket: &str,
+    object_key: &str,
+) -> Result<MediaUrlResponse, ApiError> {
+    support::presign(state, bucket, object_key).await
+}

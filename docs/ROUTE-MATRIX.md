@@ -144,6 +144,16 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 
 ---
 
+## Site settings (`shared.tenants`)
+
+| Method | Path | Auth | Status | Migrations | Rules | Task |
+|--------|------|------|--------|------------|-------|------|
+| GET | `/v1/settings` | Any authenticated tenant role | ✅ | `236` | presigned logo URL | 41 |
+| PATCH | `/v1/settings` | Admin | ✅ | `236` | display name | 41 |
+| PUT | `/v1/settings/logo` | Admin | ✅ | `236` | `logo_file_id` → media | 41 |
+
+---
+
 ## Media (`media.files` + MinIO)
 
 | Method | Path | Auth | Status | Migrations | Rules | Task |

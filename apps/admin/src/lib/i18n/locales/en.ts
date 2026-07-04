@@ -12,6 +12,7 @@ export const en: Messages = {
     sales: 'Sales',
     reports: 'Reports',
     audit: 'Audit',
+    settings: 'Settings',
   },
   auth: {
     signIn: 'Sign in',
@@ -472,6 +473,30 @@ export const en: Messages = {
       imageAttached: 'Image attached',
       imageRemoved: 'Image removed',
       primaryImageUpdated: 'Primary image updated',
+    },
+  },
+  settings: {
+    title: 'Settings',
+    description: 'Configure tenant site name and logo shown across apps.',
+    loadError: 'Unable to load site settings.',
+    identity: {
+      title: 'Site identity',
+      displayName: 'Display name',
+      save: 'Save changes',
+      saving: 'Saving…',
+    },
+    logo: {
+      title: 'Site logo',
+      description: 'Upload PNG or JPEG. Shown in the admin, portal, and field apps.',
+      label: 'Site logo',
+      saving: 'Saving logo…',
+    },
+    validation: {
+      displayNameTooLong: 'Display name must be 200 characters or fewer',
+    },
+    toast: {
+      identitySaved: 'Site settings saved',
+      logoSaved: 'Site logo updated',
     },
   },
   inventory: {

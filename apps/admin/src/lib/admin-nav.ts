@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Package,
   ScrollText,
+  Settings,
   ShoppingCart,
   Store,
   Truck,
@@ -25,6 +26,7 @@ export const adminNavItems = [
   { to: '/sales', labelKey: 'nav.sales', icon: ClipboardList },
   { to: '/reports', labelKey: 'nav.reports', icon: FileBarChart },
   { to: '/audit', labelKey: 'nav.audit', icon: ScrollText },
+  { to: '/settings', labelKey: 'nav.settings', icon: Settings },
 ] as const satisfies ReadonlyArray<{
   to: string;
   labelKey: MessageKey;

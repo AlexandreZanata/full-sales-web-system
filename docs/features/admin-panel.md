@@ -33,7 +33,7 @@ See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev`
 
 ---
 
-## Routes (23 screens)
+## Routes (24 screens)
 
 | Label | Route | Domain |
 |-------|-------|--------|
@@ -46,6 +46,7 @@ See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev`
 | Deliveries | `/deliveries`, `/deliveries/$id` | List + read-only detail |
 | Sales | `/sales`, `/sales/new`, `/sales/$id` | List + create + confirm/cancel |
 | Reports | `/reports`, `/reports/new`, `/reports/$id` | Signed reports + verify link |
+| Settings | `/settings` | Tenant site name + logo |
 | Audit | `/audit` | Append-only event log |
 
 Full API↔UI matrix: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
@@ -122,6 +123,16 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 | 36 | i18n foundation, E2E, route audit, CI, docs |
 | 38 | Full admin i18n (en + pt-BR, all 23 screens) |
 | 40 | Admin product lifecycle — image gallery hydrate, reactivate, list filters |
+| 41 | Site settings — tenant display name + logo in `/settings` and app shells |
+
+---
+
+## Site settings (Phase 41)
+
+- **Route:** `/settings` (sidebar) — edit display name and upload tenant logo
+- **API:** `GET/PATCH /v1/settings`, `PUT /v1/settings/logo`
+- **Branding:** Logo + display name in admin shell; portal/field headers consume `GET /v1/settings` after login
+- **Distinct from:** Commerce logo on commerce detail (`PUT /v1/commerces/{id}/logo`)
 
 ---
 
@@ -134,4 +145,4 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 
 ---
 
-**Updated:** 2026-07-04 (Phase 40)
+**Updated:** 2026-07-04 (Phases 40–41)

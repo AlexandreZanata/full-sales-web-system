@@ -4,11 +4,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { AdminBrand, AdminNavLinks } from '@/components/AdminNavLinks';
-import { BrandMark } from '@/components/BrandMark';
+import { SiteBrand } from '@/components/SiteBrand';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/lib/i18n/context';
-import { BRAND_NAME } from '@/lib/brand';
 import { adminTokens } from '@/lib/admin-tokens';
 import { cn } from '@/lib/utils';
 
@@ -57,16 +56,8 @@ export function AdminShell({ children }: AdminShellProps) {
         >
           <Menu className="size-5" />
         </Button>
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <BrandMark size="md" />
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              {BRAND_NAME}
-            </p>
-            <p className="mt-1 truncate text-lg font-semibold leading-tight text-foreground">
-              {t('auth.adminLabel')}
-            </p>
-          </div>
+        <div className="flex min-w-0 flex-1 items-center">
+          <SiteBrand subtitleKey="auth.adminLabel" className="border-0 px-0 py-0" />
         </div>
         <Button
           variant="ghost"

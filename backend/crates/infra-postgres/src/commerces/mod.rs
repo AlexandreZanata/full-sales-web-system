@@ -53,6 +53,7 @@ pub struct CommerceRow {
     pub legal_name: String,
     pub trade_name: String,
     pub active: bool,
+    pub logo_file_id: Option<Uuid>,
 }
 
 pub async fn find_commerce_by_id(
@@ -62,8 +63,8 @@ pub async fn find_commerce_by_id(
 ) -> Result<Option<CommerceRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (Uuid, String, String, String, bool)>(
-        "SELECT id, cnpj, legal_name, trade_name, active
+    let row = sqlx::query_as::<_, (Uuid, String, String, String, bool, Option<Uuid>)>(
+        "SELECT id, cnpj, legal_name, trade_name, active, logo_file_id
          FROM commerces.commerces WHERE id = $1",
     )
     .bind(id)
@@ -71,12 +72,13 @@ pub async fn find_commerce_by_id(
     .await?;
     tx.commit().await?;
     Ok(
-        row.map(|(id, cnpj, legal_name, trade_name, active)| CommerceRow {
+        row.map(|(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
             id,
             cnpj,
             legal_name,
             trade_name,
             active,
+            logo_file_id,
         }),
     )
 }
@@ -90,8 +92,8 @@ pub async fn list_commerces(
 ) -> Result<Vec<CommerceRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool)>(
-        "SELECT id, cnpj, legal_name, trade_name, active
+    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool, Option<Uuid>)>(
+        "SELECT id, cnpj, legal_name, trade_name, active, logo_file_id
          FROM commerces.commerces
          WHERE ($1::bool IS NULL OR active = $1)
          ORDER BY cnpj LIMIT $2 OFFSET $3",
@@ -104,12 +106,13 @@ pub async fn list_commerces(
     tx.commit().await?;
     Ok(rows
         .into_iter()
-        .map(|(id, cnpj, legal_name, trade_name, active)| CommerceRow {
+        .map(|(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
             id,
             cnpj,
             legal_name,
             trade_name,
             active,
+            logo_file_id,
         })
         .collect())
 }

@@ -1,6 +1,6 @@
 import { apiRequest, parseApiErrorBody, ApiError } from '@/lib/api/client';
 
-export type MediaEntityType = 'Product' | 'User' | 'Commerce' | 'Delivery';
+export type MediaEntityType = 'Product' | 'User' | 'Commerce' | 'Delivery' | 'Tenant';
 
 export type MediaUploadResponse = {
   id: string;

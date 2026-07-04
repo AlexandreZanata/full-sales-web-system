@@ -14,6 +14,10 @@
 
 React 19, Vite, TanStack Router + Query, Tailwind v4, pt-BR default i18n, installable PWA (manifest + static SW).
 
+## Tenant branding (Phase 41)
+
+Portal and field shells call `GET /v1/settings` after login to show tenant `displayName` and presigned `logoUrl` in the header (5 min query staleTime). Admin configures branding at `/settings`.
+
 ## Portal routes
 
 | Route | API |
