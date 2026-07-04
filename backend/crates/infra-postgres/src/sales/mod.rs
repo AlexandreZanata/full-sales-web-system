@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::PostgresError;
 use crate::inventory::StockMovementInsert;
-use crate::rls::apply_tenant_context;
+use crate::rls::{apply_session_context, apply_tenant_context, SessionContext};
 
 pub struct SaleFilters {
     pub commerce_id: Option<Uuid>,
@@ -61,10 +61,22 @@ pub struct SaleRow {
     pub id: Uuid,
     pub driver_id: Uuid,
     pub commerce_id: Uuid,
+    pub order_id: Option<Uuid>,
     pub status: String,
     pub payment_method: String,
+    pub declared_payment_method: String,
+    pub declared_payment_received: bool,
     pub total_amount: i64,
     pub total_currency: String,
+}
+
+pub struct DeclarePaymentUpdate {
+    pub sale_id: Uuid,
+    pub driver_id: Uuid,
+    pub method: String,
+    pub received: bool,
+    pub declared_at: chrono::DateTime<chrono::Utc>,
+    pub notes: Option<String>,
 }
 
 pub struct SaleItemRow {
@@ -136,8 +148,20 @@ pub async fn find_sale_by_id(
 ) -> Result<Option<SaleRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (Uuid, Uuid, Uuid, String, String, i64, String)>(
-        "SELECT id, driver_id, commerce_id, status, payment_method, total_amount, total_currency
+    let row = sqlx::query_as::<_, (
+        Uuid,
+        Uuid,
+        Uuid,
+        Option<Uuid>,
+        String,
+        String,
+        String,
+        bool,
+        i64,
+        String,
+    )>(
+        "SELECT id, driver_id, commerce_id, order_id, status, payment_method,
+                declared_payment_method, declared_payment_received, total_amount, total_currency
          FROM sales.sales WHERE id = $1",
     )
     .bind(id)
@@ -145,13 +169,27 @@ pub async fn find_sale_by_id(
     .await?;
     tx.commit().await?;
     Ok(row.map(
-        |(id, driver_id, commerce_id, status, payment_method, total_amount, total_currency)| {
+        |(
+            id,
+            driver_id,
+            commerce_id,
+            order_id,
+            status,
+            payment_method,
+            declared_payment_method,
+            declared_payment_received,
+            total_amount,
+            total_currency,
+        )| {
             SaleRow {
                 id,
                 driver_id,
                 commerce_id,
+                order_id,
                 status,
                 payment_method,
+                declared_payment_method,
+                declared_payment_received,
                 total_amount,
                 total_currency,
             }
@@ -415,6 +453,72 @@ pub async fn count_sales(
     .await?;
     tx.commit().await?;
     Ok(count)
+}
+
+/// RN-PAG3 — persist declaration and append audit event in one transaction.
+pub async fn declare_payment(
+    pool: &PgPool,
+    session: &SessionContext,
+    update: &DeclarePaymentUpdate,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+
+    let previous = sqlx::query_as::<_, (String, bool)>(
+        "SELECT declared_payment_method, declared_payment_received
+         FROM sales.sales WHERE id = $1 AND driver_id = $2 FOR UPDATE",
+    )
+    .bind(update.sale_id)
+    .bind(update.driver_id)
+    .fetch_optional(&mut *tx)
+    .await?
+    .ok_or(PostgresError::Database(sqlx::Error::RowNotFound))?;
+
+    let result = sqlx::query(
+        "UPDATE sales.sales
+         SET declared_payment_method = $3,
+             declared_payment_received = $4,
+             declared_payment_at = $5,
+             declared_payment_by_user_id = $6,
+             declared_payment_notes = $7
+         WHERE id = $1 AND driver_id = $2",
+    )
+    .bind(update.sale_id)
+    .bind(update.driver_id)
+    .bind(&update.method)
+    .bind(update.received)
+    .bind(update.declared_at)
+    .bind(session.user_id)
+    .bind(&update.notes)
+    .execute(&mut *tx)
+    .await?;
+    if result.rows_affected() != 1 {
+        return Err(PostgresError::Database(sqlx::Error::RowNotFound));
+    }
+
+    sqlx::query(
+        "INSERT INTO audit.events
+         (id, tenant_id, actor_id, action, resource_type, resource_id, metadata, correlation_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+    )
+    .bind(Uuid::now_v7())
+    .bind(session.tenant_id.as_uuid())
+    .bind(session.user_id)
+    .bind("sale.declared_payment_changed")
+    .bind("Sale")
+    .bind(update.sale_id)
+    .bind(serde_json::json!({
+        "previousMethod": previous.0,
+        "previousReceived": previous.1,
+        "newMethod": update.method,
+        "newReceived": update.received,
+    }))
+    .bind(None::<Uuid>)
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(())
 }
 
 pub async fn insert_sale_item(

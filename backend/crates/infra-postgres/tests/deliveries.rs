@@ -305,7 +305,6 @@ async fn given_in_transit_delivery_when_confirm_then_sale_stock_and_reservations
             }],
             sale_id,
             commerce_id: fixture.commerce_id,
-            payment_method: "Cash".into(),
             sale_items: vec![sales::NewSaleItem {
                 id: Uuid::now_v7(),
                 sale_id,
@@ -359,6 +358,14 @@ async fn given_in_transit_delivery_when_confirm_then_sale_stock_and_reservations
         .await
         .expect("sales");
     assert!(sale_ids.contains(&sale_id));
+
+    let sale = sales::find_sale_by_id(&pools.app, fixture.tenant, sale_id)
+        .await
+        .expect("find sale")
+        .expect("row");
+    assert_eq!(sale.order_id, Some(fixture.order_id));
+    assert_eq!(sale.total_amount, 6000);
+    assert_eq!(sale.declared_payment_method, "NotDeclared");
 }
 
 #[tokio::test]
@@ -385,7 +392,6 @@ async fn given_other_driver_when_confirm_delivery_then_not_found() {
             }],
             sale_id: Uuid::now_v7(),
             commerce_id: fixture.commerce_id,
-            payment_method: "Cash".into(),
             sale_items: vec![],
             stock_lines: vec![],
         },
@@ -425,7 +431,6 @@ async fn given_partial_qty_when_confirm_then_order_partially_delivered() {
             }],
             sale_id,
             commerce_id: fixture.commerce_id,
-            payment_method: "Pix".into(),
             sale_items: vec![sales::NewSaleItem {
                 id: Uuid::now_v7(),
                 sale_id,

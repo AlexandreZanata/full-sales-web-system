@@ -57,6 +57,7 @@ dependencies = [
 name = "application"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "domain-commerces",
  "domain-deliveries",
  "domain-identity",
@@ -1198,9 +1199,11 @@ dependencies = [
 name = "domain-sales"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "domain-commerces",
  "domain-identity",
  "domain-inventory",
+ "domain-orders",
  "domain-shared",
  "serde",
  "thiserror",

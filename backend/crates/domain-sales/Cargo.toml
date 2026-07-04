@@ -6,13 +6,20 @@ license.workspace = true
 publish = false
 
 [dependencies]
+chrono.workspace = true
 domain-commerces.workspace = true
 domain-identity.workspace = true
 domain-inventory.workspace = true
+domain-orders.workspace = true
 domain-shared.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
+
+[dev-dependencies]
+domain-commerces.workspace = true
+domain-inventory.workspace = true
+domain-orders.workspace = true
 
 [lints]
 workspace = true

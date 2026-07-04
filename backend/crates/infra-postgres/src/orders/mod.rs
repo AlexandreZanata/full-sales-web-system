@@ -161,6 +161,19 @@ pub async fn update_order_status_in_tx(
     Ok(())
 }
 
+pub async fn update_order_status(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+    status: &str,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    update_order_status_in_tx(&mut tx, order_id, status).await?;
+    tx.commit().await?;
+    Ok(())
+}
+
 async fn insert_order_in_tx(
     tx: &mut Transaction<'_, Postgres>,
     tenant_id: TenantId,

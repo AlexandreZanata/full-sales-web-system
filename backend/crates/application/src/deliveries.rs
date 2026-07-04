@@ -1,9 +1,8 @@
-use domain_commerces::Commerce;
 use domain_deliveries::{ConfirmDeliveryInput, Delivery, DeliveryError};
 use domain_identity::UserId;
 use domain_media::FileId;
 use domain_orders::{DeliveredItemInput, Order, OrderError};
-use domain_sales::{PaymentMethod, Sale, SaleId, SaleItem, SaleStatus};
+use domain_sales::{Sale, SaleFromDeliveryInput, SaleId};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -18,7 +17,7 @@ pub enum DeliveriesAppError {
     Sale(#[from] domain_sales::SaleError),
 }
 
-pub struct ConfirmDeliveryCommand {
+pub struct ConfirmDeliveryAndCreateSaleCommand {
     pub delivery: Delivery,
     pub order: Order,
     pub items: Vec<DeliveredItemInput>,
@@ -27,19 +26,19 @@ pub struct ConfirmDeliveryCommand {
     pub longitude: Option<f64>,
     pub received_by_name: Option<String>,
     pub acting_driver: UserId,
-    pub commerce: Commerce,
     pub sale_id: SaleId,
-    pub payment_method: PaymentMethod,
 }
 
-pub struct ConfirmDeliveryResult {
+pub struct ConfirmDeliveryAndCreateSaleResult {
     pub delivery: Delivery,
     pub order: Order,
     pub sale: Sale,
 }
 
-/// Confirms delivery, updates order status, and builds a confirmed sale (Phase 12 preview).
-pub fn confirm_delivery(command: ConfirmDeliveryCommand) -> Result<ConfirmDeliveryResult, DeliveriesAppError> {
+/// Single orchestration: confirm delivery, update order, build confirmed sale (Phase 13).
+pub fn confirm_delivery_and_create_sale(
+    command: ConfirmDeliveryAndCreateSaleCommand,
+) -> Result<ConfirmDeliveryAndCreateSaleResult, DeliveriesAppError> {
     let delivery = command.delivery.confirm(
         ConfirmDeliveryInput {
             proof_file_id: Some(command.proof_file_id),
@@ -51,55 +50,17 @@ pub fn confirm_delivery(command: ConfirmDeliveryCommand) -> Result<ConfirmDelive
     )?;
 
     let order = command.order.confirm_delivery(&command.items)?;
-    let sale = confirmed_sale_from_order(
-        command.sale_id,
-        command.acting_driver,
-        command.commerce,
-        command.payment_method,
-        &order,
-    )?;
+    let sale = Sale::from_delivery(SaleFromDeliveryInput {
+        id: command.sale_id,
+        driver_id: command.acting_driver,
+        order: order.clone(),
+    })?;
 
-    Ok(ConfirmDeliveryResult {
+    Ok(ConfirmDeliveryAndCreateSaleResult {
         delivery,
         order,
         sale,
     })
-}
-
-fn confirmed_sale_from_order(
-    sale_id: SaleId,
-    driver_id: UserId,
-    _commerce: Commerce,
-    payment_method: PaymentMethod,
-    order: &Order,
-) -> Result<Sale, domain_sales::SaleError> {
-    let mut items = Vec::new();
-    for line in order.items() {
-        let quantity = line
-            .quantity_delivered()
-            .ok_or(domain_sales::SaleError::EmptySale)?;
-        items.push(
-            SaleItem::create(
-                line.product_id(),
-                quantity,
-                line.unit_price().clone(),
-            )
-            .map_err(|_| domain_sales::SaleError::EmptySale)?,
-        );
-    }
-    if items.is_empty() {
-        return Err(domain_sales::SaleError::EmptySale);
-    }
-
-    Ok(Sale::restore(
-        sale_id,
-        driver_id,
-        order.commerce_id(),
-        payment_method,
-        order.tenant_id(),
-        SaleStatus::Confirmed,
-        items,
-    ))
 }
 
 pub struct SaleLineDto {
@@ -137,11 +98,12 @@ mod tests {
     use domain_orders::{
         AddOrderItemInput, OrderCreateInput, OrderId, OrderItemId, OrderSource, OrderStatus,
     };
+    use domain_sales::SaleStatus;
     use domain_shared::{Currency, Money, TenantId};
 
     use super::*;
 
-    fn in_transit_fixtures() -> (Delivery, Order, UserId, Commerce, DeliveredItemInput) {
+    fn in_transit_fixtures() -> (Delivery, Order, UserId, DeliveredItemInput) {
         let driver = UserId::generate();
         let commerce = Commerce::create(CreateCommerceInput {
             id: CommerceId::generate(),
@@ -203,17 +165,17 @@ mod tests {
         .submit()
         .expect("submit");
 
-    let mut port = domain_orders::InMemoryReservationPort::new(
-        domain_orders::StockSnapshot::default().with_balance(product_id, 100),
-    );
-    let order = order
-        .approve(&mut port)
-        .expect("approve")
-        .0
-        .start_picking()
-        .expect("picking")
-        .mark_in_transit()
-        .expect("in transit");
+        let mut port = domain_orders::InMemoryReservationPort::new(
+            domain_orders::StockSnapshot::default().with_balance(product_id, 100),
+        );
+        let order = order
+            .approve(&mut port)
+            .expect("approve")
+            .0
+            .start_picking()
+            .expect("picking")
+            .mark_in_transit()
+            .expect("in transit");
 
         let delivery = Delivery::create(DeliveryCreateInput {
             id: DeliveryId::generate(),
@@ -229,13 +191,13 @@ mod tests {
             quantity_delivered: Quantity::of(4).expect("qty"),
         };
 
-        (delivery, order, driver, commerce, delivered)
+        (delivery, order, driver, delivered)
     }
 
     #[test]
     fn given_valid_confirm_when_orchestrate_then_sale_and_order_delivered() {
-        let (delivery, order, driver, commerce, delivered) = in_transit_fixtures();
-        let result = confirm_delivery(ConfirmDeliveryCommand {
+        let (delivery, order, driver, delivered) = in_transit_fixtures();
+        let result = confirm_delivery_and_create_sale(ConfirmDeliveryAndCreateSaleCommand {
             delivery,
             order,
             items: vec![delivered],
@@ -244,14 +206,14 @@ mod tests {
             longitude: Some(-46.6),
             received_by_name: Some("Joao".into()),
             acting_driver: driver,
-            commerce,
             sale_id: SaleId::generate(),
-            payment_method: PaymentMethod::Cash,
         })
         .expect("confirm");
 
         assert_eq!(result.order.status(), OrderStatus::Delivered);
         assert_eq!(result.sale.status(), SaleStatus::Confirmed);
         assert_eq!(result.sale.items().len(), 1);
+        assert!(result.sale.order_id().is_some());
+        assert_eq!(result.sale.total().expect("total").amount_minor(), 8_000);
     }
 }

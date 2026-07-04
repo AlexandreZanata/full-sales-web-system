@@ -10,6 +10,12 @@ pub enum SaleError {
     #[error("invalid payment method")]
     InvalidPaymentMethod,
 
+    #[error("invalid declared payment method")]
+    InvalidDeclaredPaymentMethod,
+
+    #[error("only the responsible driver may declare payment for this sale")]
+    UnauthorizedPaymentDeclaration,
+
     #[error("inactive commerce cannot be referenced in new sale")]
     InactiveCommerce,
 

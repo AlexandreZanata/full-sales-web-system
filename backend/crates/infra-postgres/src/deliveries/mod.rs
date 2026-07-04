@@ -40,7 +40,6 @@ pub struct ConfirmDeliveryTxInput {
     pub order_items: Vec<ConfirmDeliveryItemUpdate>,
     pub sale_id: Uuid,
     pub commerce_id: Uuid,
-    pub payment_method: String,
     pub sale_items: Vec<sales::NewSaleItem>,
     pub stock_lines: Vec<sales::ConfirmSaleItem>,
 }
@@ -138,16 +137,23 @@ pub async fn confirm_delivery_transaction(
         .await?;
     }
 
+    let total_amount: i64 = input
+        .sale_items
+        .iter()
+        .map(|item| item.line_total_amount)
+        .sum();
+
     sqlx::query(
         "INSERT INTO sales.sales
-         (id, tenant_id, driver_id, commerce_id, payment_method, status, confirmed_at)
-         VALUES ($1, $2, $3, $4, $5, 'Confirmed', now())",
+         (id, tenant_id, driver_id, commerce_id, order_id, payment_method, status, total_amount, total_currency, confirmed_at)
+         VALUES ($1, $2, $3, $4, $5, 'NotDeclared', 'Confirmed', $6, 'BRL', now())",
     )
     .bind(input.sale_id)
     .bind(tenant_uuid)
     .bind(input.driver_id)
     .bind(input.commerce_id)
-    .bind(&input.payment_method)
+    .bind(input.order_id)
+    .bind(total_amount)
     .execute(&mut *tx)
     .await?;
 

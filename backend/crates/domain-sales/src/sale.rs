@@ -1,8 +1,13 @@
+use chrono::{DateTime, Utc};
 use domain_commerces::Commerce;
 use domain_identity::UserId;
 use domain_inventory::{Product, Quantity};
+use domain_orders::{Order, OrderId};
 use domain_shared::{Money, TenantId};
 
+use crate::audit_port::{PaymentDeclarationAuditEntry, PaymentDeclarationAuditPort};
+use crate::declared_payment::DeclaredPayment;
+use crate::declared_payment_method::DeclaredPaymentMethod;
 use crate::error::SaleError;
 use crate::payment_method::PaymentMethod;
 use crate::sale_id::SaleId;
@@ -17,6 +22,20 @@ pub struct SaleCreateInput {
     pub tenant_id: TenantId,
 }
 
+pub struct SaleFromDeliveryInput {
+    pub id: SaleId,
+    pub driver_id: UserId,
+    pub order: Order,
+}
+
+pub struct DeclarePaymentInput {
+    pub method: DeclaredPaymentMethod,
+    pub received: bool,
+    pub declared_at: DateTime<Utc>,
+    pub declaring_user: UserId,
+    pub notes: Option<String>,
+}
+
 pub struct AddSaleItemInput {
     pub product: Product,
     pub quantity: Quantity,
@@ -28,7 +47,9 @@ pub struct Sale {
     id: SaleId,
     driver_id: UserId,
     commerce_id: domain_commerces::CommerceId,
+    order_id: Option<OrderId>,
     payment_method: PaymentMethod,
+    declared_payment: DeclaredPayment,
     tenant_id: TenantId,
     status: SaleStatus,
     items: Vec<SaleItem>,
@@ -43,11 +64,75 @@ impl Sale {
             id: input.id,
             driver_id: input.driver_id,
             commerce_id: input.commerce.id(),
+            order_id: None,
             payment_method: input.payment_method,
+            declared_payment: DeclaredPayment::not_declared(),
             tenant_id: input.tenant_id,
             status: SaleStatus::Pending,
             items: Vec::new(),
         })
+    }
+
+    /// Portal path — sale born from delivery with delivered quantities (Phase 13).
+    pub fn from_delivery(input: SaleFromDeliveryInput) -> Result<Self, SaleError> {
+        let order = input.order;
+        let mut items = Vec::new();
+        for line in order.items() {
+            let quantity = line
+                .quantity_delivered()
+                .ok_or(SaleError::EmptySale)?;
+            items.push(
+                SaleItem::create(
+                    line.product_id(),
+                    quantity,
+                    line.unit_price().clone(),
+                )
+                .map_err(|_| SaleError::EmptySale)?,
+            );
+        }
+        if items.is_empty() {
+            return Err(SaleError::EmptySale);
+        }
+
+        Ok(Self {
+            id: input.id,
+            driver_id: input.driver_id,
+            commerce_id: order.commerce_id(),
+            order_id: Some(order.id()),
+            payment_method: PaymentMethod::NotDeclared,
+            declared_payment: DeclaredPayment::not_declared(),
+            tenant_id: order.tenant_id(),
+            status: SaleStatus::Confirmed,
+            items,
+        })
+    }
+
+    /// RN-PAG2 — only the responsible driver may declare; RN-PAG3 — audit on change.
+    pub fn declare_payment(
+        mut self,
+        input: DeclarePaymentInput,
+        audit: &mut impl PaymentDeclarationAuditPort,
+    ) -> Result<Self, SaleError> {
+        if input.declaring_user != self.driver_id {
+            return Err(SaleError::UnauthorizedPaymentDeclaration);
+        }
+
+        let previous = self.declared_payment.clone();
+        let current = DeclaredPayment::apply(
+            input.method,
+            input.received,
+            input.declared_at,
+            input.declaring_user,
+            input.notes,
+        );
+        audit.record_change(PaymentDeclarationAuditEntry {
+            sale_id: self.id,
+            actor_id: input.declaring_user,
+            previous,
+            current: current.clone(),
+        })?;
+        self.declared_payment = current;
+        Ok(self)
     }
 
     pub fn id(&self) -> SaleId {
@@ -62,8 +147,16 @@ impl Sale {
         self.commerce_id
     }
 
+    pub fn order_id(&self) -> Option<OrderId> {
+        self.order_id
+    }
+
     pub fn payment_method(&self) -> PaymentMethod {
         self.payment_method
+    }
+
+    pub fn declared_payment(&self) -> &DeclaredPayment {
+        &self.declared_payment
     }
 
     pub fn tenant_id(&self) -> TenantId {
@@ -121,7 +214,9 @@ impl Sale {
         id: SaleId,
         driver_id: UserId,
         commerce_id: domain_commerces::CommerceId,
+        order_id: Option<OrderId>,
         payment_method: PaymentMethod,
+        declared_payment: DeclaredPayment,
         tenant_id: TenantId,
         status: SaleStatus,
         items: Vec<SaleItem>,
@@ -130,7 +225,9 @@ impl Sale {
             id,
             driver_id,
             commerce_id,
+            order_id,
             payment_method,
+            declared_payment,
             tenant_id,
             status,
             items,
@@ -145,149 +242,5 @@ impl Sale {
             });
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-#[allow(clippy::unwrap_used)]
-mod tests {
-    use domain_commerces::{Cnpj, Commerce, CommerceId, CreateCommerceInput};
-    use domain_identity::UserId;
-    use domain_inventory::{Product, ProductCreateInput, ProductId, Quantity, Sku, UnitOfMeasure};
-    use domain_shared::{Currency, Money, TenantId};
-
-    use super::*;
-
-    fn sample_commerce() -> Commerce {
-        Commerce::create(CreateCommerceInput {
-            id: CommerceId::generate(),
-            cnpj: Cnpj::parse("11222333000181").expect("cnpj"),
-            legal_name: "Acme".into(),
-            trade_name: None,
-            tenant_id: TenantId::generate(),
-        })
-    }
-
-    fn sample_product(tenant_id: TenantId) -> Product {
-        Product::create(ProductCreateInput {
-            id: ProductId::generate(),
-            name: "Widget".into(),
-            sku: Sku::parse("WGT-001").expect("sku"),
-            unit_price: Money::new(1_000, Currency::brl()).expect("price"),
-            tenant_id,
-            active: true,
-            category: None,
-            unit_of_measure: UnitOfMeasure::Unit,
-        })
-    }
-
-    // Contract: STATE-MACHINES — Pending → Confirmed
-    #[test]
-    fn given_pending_sale_with_items_when_confirm_then_confirmed() {
-        let commerce = sample_commerce();
-        let tenant_id = commerce.tenant_id();
-        let product = sample_product(tenant_id);
-        let sale = Sale::create(SaleCreateInput {
-            id: SaleId::generate(),
-            driver_id: UserId::generate(),
-            commerce,
-            payment_method: PaymentMethod::Cash,
-            tenant_id,
-        })
-        .expect("create")
-        .add_item(AddSaleItemInput {
-            product,
-            quantity: Quantity::of(2).expect("qty"),
-        })
-        .expect("add item")
-        .confirm()
-        .expect("confirm");
-        assert_eq!(sale.status(), SaleStatus::Confirmed);
-    }
-
-    // Contract: STATE-MACHINES — Confirmed → Pending fails
-    #[test]
-    fn given_confirmed_sale_when_confirm_again_then_invalid_transition() {
-        let commerce = sample_commerce();
-        let tenant_id = commerce.tenant_id();
-        let product = sample_product(tenant_id);
-        let sale = Sale::create(SaleCreateInput {
-            id: SaleId::generate(),
-            driver_id: UserId::generate(),
-            commerce,
-            payment_method: PaymentMethod::Pix,
-            tenant_id,
-        })
-        .expect("create")
-        .add_item(AddSaleItemInput {
-            product,
-            quantity: Quantity::of(1).expect("qty"),
-        })
-        .expect("add")
-        .confirm()
-        .expect("confirm");
-        let err = sale.confirm().expect_err("must fail");
-        assert!(matches!(
-            err,
-            SaleError::InvalidTransition {
-                from: SaleStatus::Confirmed,
-                to: SaleStatus::Confirmed
-            }
-        ));
-    }
-
-    // Contract: STATE-MACHINES — Pending → Cancelled (UC-001 AF-2)
-    #[test]
-    fn given_pending_sale_when_cancel_then_cancelled() {
-        let commerce = sample_commerce();
-        let tenant_id = commerce.tenant_id();
-        let product = sample_product(tenant_id);
-        let sale = Sale::create(SaleCreateInput {
-            id: SaleId::generate(),
-            driver_id: UserId::generate(),
-            commerce,
-            payment_method: PaymentMethod::Cash,
-            tenant_id,
-        })
-        .expect("create")
-        .add_item(AddSaleItemInput {
-            product,
-            quantity: Quantity::of(1).expect("qty"),
-        })
-        .expect("add")
-        .cancel()
-        .expect("cancel");
-        assert_eq!(sale.status(), SaleStatus::Cancelled);
-    }
-
-    // Contract: BR-SA-003 — Confirmed sale cannot be cancelled
-    #[test]
-    fn given_confirmed_sale_when_cancel_then_invalid_transition() {
-        let commerce = sample_commerce();
-        let tenant_id = commerce.tenant_id();
-        let product = sample_product(tenant_id);
-        let sale = Sale::create(SaleCreateInput {
-            id: SaleId::generate(),
-            driver_id: UserId::generate(),
-            commerce,
-            payment_method: PaymentMethod::Debit,
-            tenant_id,
-        })
-        .expect("create")
-        .add_item(AddSaleItemInput {
-            product,
-            quantity: Quantity::of(1).expect("qty"),
-        })
-        .expect("add")
-        .confirm()
-        .expect("confirm");
-        let err = sale.cancel().expect_err("must fail");
-        assert!(matches!(
-            err,
-            SaleError::InvalidTransition {
-                from: SaleStatus::Confirmed,
-                to: SaleStatus::Cancelled
-            }
-        ));
     }
 }

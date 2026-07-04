@@ -2,27 +2,28 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::SaleError;
 
-/// How a sale was paid — recorded only, no gateway capture (ADR-006).
+/// Seller-declared payment method — unverified off-platform assertion (RN-PAG1–RN-PAG4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub enum PaymentMethod {
+pub enum DeclaredPaymentMethod {
     Cash,
     Pix,
-    Credit,
-    Debit,
-    /// Order-born sales before seller declaration (DE-010).
+    Card,
+    Boleto,
+    Other,
     NotDeclared,
 }
 
-impl PaymentMethod {
+impl DeclaredPaymentMethod {
     pub fn parse(value: &str) -> Result<Self, SaleError> {
         match value {
             "Cash" | "cash" => Ok(Self::Cash),
             "Pix" | "pix" => Ok(Self::Pix),
-            "Credit" | "credit" => Ok(Self::Credit),
-            "Debit" | "debit" => Ok(Self::Debit),
+            "Card" | "card" => Ok(Self::Card),
+            "Boleto" | "boleto" => Ok(Self::Boleto),
+            "Other" | "other" => Ok(Self::Other),
             "NotDeclared" | "not_declared" => Ok(Self::NotDeclared),
-            _ => Err(SaleError::InvalidPaymentMethod),
+            _ => Err(SaleError::InvalidDeclaredPaymentMethod),
         }
     }
 
@@ -30,8 +31,9 @@ impl PaymentMethod {
         match self {
             Self::Cash => "Cash",
             Self::Pix => "Pix",
-            Self::Credit => "Credit",
-            Self::Debit => "Debit",
+            Self::Card => "Card",
+            Self::Boleto => "Boleto",
+            Self::Other => "Other",
             Self::NotDeclared => "NotDeclared",
         }
     }

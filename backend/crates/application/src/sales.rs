@@ -1,7 +1,10 @@
+use chrono::{DateTime, Utc};
 use domain_commerces::Commerce;
 use domain_identity::UserId;
 use domain_inventory::Product;
-use domain_sales::{PaymentMethod, Sale, SaleId, SaleStatus};
+use domain_sales::{
+    DeclarePaymentInput, DeclaredPaymentMethod, PaymentDeclarationAuditPort, PaymentMethod, Sale, SaleId, SaleStatus,
+};
 use domain_shared::{Money, TenantId};
 use thiserror::Error;
 use uuid::Uuid;
@@ -115,4 +118,30 @@ pub fn sale_to_dto(sale: &Sale) -> Result<SaleDto, domain_shared::DomainError> {
 
 pub fn confirm_sale(sale: Sale) -> Result<Sale, SalesAppError> {
     sale.confirm().map_err(SalesAppError::from)
+}
+
+pub struct DeclareSalePaymentCommand {
+    pub method: DeclaredPaymentMethod,
+    pub received: bool,
+    pub declared_at: DateTime<Utc>,
+    pub declaring_user: UserId,
+    pub notes: Option<String>,
+}
+
+pub fn declare_sale_payment(
+    sale: Sale,
+    command: DeclareSalePaymentCommand,
+    audit: &mut impl PaymentDeclarationAuditPort,
+) -> Result<Sale, SalesAppError> {
+    sale.declare_payment(
+        DeclarePaymentInput {
+            method: command.method,
+            received: command.received,
+            declared_at: command.declared_at,
+            declaring_user: command.declaring_user,
+            notes: command.notes,
+        },
+        audit,
+    )
+    .map_err(SalesAppError::from)
 }
