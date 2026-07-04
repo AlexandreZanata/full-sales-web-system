@@ -13,3 +13,4 @@ Template: `agent-rules/11-documentation-and-glossary/adr-template.md`
 | [ADR-005](ADR-005-inventory-driver-scope.md) | Inventory scoped per driver | Accepted |
 | [ADR-006](ADR-006-payment-method-enum.md) | PaymentMethod enum values | Accepted |
 | [ADR-007](ADR-007-public-report-verify.md) | Public report verification endpoint | Accepted |
+| [ADR-008](ADR-008-hybrid-monorepo.md) | Rust backend + pnpm web client monorepo | Accepted |

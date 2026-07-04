@@ -1,17 +1,30 @@
 # Development Commands
 
-Quick reference for local development. All Rust commands run from `backend/`.
+Quick reference for local development.
 
 ---
 
-## Setup
+## Monorepo (root)
 
 ```bash
-cd backend
-cp .env.example .env   # adjust DATABASE_URL, API_PORT if needed
+pnpm install
+pnpm verify          # lint + test + build + Rust checks
+pnpm dev             # API (Rust) + web (Vite) in parallel
+pnpm lint && pnpm test && pnpm build
 ```
 
+| App | Command | URL |
+|-----|---------|-----|
+| API | `pnpm dev:api` or `cd backend && cargo run -p api-http` | `http://127.0.0.1:8080/health` |
+| Web | `pnpm dev:web` | `http://127.0.0.1:5173` |
+
+Copy `.env.example` (root) and `backend/.env.example` for local configuration.
+
 ---
+
+## Backend (Rust)
+
+All Rust commands run from `backend/`.
 
 ## Database
 

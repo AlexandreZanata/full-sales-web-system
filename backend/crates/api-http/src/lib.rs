@@ -1,6 +1,8 @@
-use axum::{Json, Router, routing::get};
-use http::{HeaderName, Request};
-use serde::Serialize;
+mod error;
+mod routes;
+
+use axum::Router;
+use http::HeaderName;
 use tower::ServiceBuilder;
 use tower_http::{
     request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
@@ -8,41 +10,36 @@ use tower_http::{
 };
 use tracing::Level;
 
-/// API contract: `GET /health` → `{ "status": "ok" }`.
-#[derive(Serialize)]
-pub struct HealthResponse {
-    pub status: &'static str,
-}
+pub use error::ApiError;
 
-async fn health() -> Json<HealthResponse> {
-    Json(HealthResponse { status: "ok" })
-}
-
-/// Builds the HTTP router with request-id propagation and tracing.
+/// Builds the HTTP router with request-id propagation, tracing, and RFC 9457 errors.
 pub fn app() -> Router {
     let request_id = HeaderName::from_static("x-request-id");
 
-    Router::new().route("/health", get(health)).layer(
-        ServiceBuilder::new()
-            .layer(SetRequestIdLayer::new(request_id.clone(), MakeRequestUuid))
-            .layer(PropagateRequestIdLayer::new(request_id))
-            .layer(
-                TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
-                    let request_id = request
-                        .headers()
-                        .get("x-request-id")
-                        .and_then(|v| v.to_str().ok())
-                        .unwrap_or("-");
-                    tracing::span!(
-                        Level::INFO,
-                        "http_request",
-                        method = %request.method(),
-                        uri = %request.uri(),
-                        request_id = %request_id,
-                    )
-                }),
-            ),
-    )
+    Router::new()
+        .merge(routes::router())
+        .fallback(error::not_found_handler)
+        .layer(
+            ServiceBuilder::new()
+                .layer(SetRequestIdLayer::new(request_id.clone(), MakeRequestUuid))
+                .layer(PropagateRequestIdLayer::new(request_id))
+                .layer(
+                    TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
+                        let request_id = request
+                            .headers()
+                            .get("x-request-id")
+                            .and_then(|v| v.to_str().ok())
+                            .unwrap_or("-");
+                        tracing::span!(
+                            Level::INFO,
+                            "http_request",
+                            method = %request.method(),
+                            uri = %request.uri(),
+                            request_id = %request_id,
+                        )
+                    }),
+                ),
+        )
 }
 
 /// Initializes structured tracing from `RUST_LOG` (default: `api_http=info,tower_http=info`).

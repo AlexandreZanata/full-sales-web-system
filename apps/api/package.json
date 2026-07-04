@@ -1,0 +1,12 @@
+{
+  "name": "@full-sales/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HTTP API — implemented in Rust (backend/crates/api-http). Scripts delegate to Cargo.",
+  "scripts": {
+    "lint": "node -e \"process.exit(0)\"",
+    "test": "cd ../../backend && cargo test -p api-http",
+    "build": "cd ../../backend && cargo build -p api-http",
+    "dev": "cd ../../backend && cargo run -p api-http"
+  }
+}

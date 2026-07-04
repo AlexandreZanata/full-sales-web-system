@@ -27,7 +27,7 @@
 | [TESTING-STRATEGY.md](docs/TESTING-STRATEGY.md) | TDD pyramid, CI gates |
 | [SECURITY.md](docs/SECURITY.md) | Auth, RBAC, RLS |
 | [ROADMAP.md](docs/ROADMAP.md) | Build phases 1–6 |
-| [adr/](docs/adr/) | Architecture decisions (ADR-001..007) |
+| [adr/](docs/adr/) | Architecture decisions (ADR-001..008) |
 | [OPEN-DECISIONS.md](docs/OPEN-DECISIONS.md) | Decision log (all Phase 0 items resolved) |
 | [NEW-PROJECT-CHECKLIST.md](docs/NEW-PROJECT-CHECKLIST.md) | Pre-code checklist — signed |
 | [use-cases/](docs/use-cases/) | UC-001, UC-002 |
@@ -54,13 +54,23 @@ pip install -r agent-harness/requirements.txt
 ## Quick start
 
 ```bash
-cd backend
+pnpm install
 cp .env.example .env
-cargo test --workspace
-cargo run -p api-http    # GET /health → {"status":"ok"}
+
+# Full verify (TypeScript + Rust)
+pnpm verify
+
+# Dev: API (Rust) + web (Vite) in parallel
+pnpm dev
+
+# API only
+pnpm dev:api          # GET http://127.0.0.1:8080/health
+
+# Web only
+pnpm dev:web          # http://127.0.0.1:5173
 ```
 
-See [DEV-COMMANDS.md](docs/DEV-COMMANDS.md) for migrations, coverage, and CI parity commands.
+Backend-only commands: [DEV-COMMANDS.md](docs/DEV-COMMANDS.md).
 
 ---
 

@@ -71,6 +71,32 @@ See [ADR-002](adr/ADR-002-tenant-platform-org.md) for `tenant_id` semantics.
 
 ---
 
+## Repository layout (hybrid monorepo)
+
+See [ADR-008](adr/ADR-008-hybrid-monorepo.md).
+
+```
+/
+├── backend/                  # Rust Cargo workspace (domain, API, infra)
+├── apps/
+│   ├── api/                  # pnpm meta-package → delegates to backend/crates/api-http
+│   └── web/                  # Vite + React client shell
+├── packages/
+│   ├── domain/               # TS client types (no HTTP/ORM)
+│   └── application/          # TS ApplicationError + ports
+├── package.json              # pnpm root scripts: lint, test, build, verify
+└── pnpm-workspace.yaml
+```
+
+| Layer | Path | Runtime |
+|-------|------|---------|
+| Domain (business rules) | `backend/crates/domain-*` | Rust |
+| Application (use cases) | `backend/crates/application` | Rust |
+| HTTP `/v1/` | `backend/crates/api-http` | Axum |
+| Web UI | `apps/web` | React |
+
+---
+
 ## Cargo workspace layout
 
 ```
