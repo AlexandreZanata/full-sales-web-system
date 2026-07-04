@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::admin_orders::AdminOrderResponse;
-use crate::auth::{require_admin, AuthUser};
+use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::pagination::paginate_offset;
 use crate::portal::{load_order, map_order_error, map_postgres_order_error, order_to_response};
@@ -77,42 +77,39 @@ pub async fn list_orders(
     require_admin(&auth)?;
     let session = session_from_auth(&auth);
     let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
+    let filters = infra_postgres::orders::OrderListFilters {
+        status: query.status.as_deref(),
+        commerce_id: query.commerce_id,
+        from: query.from,
+        to: query.to,
+    };
 
     let rows = infra_postgres::orders::list_orders(
         &state.app_pool,
         &session,
-        query.status.as_deref(),
+        &filters,
         page_size as i64,
         offset,
     )
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let total = infra_postgres::orders::count_orders(&state.app_pool, &session, query.status.as_deref())
+    let total = infra_postgres::orders::count_orders(&state.app_pool, &session, &filters)
         .await
         .map_err(|_| ApiError::internal())? as u64;
 
-    let mut items: Vec<OrderSummaryResponse> = Vec::new();
-    for row in rows {
-        let detail = infra_postgres::orders::find_order_detail(&state.app_pool, &session, row.id)
-            .await
-            .map_err(|_| ApiError::internal())?;
-        let Some(detail) = detail else { continue };
-        if query.commerce_id.is_some_and(|id| detail.commerce_id != id) {
-            continue;
-        }
-        items.push(OrderSummaryResponse {
-            id: row.id,
-            status: row.status,
-            commerce_id: detail.commerce_id,
-            total_amount: row.total_amount,
-            total_currency: row.total_currency,
-            created_at: row.created_at,
-        });
-    }
-
     Ok(Json(PaginatedOrdersResponse {
-        items,
+        items: rows
+            .into_iter()
+            .map(|row| OrderSummaryResponse {
+                id: row.id,
+                status: row.status,
+                commerce_id: row.commerce_id,
+                total_amount: row.total_amount,
+                total_currency: row.total_currency,
+                created_at: row.created_at,
+            })
+            .collect(),
         page,
         page_size,
         total,
@@ -131,14 +128,15 @@ pub async fn get_order(
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::order_not_found)?;
     let order = load_order(&state, &session, id).await?;
-    let delivery = infra_postgres::deliveries::find_delivery_by_order_id(&state.app_pool, &session, id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .map(|row| DeliverySummaryResponse {
-            id: row.id,
-            driver_id: row.driver_id,
-            status: row.status,
-        });
+    let delivery =
+        infra_postgres::deliveries::find_delivery_by_order_id(&state.app_pool, &session, id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .map(|row| DeliverySummaryResponse {
+                id: row.id,
+                driver_id: row.driver_id,
+                status: row.status,
+            });
 
     Ok(Json(AdminOrderDetailResponse {
         commerce_id: detail.commerce_id,
@@ -181,7 +179,9 @@ pub async fn start_picking(
     if order.status() != OrderStatus::Approved {
         return Err(ApiError::invalid_order_transition());
     }
-    let picking = order.start_picking().map_err(|e| map_order_error(e.into()))?;
+    let picking = order
+        .start_picking()
+        .map_err(|e| map_order_error(e.into()))?;
     infra_postgres::orders::update_order_status(
         &state.app_pool,
         &session,

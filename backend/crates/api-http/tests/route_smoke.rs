@@ -72,6 +72,7 @@ async fn route_smoke_protected_routes_return_unauthorized_not_not_found() {
         ("GET", "/v1/reports".into()),
         ("POST", "/v1/reports".into()),
         ("GET", format!("/v1/reports/{id}")),
+        ("GET", "/v1/audit/events".into()),
     ];
 
     for (method, uri) in protected {
@@ -110,14 +111,8 @@ async fn route_smoke_public_routes_are_mounted() {
     .await;
     assert_ne!(refresh_status, StatusCode::NOT_FOUND);
 
-    let (verify_status, verify_body) = request(
-        &env,
-        "GET",
-        &format!("/v1/reports/{id}/verify"),
-        None,
-        None,
-    )
-    .await;
+    let (verify_status, verify_body) =
+        request(&env, "GET", &format!("/v1/reports/{id}/verify"), None, None).await;
     assert_eq!(verify_status, StatusCode::NOT_FOUND);
     assert_eq!(verify_body["error"]["code"], "REPORT_NOT_FOUND");
 }
@@ -136,12 +131,16 @@ async fn route_smoke_health_and_meta() {
     assert_eq!(v1_body["version"], "1");
 }
 
-/// Deferred route must still 404 until implemented.
+/// Audit events route — admin only, paginated.
 #[tokio::test]
-async fn route_smoke_audit_events_not_implemented() {
+async fn route_smoke_audit_events_admin_only() {
     let env = setup().await;
     let (_, admin_token) = seed_admin(&env).await;
+
+    let (unauth_status, _) = request(&env, "GET", "/v1/audit/events", None, None).await;
+    assert_eq!(unauth_status, StatusCode::UNAUTHORIZED);
+
     let (status, body) = request(&env, "GET", "/v1/audit/events", Some(&admin_token), None).await;
-    assert_eq!(status, StatusCode::NOT_FOUND);
-    assert_eq!(body["error"]["code"], "NOT_FOUND");
+    assert_eq!(status, StatusCode::OK);
+    assert!(body["items"].is_array());
 }

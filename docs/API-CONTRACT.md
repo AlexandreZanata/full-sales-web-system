@@ -115,6 +115,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/commerces`
 
 - **Auth:** Admin, Driver, Seller (read)
+- **Query:** `active?` (boolean), pagination — filtered in SQL
 - **Response 200:** Paginated list
 
 ### `GET /v1/commerces/{id}`
@@ -369,8 +370,10 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `POST /v1/deliveries/{id}/start-transit`
 
 - **Auth:** Assigned Driver
+- **Precondition:** Order must be in `Picking` (call `POST /v1/orders/{id}/start-picking` after approve)
 - **Effect:** Delivery → `InTransit`; order → `InTransit`
 - **Response 200:** Delivery
+- **Response 409:** `INVALID_DELIVERY_TRANSITION` or `INVALID_ORDER_TRANSITION`
 
 ### `POST /v1/deliveries/{id}/confirm`
 
@@ -423,6 +426,18 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 - **Auth:** Public (rate limited by IP — ADR-007)
 - **Response 200:** `{ "valid": true | false, "reportId" }`
+- **Response 429:** `RATE_LIMITED`
+
+---
+
+## Audit
+
+### `GET /v1/audit/events`
+
+- **Auth:** Admin
+- **Query:** pagination
+- **Response 200:** Paginated append-only audit events (`audit.events`)
+- **Response 403:** Non-admin roles
 
 ---
 
@@ -437,7 +452,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ## OpenAPI
 
-Full schema: [`docs/openapi.yaml`](openapi.yaml) — all implemented `/v1/*` routes (Phases 16–25).
+Full schema: [`docs/openapi.yaml`](openapi.yaml) — all implemented `/v1/*` routes (Phases 16–26).
 
 ### Example: create sale
 

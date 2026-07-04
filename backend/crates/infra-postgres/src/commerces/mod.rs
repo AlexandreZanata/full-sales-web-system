@@ -84,6 +84,7 @@ pub async fn find_commerce_by_id(
 pub async fn list_commerces(
     pool: &PgPool,
     tenant_id: TenantId,
+    active: Option<bool>,
     limit: i64,
     offset: i64,
 ) -> Result<Vec<CommerceRow>, PostgresError> {
@@ -91,8 +92,11 @@ pub async fn list_commerces(
     apply_tenant_context(&mut tx, tenant_id).await?;
     let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool)>(
         "SELECT id, cnpj, legal_name, trade_name, active
-         FROM commerces.commerces ORDER BY cnpj LIMIT $1 OFFSET $2",
+         FROM commerces.commerces
+         WHERE ($1::bool IS NULL OR active = $1)
+         ORDER BY cnpj LIMIT $2 OFFSET $3",
     )
+    .bind(active)
     .bind(limit)
     .bind(offset)
     .fetch_all(&mut *tx)
@@ -110,12 +114,19 @@ pub async fn list_commerces(
         .collect())
 }
 
-pub async fn count_commerces(pool: &PgPool, tenant_id: TenantId) -> Result<i64, PostgresError> {
+pub async fn count_commerces(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    active: Option<bool>,
+) -> Result<i64, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM commerces.commerces")
-        .fetch_one(&mut *tx)
-        .await?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM commerces.commerces WHERE ($1::bool IS NULL OR active = $1)",
+    )
+    .bind(active)
+    .fetch_one(&mut *tx)
+    .await?;
     tx.commit().await?;
     Ok(count)
 }

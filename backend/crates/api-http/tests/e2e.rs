@@ -57,6 +57,9 @@ async fn setup() -> TestEnv {
         app_pool: app_pool.clone(),
         refresh_store: Arc::new(InMemoryRefreshTokenStore::new()),
         idempotency_store: AppState::in_memory_idempotency(),
+        rate_limiter: AppState::in_memory_rate_limiter(),
+        login_rate_limit: AppState::default_login_rate_limit(),
+        verify_rate_limit: AppState::default_verify_rate_limit(),
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: application::REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
@@ -136,8 +139,8 @@ async fn seed_user(
             profile_file_id: None,
         },
     )
-        .await
-        .expect("user");
+    .await
+    .expect("user");
     id
 }
 

@@ -79,8 +79,10 @@ impl RefreshTokenStore for InMemoryRefreshTokenStore {
 pub mod redis_store;
 
 pub mod idempotency;
+pub mod rate_limit;
 
 pub use idempotency::{IdempotencyRecord, IdempotencyStore, InMemoryIdempotencyStore};
+pub use rate_limit::{InMemoryRateLimiter, RateLimitPolicy, RateLimiter};
 pub use redis_store::RedisRefreshTokenStore;
 
 #[cfg(test)]

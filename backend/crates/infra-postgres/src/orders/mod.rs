@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::PostgresError;
 use crate::inventory::reservations::{self, ReservationLine};
-use crate::rls::{apply_session_context, SessionContext};
+use crate::rls::{SessionContext, apply_session_context};
 
 pub struct OrderInsert {
     pub id: Uuid,
@@ -50,10 +50,18 @@ pub struct OrderDetailRow {
 
 pub struct OrderListRow {
     pub id: Uuid,
+    pub commerce_id: Uuid,
     pub status: String,
     pub total_amount: i64,
     pub total_currency: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+pub struct OrderListFilters<'a> {
+    pub status: Option<&'a str>,
+    pub commerce_id: Option<Uuid>,
+    pub from: Option<chrono::DateTime<chrono::Utc>>,
+    pub to: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 pub struct OrderItemRow {
@@ -107,12 +115,14 @@ pub async fn find_order_by_id(
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(|(id, commerce_id, created_by_user_id, status)| OrderRow {
-        id,
-        commerce_id,
-        created_by_user_id,
-        status,
-    }))
+    Ok(
+        row.map(|(id, commerce_id, created_by_user_id, status)| OrderRow {
+            id,
+            commerce_id,
+            created_by_user_id,
+            status,
+        }),
+    )
 }
 
 /// Single transaction: PendingApproval → Approved + stock reservations (RN2).
@@ -138,7 +148,8 @@ pub async fn approve_order_transaction(
         return Err(PostgresError::Database(sqlx::Error::RowNotFound));
     }
 
-    reservations::reserve_stock_in_tx(&mut tx, session.tenant_id.as_uuid(), reservation_lines).await?;
+    reservations::reserve_stock_in_tx(&mut tx, session.tenant_id.as_uuid(), reservation_lines)
+        .await?;
     tx.commit().await?;
     Ok(())
 }
@@ -207,20 +218,36 @@ pub async fn update_order_status(
 pub async fn list_orders(
     pool: &PgPool,
     session: &SessionContext,
-    status: Option<&str>,
+    filters: &OrderListFilters<'_>,
     limit: i64,
     offset: i64,
 ) -> Result<Vec<OrderListRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_session_context(&mut tx, session).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, i64, String, chrono::DateTime<chrono::Utc>)>(
-        "SELECT id, status, total_amount, total_currency, created_at
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            String,
+            i64,
+            String,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
+        "SELECT id, commerce_id, status, total_amount, total_currency, created_at
          FROM orders.orders
          WHERE ($1::text IS NULL OR status = $1)
+           AND ($2::uuid IS NULL OR commerce_id = $2)
+           AND ($3::timestamptz IS NULL OR created_at >= $3)
+           AND ($4::timestamptz IS NULL OR created_at <= $4)
          ORDER BY created_at DESC
-         LIMIT $2 OFFSET $3",
+         LIMIT $5 OFFSET $6",
     )
-    .bind(status)
+    .bind(filters.status)
+    .bind(filters.commerce_id)
+    .bind(filters.from)
+    .bind(filters.to)
     .bind(limit)
     .bind(offset)
     .fetch_all(&mut *tx)
@@ -228,27 +255,37 @@ pub async fn list_orders(
     tx.commit().await?;
     Ok(rows
         .into_iter()
-        .map(|(id, status, total_amount, total_currency, created_at)| OrderListRow {
-            id,
-            status,
-            total_amount,
-            total_currency,
-            created_at,
-        })
+        .map(
+            |(id, commerce_id, status, total_amount, total_currency, created_at)| OrderListRow {
+                id,
+                commerce_id,
+                status,
+                total_amount,
+                total_currency,
+                created_at,
+            },
+        )
         .collect())
 }
 
 pub async fn count_orders(
     pool: &PgPool,
     session: &SessionContext,
-    status: Option<&str>,
+    filters: &OrderListFilters<'_>,
 ) -> Result<i64, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_session_context(&mut tx, session).await?;
     let count = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM orders.orders WHERE ($1::text IS NULL OR status = $1)",
+        "SELECT COUNT(*) FROM orders.orders
+         WHERE ($1::text IS NULL OR status = $1)
+           AND ($2::uuid IS NULL OR commerce_id = $2)
+           AND ($3::timestamptz IS NULL OR created_at >= $3)
+           AND ($4::timestamptz IS NULL OR created_at <= $4)",
     )
-    .bind(status)
+    .bind(filters.status)
+    .bind(filters.commerce_id)
+    .bind(filters.from)
+    .bind(filters.to)
     .fetch_one(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -262,18 +299,21 @@ pub async fn find_order_detail(
 ) -> Result<Option<OrderDetailRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_session_context(&mut tx, session).await?;
-    let row = sqlx::query_as::<_, (
-        Uuid,
-        Uuid,
-        Uuid,
-        String,
-        Uuid,
-        Option<String>,
-        i64,
-        String,
-        Option<String>,
-        String,
-    )>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            Uuid,
+            String,
+            Uuid,
+            Option<String>,
+            i64,
+            String,
+            Option<String>,
+            String,
+        ),
+    >(
         "SELECT id, commerce_id, created_by_user_id, status, delivery_address_id, notes,
                 total_amount, total_currency, rejection_reason, source
          FROM orders.orders WHERE id = $1",
@@ -327,7 +367,14 @@ pub async fn list_order_items(
     Ok(rows
         .into_iter()
         .map(
-            |(id, product_id, quantity_requested, unit_price_amount, unit_price_currency, line_total_amount)| {
+            |(
+                id,
+                product_id,
+                quantity_requested,
+                unit_price_amount,
+                unit_price_currency,
+                line_total_amount,
+            )| {
                 OrderItemRow {
                     id,
                     product_id,

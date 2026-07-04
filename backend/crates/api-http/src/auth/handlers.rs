@@ -1,10 +1,11 @@
 use application::{ACCESS_TOKEN_TTL, AppError, AuthenticatedUser};
-use axum::{Json, extract::State};
+use axum::{Json, extract::State, http::HeaderMap};
 use infra_crypto::PasswordHasher;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::auth::middleware::AuthUser;
+use crate::client_ip::client_ip;
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -32,20 +33,45 @@ pub struct RefreshRequest {
 
 pub async fn login(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(body): Json<LoginRequest>,
 ) -> Result<Json<TokenResponse>, ApiError> {
+    let rate_key = format!("ratelimit:login:{}", client_ip(&headers));
+    if state
+        .rate_limiter
+        .is_blocked(&rate_key, state.login_rate_limit)
+    {
+        return Err(ApiError::rate_limited());
+    }
+
     let email = body.email.trim().to_lowercase();
     let record = infra_postgres::identity::find_user_for_login(&state.admin_pool, &email)
         .await
         .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::invalid_credentials)?;
+        .ok_or_else(|| {
+            state
+                .rate_limiter
+                .record_failure(&rate_key, state.login_rate_limit);
+            ApiError::invalid_credentials()
+        })?;
 
     let password_ok = PasswordHasher::verify(&body.password, &record.password_hash)
         .map_err(|_| ApiError::internal())?;
 
     let auth =
         application::auth::authenticate_login(&to_app_record(record), &body.password, password_ok)
-            .map_err(map_app_error)?;
+            .map_err(|err| {
+                if matches!(
+                    err,
+                    AppError::InvalidCredentials
+                        | AppError::Identity(domain_identity::IdentityError::InactiveUser)
+                ) {
+                    state
+                        .rate_limiter
+                        .record_failure(&rate_key, state.login_rate_limit);
+                }
+                map_app_error(err)
+            })?;
 
     issue_tokens(&state, auth).await
 }

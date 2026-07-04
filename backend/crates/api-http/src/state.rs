@@ -4,7 +4,10 @@ use std::time::Duration;
 use ed25519_dalek::SigningKey;
 use infra_crypto::JwtService;
 use infra_postgres::PgPool;
-use infra_redis::{IdempotencyStore, InMemoryIdempotencyStore, RefreshTokenStore};
+use infra_redis::{
+    IdempotencyStore, InMemoryIdempotencyStore, InMemoryRateLimiter, RateLimitPolicy, RateLimiter,
+    RefreshTokenStore,
+};
 use infra_storage::{InMemoryObjectStorage, ObjectStorage};
 
 pub const JWT_SECRET_ENV: &str = "JWT_SECRET";
@@ -16,6 +19,9 @@ pub struct AppState {
     pub app_pool: PgPool,
     pub refresh_store: Arc<dyn RefreshTokenStore>,
     pub idempotency_store: Arc<dyn IdempotencyStore>,
+    pub rate_limiter: Arc<dyn RateLimiter>,
+    pub login_rate_limit: RateLimitPolicy,
+    pub verify_rate_limit: RateLimitPolicy,
     pub jwt: JwtService,
     pub refresh_ttl: Duration,
     pub storage: Arc<dyn ObjectStorage>,
@@ -30,6 +36,24 @@ impl AppState {
 
     pub fn in_memory_idempotency() -> Arc<dyn IdempotencyStore> {
         Arc::new(InMemoryIdempotencyStore::new())
+    }
+
+    pub fn in_memory_rate_limiter() -> Arc<dyn RateLimiter> {
+        Arc::new(InMemoryRateLimiter::new())
+    }
+
+    pub fn default_login_rate_limit() -> RateLimitPolicy {
+        RateLimitPolicy {
+            max: 5,
+            window: Duration::from_secs(60),
+        }
+    }
+
+    pub fn default_verify_rate_limit() -> RateLimitPolicy {
+        RateLimitPolicy {
+            max: 60,
+            window: Duration::from_secs(60),
+        }
     }
 
     pub fn in_memory_storage() -> Arc<dyn ObjectStorage> {

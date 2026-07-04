@@ -350,12 +350,12 @@ async fn given_commerces_when_list_paginated_then_returns_rows() {
     let pools = setup_pools().await;
     let (tenant, _user, _commerce, _sale) = seed_tenant_with_sale(&pools.app, &pools.admin).await;
 
-    let count = commerces::count_commerces(&pools.app, tenant)
+    let count = commerces::count_commerces(&pools.app, tenant, None)
         .await
         .expect("count");
     assert_eq!(count, 1);
 
-    let rows = commerces::list_commerces(&pools.app, tenant, 10, 0)
+    let rows = commerces::list_commerces(&pools.app, tenant, None, 10, 0)
         .await
         .expect("list");
     assert_eq!(rows.len(), 1);

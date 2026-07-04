@@ -320,7 +320,7 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 | `GET /v1/reports` | Yes | No | No | No | No |
 | `GET /v1/reports/{id}` | Yes | Own | No | No | No |
 | `GET /v1/reports/{id}/verify` | Public | Public | Public | Public | Yes |
-| `GET /v1/audit/events` | — | — | — | — | Not implemented |
+| `GET /v1/audit/events` | Yes | No | No | No | No |
 
 **Media scoped access:** Admin — all entities. Driver — own `User`, any `Product`, assigned `Delivery`. Seller — any `Product`. CommerceContact — own `Commerce` only.
 

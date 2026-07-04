@@ -250,6 +250,14 @@ impl ApiError {
         }
     }
 
+    pub fn rate_limited() -> Self {
+        Self {
+            status: StatusCode::TOO_MANY_REQUESTS,
+            code: "RATE_LIMITED",
+            message: "Too many requests",
+        }
+    }
+
     pub fn internal() -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,

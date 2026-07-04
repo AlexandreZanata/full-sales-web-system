@@ -1,7 +1,7 @@
 use application::orders::{
-    CreatePortalOrderCommand, PortalOrderLineInput, UpdatePortalDraftCommand, order_to_dto,
-    create_portal_order as build_portal_order, submit_portal_order as submit_order_domain,
-    update_portal_draft,
+    CreatePortalOrderCommand, PortalOrderLineInput, UpdatePortalDraftCommand,
+    create_portal_order as build_portal_order, order_to_dto,
+    submit_portal_order as submit_order_domain, update_portal_draft,
 };
 use axum::{
     Json,
@@ -123,23 +123,26 @@ pub async fn list_portal_orders(
     let page = query.page.max(1);
     let offset = ((page - 1) as i64) * (page_size as i64);
 
+    let filters = infra_postgres::orders::OrderListFilters {
+        status: query.status.as_deref(),
+        commerce_id: None,
+        from: None,
+        to: None,
+    };
+
     let rows = infra_postgres::orders::list_orders(
         &state.app_pool,
         &session,
-        query.status.as_deref(),
+        &filters,
         page_size as i64,
         offset,
     )
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let total = infra_postgres::orders::count_orders(
-        &state.app_pool,
-        &session,
-        query.status.as_deref(),
-    )
-    .await
-    .map_err(|_| ApiError::internal())? as u64;
+    let total = infra_postgres::orders::count_orders(&state.app_pool, &session, &filters)
+        .await
+        .map_err(|_| ApiError::internal())? as u64;
 
     Ok(Json(PaginatedPortalOrdersResponse {
         items: rows
@@ -448,7 +451,8 @@ fn restore_order(
             Ok(OrderItem::restore(
                 OrderItemId::from_uuid(row.id),
                 ProductId::from_uuid(row.product_id),
-                Quantity::of(row.quantity_requested).map_err(|_| domain_shared::DomainError::MoneyOverflow)?,
+                Quantity::of(row.quantity_requested)
+                    .map_err(|_| domain_shared::DomainError::MoneyOverflow)?,
                 None,
                 Money::new(row.unit_price_amount, currency.clone())?,
                 Money::new(row.line_total_amount, currency.clone())?,
@@ -489,10 +493,7 @@ fn order_item_inserts(order: &Order) -> Vec<OrderItemInsert> {
 
 fn order_total(order: &Order) -> Result<(i64, String), ApiError> {
     let total = order.total().map_err(|_| ApiError::internal())?;
-    Ok((
-        total.amount_minor(),
-        total.currency().as_str().to_owned(),
-    ))
+    Ok((total.amount_minor(), total.currency().as_str().to_owned()))
 }
 
 pub(crate) fn order_to_response(order: &Order) -> Result<PortalOrderResponse, ApiError> {
@@ -552,9 +553,9 @@ pub(crate) fn map_order_error(err: application::orders::OrdersAppError) -> ApiEr
         | application::orders::OrdersAppError::Order(domain_orders::OrderError::InactiveCommerce) => {
             ApiError::invalid_delivery_address()
         }
-        application::orders::OrdersAppError::Order(domain_orders::OrderError::InvalidTransition { .. }) => {
-            ApiError::invalid_order_transition()
-        }
+        application::orders::OrdersAppError::Order(
+            domain_orders::OrderError::InvalidTransition { .. },
+        ) => ApiError::invalid_order_transition(),
         application::orders::OrdersAppError::Order(
             domain_orders::OrderError::RejectionReasonRequired,
         ) => ApiError::rejection_reason_required(),

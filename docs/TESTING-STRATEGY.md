@@ -58,12 +58,14 @@ fn given_insufficient_stock_when_confirm_sale_then_returns_error() {
 
 ## E2E critical scenarios
 
-| ID | Flow |
-|----|------|
-| E2E-001 | Login → create sale → confirm → stock reduced |
-| E2E-002 | Generate report → verify signature valid |
-| E2E-003 | Login rate limit triggers after N failures |
-| E2E-004 | Cross-tenant access denied (RLS) |
+| ID | Flow | Test file |
+|----|------|-----------|
+| E2E-001 | Login → create sale → confirm → stock reduced | `backend/crates/api-http/tests/e2e.rs` |
+| E2E-002 | Generate report → verify signature valid | `backend/crates/api-http/tests/reports.rs` |
+| E2E-003 | Login rate limit triggers after N failures | `backend/crates/api-http/tests/rate_limit.rs` |
+| E2E-004 | Cross-tenant access denied (RLS) | `backend/crates/api-http/tests/rls_cross_tenant.rs` |
+| E2E-005 | Portal order → delivery → declare payment → report | `backend/crates/api-http/tests/e2e_journeys.rs` (`e2e_003_portal_to_report`) |
+| E2E-006 | Media proof upload → delivery confirm | `backend/crates/api-http/tests/e2e_journeys.rs` (`e2e_004_media_proof_confirm`) |
 
 ---
 

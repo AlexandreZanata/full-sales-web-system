@@ -5,8 +5,8 @@ use axum::{
 use domain_identity::Role;
 use serde::Deserialize;
 
-use crate::auth::{require_admin, require_roles, AuthUser};
-use crate::commerces::{commerce_response_from_row, CommerceResponse};
+use crate::auth::{AuthUser, require_admin, require_roles};
+use crate::commerces::{CommerceResponse, commerce_response_from_row};
 use crate::error::ApiError;
 use crate::pagination::paginate_offset;
 use crate::state::AppState;
@@ -40,21 +40,19 @@ pub async fn list_commerces(
     let rows = infra_postgres::commerces::list_commerces(
         &state.app_pool,
         auth.tenant_id,
+        query.active,
         page_size as i64,
         offset,
     )
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let items: Vec<CommerceResponse> = rows
-        .iter()
-        .filter(|row| query.active.is_none_or(|active| row.active == active))
-        .map(commerce_response_from_row)
-        .collect();
+    let items: Vec<CommerceResponse> = rows.iter().map(commerce_response_from_row).collect();
 
-    let total = infra_postgres::commerces::count_commerces(&state.app_pool, auth.tenant_id)
-        .await
-        .map_err(|_| ApiError::internal())? as u64;
+    let total =
+        infra_postgres::commerces::count_commerces(&state.app_pool, auth.tenant_id, query.active)
+            .await
+            .map_err(|_| ApiError::internal())? as u64;
 
     Ok(Json(PaginatedCommercesResponse {
         items,
@@ -83,10 +81,11 @@ pub async fn deactivate_commerce(
     Path(id): Path<uuid::Uuid>,
 ) -> Result<Json<CommerceResponse>, ApiError> {
     require_admin(&auth)?;
-    let existing = infra_postgres::commerces::find_commerce_by_id(&state.app_pool, auth.tenant_id, id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::commerce_not_found)?;
+    let existing =
+        infra_postgres::commerces::find_commerce_by_id(&state.app_pool, auth.tenant_id, id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::commerce_not_found)?;
 
     let _ = infra_postgres::commerces::deactivate_commerce(&state.app_pool, auth.tenant_id, id)
         .await

@@ -10,10 +10,12 @@ use application::REFRESH_TOKEN_TTL;
 use axum::body::Body;
 use http::{Request, StatusCode};
 use infra_crypto::{JwtService, PasswordHasher};
-use infra_postgres::{migrate, orders::OrderInsert, orders::OrderItemInsert, PgPool, SessionContext};
-use serde_json::{json, Value};
-use testcontainers::runners::AsyncRunner;
+use infra_postgres::{
+    PgPool, SessionContext, migrate, orders::OrderInsert, orders::OrderItemInsert,
+};
+use serde_json::{Value, json};
 use testcontainers::ImageExt;
+use testcontainers::runners::AsyncRunner;
 use testcontainers_modules::postgres::Postgres;
 use tower::ServiceExt;
 use uuid::Uuid;
@@ -56,6 +58,9 @@ pub async fn setup() -> TestEnv {
         app_pool: app_pool.clone(),
         refresh_store: Arc::new(infra_redis::InMemoryRefreshTokenStore::new()),
         idempotency_store: AppState::in_memory_idempotency(),
+        rate_limiter: AppState::in_memory_rate_limiter(),
+        login_rate_limit: AppState::default_login_rate_limit(),
+        verify_rate_limit: AppState::default_verify_rate_limit(),
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
@@ -262,12 +267,7 @@ pub async fn seed_order(env: &TestEnv, commerce_id: Uuid, admin_id: Uuid) -> Uui
     order_id
 }
 
-pub async fn seed_driver_stock(
-    env: &TestEnv,
-    driver_id: Uuid,
-    product_id: Uuid,
-    quantity: i32,
-) {
+pub async fn seed_driver_stock(env: &TestEnv, driver_id: Uuid, product_id: Uuid, quantity: i32) {
     infra_postgres::inventory::upsert_stock_balance(
         &env.app_pool,
         env.tenant_id,
@@ -311,7 +311,9 @@ pub async fn login(env: &TestEnv, email: &str, password: &str) -> Value {
                 .method("POST")
                 .uri("/v1/auth/login")
                 .header("content-type", "application/json")
-                .body(Body::from(json!({ "email": email, "password": password }).to_string()))
+                .body(Body::from(
+                    json!({ "email": email, "password": password }).to_string(),
+                ))
                 .expect("request"),
         )
         .await
@@ -327,6 +329,47 @@ pub async fn login(env: &TestEnv, email: &str, password: &str) -> Value {
 pub async fn login_token(env: &TestEnv, email: &str, password: &str) -> String {
     let json = login(env, email, password).await;
     json["accessToken"].as_str().expect("token").to_owned()
+}
+
+pub async fn request_with_headers(
+    env: &TestEnv,
+    method: &str,
+    uri: &str,
+    token: Option<&str>,
+    body: Option<String>,
+    extra_headers: &[(&str, &str)],
+) -> (StatusCode, Value) {
+    let mut builder = Request::builder().method(method).uri(uri);
+    if let Some(token) = token {
+        builder = builder.header("authorization", format!("Bearer {token}"));
+    }
+    if body.is_some() {
+        builder = builder.header("content-type", "application/json");
+    }
+    for (name, value) in extra_headers {
+        builder = builder.header(*name, *value);
+    }
+    let request = builder
+        .body(match body {
+            Some(b) => Body::from(b),
+            None => Body::empty(),
+        })
+        .expect("request");
+
+    let response = full_app(env.state.clone())
+        .oneshot(request)
+        .await
+        .expect("response");
+    let status = response.status();
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let json = if bytes.is_empty() {
+        json!({})
+    } else {
+        serde_json::from_slice(&bytes).unwrap_or(json!({ "raw": String::from_utf8_lossy(&bytes) }))
+    };
+    (status, json)
 }
 
 pub async fn request(
@@ -394,10 +437,8 @@ pub fn multipart_body(
 
     body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
     body.extend_from_slice(
-        format!(
-            "Content-Disposition: form-data; name=\"file\"; filename=\"{file_name}\"\r\n"
-        )
-        .as_bytes(),
+        format!("Content-Disposition: form-data; name=\"file\"; filename=\"{file_name}\"\r\n")
+            .as_bytes(),
     );
     body.extend_from_slice(format!("Content-Type: {mime_type}\r\n\r\n").as_bytes());
     body.extend_from_slice(file_bytes);
@@ -421,8 +462,14 @@ pub async fn upload_multipart(
     entity_id: Uuid,
 ) -> (StatusCode, Value) {
     let boundary = "test-boundary-7f3a";
-    let (content_type, body) =
-        multipart_body(boundary, file_name, mime_type, file_bytes, entity_type, entity_id);
+    let (content_type, body) = multipart_body(
+        boundary,
+        file_name,
+        mime_type,
+        file_bytes,
+        entity_type,
+        entity_id,
+    );
 
     let response = full_app(env.state.clone())
         .oneshot(

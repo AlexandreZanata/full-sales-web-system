@@ -7,6 +7,7 @@ use serde::Serialize;
 use crate::admin_orders::{
     approve_order, cancel_order, get_order, list_orders, reject_order_handler, start_picking,
 };
+use crate::audit::list_audit_events;
 use crate::auth::{auth_middleware, login, logout, refresh};
 use crate::commerces::{
     create_address, create_commerce, deactivate_commerce, get_commerce, list_addresses,
@@ -31,7 +32,8 @@ use crate::sales::{
 };
 use crate::state::AppState;
 use crate::users::{
-    create_user, deactivate_user, get_user, list_users, upsert_driver_profile, upsert_seller_profile,
+    create_user, deactivate_user, get_user, list_users, upsert_driver_profile,
+    upsert_seller_profile,
 };
 
 /// API contract: `GET /health` → `{ "status": "ok" }`.
@@ -81,7 +83,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/commerces", post(create_commerce).get(list_commerces))
         .route("/v1/commerces/{id}", get(get_commerce))
         .route("/v1/commerces/{id}/deactivate", patch(deactivate_commerce))
-        .route("/v1/commerces/{id}/addresses", get(list_addresses).post(create_address))
+        .route(
+            "/v1/commerces/{id}/addresses",
+            get(list_addresses).post(create_address),
+        )
         .route(
             "/v1/commerces/{id}/addresses/{addressId}",
             patch(update_address),
@@ -109,7 +114,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/sales/{id}/cancel", post(cancel_sale))
         .route("/v1/sales/{id}/declare-payment", post(declare_sale_payment))
         .route("/v1/portal/products", get(list_portal_products))
-        .route("/v1/portal/orders", get(list_portal_orders).post(create_portal_order))
+        .route(
+            "/v1/portal/orders",
+            get(list_portal_orders).post(create_portal_order),
+        )
         .route(
             "/v1/portal/orders/{id}",
             get(get_portal_order)
@@ -126,12 +134,16 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/orders/{id}/delivery", post(create_order_delivery))
         .route("/v1/deliveries", get(list_deliveries))
         .route("/v1/deliveries/{id}", get(get_delivery))
-        .route("/v1/deliveries/{id}/start-transit", post(start_delivery_transit))
+        .route(
+            "/v1/deliveries/{id}/start-transit",
+            post(start_delivery_transit),
+        )
         .route("/v1/deliveries/{id}/confirm", post(confirm_delivery))
         .route("/v1/media/upload", post(upload_media))
         .route("/v1/media/{id}/url", get(get_media_url))
         .route("/v1/reports", post(generate_report).get(list_reports))
         .route("/v1/reports/{id}", get(get_report))
+        .route("/v1/audit/events", get(list_audit_events))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,

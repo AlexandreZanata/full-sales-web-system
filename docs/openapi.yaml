@@ -1182,6 +1182,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VerifyReportResponse'
+        '429':
+          description: Rate limited
+
+  /audit/events:
+    get:
+      summary: List audit events (Admin, paginated)
+      operationId: listAuditEvents
+      tags: [Audit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated audit events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditEvents'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
 components:
   securitySchemes:
@@ -2166,3 +2188,41 @@ components:
         reportId:
           type: string
           format: uuid
+
+    AuditEvent:
+      type: object
+      required: [id, actorId, action, resourceType, resourceId, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        actorId:
+          type: string
+          format: uuid
+        action:
+          type: string
+        resourceType:
+          type: string
+        resourceId:
+          type: string
+          format: uuid
+        metadata:
+          type: object
+          additionalProperties: true
+        correlationId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedAuditEvents:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditEvent'

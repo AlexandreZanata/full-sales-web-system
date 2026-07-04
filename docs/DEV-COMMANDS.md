@@ -9,6 +9,7 @@ Quick reference for local development.
 ```bash
 pnpm install
 pnpm verify          # lint + test + build + Rust checks
+pnpm validate:openapi # OpenAPI 3.1 schema validation (swagger-cli)
 pnpm dev             # API (Rust) + web (Vite) in parallel
 pnpm lint && pnpm test && pnpm build
 ```
@@ -74,6 +75,8 @@ cargo test -p infra-postgres --test integration rls_
 ## Quality gates (CI parity)
 
 ```bash
+pnpm validate:openapi   # from repo root — validates docs/openapi.yaml
+
 cd backend
 cargo fmt --check
 cargo clippy --workspace -- -D warnings

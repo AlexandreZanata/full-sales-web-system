@@ -1,9 +1,14 @@
 mod support;
 
-use axum::{Json, extract::{Path, Query, State}, http::StatusCode, response::Response};
+use axum::{
+    Json,
+    extract::{Path, Query, State},
+    http::StatusCode,
+    response::Response,
+};
 use uuid::Uuid;
 
-use crate::auth::{require_admin, AuthUser};
+use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::state::AppState;
 use crate::validation::ValidatedJson;
@@ -23,9 +28,11 @@ pub async fn generate_report(
         .report_signing_key
         .as_ref()
         .ok_or_else(ApiError::signing_key_unavailable)?;
-    let (report_id, row) = support::build_and_persist(&state, auth.tenant_id, &body, signing_key).await?;
+    let (report_id, row) =
+        support::build_and_persist(&state, auth.tenant_id, &body, signing_key).await?;
     let location = format!("/v1/reports/{report_id}");
-    let payload = serde_json::to_vec(&support::report_to_response(&row)).map_err(|_| ApiError::internal())?;
+    let payload =
+        serde_json::to_vec(&support::report_to_response(&row)).map_err(|_| ApiError::internal())?;
     Response::builder()
         .status(StatusCode::CREATED)
         .header(http::header::CONTENT_TYPE, "application/json")
@@ -81,7 +88,15 @@ pub async fn get_report(
 
 pub async fn verify_report(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
     Path(id): Path<Uuid>,
 ) -> Result<Json<VerifyReportResponse>, ApiError> {
+    let rate_key = format!("ratelimit:verify:{}", crate::client_ip::client_ip(&headers));
+    if !state
+        .rate_limiter
+        .try_consume(&rate_key, state.verify_rate_limit)
+    {
+        return Err(ApiError::rate_limited());
+    }
     Ok(Json(support::verify(&state, id).await?))
 }
