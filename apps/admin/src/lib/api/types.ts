@@ -17,6 +17,34 @@ export type OrderSummary = {
   createdAt: string;
 };
 
+export type OrderItem = {
+  id: string;
+  productId: string;
+  quantity: number;
+  unitPriceAmount: number;
+  unitPriceCurrency: string;
+  lineTotalAmount: number;
+};
+
+export type OrderDeliverySummary = {
+  id: string;
+  driverId: string;
+  status: string;
+};
+
+export type OrderDetail = {
+  id: string;
+  status: string;
+  commerceId: string;
+  deliveryAddressId: string;
+  notes?: string;
+  totalAmount: number;
+  totalCurrency: string;
+  rejectionReason?: string;
+  items: OrderItem[];
+  delivery?: OrderDeliverySummary;
+};
+
 export type SaleSummary = {
   id: string;
   commerceId: string;
@@ -35,6 +63,8 @@ export type DeliverySummary = {
   status: string;
   saleId?: string;
 };
+
+export type DeliveryDetail = DeliverySummary;
 
 export type TokenResponse = {
   accessToken: string;

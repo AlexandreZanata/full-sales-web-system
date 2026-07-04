@@ -3,7 +3,7 @@
 > Standalone SPA at `apps/admin` (`@full-sales/admin`).  
 > API contract: [API-CONTRACT.md](../API-CONTRACT.md) · Backend routes: [ROUTE-MATRIX.md](../ROUTE-MATRIX.md)
 
-**Status:** 🟡 Products & inventory complete (Phase 32) — remaining domain screens in Phases 33–36.
+**Status:** 🟡 Orders & deliveries complete (Phase 33) — sales, reports, audit in Phases 34–36.
 
 ---
 
@@ -37,8 +37,8 @@ Vite proxies `/v1` and `/health` to `http://127.0.0.1:8080` (override with `VITE
 | Commerces | `/commerces` | 31 | ✅ live |
 | Products | `/products` | 32 | ✅ live |
 | Inventory | `/inventory` | 32 | ✅ live |
-| Orders | `/orders` | 33 | ✅ stub |
-| Deliveries | `/deliveries` | 33 | ✅ stub |
+| Orders | `/orders` | 33 | ✅ live |
+| Deliveries | `/deliveries` | 33 | ✅ live |
 | Sales | `/sales` | 34 | ✅ stub |
 | Reports | `/reports` | 35 | ✅ stub |
 | Audit | `/audit` | 35 | ✅ stub |
@@ -67,7 +67,8 @@ Vite proxies `/v1` and `/health` to `http://127.0.0.1:8080` (override with `VITE
 | **30** | `.local/phases/30-admin-users/` | ✅ Users list, create, detail, profiles |
 | **31** | `.local/phases/31-admin-commerces/` | ✅ Commerces list, create, detail, addresses, logo |
 | **32** | `.local/phases/32-admin-products-inventory/` | ✅ Products CRUD, images, stock card, inventory hub |
-| **33–36** | `.local/phases/33-admin-orders/` … | Remaining domain screens + governance |
+| **33** | `.local/phases/33-admin-orders-deliveries/` | ✅ Orders list/detail/actions, deliveries list/detail |
+| **34–36** | `.local/phases/34-admin-sales/` … | Sales, reports, audit + governance |
 
 **UI route matrix:** `.local/phases/27-admin-panel-master/documentation/UI-ROUTE-MATRIX.md`  
 **Gap tracker:** `.local/phases/27-admin-panel-master/documentation/GAP-TASKS.md`
@@ -84,4 +85,4 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 
 ---
 
-**Updated:** 2026-07-04 (Phase 32)
+**Updated:** 2026-07-04 (Phase 33)

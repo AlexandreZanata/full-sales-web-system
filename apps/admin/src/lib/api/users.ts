@@ -61,3 +61,8 @@ export async function upsertSellerProfile(
 ): Promise<SellerProfile> {
   return apiPut<SellerProfile>(`/users/${id}/seller-profile`, body);
 }
+
+export async function fetchDriversForPicker(): Promise<User[]> {
+  const data = await fetchUsers({ page: 1, pageSize: 50, role: 'Driver' });
+  return data.items.filter((user) => user.active);
+}

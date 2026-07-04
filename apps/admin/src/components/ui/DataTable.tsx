@@ -20,6 +20,7 @@ type DataTableProps<T> = {
   getRowKey: (row: T, index: number) => string;
   pagination?: TablePaginationState | null;
   onPageChange?: (page: number) => void;
+  onRowClick?: (row: T) => void;
   density?: 'default' | 'compact';
   className?: string;
 };
@@ -36,6 +37,7 @@ export function DataTable<T>({
   getRowKey,
   pagination = null,
   onPageChange,
+  onRowClick,
   density = 'default',
   className,
 }: DataTableProps<T>) {
@@ -72,7 +74,15 @@ export function DataTable<T>({
                 className={cn(
                   'border-b border-hairline last:border-0',
                   index % 2 === 0 ? 'bg-surface' : 'bg-surface-muted/60',
+                  onRowClick && 'cursor-pointer hover:bg-surface-muted',
                 )}
+                onClick={
+                  onRowClick
+                    ? () => {
+                        onRowClick(row);
+                      }
+                    : undefined
+                }
               >
                 {columns.map((column) => (
                   <td
