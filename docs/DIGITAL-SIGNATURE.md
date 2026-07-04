@@ -40,6 +40,8 @@ Same logical content must always produce identical bytes:
 
 Without canonicalization, verification breaks even when data is semantically identical.
 
+**Payload version 2** (Phase 15) adds `declaredSettlement` with seller-declared payment totals and a fixed non-fiscal disclaimer (RN-PAG4). See [REPORT-PAYLOAD-v2.md](database/modules/05-reports/REPORT-PAYLOAD-v2.md).
+
 ---
 
 ## Key management

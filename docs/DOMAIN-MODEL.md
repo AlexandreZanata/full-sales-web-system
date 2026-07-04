@@ -124,8 +124,8 @@ pub struct Report {
 
 **Generation flow:**
 
-1. Application assembles report data (sales, totals, driver, commerce).
-2. Serialize to **canonical JSON** (deterministic key order, no superfluous whitespace).
+1. Application assembles report data (sales, declared settlement totals, driver, commerce).
+2. Serialize to **canonical JSON** (`version: 2` — deterministic key order, no superfluous whitespace).
 3. Hash payload (SHA-256) and sign with server Ed25519 private key.
 4. Persist `canonical_payload` + `signature` + `public_key_id`.
 5. Verification endpoint recalculates hash and validates signature — any post-generation tampering fails verification.

@@ -1,0 +1,26 @@
+[package]
+name = "domain-reports"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+chrono.workspace = true
+domain-commerces.workspace = true
+domain-identity.workspace = true
+domain-orders.workspace = true
+domain-sales.workspace = true
+domain-shared.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+
+[dev-dependencies]
+rand.workspace = true
+
+[lints]
+workspace = true

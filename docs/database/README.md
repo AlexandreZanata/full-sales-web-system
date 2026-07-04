@@ -104,6 +104,19 @@ Application: `confirm_delivery_and_create_sale`. Infra: `declare_payment` + audi
 
 ---
 
+## Phase 15 additions (2026-07-04)
+
+| Change | Location |
+|--------|----------|
+| Canonical payload **version 2** with `declaredSettlement` | `domain-reports` |
+| RN9 eligibility filter (delivered orders / confirmed field sales) | `domain-reports/src/payload.rs` |
+| RN-PAG4 fixed disclaimer in payload | `domain-reports` |
+| Ed25519 sign/verify over SHA-256 of canonical JSON | `domain-reports/src/signature.rs` |
+
+No DDL changes — `reports.reports.canonical_payload` structure only. Spec: [modules/05-reports/REPORT-PAYLOAD-v2.md](modules/05-reports/REPORT-PAYLOAD-v2.md).
+
+---
+
 ## Phase 09 additions (2026-07-04)
 
 | Change | Migration |
@@ -173,7 +186,8 @@ Integration tests: `cargo test -p infra-postgres --test integration rls_` and `c
 | Live DDL | `backend/migrations/` |
 | Expansion module map | `.local/phases/0d-domain-expansion/documentation/MODULE-MAP-EXPANSION.md` |
 | Expansion planning | `.local/phases/0d-domain-expansion/documentation/` |
-| Pending entity specs | `.local/phases/07-media/` … `15-reports-settlement/` |
+| Pending entity specs | `.local/phases/07-media/` … `14-commerce-portal-api/` |
+| Report payload v2 | [modules/05-reports/REPORT-PAYLOAD-v2.md](modules/05-reports/REPORT-PAYLOAD-v2.md) |
 
 Phases 01b/01c local spec folders were removed after completion; historical specs remain in git history.
 
