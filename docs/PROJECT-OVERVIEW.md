@@ -53,5 +53,6 @@ Each context is a **crate** in the Rust Cargo workspace — clear boundaries, no
 | [CACHING-STRATEGY.md](CACHING-STRATEGY.md) | Redis usage |
 | [DIGITAL-SIGNATURE.md](DIGITAL-SIGNATURE.md) | Ed25519 vs ICP-Brasil |
 | [ROADMAP.md](ROADMAP.md) | Build phases |
+| [features/admin-panel.md](features/admin-panel.md) | Admin SPA plan (Phases 28–36) |
 | [OPEN-DECISIONS.md](OPEN-DECISIONS.md) | Pending ADRs |
 | [use-cases/](use-cases/) | Actor flows |
