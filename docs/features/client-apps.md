@@ -46,6 +46,17 @@ pnpm test:e2e:field
 
 ## Known gaps
 
-See `.local/phases/39-field-client-apps/ROUTE-GAPS.md` for backend/UI routes not yet wired.
+See `.local/phases/39-field-client-apps/FOLLOW-UP-TASKS.md` for routes not yet wired.
+
+## KMP scaffold (39E)
+
+Path: `apps-mobile/field/` · Kotlin 2.x · min SDK 26
+
+```bash
+cd apps-mobile/field
+./gradlew :shared:check :androidApp:lint :androidApp:assembleDebug
+```
+
+Placeholder Compose screen until Phase 39F offline sync.
 
 **Updated:** 2026-07-04

@@ -12,11 +12,7 @@ import { fetchProducts, fetchStockBalance } from '@/lib/api/products';
 import { createSale } from '@/lib/api/sales';
 import { ApiError } from '@/lib/api/client';
 import { useI18n } from '@/lib/i18n/context';
-import {
-  PAYMENT_METHODS,
-  PAYMENT_METHOD_LABELS,
-  saleActionErrorMessage,
-} from '@/lib/sales/constants';
+import { PAYMENT_METHODS, saleActionErrorMessage } from '@/lib/sales/constants';
 import { formatMoney } from '@/lib/products/formatPrice';
 import { randomId } from '@/lib/utils';
 
@@ -27,7 +23,7 @@ export const Route = createFileRoute('/_authenticated/sales/new')({
 });
 
 function NewSalePage() {
-  const { t, tf } = useI18n();
+  const { t, tf, paymentMethod: paymentMethodLabel } = useI18n();
   const navigate = useNavigate();
   const [commerceSearch, setCommerceSearch] = useState('');
   const [commerceId, setCommerceId] = useState('');
@@ -123,7 +119,7 @@ function NewSalePage() {
           <option value="">{t('sales.paymentMethod')}</option>
           {PAYMENT_METHODS.map((method) => (
             <option key={method} value={method}>
-              {PAYMENT_METHOD_LABELS[method]}
+              {paymentMethodLabel(method)}
             </option>
           ))}
         </Select>

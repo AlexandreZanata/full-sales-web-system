@@ -4,7 +4,7 @@ import type { MessageKey, Messages } from '@/lib/i18n/messages';
 import { en } from '@/lib/i18n/locales/en';
 import { ptBR } from '@/lib/i18n/locales/pt-BR';
 import { resolveInitialLocale, writeStoredLocale } from '@/lib/i18n/storage';
-import { formatMessage, translate } from '@/lib/i18n/translate';
+import { formatMessage, paymentMethodLabel, saleStatusLabel, translate } from '@/lib/i18n/translate';
 import { LOCALE_LABELS, type Locale } from '@/lib/i18n/types';
 
 type I18nContextValue = {
@@ -12,6 +12,8 @@ type I18nContextValue = {
   setLocale: (locale: Locale) => void;
   t: (key: MessageKey) => string;
   tf: (key: MessageKey, vars: Record<string, string | number>) => string;
+  saleStatus: (status: string) => string;
+  paymentMethod: (method: string) => string;
 };
 
 const catalogs: Record<Locale, Messages> = { en, 'pt-BR': ptBR };
@@ -33,6 +35,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setLocale,
       t: (key) => translate(messages, key),
       tf: (key, vars) => formatMessage(translate(messages, key), vars),
+      saleStatus: (status) => saleStatusLabel(messages, status),
+      paymentMethod: (method) => paymentMethodLabel(messages, method),
     };
   }, [locale, setLocale]);
 

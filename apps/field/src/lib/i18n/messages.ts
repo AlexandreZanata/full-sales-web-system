@@ -44,6 +44,17 @@ export type Messages = {
     confirmed: string;
     cancelled: string;
   };
+  status: {
+    Pending: string;
+    Confirmed: string;
+    Cancelled: string;
+  };
+  paymentMethods: {
+    cash: string;
+    pix: string;
+    credit: string;
+    debit: string;
+  };
 };
 
 export type MessageKey =
@@ -86,4 +97,11 @@ export type MessageKey =
   | 'sales.selectProduct'
   | 'sales.created'
   | 'sales.confirmed'
-  | 'sales.cancelled';
+  | 'sales.cancelled'
+  | 'status.Pending'
+  | 'status.Confirmed'
+  | 'status.Cancelled'
+  | 'paymentMethods.cash'
+  | 'paymentMethods.pix'
+  | 'paymentMethods.credit'
+  | 'paymentMethods.debit';

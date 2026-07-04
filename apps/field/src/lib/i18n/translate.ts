@@ -16,3 +16,15 @@ export function translate(messages: Messages, key: MessageKey): string {
 export function formatMessage(template: string, vars: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? ''));
 }
+
+export function saleStatusLabel(messages: Messages, status: string): string {
+  const key = `status.${status}` as MessageKey;
+  const label = translate(messages, key);
+  return label === key ? status : label;
+}
+
+export function paymentMethodLabel(messages: Messages, method: string): string {
+  const key = `paymentMethods.${method}` as MessageKey;
+  const label = translate(messages, key);
+  return label === key ? method : label;
+}

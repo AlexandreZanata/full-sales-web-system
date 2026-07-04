@@ -26,7 +26,7 @@ export function FieldShell({ children }: FieldShellProps) {
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{t('auth.fieldLabel')}</span>
-            <nav className="hidden gap-1 md:flex">
+            <nav className="hidden gap-1 md:flex" aria-label="Main">
               {NAV.map(({ to, labelKey, icon: Icon }) => (
                 <Link
                   key={to}
@@ -58,7 +58,7 @@ export function FieldShell({ children }: FieldShellProps) {
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-4 pb-24 md:pb-6">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 border-t border-hairline bg-surface md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 border-t border-hairline bg-surface md:hidden" aria-label="Mobile">
         <div className="mx-auto grid max-w-3xl grid-cols-2">
           {NAV.map(({ to, labelKey, icon: Icon }) => (
             <Link

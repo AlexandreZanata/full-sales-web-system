@@ -46,4 +46,15 @@ export const en: Messages = {
     confirmed: 'Sale confirmed.',
     cancelled: 'Sale cancelled.',
   },
+  status: {
+    Pending: 'Pending',
+    Confirmed: 'Confirmed',
+    Cancelled: 'Cancelled',
+  },
+  paymentMethods: {
+    cash: 'Cash',
+    pix: 'PIX',
+    credit: 'Credit',
+    debit: 'Debit',
+  },
 };
