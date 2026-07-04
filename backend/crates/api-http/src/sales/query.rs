@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
-use crate::sales::types::{parse_sale_status, SaleItemResponse, SaleResponse};
+use crate::sales::types::{SaleItemResponse, SaleResponse, parse_sale_status};
 use crate::state::AppState;
 
 pub async fn get_sale(
@@ -37,15 +37,17 @@ pub(crate) fn build_sale_response(
     items: Vec<infra_postgres::sales::SaleItemRow>,
 ) -> SaleResponse {
     let status = parse_sale_status(&row.status).unwrap_or(domain_sales::SaleStatus::Pending);
-    let payment_method =
-        PaymentMethod::parse(&row.payment_method).unwrap_or(PaymentMethod::Cash);
+    let payment_method = PaymentMethod::parse(&row.payment_method).unwrap_or(PaymentMethod::Cash);
 
     SaleResponse {
         id: row.id,
         commerce_id: row.commerce_id,
         driver_id: row.driver_id,
+        order_id: row.order_id,
         status,
         payment_method,
+        declared_payment_method: row.declared_payment_method.clone(),
+        declared_payment_received: row.declared_payment_received,
         total_amount: row.total_amount,
         total_currency: row.total_currency.clone(),
         items: items

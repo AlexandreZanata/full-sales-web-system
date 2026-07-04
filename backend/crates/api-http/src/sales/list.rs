@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::pagination::paginate_offset;
-use crate::sales::types::{parse_sale_status, SaleSummaryResponse};
+use crate::sales::types::{SaleSummaryResponse, parse_sale_status};
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -22,6 +22,8 @@ pub struct ListSalesQuery {
     pub page_size: u32,
     #[serde(rename = "commerceId")]
     pub commerce_id: Option<Uuid>,
+    #[serde(rename = "driverId")]
+    pub driver_id: Option<Uuid>,
     pub from: Option<DateTime<Utc>>,
     pub to: Option<DateTime<Utc>>,
     pub status: Option<String>,
@@ -47,10 +49,10 @@ pub async fn list_sales(
     }
 
     let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
-    let driver_id = if auth.role == Role::Driver {
-        Some(auth.user_id)
-    } else {
-        None
+    let driver_id = match auth.role {
+        Role::Driver => Some(auth.user_id),
+        Role::Admin => query.driver_id,
+        _ => None,
     };
 
     let filters = infra_postgres::sales::SaleFilters {
@@ -75,10 +77,8 @@ pub async fn list_sales(
         .await
         .map_err(|_| ApiError::internal())? as u64;
 
-    let items: Vec<SaleSummaryResponse> = rows
-        .into_iter()
-        .filter_map(sale_summary_from_row)
-        .collect();
+    let items: Vec<SaleSummaryResponse> =
+        rows.into_iter().filter_map(sale_summary_from_row).collect();
 
     Ok(Json(PaginatedSalesResponse {
         items,
@@ -99,8 +99,8 @@ fn sale_summary_from_row(row: infra_postgres::sales::SaleListRow) -> Option<Sale
         payment_method,
         total_amount: row.total_amount,
         total_currency: row.total_currency,
-        declared_payment_method: String::new(),
-        declared_payment_received: false,
+        declared_payment_method: row.declared_payment_method,
+        declared_payment_received: row.declared_payment_received,
         created_at: row.created_at,
     })
 }

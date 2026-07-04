@@ -51,9 +51,39 @@ export type SaleSummary = {
   driverId: string;
   status: string;
   paymentMethod: string;
+  declaredPaymentMethod: string;
+  declaredPaymentReceived: boolean;
   totalAmount: number;
   totalCurrency: string;
   createdAt: string;
+};
+
+export type SaleItem = {
+  productId: string;
+  quantity: number;
+  unitPriceAmount: number;
+  unitPriceCurrency: string;
+  lineTotalAmount: number;
+};
+
+export type SaleDetail = {
+  id: string;
+  commerceId: string;
+  driverId: string;
+  orderId?: string;
+  status: string;
+  paymentMethod: string;
+  declaredPaymentMethod: string;
+  declaredPaymentReceived: boolean;
+  totalAmount: number;
+  totalCurrency: string;
+  items: SaleItem[];
+};
+
+export type CreateSaleRequest = {
+  commerceId: string;
+  items: Array<{ productId: string; quantity: number }>;
+  paymentMethod: string;
 };
 
 export type DeliverySummary = {

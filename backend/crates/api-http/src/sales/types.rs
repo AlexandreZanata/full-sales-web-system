@@ -44,9 +44,15 @@ pub struct SaleResponse {
     pub commerce_id: Uuid,
     #[serde(rename = "driverId")]
     pub driver_id: Uuid,
+    #[serde(rename = "orderId", skip_serializing_if = "Option::is_none")]
+    pub order_id: Option<Uuid>,
     pub status: SaleStatus,
     #[serde(rename = "paymentMethod")]
     pub payment_method: PaymentMethod,
+    #[serde(rename = "declaredPaymentMethod")]
+    pub declared_payment_method: String,
+    #[serde(rename = "declaredPaymentReceived")]
+    pub declared_payment_received: bool,
     #[serde(rename = "totalAmount")]
     pub total_amount: i64,
     #[serde(rename = "totalCurrency")]
@@ -81,8 +87,11 @@ pub(crate) fn sale_response_from_dto(dto: &application::sales::SaleDto) -> SaleR
         id: dto.id.as_uuid(),
         commerce_id: dto.commerce_id,
         driver_id: dto.driver_id.as_uuid(),
+        order_id: None,
         status: dto.status,
         payment_method: dto.payment_method,
+        declared_payment_method: String::new(),
+        declared_payment_received: false,
         total_amount: dto.total.amount_minor(),
         total_currency: dto.total.currency().as_str().to_owned(),
         items: dto

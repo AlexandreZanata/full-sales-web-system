@@ -1,0 +1,91 @@
+import type { CreateSaleRequest } from '@/lib/api/types';
+import { PAYMENT_METHODS } from '@/lib/sales/constants';
+
+export type SaleLineFormValues = {
+  productId: string;
+  quantity: string;
+};
+
+export type CreateSaleFormValues = {
+  commerceId: string;
+  paymentMethod: (typeof PAYMENT_METHODS)[number] | '';
+  items: SaleLineFormValues[];
+};
+
+export type CreateSaleFormErrors = Partial<
+  Record<'commerceId' | 'paymentMethod' | 'itemsRoot', string> & {
+    items: Partial<Record<keyof SaleLineFormValues, string>>[];
+  }
+>;
+
+function parseQuantity(raw: string): number | null {
+  const qty = Number.parseInt(raw, 10);
+  if (!raw.trim() || !Number.isFinite(qty) || qty <= 0) {
+    return null;
+  }
+  return qty;
+}
+
+export function validateCreateSaleForm(values: CreateSaleFormValues): CreateSaleFormErrors {
+  const errors: CreateSaleFormErrors = {};
+
+  if (!values.commerceId) {
+    errors.commerceId = 'Select a commerce';
+  }
+
+  if (!values.paymentMethod || !PAYMENT_METHODS.includes(values.paymentMethod)) {
+    errors.paymentMethod = 'Select a payment method';
+  }
+
+  const itemErrors: CreateSaleFormErrors['items'] = [];
+  let completeLines = 0;
+
+  values.items.forEach((line, index) => {
+    const lineErrors: Partial<Record<keyof SaleLineFormValues, string>> = {};
+    const qty = parseQuantity(line.quantity);
+
+    if (!line.productId) {
+      lineErrors.productId = 'Select a product';
+    }
+    if (qty === null) {
+      lineErrors.quantity = 'Enter a positive quantity';
+    }
+    if (line.productId && qty !== null) {
+      completeLines += 1;
+    }
+    itemErrors[index] = lineErrors;
+  });
+
+  if (completeLines === 0) {
+    errors.itemsRoot = 'Add at least one product line';
+    errors.items = itemErrors;
+  } else if (itemErrors.some((line) => Object.keys(line).length > 0)) {
+    errors.items = itemErrors;
+  }
+
+  return errors;
+}
+
+export function hasFormErrors(errors: CreateSaleFormErrors): boolean {
+  if (errors.commerceId || errors.paymentMethod || errors.itemsRoot) {
+    return true;
+  }
+  return Boolean(errors.items?.some((line) => Object.keys(line).length > 0));
+}
+
+export function toCreateSalePayload(values: CreateSaleFormValues): CreateSaleRequest {
+  const paymentMethod = values.paymentMethod;
+  if (!paymentMethod) {
+    throw new Error('paymentMethod is required');
+  }
+  return {
+    commerceId: values.commerceId,
+    paymentMethod,
+    items: values.items
+      .filter((line) => line.productId && parseQuantity(line.quantity) !== null)
+      .map((line) => ({
+        productId: line.productId,
+        quantity: parseQuantity(line.quantity) ?? 0,
+      })),
+  };
+}

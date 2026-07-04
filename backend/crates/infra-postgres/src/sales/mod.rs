@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::PostgresError;
 use crate::inventory::StockMovementInsert;
-use crate::rls::{apply_session_context, apply_tenant_context, SessionContext};
+use crate::rls::{SessionContext, apply_session_context, apply_tenant_context};
 
 pub struct SaleFilters {
     pub commerce_id: Option<Uuid>,
@@ -20,6 +20,8 @@ pub struct SaleListRow {
     pub commerce_id: Uuid,
     pub status: String,
     pub payment_method: String,
+    pub declared_payment_method: String,
+    pub declared_payment_received: bool,
     pub total_amount: i64,
     pub total_currency: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
@@ -149,18 +151,21 @@ pub async fn find_sale_by_id(
 ) -> Result<Option<SaleRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (
-        Uuid,
-        Uuid,
-        Uuid,
-        Option<Uuid>,
-        String,
-        String,
-        String,
-        bool,
-        i64,
-        String,
-    )>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            Uuid,
+            Option<Uuid>,
+            String,
+            String,
+            String,
+            bool,
+            i64,
+            String,
+        ),
+    >(
         "SELECT id, driver_id, commerce_id, order_id, status, payment_method,
                 declared_payment_method, declared_payment_received, total_amount, total_currency
          FROM sales.sales WHERE id = $1",
@@ -383,11 +388,15 @@ pub async fn list_sales(
         Uuid,
         String,
         String,
+        String,
+        bool,
         i64,
         String,
         chrono::DateTime<chrono::Utc>,
     )>(
-        "SELECT id, driver_id, commerce_id, status, payment_method, total_amount, total_currency, created_at
+        "SELECT id, driver_id, commerce_id, status, payment_method,
+                declared_payment_method, declared_payment_received,
+                total_amount, total_currency, created_at
          FROM sales.sales
          WHERE ($1::uuid IS NULL OR commerce_id = $1)
            AND ($2::uuid IS NULL OR driver_id = $2)
@@ -416,6 +425,8 @@ pub async fn list_sales(
                 commerce_id,
                 status,
                 payment_method,
+                declared_payment_method,
+                declared_payment_received,
                 total_amount,
                 total_currency,
                 created_at,
@@ -425,6 +436,8 @@ pub async fn list_sales(
                 commerce_id,
                 status,
                 payment_method,
+                declared_payment_method,
+                declared_payment_received,
                 total_amount,
                 total_currency,
                 created_at,

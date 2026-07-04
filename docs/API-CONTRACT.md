@@ -241,7 +241,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/sales`
 
 - **Auth:** Admin, Driver (own sales filter)
-- **Query:** `commerceId?`, `from?`, `to?`, `status?`, pagination
+- **Query:** `commerceId?`, `driverId?` (Admin only), `from?`, `to?`, `status?`, pagination
 - **Response 200:** Paginated list
 
 ### `POST /v1/sales/{id}/declare-payment`
