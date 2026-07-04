@@ -1,5 +1,5 @@
 use application::orders::{
-    approve_order as approve_order_domain, reject_order, reservation_lines, ApproveOrderResult,
+    ApproveOrderResult, approve_order as approve_order_domain, reject_order, reservation_lines,
 };
 use axum::{
     Json,
@@ -11,10 +11,10 @@ use infra_postgres::inventory::reservations::ReservationLine;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::auth::{require_admin, AuthUser};
+use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::portal::{
-    load_order, map_order_error, map_postgres_order_error, order_to_response, PortalOrderResponse,
+    PortalOrderResponse, load_order, map_order_error, map_postgres_order_error, order_to_response,
 };
 use crate::session::session_from_auth;
 use crate::state::AppState;
@@ -102,8 +102,13 @@ async fn stock_snapshot(
     state: &AppState,
     tenant_id: domain_shared::TenantId,
     items: &[domain_orders::OrderItem],
-) -> Result<(std::collections::HashMap<ProductId, i32>, std::collections::HashMap<ProductId, i32>), ApiError>
-{
+) -> Result<
+    (
+        std::collections::HashMap<ProductId, i32>,
+        std::collections::HashMap<ProductId, i32>,
+    ),
+    ApiError,
+> {
     let mut balances = std::collections::HashMap::new();
     let mut reserved = std::collections::HashMap::new();
     for item in items {
@@ -111,13 +116,14 @@ async fn stock_snapshot(
         if balances.contains_key(&product_id) {
             continue;
         }
-        let (balance, active_reserved) = infra_postgres::inventory::reservations::tenant_stock_snapshot(
-            &state.app_pool,
-            tenant_id,
-            product_id.as_uuid(),
-        )
-        .await
-        .map_err(|_| ApiError::internal())?;
+        let (balance, active_reserved) =
+            infra_postgres::inventory::reservations::tenant_stock_snapshot(
+                &state.app_pool,
+                tenant_id,
+                product_id.as_uuid(),
+            )
+            .await
+            .map_err(|_| ApiError::internal())?;
         balances.insert(product_id, balance);
         reserved.insert(product_id, active_reserved);
     }

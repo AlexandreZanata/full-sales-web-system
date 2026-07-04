@@ -7,9 +7,9 @@ use domain_identity::Role;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::auth::{require_admin, require_roles, AuthUser};
+use crate::auth::{AuthUser, require_admin, require_roles};
 use crate::error::ApiError;
-use crate::pagination::{paginate_offset, PaginationQuery};
+use crate::pagination::{PaginationQuery, paginate_offset};
 use crate::state::AppState;
 
 #[derive(Serialize)]
@@ -93,9 +93,7 @@ pub async fn record_movement(
         .as_deref()
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .ok_or_else(|| {
-            ApiError::bad_request("REASON_REQUIRED", "Adjustment reason is required")
-        })?;
+        .ok_or_else(|| ApiError::bad_request("REASON_REQUIRED", "Adjustment reason is required"))?;
     if body.quantity == 0 {
         return Err(ApiError::bad_request(
             "VALIDATION_ERROR",
@@ -164,10 +162,11 @@ async fn ensure_product(
     tenant_id: domain_shared::TenantId,
     product_id: Uuid,
 ) -> Result<(), ApiError> {
-    let exists = infra_postgres::inventory::find_product_by_id(&state.app_pool, tenant_id, product_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .is_some();
+    let exists =
+        infra_postgres::inventory::find_product_by_id(&state.app_pool, tenant_id, product_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .is_some();
     if exists {
         Ok(())
     } else {

@@ -9,12 +9,12 @@ pub mod driver_profiles;
 pub mod seller_profiles;
 
 pub use driver_profiles::{
-    find_driver_profile_by_user_id, insert_driver_profile, upsert_driver_profile,
-    DriverProfileInsert, DriverProfileRow,
+    DriverProfileInsert, DriverProfileRow, find_driver_profile_by_user_id, insert_driver_profile,
+    upsert_driver_profile,
 };
 pub use seller_profiles::{
-    find_seller_profile_by_user_id, insert_seller_profile, upsert_seller_profile,
-    SellerProfileInsert, SellerProfileRow,
+    SellerProfileInsert, SellerProfileRow, find_seller_profile_by_user_id, insert_seller_profile,
+    upsert_seller_profile,
 };
 
 /// Row persisted in `identity.users`.
@@ -193,12 +193,11 @@ pub async fn deactivate_user_tenant(
 ) -> Result<bool, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let result = sqlx::query(
-        "UPDATE identity.users SET active = false WHERE id = $1 AND active = true",
-    )
-    .bind(user_id)
-    .execute(&mut *tx)
-    .await?;
+    let result =
+        sqlx::query("UPDATE identity.users SET active = false WHERE id = $1 AND active = true")
+            .bind(user_id)
+            .execute(&mut *tx)
+            .await?;
     tx.commit().await?;
     Ok(result.rows_affected() == 1)
 }

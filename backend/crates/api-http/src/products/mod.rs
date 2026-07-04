@@ -5,9 +5,9 @@ use axum::{
 use domain_identity::Role;
 use serde::Serialize;
 
-use crate::auth::{require_roles, AuthUser};
+use crate::auth::{AuthUser, require_roles};
 use crate::error::ApiError;
-use crate::pagination::{paginate_offset, PaginationQuery};
+use crate::pagination::{PaginationQuery, paginate_offset};
 use crate::state::AppState;
 
 pub mod catalog;
@@ -34,7 +34,9 @@ pub struct PaginatedProductsResponse {
     pub total: u64,
 }
 
-pub(crate) fn product_response_from_row(row: &infra_postgres::inventory::ProductRow) -> ProductResponse {
+pub(crate) fn product_response_from_row(
+    row: &infra_postgres::inventory::ProductRow,
+) -> ProductResponse {
     ProductResponse {
         id: row.id,
         name: row.name.clone(),

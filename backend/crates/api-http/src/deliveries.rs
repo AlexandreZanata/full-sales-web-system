@@ -1,6 +1,8 @@
 mod support;
 
-use application::deliveries::{confirm_delivery_and_create_sale, ConfirmDeliveryAndCreateSaleCommand};
+use application::deliveries::{
+    ConfirmDeliveryAndCreateSaleCommand, confirm_delivery_and_create_sale,
+};
 use axum::{
     Json,
     extract::{Path, Query, State},
@@ -14,7 +16,7 @@ use domain_sales::SaleId;
 use infra_postgres::deliveries::{DeliveryFilters, DeliveryInsert};
 use uuid::Uuid;
 
-use crate::auth::{require_admin, AuthUser};
+use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::portal::load_order;
 use crate::session::session_from_auth;
@@ -39,7 +41,10 @@ pub async fn create_order_delivery(
         return Err(ApiError::invalid_order_transition());
     }
     if support::order_has_delivery(&state, &session, order_id).await? {
-        return Err(ApiError::bad_request("DELIVERY_EXISTS", "Order already has a delivery"));
+        return Err(ApiError::bad_request(
+            "DELIVERY_EXISTS",
+            "Order already has a delivery",
+        ));
     }
     support::ensure_active_driver(&state, auth.tenant_id, body.driver_id).await?;
 
@@ -63,11 +68,7 @@ pub async fn create_order_delivery(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    support::created_delivery_response(
-        delivery_id.as_uuid(),
-        order_id,
-        body.driver_id,
-    )
+    support::created_delivery_response(delivery_id.as_uuid(), order_id, body.driver_id)
 }
 
 pub async fn list_deliveries(
@@ -85,7 +86,11 @@ pub async fn list_deliveries(
         status: query.status.clone(),
     };
     let rows = infra_postgres::deliveries::list_deliveries(
-        &state.app_pool, &session, &filters, page_size as i64, offset,
+        &state.app_pool,
+        &session,
+        &filters,
+        page_size as i64,
+        offset,
     )
     .await
     .map_err(|_| ApiError::internal())?;
@@ -144,7 +149,10 @@ pub async fn confirm_delivery(
 ) -> Result<Json<DeliveryResponse>, ApiError> {
     support::require_assigned_driver(&auth)?;
     if body.items.is_empty() {
-        return Err(ApiError::bad_request("VALIDATION_ERROR", "items are required"));
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "items are required",
+        ));
     }
     let driver_session = session_from_auth(&auth);
     let admin_session = support::admin_session(&auth);

@@ -3,17 +3,15 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use domain_commerces::{
-    AddressType, CommerceAddressId, CreateCommerceAddressInput,
-};
+use domain_commerces::{AddressType, CommerceAddressId, CreateCommerceAddressInput};
 use domain_identity::Role;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::auth::{require_admin, require_roles, AuthUser};
+use crate::auth::{AuthUser, require_admin, require_roles};
 use crate::commerces::addresses_support::{
-    address_response_from_row, ensure_commerce, load_commerce, load_existing_addresses,
-    map_address_error, AddressResponse,
+    AddressResponse, address_response_from_row, ensure_commerce, load_commerce,
+    load_existing_addresses, map_address_error,
 };
 use crate::error::ApiError;
 use crate::state::AppState;
@@ -62,9 +60,10 @@ pub async fn create_address(
     let commerce = load_commerce(&state, auth.tenant_id, commerce_id).await?;
     let existing = load_existing_addresses(&state, auth.tenant_id, commerce_id).await?;
     let address_id = CommerceAddressId::generate();
-    let address_type: AddressType = body.address_type.parse().map_err(|_| {
-        ApiError::bad_request("INVALID_ADDRESS_TYPE", "Invalid address type")
-    })?;
+    let address_type: AddressType = body
+        .address_type
+        .parse()
+        .map_err(|_| ApiError::bad_request("INVALID_ADDRESS_TYPE", "Invalid address type"))?;
 
     let created = domain_commerces::CommerceAddress::create(
         &commerce,

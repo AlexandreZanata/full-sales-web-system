@@ -29,9 +29,7 @@ impl InMemoryObjectStorage {
     pub async fn resolve_presigned(&self, url: &str) -> Result<(Vec<u8>, String), StorageError> {
         let (bucket, key) = parse_memory_url(url)?;
         let guard = self.objects.read().await;
-        let obj = guard
-            .get(&(bucket, key))
-            .ok_or(StorageError::NotFound)?;
+        let obj = guard.get(&(bucket, key)).ok_or(StorageError::NotFound)?;
         Ok((obj.bytes.clone(), obj.content_type.clone()))
     }
 }

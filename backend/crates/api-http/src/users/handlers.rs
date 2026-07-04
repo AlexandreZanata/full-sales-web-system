@@ -6,13 +6,13 @@ use axum::{
 use infra_crypto::PasswordHasher;
 use uuid::Uuid;
 
-use crate::auth::{require_admin, AuthUser};
+use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
-use crate::pagination::{paginate_offset, PaginationQuery};
+use crate::pagination::{PaginationQuery, paginate_offset};
 use crate::state::AppState;
 use crate::users::types::{
-    map_user_app_error, user_response_from_detail, user_response_from_list, CreateUserRequest,
-    PaginatedUsersResponse, UserResponse,
+    CreateUserRequest, PaginatedUsersResponse, UserResponse, map_user_app_error,
+    user_response_from_detail, user_response_from_list,
 };
 
 pub async fn create_user(
@@ -51,14 +51,16 @@ pub async fn create_user(
 
     Ok((
         StatusCode::CREATED,
-        Json(user_response_from_detail(&infra_postgres::identity::UserDetailRow {
-            id: user.id().as_uuid(),
-            email: user.email().as_str().to_owned(),
-            name: user.name().as_str().to_owned(),
-            role: user.role().as_str().to_owned(),
-            active: user.is_active(),
-            commerce_id: user.commerce_id(),
-        })),
+        Json(user_response_from_detail(
+            &infra_postgres::identity::UserDetailRow {
+                id: user.id().as_uuid(),
+                email: user.email().as_str().to_owned(),
+                name: user.name().as_str().to_owned(),
+                role: user.role().as_str().to_owned(),
+                active: user.is_active(),
+                commerce_id: user.commerce_id(),
+            },
+        )),
     ))
 }
 
@@ -119,8 +121,10 @@ pub async fn deactivate_user(
         .await
         .map_err(|_| ApiError::internal())?;
 
-    Ok(Json(user_response_from_detail(&infra_postgres::identity::UserDetailRow {
-        active: false,
-        ..existing
-    })))
+    Ok(Json(user_response_from_detail(
+        &infra_postgres::identity::UserDetailRow {
+            active: false,
+            ..existing
+        },
+    )))
 }

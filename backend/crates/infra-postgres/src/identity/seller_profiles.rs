@@ -54,11 +54,13 @@ pub async fn find_seller_profile_by_user_id(
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(|(user_id, operating_region, monthly_target_amount)| SellerProfileRow {
-        user_id,
-        operating_region,
-        monthly_target_amount,
-    }))
+    Ok(row.map(
+        |(user_id, operating_region, monthly_target_amount)| SellerProfileRow {
+            user_id,
+            operating_region,
+            monthly_target_amount,
+        },
+    ))
 }
 
 pub async fn upsert_seller_profile(

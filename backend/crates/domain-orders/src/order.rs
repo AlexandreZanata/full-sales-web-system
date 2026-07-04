@@ -1,8 +1,9 @@
-use domain_commerces::{Commerce, CommerceAddress, CommerceAddressId, validate_order_delivery_address};
+use domain_commerces::{
+    Commerce, CommerceAddress, CommerceAddressId, validate_order_delivery_address,
+};
 use domain_identity::UserId;
 use domain_inventory::{
-    CreateStockReservationInput, InventoryError, Product, Quantity, ReservationId,
-    StockReservation,
+    CreateStockReservationInput, InventoryError, Product, Quantity, ReservationId, StockReservation,
 };
 use domain_shared::{Money, TenantId};
 
@@ -226,10 +227,7 @@ impl Order {
     }
 
     /// RN5 — records delivered quantities and transitions to Delivered or PartiallyDelivered.
-    pub fn confirm_delivery(
-        mut self,
-        items: &[DeliveredItemInput],
-    ) -> Result<Self, OrderError> {
+    pub fn confirm_delivery(mut self, items: &[DeliveredItemInput]) -> Result<Self, OrderError> {
         if self.status != OrderStatus::InTransit {
             return Err(OrderError::InvalidTransition {
                 from: self.status,
@@ -436,7 +434,8 @@ mod tests {
     fn given_pending_approval_when_approve_then_approved() {
         let (order, product_id) = draft_order_with_item();
         let submitted = order.submit().expect("submit");
-        let mut port = InMemoryReservationPort::new(StockSnapshot::default().with_balance(product_id, 100));
+        let mut port =
+            InMemoryReservationPort::new(StockSnapshot::default().with_balance(product_id, 100));
         let (approved, reservations) = submitted.approve(&mut port).expect("approve");
         assert_eq!(approved.status(), OrderStatus::Approved);
         assert_eq!(reservations.len(), 1);

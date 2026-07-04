@@ -1,8 +1,8 @@
 //! CommerceAddress domain tests — ENTITY-SPEC-commerce-address validations.
 
 use domain_commerces::{
-    AddressType, Commerce, CommerceAddress, CommerceAddressId, CommerceId, CommerceError,
-    CreateCommerceAddressInput, CreateCommerceInput, Cnpj, ensure_address_allowed_for_commerce,
+    AddressType, Cnpj, Commerce, CommerceAddress, CommerceAddressId, CommerceError, CommerceId,
+    CreateCommerceAddressInput, CreateCommerceInput, ensure_address_allowed_for_commerce,
     validate_order_delivery_address,
 };
 use domain_shared::TenantId;
@@ -17,10 +17,7 @@ fn sample_commerce(tenant_id: TenantId) -> Commerce {
     })
 }
 
-fn delivery_input(
-    commerce: &Commerce,
-    is_primary: bool,
-) -> CreateCommerceAddressInput {
+fn delivery_input(commerce: &Commerce, is_primary: bool) -> CreateCommerceAddressInput {
     CreateCommerceAddressInput {
         id: CommerceAddressId::generate(),
         tenant_id: commerce.tenant_id(),
@@ -53,8 +50,8 @@ fn given_valid_fields_when_create_address_then_ok() {
 fn given_second_primary_same_type_when_create_then_duplicate_primary() {
     let tenant = TenantId::generate();
     let commerce = sample_commerce(tenant);
-    let first = CommerceAddress::create(&commerce, delivery_input(&commerce, true), &[])
-        .expect("first");
+    let first =
+        CommerceAddress::create(&commerce, delivery_input(&commerce, true), &[]).expect("first");
     let err = CommerceAddress::create(&commerce, delivery_input(&commerce, true), &[first])
         .expect_err("second primary");
     assert_eq!(err, CommerceError::DuplicatePrimaryAddress);
@@ -106,8 +103,8 @@ fn given_billing_address_when_validate_order_delivery_then_invalid() {
 fn given_delivery_address_when_validate_order_delivery_then_ok() {
     let tenant = TenantId::generate();
     let commerce = sample_commerce(tenant);
-    let delivery = CommerceAddress::create(&commerce, delivery_input(&commerce, true), &[])
-        .expect("delivery");
+    let delivery =
+        CommerceAddress::create(&commerce, delivery_input(&commerce, true), &[]).expect("delivery");
     validate_order_delivery_address(&commerce, &delivery).expect("valid for order");
 }
 
@@ -115,8 +112,8 @@ fn given_delivery_address_when_validate_order_delivery_then_ok() {
 fn given_inactive_commerce_when_validate_order_delivery_then_inactive() {
     let tenant = TenantId::generate();
     let commerce = sample_commerce(tenant);
-    let delivery = CommerceAddress::create(&commerce, delivery_input(&commerce, true), &[])
-        .expect("delivery");
+    let delivery =
+        CommerceAddress::create(&commerce, delivery_input(&commerce, true), &[]).expect("delivery");
     let inactive = commerce.deactivate();
     let err = validate_order_delivery_address(&inactive, &delivery).expect_err("inactive");
     assert_eq!(err, CommerceError::InactiveCommerce);

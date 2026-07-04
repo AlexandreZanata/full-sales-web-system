@@ -2,8 +2,8 @@
 
 mod support;
 
-use domain_sales::{PaymentMethod, SaleCreateInput, SaleError, SaleId, SaleStatus};
 use domain_identity::UserId;
+use domain_sales::{PaymentMethod, SaleCreateInput, SaleError, SaleId, SaleStatus};
 
 use support::{sample_commerce, sample_product};
 

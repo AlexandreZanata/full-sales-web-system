@@ -17,5 +17,8 @@ pub enum DeliveryError {
     DriverNotAssigned,
 
     #[error("invalid delivery transition: {from} → {to}")]
-    InvalidTransition { from: DeliveryStatus, to: DeliveryStatus },
+    InvalidTransition {
+        from: DeliveryStatus,
+        to: DeliveryStatus,
+    },
 }

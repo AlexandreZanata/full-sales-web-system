@@ -382,18 +382,21 @@ pub async fn list_sales(
 ) -> Result<Vec<SaleListRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (
-        Uuid,
-        Uuid,
-        Uuid,
-        String,
-        String,
-        String,
-        bool,
-        i64,
-        String,
-        chrono::DateTime<chrono::Utc>,
-    )>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            Uuid,
+            String,
+            String,
+            String,
+            bool,
+            i64,
+            String,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
         "SELECT id, driver_id, commerce_id, status, payment_method,
                 declared_payment_method, declared_payment_received,
                 total_amount, total_currency, created_at

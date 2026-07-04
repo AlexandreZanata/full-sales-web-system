@@ -10,7 +10,7 @@ use domain_orders::{
     AddOrderItemInput, InMemoryReservationPort, Order, OrderCreateInput, OrderId, OrderItemId,
     OrderSource, StockSnapshot,
 };
-use domain_sales::{Sale, SaleCreateInput, SaleId, PaymentMethod};
+use domain_sales::{PaymentMethod, Sale, SaleCreateInput, SaleId};
 use domain_shared::{Currency, Money, TenantId};
 
 pub fn sample_commerce() -> Commerce {
@@ -101,9 +101,8 @@ pub fn delivered_order() -> (Order, UserId) {
     .submit()
     .expect("submit");
 
-    let mut port = InMemoryReservationPort::new(
-        StockSnapshot::default().with_balance(product_id, 50),
-    );
+    let mut port =
+        InMemoryReservationPort::new(StockSnapshot::default().with_balance(product_id, 50));
     let order = order
         .approve(&mut port)
         .expect("approve")

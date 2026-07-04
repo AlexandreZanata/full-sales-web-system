@@ -5,7 +5,7 @@ mod support;
 
 use http::StatusCode;
 
-use support::{minimal_webp_bytes, request, seed_admin, upload_multipart, setup};
+use support::{minimal_webp_bytes, request, seed_admin, setup, upload_multipart};
 
 // Contract: invalid mime → 400 before DB row
 #[tokio::test]

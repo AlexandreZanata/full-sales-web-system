@@ -1,7 +1,7 @@
 //! BR-IA-003 and CommerceContact registration — contract from ENTITY-SPEC-user-delta.
 
 use domain_identity::{
-    ensure_same_commerce, Email, FullName, IdentityError, RegisterUserInput, Role, User, UserId,
+    Email, FullName, IdentityError, RegisterUserInput, Role, User, UserId, ensure_same_commerce,
 };
 use domain_shared::TenantId;
 use uuid::Uuid;
@@ -52,5 +52,6 @@ fn br_ia_003_given_commerce_contact_for_x_when_access_commerce_y_then_forbidden(
 #[test]
 fn br_ia_003_given_commerce_contact_for_x_when_access_commerce_x_then_ok() {
     let commerce_x = Uuid::now_v7();
-    ensure_same_commerce(Role::CommerceContact, Some(commerce_x), commerce_x).expect("same commerce");
+    ensure_same_commerce(Role::CommerceContact, Some(commerce_x), commerce_x)
+        .expect("same commerce");
 }

@@ -39,7 +39,10 @@ fn given_in_transit_with_proof_when_confirm_then_delivered() {
             driver,
         )
         .expect("confirm");
-    assert_eq!(confirmed.status(), domain_deliveries::DeliveryStatus::Delivered);
+    assert_eq!(
+        confirmed.status(),
+        domain_deliveries::DeliveryStatus::Delivered
+    );
     assert!(confirmed.proof_file_id().is_some());
 }
 

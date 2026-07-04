@@ -5,12 +5,12 @@ use axum::{
 use domain_identity::Role;
 use uuid::Uuid;
 
-use crate::auth::{require_admin, AuthUser};
+use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::state::AppState;
 use crate::users::types::{
-    load_user, DriverProfileRequest, DriverProfileResponse, SellerProfileRequest,
-    SellerProfileResponse,
+    DriverProfileRequest, DriverProfileResponse, SellerProfileRequest, SellerProfileResponse,
+    load_user,
 };
 
 pub async fn upsert_driver_profile(
@@ -44,11 +44,14 @@ pub async fn upsert_driver_profile(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let profile =
-        infra_postgres::identity::find_driver_profile_by_user_id(&state.app_pool, auth.tenant_id, id)
-            .await
-            .map_err(|_| ApiError::internal())?
-            .ok_or_else(ApiError::internal)?;
+    let profile = infra_postgres::identity::find_driver_profile_by_user_id(
+        &state.app_pool,
+        auth.tenant_id,
+        id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?
+    .ok_or_else(ApiError::internal)?;
 
     Ok(Json(DriverProfileResponse {
         user_id: profile.user_id,
@@ -87,11 +90,14 @@ pub async fn upsert_seller_profile(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let profile =
-        infra_postgres::identity::find_seller_profile_by_user_id(&state.app_pool, auth.tenant_id, id)
-            .await
-            .map_err(|_| ApiError::internal())?
-            .ok_or_else(ApiError::internal)?;
+    let profile = infra_postgres::identity::find_seller_profile_by_user_id(
+        &state.app_pool,
+        auth.tenant_id,
+        id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?
+    .ok_or_else(ApiError::internal)?;
 
     Ok(Json(SellerProfileResponse {
         user_id: profile.user_id,

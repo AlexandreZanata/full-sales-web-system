@@ -32,6 +32,10 @@ Thumbs.db
 coverage/
 .nyc_output/
 
+# Playwright / TanStack Router (generated)
+test-results/
+apps/admin/.tanstack/
+
 # Python (harness tooling)
 __pycache__/
 *.py[cod]

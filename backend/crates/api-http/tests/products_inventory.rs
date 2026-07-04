@@ -42,11 +42,13 @@ async fn contract_create_product_when_listed_then_present() {
     )
     .await;
     assert_eq!(list_status, StatusCode::OK);
-    assert!(list_body["items"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|p| p["id"].as_str() == Some(product_id)));
+    assert!(
+        list_body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p["id"].as_str() == Some(product_id))
+    );
 }
 
 // Contract: adjustment increases balance

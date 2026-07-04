@@ -74,20 +74,23 @@ pub async fn find_address_by_id(
 ) -> Result<Option<AddressRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (
-        Uuid,
-        Uuid,
-        String,
-        String,
-        String,
-        Option<String>,
-        String,
-        String,
-        String,
-        Option<f64>,
-        Option<f64>,
-        bool,
-    )>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            String,
+            String,
+            String,
+            Option<String>,
+            String,
+            String,
+            String,
+            Option<f64>,
+            Option<f64>,
+            bool,
+        ),
+    >(
         "SELECT id, commerce_id, address_type, street, number, district, city, state,
                 postal_code, latitude, longitude, is_primary
          FROM commerces.commerce_addresses WHERE id = $1",
@@ -134,20 +137,23 @@ pub async fn list_addresses_by_commerce(
 ) -> Result<Vec<AddressRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (
-        Uuid,
-        Uuid,
-        String,
-        String,
-        String,
-        Option<String>,
-        String,
-        String,
-        String,
-        Option<f64>,
-        Option<f64>,
-        bool,
-    )>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            String,
+            String,
+            String,
+            Option<String>,
+            String,
+            String,
+            String,
+            Option<f64>,
+            Option<f64>,
+            bool,
+        ),
+    >(
         "SELECT id, commerce_id, address_type, street, number, district, city, state,
                 postal_code, latitude, longitude, is_primary
          FROM commerces.commerce_addresses

@@ -58,14 +58,7 @@ pub async fn find_driver_profile_by_user_id(
 ) -> Result<Option<DriverProfileRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (
-        Uuid,
-        String,
-        String,
-        Option<Uuid>,
-        String,
-        String,
-    )>(
+    let row = sqlx::query_as::<_, (Uuid, String, String, Option<Uuid>, String, String)>(
         "SELECT user_id, cnh_number, cnh_category, cnh_photo_file_id,
                 vehicle_plate, vehicle_model
          FROM identity.driver_profiles WHERE user_id = $1",

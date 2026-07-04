@@ -53,14 +53,7 @@ async fn contract_list_sales_when_driver_then_pagination_meta() {
 
     create_sale(&env, &driver_token, commerce_id, product_id).await;
 
-    let (status, body) = request(
-        &env,
-        "GET",
-        "/v1/sales",
-        Some(&driver_token),
-        None,
-    )
-    .await;
+    let (status, body) = request(&env, "GET", "/v1/sales", Some(&driver_token), None).await;
 
     assert_eq!(status, StatusCode::OK);
     assert!(body["items"].is_array());

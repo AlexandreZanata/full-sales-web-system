@@ -21,7 +21,11 @@ pub trait ObjectStorage: Send + Sync {
         content_type: &str,
     ) -> Result<(), crate::error::StorageError>;
 
-    async fn delete_object(&self, bucket: &str, key: &str) -> Result<(), crate::error::StorageError>;
+    async fn delete_object(
+        &self,
+        bucket: &str,
+        key: &str,
+    ) -> Result<(), crate::error::StorageError>;
 
     async fn presigned_get(
         &self,

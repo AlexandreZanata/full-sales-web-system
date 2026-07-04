@@ -16,7 +16,7 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::sales::query::get_sale;
-use crate::sales::types::{map_sales_app_error, parse_sale_status, SaleResponse};
+use crate::sales::types::{SaleResponse, map_sales_app_error, parse_sale_status};
 use crate::session::session_from_auth;
 use crate::state::AppState;
 
@@ -46,8 +46,9 @@ pub async fn declare_sale_payment(
         return Err(ApiError::unauthorized_payment_declaration());
     }
 
-    let method = DeclaredPaymentMethod::parse(&body.method)
-        .map_err(|_| ApiError::bad_request("VALIDATION_ERROR", "Invalid declared payment method"))?;
+    let method = DeclaredPaymentMethod::parse(&body.method).map_err(|_| {
+        ApiError::bad_request("VALIDATION_ERROR", "Invalid declared payment method")
+    })?;
 
     let payment_method =
         PaymentMethod::parse(&row.payment_method).map_err(|_| ApiError::internal())?;

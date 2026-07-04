@@ -1,5 +1,5 @@
-use application::sales::{CreateSaleCommand, CreateSaleLineInput};
 use super::idempotency::{created_json_response, idempotency_key, replay_idempotency};
+use application::sales::{CreateSaleCommand, CreateSaleLineInput};
 use axum::{
     extract::{Path, State},
     http::HeaderMap,
@@ -13,11 +13,11 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::sales::types::{
-    map_products_app_error, map_sales_app_error, require_can_record_sale, sale_response_from_dto,
-    CreateSaleRequest,
+    CreateSaleRequest, map_products_app_error, map_sales_app_error, require_can_record_sale,
+    sale_response_from_dto,
 };
 use crate::state::AppState;
-use crate::validation::{to_json_bytes, ValidatedJson};
+use crate::validation::{ValidatedJson, to_json_bytes};
 
 pub async fn create_sale(
     State(state): State<AppState>,

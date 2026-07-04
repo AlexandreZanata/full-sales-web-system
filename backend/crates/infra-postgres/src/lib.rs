@@ -2,11 +2,11 @@
 
 pub mod audit;
 pub mod commerces;
+pub mod deliveries;
 pub mod error;
 pub mod identity;
 pub mod inventory;
 pub mod media;
-pub mod deliveries;
 pub mod orders;
 pub mod reports;
 pub mod rls;
@@ -14,7 +14,7 @@ pub mod sales;
 pub mod shared;
 
 pub use error::PostgresError;
-pub use rls::{apply_session_context, set_session_context, set_tenant_context, SessionContext};
+pub use rls::{SessionContext, apply_session_context, set_session_context, set_tenant_context};
 pub use sqlx::PgPool;
 
 /// Returns the crate version (health/diagnostics).

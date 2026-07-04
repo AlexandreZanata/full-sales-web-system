@@ -1,18 +1,17 @@
 use chrono::{DateTime, Utc};
 use domain_commerces::CommerceId;
 use domain_identity::UserId;
-use domain_orders::OrderStatus;
-use domain_sales::{DeclaredPaymentMethod, SaleStatus};
-use domain_sales::SaleId;
 use domain_orders::OrderId;
-use serde_json::{json, Value};
+use domain_orders::OrderStatus;
+use domain_sales::SaleId;
+use domain_sales::{DeclaredPaymentMethod, SaleStatus};
+use serde_json::{Value, json};
 
 use crate::canonical::to_canonical_json;
 use crate::error::ReportError;
 
 pub const PAYLOAD_VERSION: u32 = 2;
-pub const SETTLEMENT_DISCLAIMER: &str =
-    "Self-declared by seller. Not fiscal or bank proof.";
+pub const SETTLEMENT_DISCLAIMER: &str = "Self-declared by seller. Not fiscal or bank proof.";
 
 #[derive(Debug, Clone)]
 pub struct ReportPeriod {

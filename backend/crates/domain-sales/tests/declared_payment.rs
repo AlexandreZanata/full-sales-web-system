@@ -5,8 +5,8 @@ mod support;
 use chrono::Utc;
 use domain_identity::UserId;
 use domain_sales::{
-    DeclarePaymentInput, DeclaredPaymentMethod, InMemoryPaymentDeclarationAuditPort,
-    SaleError, SaleFromDeliveryInput, SaleId,
+    DeclarePaymentInput, DeclaredPaymentMethod, InMemoryPaymentDeclarationAuditPort, SaleError,
+    SaleFromDeliveryInput, SaleId,
 };
 
 use support::{delivered_order, field_sale_with_item};
@@ -62,7 +62,10 @@ fn given_sale_when_driver_declares_then_payment_recorded() {
             &mut audit,
         )
         .expect("declare");
-    assert_eq!(updated.declared_payment().method(), DeclaredPaymentMethod::Cash);
+    assert_eq!(
+        updated.declared_payment().method(),
+        DeclaredPaymentMethod::Cash
+    );
     assert!(updated.declared_payment().received());
     assert_eq!(audit.entries.len(), 1);
 }

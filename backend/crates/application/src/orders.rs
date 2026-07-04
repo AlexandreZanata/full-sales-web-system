@@ -45,10 +45,8 @@ pub fn approve_order(
         .into());
     }
 
-    let mut port = InMemoryReservationPort::new(StockSnapshot::new(
-        balance_by_product,
-        reserved_by_product,
-    ));
+    let mut port =
+        InMemoryReservationPort::new(StockSnapshot::new(balance_by_product, reserved_by_product));
     let (approved, reservations) = order.approve(&mut port)?;
     Ok(ApproveOrderResult {
         order: approved,
@@ -72,9 +70,7 @@ pub fn cancel_order(order: Order) -> Result<CancelOrderResult, OrdersAppError> {
 }
 
 /// Maps domain reservations to infra insert lines.
-pub fn reservation_lines(
-    reservations: &[StockReservation],
-) -> Vec<ReservationLineDto> {
+pub fn reservation_lines(reservations: &[StockReservation]) -> Vec<ReservationLineDto> {
     reservations
         .iter()
         .map(|r| ReservationLineDto {

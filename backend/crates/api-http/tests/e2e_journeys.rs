@@ -9,8 +9,8 @@ use uuid::Uuid;
 
 use support::{
     minimal_webp_bytes, request, seed_admin, seed_commerce, seed_commerce_contact,
-    seed_delivery_address, seed_driver, seed_driver_stock, seed_product, seed_signing_key,
-    setup, upload_multipart,
+    seed_delivery_address, seed_driver, seed_driver_stock, seed_product, seed_signing_key, setup,
+    upload_multipart,
 };
 
 async fn portal_order_through_approve(
@@ -121,9 +121,15 @@ async fn e2e_003_portal_order_delivery_declare_payment_report() {
         seed_commerce_contact(&env, commerce_id, "contact-journey@test.com").await;
 
     let quantity = 2;
-    let order_id =
-        portal_order_through_approve(&env, &contact_token, &admin_token, address_id, product_id, quantity)
-            .await;
+    let order_id = portal_order_through_approve(
+        &env,
+        &contact_token,
+        &admin_token,
+        address_id,
+        product_id,
+        quantity,
+    )
+    .await;
 
     let delivery_id =
         assign_and_start_delivery(&env, &admin_token, &driver_token, &order_id, driver_id).await;
@@ -171,7 +177,9 @@ async fn e2e_003_portal_order_delivery_declare_payment_report() {
     .await;
     assert_eq!(confirm_status, StatusCode::OK);
     assert_eq!(confirm_body["status"], "Delivered");
-    let sale_id = confirm_body["saleId"].as_str().expect("sale id from delivery confirm");
+    let sale_id = confirm_body["saleId"]
+        .as_str()
+        .expect("sale id from delivery confirm");
 
     let (declare_status, declare_body) = request(
         &env,
@@ -235,9 +243,15 @@ async fn e2e_004_media_upload_delivery_proof_confirm() {
     let (_, contact_token) =
         seed_commerce_contact(&env, commerce_id, "contact-proof@test.com").await;
 
-    let order_id =
-        portal_order_through_approve(&env, &contact_token, &admin_token, address_id, product_id, 1)
-            .await;
+    let order_id = portal_order_through_approve(
+        &env,
+        &contact_token,
+        &admin_token,
+        address_id,
+        product_id,
+        1,
+    )
+    .await;
     let delivery_id =
         assign_and_start_delivery(&env, &admin_token, &driver_token, &order_id, driver_id).await;
     let delivery_uuid = Uuid::parse_str(&delivery_id).expect("delivery uuid");

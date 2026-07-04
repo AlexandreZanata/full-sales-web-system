@@ -78,16 +78,10 @@ impl Sale {
         let order = input.order;
         let mut items = Vec::new();
         for line in order.items() {
-            let quantity = line
-                .quantity_delivered()
-                .ok_or(SaleError::EmptySale)?;
+            let quantity = line.quantity_delivered().ok_or(SaleError::EmptySale)?;
             items.push(
-                SaleItem::create(
-                    line.product_id(),
-                    quantity,
-                    line.unit_price().clone(),
-                )
-                .map_err(|_| SaleError::EmptySale)?,
+                SaleItem::create(line.product_id(), quantity, line.unit_price().clone())
+                    .map_err(|_| SaleError::EmptySale)?,
             );
         }
         if items.is_empty() {

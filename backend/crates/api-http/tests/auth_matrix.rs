@@ -40,17 +40,9 @@ async fn auth_matrix_driver_post_users_forbidden() {
 async fn auth_matrix_commerce_contact_get_orders_forbidden() {
     let env = setup().await;
     let commerce_id = seed_commerce(&env, "11222333000181").await;
-    let (_, contact_token) =
-        seed_commerce_contact(&env, commerce_id, "contact@store.com").await;
+    let (_, contact_token) = seed_commerce_contact(&env, commerce_id, "contact@store.com").await;
 
-    let (status, body) = request(
-        &env,
-        "GET",
-        "/v1/orders",
-        Some(&contact_token),
-        None,
-    )
-    .await;
+    let (status, body) = request(&env, "GET", "/v1/orders", Some(&contact_token), None).await;
 
     assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(body["error"]["code"], "FORBIDDEN");

@@ -109,7 +109,9 @@ pub async fn delete_product_image(
     Ok(StatusCode::NO_CONTENT)
 }
 
-fn product_image_response(row: &infra_postgres::inventory::product_images::ProductImageRow) -> ProductImageResponse {
+fn product_image_response(
+    row: &infra_postgres::inventory::product_images::ProductImageRow,
+) -> ProductImageResponse {
     ProductImageResponse {
         id: row.id,
         file_id: row.file_id,

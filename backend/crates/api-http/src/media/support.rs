@@ -56,7 +56,9 @@ pub async fn parse_multipart(
                     field
                         .bytes()
                         .await
-                        .map_err(|_| ApiError::bad_request("VALIDATION_ERROR", "Invalid file field"))?
+                        .map_err(|_| {
+                            ApiError::bad_request("VALIDATION_ERROR", "Invalid file field")
+                        })?
                         .to_vec(),
                 );
             }
@@ -78,12 +80,14 @@ pub async fn parse_multipart(
         bytes.ok_or_else(|| ApiError::bad_request("VALIDATION_ERROR", "file is required"))?,
         mime_type.unwrap_or_else(|| "application/octet-stream".to_owned()),
         FileEntityType::from_str(
-            &entity_type
-                .ok_or_else(|| ApiError::bad_request("VALIDATION_ERROR", "entityType is required"))?,
+            &entity_type.ok_or_else(|| {
+                ApiError::bad_request("VALIDATION_ERROR", "entityType is required")
+            })?,
         )
         .map_err(map_media_error)?,
         Uuid::parse_str(
-            &entity_id.ok_or_else(|| ApiError::bad_request("VALIDATION_ERROR", "entityId is required"))?,
+            &entity_id
+                .ok_or_else(|| ApiError::bad_request("VALIDATION_ERROR", "entityId is required"))?,
         )
         .map_err(|_| ApiError::bad_request("VALIDATION_ERROR", "Invalid entityId"))?,
     ))
@@ -142,7 +146,8 @@ pub async fn presign(
         .map_err(|_| ApiError::internal())?;
     Ok(MediaUrlResponse {
         url: presigned.url,
-        expires_at: chrono::Utc::now() + chrono::Duration::seconds(presigned.expires_in_secs as i64),
+        expires_at: chrono::Utc::now()
+            + chrono::Duration::seconds(presigned.expires_in_secs as i64),
     })
 }
 
@@ -150,7 +155,12 @@ pub fn media_bucket() -> String {
     std::env::var(MEDIA_BUCKET_ENV).unwrap_or_else(|_| "media".into())
 }
 
-pub fn object_key_for(entity_type: FileEntityType, entity_id: Uuid, file_id: Uuid, mime: &str) -> String {
+pub fn object_key_for(
+    entity_type: FileEntityType,
+    entity_id: Uuid,
+    file_id: Uuid,
+    mime: &str,
+) -> String {
     let ext = match mime {
         "image/jpeg" => "jpg",
         "image/png" => "png",

@@ -14,7 +14,7 @@ pub mod products;
 pub mod sales;
 pub mod users;
 
-pub use commerces::{restore_commerce, restore_commerce_address, AddressRowInput};
+pub use commerces::{AddressRowInput, restore_commerce, restore_commerce_address};
 
 #[derive(Debug, Error)]
 pub enum AppError {

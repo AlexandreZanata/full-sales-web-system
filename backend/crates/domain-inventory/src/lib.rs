@@ -15,7 +15,7 @@ pub mod stock_reservation;
 pub mod unit_of_measure;
 
 pub use available_stock::{
-    compute_available, ensure_can_reserve, tenant_available_stock, AvailableStockInput,
+    AvailableStockInput, compute_available, ensure_can_reserve, tenant_available_stock,
 };
 pub use error::InventoryError;
 pub use movement::validate_adjustment_reason;

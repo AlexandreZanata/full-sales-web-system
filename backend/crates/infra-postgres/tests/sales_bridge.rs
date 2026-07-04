@@ -2,15 +2,17 @@
 
 use domain_shared::TenantId;
 use infra_postgres::commerces;
-use infra_postgres::deliveries::{self, ConfirmDeliveryItemUpdate, ConfirmDeliveryTxInput, DeliveryInsert};
+use infra_postgres::deliveries::{
+    self, ConfirmDeliveryItemUpdate, ConfirmDeliveryTxInput, DeliveryInsert,
+};
 use infra_postgres::identity;
 use infra_postgres::inventory;
 use infra_postgres::inventory::reservations;
 use infra_postgres::orders::{self, OrderInsert, OrderItemInsert};
 use infra_postgres::sales;
-use infra_postgres::{migrate, PgPool, SessionContext};
-use testcontainers::runners::AsyncRunner;
+use infra_postgres::{PgPool, SessionContext, migrate};
 use testcontainers::ImageExt;
+use testcontainers::runners::AsyncRunner;
 use testcontainers_modules::postgres::Postgres;
 use uuid::Uuid;
 

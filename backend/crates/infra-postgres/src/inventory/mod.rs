@@ -111,7 +111,19 @@ pub async fn list_portal_products(
 ) -> Result<Vec<ProductRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool, Option<String>, String)>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            String,
+            i64,
+            String,
+            bool,
+            Option<String>,
+            String,
+        ),
+    >(
         "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
          FROM inventory.products
          WHERE active = true
@@ -181,7 +193,19 @@ pub async fn find_products_by_ids(
     }
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool, Option<String>, String)>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            String,
+            i64,
+            String,
+            bool,
+            Option<String>,
+            String,
+        ),
+    >(
         "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
          FROM inventory.products WHERE id = ANY($1)",
     )
@@ -215,7 +239,19 @@ pub async fn find_product_by_id(
 ) -> Result<Option<ProductRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool, Option<String>, String)>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            String,
+            i64,
+            String,
+            bool,
+            Option<String>,
+            String,
+        ),
+    >(
         "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
          FROM inventory.products WHERE id = $1",
     )

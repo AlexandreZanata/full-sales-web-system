@@ -9,7 +9,8 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::products::{
-    product_response_from_row, require_can_read_products, require_can_write_products, ProductResponse,
+    ProductResponse, product_response_from_row, require_can_read_products,
+    require_can_write_products,
 };
 use crate::state::AppState;
 
@@ -92,9 +93,9 @@ pub async fn create_product(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    get_product(State(state), auth, Path(product_id)).await.map(|json| {
-        (StatusCode::CREATED, json)
-    })
+    get_product(State(state), auth, Path(product_id))
+        .await
+        .map(|json| (StatusCode::CREATED, json))
 }
 
 pub async fn get_product(
@@ -143,10 +144,11 @@ pub(crate) async fn ensure_product(
     tenant_id: domain_shared::TenantId,
     product_id: Uuid,
 ) -> Result<(), ApiError> {
-    let exists = infra_postgres::inventory::find_product_by_id(&state.app_pool, tenant_id, product_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .is_some();
+    let exists =
+        infra_postgres::inventory::find_product_by_id(&state.app_pool, tenant_id, product_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .is_some();
     if exists {
         Ok(())
     } else {

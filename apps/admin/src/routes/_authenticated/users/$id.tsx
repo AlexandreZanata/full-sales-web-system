@@ -100,10 +100,7 @@ function UserDetailPage() {
           <Card className="space-y-3">
             <DetailRow label="Name" value={detail.name} />
             <DetailRow label="Email" value={detail.email} />
-            <DetailRow
-              label="Role"
-              value={USER_ROLE_LABELS[detail.role]}
-            />
+            <DetailRow label="Role" value={USER_ROLE_LABELS[detail.role]} />
             <DetailRow label="Status" value={<ActiveBadge active={detail.active} />} />
             {detail.commerceId ? <DetailRow label="Commerce ID" value={detail.commerceId} /> : null}
           </Card>

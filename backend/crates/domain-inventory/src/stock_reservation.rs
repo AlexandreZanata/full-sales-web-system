@@ -1,7 +1,7 @@
 use domain_shared::TenantId;
 use uuid::Uuid;
 
-use crate::available_stock::{compute_available, ensure_can_reserve, AvailableStockInput};
+use crate::available_stock::{AvailableStockInput, compute_available, ensure_can_reserve};
 use crate::error::InventoryError;
 use crate::product_id::ProductId;
 use crate::quantity::Quantity;

@@ -66,18 +66,21 @@ pub async fn find_file_by_id(
 ) -> Result<Option<FileRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (
-        Uuid,
-        String,
-        Uuid,
-        String,
-        String,
-        String,
-        i64,
-        String,
-        Uuid,
-        chrono::DateTime<chrono::Utc>,
-    )>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            Uuid,
+            String,
+            String,
+            String,
+            i64,
+            String,
+            Uuid,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
         "SELECT id, entity_type, entity_id, bucket, object_key, mime_type,
                 size_bytes, sha256, uploaded_by_user_id, created_at
          FROM media.files WHERE id = $1",
@@ -121,18 +124,21 @@ pub async fn list_files_by_entity(
 ) -> Result<Vec<FileRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (
-        Uuid,
-        String,
-        Uuid,
-        String,
-        String,
-        String,
-        i64,
-        String,
-        Uuid,
-        chrono::DateTime<chrono::Utc>,
-    )>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            Uuid,
+            String,
+            String,
+            String,
+            i64,
+            String,
+            Uuid,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
         "SELECT id, entity_type, entity_id, bucket, object_key, mime_type,
                 size_bytes, sha256, uploaded_by_user_id, created_at
          FROM media.files

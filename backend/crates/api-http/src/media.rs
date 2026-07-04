@@ -4,7 +4,7 @@ use axum::{
     Json,
     extract::{Multipart, Path, State},
 };
-use domain_media::{compute_sha256, validate_upload, FileId};
+use domain_media::{FileId, compute_sha256, validate_upload};
 use uuid::Uuid;
 
 use crate::auth::AuthUser;

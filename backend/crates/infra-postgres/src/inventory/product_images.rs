@@ -64,13 +64,15 @@ pub async fn list_product_images(
     tx.commit().await?;
     Ok(rows
         .into_iter()
-        .map(|(id, product_id, file_id, sort_order, is_primary)| ProductImageRow {
-            id,
-            product_id,
-            file_id,
-            sort_order,
-            is_primary,
-        })
+        .map(
+            |(id, product_id, file_id, sort_order, is_primary)| ProductImageRow {
+                id,
+                product_id,
+                file_id,
+                sort_order,
+                is_primary,
+            },
+        )
         .collect())
 }
 
@@ -89,13 +91,15 @@ pub async fn find_product_image_by_id(
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(|(id, product_id, file_id, sort_order, is_primary)| ProductImageRow {
-        id,
-        product_id,
-        file_id,
-        sort_order,
-        is_primary,
-    }))
+    Ok(row.map(
+        |(id, product_id, file_id, sort_order, is_primary)| ProductImageRow {
+            id,
+            product_id,
+            file_id,
+            sort_order,
+            is_primary,
+        },
+    ))
 }
 
 pub async fn clear_primary_for_product(
@@ -105,12 +109,10 @@ pub async fn clear_primary_for_product(
 ) -> Result<(), PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    sqlx::query(
-        "UPDATE inventory.product_images SET is_primary = false WHERE product_id = $1",
-    )
-    .bind(product_id)
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query("UPDATE inventory.product_images SET is_primary = false WHERE product_id = $1")
+        .bind(product_id)
+        .execute(&mut *tx)
+        .await?;
     tx.commit().await?;
     Ok(())
 }

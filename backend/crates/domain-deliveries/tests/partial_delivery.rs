@@ -27,11 +27,17 @@ fn given_partial_quantities_when_confirm_delivery_then_partially_delivered() {
 
     assert_eq!(confirmed.status(), OrderStatus::PartiallyDelivered);
     assert_eq!(
-        confirmed.items()[0].quantity_delivered().expect("qty").value(),
+        confirmed.items()[0]
+            .quantity_delivered()
+            .expect("qty")
+            .value(),
         3
     );
     assert_eq!(
-        confirmed.items()[1].quantity_delivered().expect("qty").value(),
+        confirmed.items()[1]
+            .quantity_delivered()
+            .expect("qty")
+            .value(),
         5
     );
 }

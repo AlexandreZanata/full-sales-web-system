@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use infra_storage::{InMemoryObjectStorage, ObjectStorage, DEFAULT_PRESIGN_TTL_SECS};
+use infra_storage::{DEFAULT_PRESIGN_TTL_SECS, InMemoryObjectStorage, ObjectStorage};
 
 #[tokio::test]
 async fn given_stored_object_when_presigned_get_then_roundtrip_bytes_match() {
@@ -17,11 +17,7 @@ async fn given_stored_object_when_presigned_get_then_roundtrip_bytes_match() {
         .expect("put object");
 
     let presigned = storage
-        .presigned_get(
-            bucket,
-            key,
-            Duration::from_secs(DEFAULT_PRESIGN_TTL_SECS),
-        )
+        .presigned_get(bucket, key, Duration::from_secs(DEFAULT_PRESIGN_TTL_SECS))
         .await
         .expect("presigned get");
 

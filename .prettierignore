@@ -1,0 +1,7 @@
+dist/
+build/
+.next/
+.nuxt/
+node_modules/
+backend/target/
+pnpm-lock.yaml

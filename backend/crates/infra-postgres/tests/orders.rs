@@ -6,9 +6,9 @@ use infra_postgres::identity;
 use infra_postgres::inventory;
 use infra_postgres::inventory::reservations;
 use infra_postgres::orders::{self, OrderInsert, OrderItemInsert};
-use infra_postgres::{migrate, PgPool, PostgresError, SessionContext};
-use testcontainers::runners::AsyncRunner;
+use infra_postgres::{PgPool, PostgresError, SessionContext, migrate};
 use testcontainers::ImageExt;
+use testcontainers::runners::AsyncRunner;
 use testcontainers_modules::postgres::Postgres;
 use uuid::Uuid;
 
@@ -350,13 +350,9 @@ async fn given_role_scoped_rls_when_seller_queries_then_sees_own_orders_only() {
     let pools = setup_pools().await;
     let fixture = seed_order_fixture(&pools).await;
 
-    let visible = orders::find_order_by_id(
-        &pools.app,
-        &fixture.seller_session,
-        fixture.order_id,
-    )
-    .await
-    .expect("seller find");
+    let visible = orders::find_order_by_id(&pools.app, &fixture.seller_session, fixture.order_id)
+        .await
+        .expect("seller find");
     assert!(visible.is_some());
 
     let other_seller = SessionContext {
@@ -365,18 +361,14 @@ async fn given_role_scoped_rls_when_seller_queries_then_sees_own_orders_only() {
         user_id: Uuid::now_v7(),
         commerce_id: None,
     };
-    let hidden =
-        orders::find_order_by_id(&pools.app, &other_seller, fixture.order_id)
-            .await
-            .expect("other seller");
+    let hidden = orders::find_order_by_id(&pools.app, &other_seller, fixture.order_id)
+        .await
+        .expect("other seller");
     assert!(hidden.is_none());
 
-    let contact_visible = orders::find_order_by_id(
-        &pools.app,
-        &fixture.contact_session,
-        fixture.order_id,
-    )
-    .await
-    .expect("contact find");
+    let contact_visible =
+        orders::find_order_by_id(&pools.app, &fixture.contact_session, fixture.order_id)
+            .await
+            .expect("contact find");
     assert!(contact_visible.is_some());
 }

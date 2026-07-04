@@ -94,7 +94,9 @@ pub(crate) fn user_response_from_list(row: &infra_postgres::identity::UserListRo
     }
 }
 
-pub(crate) fn user_response_from_detail(row: &infra_postgres::identity::UserDetailRow) -> UserResponse {
+pub(crate) fn user_response_from_detail(
+    row: &infra_postgres::identity::UserDetailRow,
+) -> UserResponse {
     UserResponse {
         id: row.id,
         name: row.name.clone(),
@@ -108,10 +110,16 @@ pub(crate) fn user_response_from_detail(row: &infra_postgres::identity::UserDeta
 pub(crate) fn map_user_app_error(err: application::AppError) -> ApiError {
     match err {
         application::AppError::Identity(domain_identity::IdentityError::CommerceRequired) => {
-            ApiError::bad_request("COMMERCE_REQUIRED", "commerceId is required for CommerceContact")
+            ApiError::bad_request(
+                "COMMERCE_REQUIRED",
+                "commerceId is required for CommerceContact",
+            )
         }
         application::AppError::Identity(domain_identity::IdentityError::InvalidCommerceScope) => {
-            ApiError::bad_request("INVALID_COMMERCE_SCOPE", "commerceId must be null for this role")
+            ApiError::bad_request(
+                "INVALID_COMMERCE_SCOPE",
+                "commerceId must be null for this role",
+            )
         }
         application::AppError::Identity(domain_identity::IdentityError::InvalidRole) => {
             ApiError::bad_request("INVALID_ROLE", "Invalid role")

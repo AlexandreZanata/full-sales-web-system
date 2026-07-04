@@ -5,11 +5,11 @@ use axum::{
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::auth::{require_admin, AuthUser};
-use crate::commerces::addresses_support::{
-    address_response_from_row, ensure_commerce, AddressResponse,
-};
+use crate::auth::{AuthUser, require_admin};
 use crate::commerces::CommerceResponse;
+use crate::commerces::addresses_support::{
+    AddressResponse, address_response_from_row, ensure_commerce,
+};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -105,9 +105,13 @@ pub async fn update_logo(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let row = infra_postgres::commerces::find_commerce_by_id(&state.app_pool, auth.tenant_id, commerce_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::commerce_not_found)?;
+    let row = infra_postgres::commerces::find_commerce_by_id(
+        &state.app_pool,
+        auth.tenant_id,
+        commerce_id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?
+    .ok_or_else(ApiError::commerce_not_found)?;
     Ok(Json(super::commerce_response_from_row(&row)))
 }

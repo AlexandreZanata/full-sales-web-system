@@ -75,7 +75,10 @@ async fn given_commerce_contact_without_commerce_id_when_insert_then_check_fails
     .execute(&mut *tx)
     .await;
 
-    assert!(result.is_err(), "CommerceContact without commerce_id must fail CHECK");
+    assert!(
+        result.is_err(),
+        "CommerceContact without commerce_id must fail CHECK"
+    );
 }
 
 #[tokio::test]

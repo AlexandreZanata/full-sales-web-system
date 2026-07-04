@@ -5,9 +5,9 @@ use domain_shared::TenantId;
 use infra_postgres::audit;
 use infra_postgres::identity;
 use infra_postgres::sales::{self, DeclarePaymentUpdate};
-use infra_postgres::{migrate, PgPool, PostgresError, SessionContext};
-use testcontainers::runners::AsyncRunner;
+use infra_postgres::{PgPool, PostgresError, SessionContext, migrate};
 use testcontainers::ImageExt;
+use testcontainers::runners::AsyncRunner;
 use testcontainers_modules::postgres::Postgres;
 use uuid::Uuid;
 
@@ -111,16 +111,9 @@ async fn seed_field_sale(pools: &TestPools) -> SaleFixture {
     .await
     .expect("commerce");
 
-    sales::insert_sale(
-        &pools.app,
-        tenant,
-        sale_id,
-        driver_id,
-        commerce_id,
-        "Cash",
-    )
-    .await
-    .expect("sale");
+    sales::insert_sale(&pools.app, tenant, sale_id, driver_id, commerce_id, "Cash")
+        .await
+        .expect("sale");
 
     SaleFixture {
         tenant,

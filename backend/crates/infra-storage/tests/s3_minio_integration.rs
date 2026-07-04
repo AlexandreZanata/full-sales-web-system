@@ -6,9 +6,9 @@
 
 use std::time::Duration;
 
+use aws_sdk_s3::Client;
 use aws_sdk_s3::config::Credentials;
 use aws_sdk_s3::config::Region;
-use aws_sdk_s3::Client;
 use infra_storage::{ObjectStorage, S3ObjectStorage, StorageConfig};
 
 async fn minio_client() -> (Client, StorageConfig) {
@@ -43,11 +43,7 @@ async fn minio_client() -> (Client, StorageConfig) {
 #[ignore = "requires MinIO on localhost:9000"]
 async fn given_minio_when_put_and_presigned_get_then_bytes_match() {
     let (client, config) = minio_client().await;
-    let _ = client
-        .create_bucket()
-        .bucket(&config.bucket)
-        .send()
-        .await;
+    let _ = client.create_bucket().bucket(&config.bucket).send().await;
 
     let storage = S3ObjectStorage::from_config(&config).await;
     let key = format!("manual/{}", uuid::Uuid::now_v7());
@@ -65,7 +61,9 @@ async fn given_minio_when_put_and_presigned_get_then_bytes_match() {
 
     assert!(presigned.url.starts_with("http"));
 
-    let response = reqwest::get(&presigned.url).await.expect("http get presigned");
+    let response = reqwest::get(&presigned.url)
+        .await
+        .expect("http get presigned");
     assert!(response.status().is_success());
     let body = response.bytes().await.expect("read body");
     assert_eq!(body.as_ref(), payload);

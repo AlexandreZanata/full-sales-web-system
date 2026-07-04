@@ -7,6 +7,20 @@ test.describe('Admin mobile navigation', () => {
 
   test('given_mobile_viewport_when_open_menu_then_sidebar_links_visible', async ({ page }) => {
     await seedEnglishLocale(page);
+    await page.route('**/v1/audit/events?*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ page: 1, pageSize: 20, total: 0, items: [] }),
+      });
+    });
+    await page.route('**/v1/users?*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ page: 1, pageSize: 50, total: 0, items: [] }),
+      });
+    });
     await page.goto('/login');
     await page.getByRole('button', { name: 'Enter admin shell (dev)' }).click();
     await expect(page).toHaveURL('/');

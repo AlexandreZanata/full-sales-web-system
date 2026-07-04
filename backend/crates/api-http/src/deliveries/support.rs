@@ -1,4 +1,4 @@
-use application::deliveries::{sale_lines_from_result, ConfirmDeliveryAndCreateSaleResult};
+use application::deliveries::{ConfirmDeliveryAndCreateSaleResult, sale_lines_from_result};
 use axum::{
     http::{HeaderValue, StatusCode},
     response::Response,
@@ -106,7 +106,10 @@ pub async fn ensure_active_driver(
         .map_err(|_| ApiError::internal())?
         .ok_or_else(|| ApiError::bad_request("VALIDATION_ERROR", "Driver not found"))?;
     if driver.role != Role::Driver.as_str() || !driver.active {
-        return Err(ApiError::bad_request("VALIDATION_ERROR", "Invalid driverId"));
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Invalid driverId",
+        ));
     }
     Ok(())
 }
@@ -136,14 +139,21 @@ pub fn created_delivery_response(
         .map_err(|_| ApiError::internal())
 }
 
-pub async fn load_row(state: &AppState, auth: &AuthUser, id: Uuid) -> Result<DeliveryRow, ApiError> {
+pub async fn load_row(
+    state: &AppState,
+    auth: &AuthUser,
+    id: Uuid,
+) -> Result<DeliveryRow, ApiError> {
     infra_postgres::deliveries::find_delivery_by_id(&state.app_pool, &session_from_auth(auth), id)
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::delivery_not_found)
 }
 
-pub fn restore(row: &DeliveryRow, tenant_id: domain_shared::TenantId) -> Result<Delivery, ApiError> {
+pub fn restore(
+    row: &DeliveryRow,
+    tenant_id: domain_shared::TenantId,
+) -> Result<Delivery, ApiError> {
     Ok(Delivery::restore(
         DeliveryId::from_uuid(row.id),
         tenant_id,
@@ -157,7 +167,9 @@ pub fn restore(row: &DeliveryRow, tenant_id: domain_shared::TenantId) -> Result<
     ))
 }
 
-pub fn parse_items(items: &[ConfirmDeliveryItemRequest]) -> Result<Vec<DeliveredItemInput>, ApiError> {
+pub fn parse_items(
+    items: &[ConfirmDeliveryItemRequest],
+) -> Result<Vec<DeliveredItemInput>, ApiError> {
     items
         .iter()
         .map(|item| {
@@ -273,9 +285,9 @@ pub fn map_app_error(err: application::deliveries::DeliveriesAppError) -> ApiErr
         application::deliveries::DeliveriesAppError::Delivery(DeliveryError::DriverNotAssigned) => {
             ApiError::forbidden()
         }
-        application::deliveries::DeliveriesAppError::Delivery(DeliveryError::InvalidTransition { .. }) => {
-            ApiError::invalid_delivery_transition()
-        }
+        application::deliveries::DeliveriesAppError::Delivery(
+            DeliveryError::InvalidTransition { .. },
+        ) => ApiError::invalid_delivery_transition(),
         application::deliveries::DeliveriesAppError::Order(
             domain_orders::OrderError::InvalidDeliveredQuantity
             | domain_orders::OrderError::OrderItemNotFound,

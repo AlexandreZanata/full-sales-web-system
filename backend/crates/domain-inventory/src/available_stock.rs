@@ -10,10 +10,7 @@ use crate::quantity::Quantity;
 ///   SUM(stock_balances.quantity for tenant+product)
 ///   − SUM(stock_reservations.quantity_reserved WHERE status = Active)
 /// ```
-pub fn tenant_available_stock(
-    balance_total: i32,
-    active_reserved: i32,
-) -> i32 {
+pub fn tenant_available_stock(balance_total: i32, active_reserved: i32) -> i32 {
     (balance_total - active_reserved).max(0)
 }
 

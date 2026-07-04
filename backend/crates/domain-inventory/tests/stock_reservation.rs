@@ -7,11 +7,7 @@ use domain_inventory::{
 use domain_shared::TenantId;
 use uuid::Uuid;
 
-fn reservation_input(
-    balance: i32,
-    reserved: i32,
-    qty: i32,
-) -> CreateStockReservationInput {
+fn reservation_input(balance: i32, reserved: i32, qty: i32) -> CreateStockReservationInput {
     CreateStockReservationInput {
         id: ReservationId::generate(),
         tenant_id: TenantId::generate(),
@@ -27,8 +23,7 @@ fn reservation_input(
 
 #[test]
 fn given_available_stock_when_reserve_then_active() {
-    let reservation = StockReservation::reserve(reservation_input(100, 20, 30))
-        .expect("reserve");
+    let reservation = StockReservation::reserve(reservation_input(100, 20, 30)).expect("reserve");
     assert_eq!(reservation.status(), ReservationStatus::Active);
     assert_eq!(reservation.quantity().value(), 30);
 }

@@ -11,8 +11,7 @@ pub mod sale_item;
 pub mod sale_status;
 
 pub use audit_port::{
-    InMemoryPaymentDeclarationAuditPort, PaymentDeclarationAuditEntry,
-    PaymentDeclarationAuditPort,
+    InMemoryPaymentDeclarationAuditPort, PaymentDeclarationAuditEntry, PaymentDeclarationAuditPort,
 };
 pub use declared_payment::DeclaredPayment;
 pub use declared_payment_method::DeclaredPaymentMethod;

@@ -197,10 +197,9 @@ async fn given_order_approved_when_reserve_release_consume_then_rn2_lifecycle() 
     .await
     .expect("reserve");
 
-    let available =
-        reservations::tenant_available_for_product(&pools.app, tenant, product_id)
-            .await
-            .expect("available");
+    let available = reservations::tenant_available_for_product(&pools.app, tenant, product_id)
+        .await
+        .expect("available");
     assert_eq!(available, 12);
 
     let released = reservations::release_reservations(&pools.app, tenant, order_id)

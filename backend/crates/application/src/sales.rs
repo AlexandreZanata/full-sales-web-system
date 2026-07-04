@@ -3,7 +3,8 @@ use domain_commerces::Commerce;
 use domain_identity::UserId;
 use domain_inventory::Product;
 use domain_sales::{
-    DeclarePaymentInput, DeclaredPaymentMethod, PaymentDeclarationAuditPort, PaymentMethod, Sale, SaleId, SaleStatus,
+    DeclarePaymentInput, DeclaredPaymentMethod, PaymentDeclarationAuditPort, PaymentMethod, Sale,
+    SaleId, SaleStatus,
 };
 use domain_shared::{Money, TenantId};
 use thiserror::Error;

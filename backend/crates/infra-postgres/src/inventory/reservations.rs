@@ -197,8 +197,7 @@ pub async fn tenant_available_for_product(
 ) -> Result<i32, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let available =
-        tenant_product_available(&mut tx, tenant_id.as_uuid(), product_id).await?;
+    let available = tenant_product_available(&mut tx, tenant_id.as_uuid(), product_id).await?;
     tx.commit().await?;
     Ok(available)
 }
@@ -232,15 +231,13 @@ pub async fn list_reservations_by_order(
     Ok(rows
         .into_iter()
         .map(
-            |(id, order_id, order_item_id, product_id, quantity_reserved, status)| {
-                ReservationRow {
-                    id,
-                    order_id,
-                    order_item_id,
-                    product_id,
-                    quantity_reserved,
-                    status,
-                }
+            |(id, order_id, order_item_id, product_id, quantity_reserved, status)| ReservationRow {
+                id,
+                order_id,
+                order_item_id,
+                product_id,
+                quantity_reserved,
+                status,
             },
         )
         .collect())

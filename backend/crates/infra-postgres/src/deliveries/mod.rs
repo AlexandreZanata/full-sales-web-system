@@ -2,11 +2,11 @@ use domain_shared::TenantId;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::inventory::reservations;
-use crate::inventory::StockMovementInsert;
-use crate::orders;
 use crate::PostgresError;
-use crate::rls::{apply_session_context, SessionContext};
+use crate::inventory::StockMovementInsert;
+use crate::inventory::reservations;
+use crate::orders;
+use crate::rls::{SessionContext, apply_session_context};
 use crate::sales;
 
 pub struct DeliveryInsert {
@@ -194,13 +194,12 @@ pub async fn confirm_delivery_transaction(
     apply_session_context(&mut tx, admin_session).await?;
     let tenant_uuid = admin_session.tenant_id.as_uuid();
 
-    let order_updated = sqlx::query(
-        "UPDATE orders.orders SET status = $2 WHERE id = $1 AND status = 'InTransit'",
-    )
-    .bind(input.order_id)
-    .bind(&input.order_status)
-    .execute(&mut *tx)
-    .await?;
+    let order_updated =
+        sqlx::query("UPDATE orders.orders SET status = $2 WHERE id = $1 AND status = 'InTransit'")
+            .bind(input.order_id)
+            .bind(&input.order_status)
+            .execute(&mut *tx)
+            .await?;
     if order_updated.rows_affected() == 0 {
         return Err(PostgresError::Database(sqlx::Error::RowNotFound));
     }

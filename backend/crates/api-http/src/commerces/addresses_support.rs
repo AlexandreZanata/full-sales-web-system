@@ -53,10 +53,11 @@ pub async fn load_commerce(
     tenant_id: domain_shared::TenantId,
     commerce_id: Uuid,
 ) -> Result<domain_commerces::Commerce, ApiError> {
-    let row = infra_postgres::commerces::find_commerce_by_id(&state.app_pool, tenant_id, commerce_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::commerce_not_found)?;
+    let row =
+        infra_postgres::commerces::find_commerce_by_id(&state.app_pool, tenant_id, commerce_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::commerce_not_found)?;
     application::restore_commerce(
         row.id,
         &row.cnpj,
@@ -105,7 +106,9 @@ pub async fn load_existing_addresses(
         .collect()
 }
 
-pub fn address_response_from_row(row: &infra_postgres::commerces::addresses::AddressRow) -> AddressResponse {
+pub fn address_response_from_row(
+    row: &infra_postgres::commerces::addresses::AddressRow,
+) -> AddressResponse {
     AddressResponse {
         id: row.id,
         commerce_id: row.commerce_id,

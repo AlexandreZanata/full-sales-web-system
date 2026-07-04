@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use axum::{Json, extract::{Query, State}};
+use axum::{
+    Json,
+    extract::{Query, State},
+};
 use domain_identity::Role;
 use infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS;
 use serde::{Deserialize, Serialize};
@@ -71,13 +74,10 @@ pub async fn list_portal_products(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let total = infra_postgres::inventory::count_portal_products(
-        &state.app_pool,
-        auth.tenant_id,
-        category,
-    )
-    .await
-    .map_err(|_| ApiError::internal())? as u64;
+    let total =
+        infra_postgres::inventory::count_portal_products(&state.app_pool, auth.tenant_id, category)
+            .await
+            .map_err(|_| ApiError::internal())? as u64;
 
     let product_ids: Vec<uuid::Uuid> = rows.iter().map(|row| row.id).collect();
     let images = infra_postgres::inventory::product_images::find_primary_images_for_products(

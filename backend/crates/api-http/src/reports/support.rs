@@ -2,8 +2,8 @@ use domain_commerces::CommerceId;
 use domain_identity::{Role, UserId};
 use domain_orders::{OrderId, OrderStatus};
 use domain_reports::{
-    sign_canonical_payload, verify_canonical_payload, ReportAssemblyInput, ReportPeriod,
-    ReportSaleFact,
+    ReportAssemblyInput, ReportPeriod, ReportSaleFact, sign_canonical_payload,
+    verify_canonical_payload,
 };
 use domain_sales::{DeclaredPaymentMethod, SaleId, SaleStatus};
 use ed25519_dalek::{SigningKey, VerifyingKey};
@@ -87,9 +87,9 @@ pub async fn build_and_persist(
     signing_key: &SigningKey,
 ) -> Result<(Uuid, ReportRow), ApiError> {
     validate_report_type(&body.report_type)?;
-    let driver_id = body
-        .driver_id
-        .ok_or_else(|| ApiError::bad_request("VALIDATION_ERROR", "driverId is required for this report"))?;
+    let driver_id = body.driver_id.ok_or_else(|| {
+        ApiError::bad_request("VALIDATION_ERROR", "driverId is required for this report")
+    })?;
     let key_row = infra_postgres::reports::find_active_signing_key(&state.app_pool, tenant_id)
         .await
         .map_err(|_| ApiError::internal())?
@@ -211,7 +211,9 @@ async fn load_report_sales(
     rows.into_iter().map(map_sale_fact).collect()
 }
 
-fn map_sale_fact(row: infra_postgres::reports::SaleReportFactRow) -> Result<ReportSaleFact, ApiError> {
+fn map_sale_fact(
+    row: infra_postgres::reports::SaleReportFactRow,
+) -> Result<ReportSaleFact, ApiError> {
     Ok(ReportSaleFact {
         sale_id: SaleId::from_uuid(row.sale_id),
         order_id: row.order_id.map(OrderId::from_uuid),
@@ -233,7 +235,10 @@ fn map_sale_fact(row: infra_postgres::reports::SaleReportFactRow) -> Result<Repo
 fn validate_report_type(value: &str) -> Result<(), ApiError> {
     match value {
         "DailyDriver" | "CommercePeriod" | "Consolidated" => Ok(()),
-        _ => Err(ApiError::bad_request("VALIDATION_ERROR", "Invalid reportType")),
+        _ => Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Invalid reportType",
+        )),
     }
 }
 

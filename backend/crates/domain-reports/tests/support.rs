@@ -52,7 +52,9 @@ pub fn delivered_sale_fact(
 
 pub fn in_transit_sale_fact() -> ReportSaleFact {
     ReportSaleFact {
-        sale_id: SaleId::from_uuid(Uuid::parse_str("0190aaaa-bbbb-cccc-dddd-ef1234567893").expect("sale")),
+        sale_id: SaleId::from_uuid(
+            Uuid::parse_str("0190aaaa-bbbb-cccc-dddd-ef1234567893").expect("sale"),
+        ),
         order_id: Some(OrderId::from_uuid(
             Uuid::parse_str("0190bbbb-cccc-dddd-eeee-ef1234567894").expect("order"),
         )),

@@ -121,16 +121,19 @@ pub async fn find_report_by_id(
 ) -> Result<Option<ReportRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (
-        Uuid,
-        String,
-        chrono::DateTime<chrono::Utc>,
-        chrono::DateTime<chrono::Utc>,
-        String,
-        Vec<u8>,
-        String,
-        chrono::DateTime<chrono::Utc>,
-    )>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            chrono::DateTime<chrono::Utc>,
+            chrono::DateTime<chrono::Utc>,
+            String,
+            Vec<u8>,
+            String,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
         "SELECT id, report_type, period_start, period_end, canonical_payload,
                 signature, public_key_id, generated_at
          FROM reports.reports WHERE id = $1",
@@ -170,16 +173,19 @@ pub async fn list_reports(
 ) -> Result<Vec<ReportRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (
-        Uuid,
-        String,
-        chrono::DateTime<chrono::Utc>,
-        chrono::DateTime<chrono::Utc>,
-        String,
-        Vec<u8>,
-        String,
-        chrono::DateTime<chrono::Utc>,
-    )>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            chrono::DateTime<chrono::Utc>,
+            chrono::DateTime<chrono::Utc>,
+            String,
+            Vec<u8>,
+            String,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
         "SELECT id, report_type, period_start, period_end, canonical_payload,
                 signature, public_key_id, generated_at
          FROM reports.reports
@@ -243,17 +249,20 @@ pub async fn query_sales_for_report(
 ) -> Result<Vec<SaleReportFactRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (
-        Uuid,
-        Option<Uuid>,
-        Uuid,
-        i64,
-        String,
-        String,
-        Option<String>,
-        String,
-        bool,
-    )>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Option<Uuid>,
+            Uuid,
+            i64,
+            String,
+            String,
+            Option<String>,
+            String,
+            bool,
+        ),
+    >(
         "SELECT s.id, s.order_id, s.commerce_id, s.total_amount, s.total_currency,
                 s.status, o.status AS order_status,
                 s.declared_payment_method, s.declared_payment_received
@@ -305,16 +314,19 @@ pub async fn find_report_by_id_admin(
     pool: &PgPool,
     id: Uuid,
 ) -> Result<Option<ReportRow>, PostgresError> {
-    let row = sqlx::query_as::<_, (
-        Uuid,
-        String,
-        chrono::DateTime<chrono::Utc>,
-        chrono::DateTime<chrono::Utc>,
-        String,
-        Vec<u8>,
-        String,
-        chrono::DateTime<chrono::Utc>,
-    )>(
+    let row = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            chrono::DateTime<chrono::Utc>,
+            chrono::DateTime<chrono::Utc>,
+            String,
+            Vec<u8>,
+            String,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
         "SELECT id, report_type, period_start, period_end, canonical_payload,
                 signature, public_key_id, generated_at
          FROM reports.reports WHERE id = $1",
