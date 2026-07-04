@@ -163,6 +163,74 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ---
 
+## Portal — Products (Phase 14)
+
+### `GET /v1/portal/products`
+
+- **Auth:** CommerceContact only
+- **Query:** pagination, `category?`
+- **Response 200:** Active products with optional `primaryImageUrl` (presigned ~15 min)
+
+---
+
+## Portal — Orders (Phase 14)
+
+### `GET /v1/portal/orders`
+
+- **Auth:** CommerceContact (JWT `commerceId` — RLS scoped)
+- **Query:** `status?`, pagination
+- **Response 200:** Orders for contact's commerce only
+
+### `GET /v1/portal/orders/{id}`
+
+- **Auth:** CommerceContact
+- **Response 200 / 404**
+
+### `POST /v1/portal/orders`
+
+- **Auth:** CommerceContact
+- **Body:** `{ "deliveryAddressId", "notes?", "items": [{ "productId", "quantity" }] }`
+- **Response 201:** Order `Draft` — totals computed server-side
+
+### `PUT /v1/portal/orders/{id}`
+
+- **Auth:** CommerceContact
+- **Precondition:** `Draft` only
+- **Body:** same as create
+- **Response 200:** Updated draft
+
+### `DELETE /v1/portal/orders/{id}`
+
+- **Auth:** CommerceContact
+- **Precondition:** `Draft` only
+- **Response 204:** Draft cancelled
+
+### `POST /v1/portal/orders/{id}/submit`
+
+- **Auth:** CommerceContact
+- **Precondition:** `Draft`, non-empty items
+- **Response 200:** `PendingApproval`
+
+---
+
+## Admin — Orders (Phase 14)
+
+### `POST /v1/orders/{id}/approve`
+
+- **Auth:** Admin
+- **Precondition:** `PendingApproval`
+- **Response 200:** `Approved` + stock reservations (RN2)
+- **Response 409:** `INSUFFICIENT_STOCK` or `INVALID_ORDER_TRANSITION`
+
+### `POST /v1/orders/{id}/reject`
+
+- **Auth:** Admin
+- **Body:** `{ "reason": string }` — required (RN10)
+- **Response 200:** `Rejected`
+- **Response 400:** `REJECTION_REASON_REQUIRED`
+
+---
+
 ## Reports
 
 ### `POST /v1/reports`

@@ -93,6 +93,17 @@ Application: `confirm_delivery_and_create_sale`. Infra: `declare_payment` + audi
 
 ---
 
+## Phase 14 additions (2026-07-04)
+
+| Change | Location |
+|--------|----------|
+| Portal routes `/v1/portal/products`, `/v1/portal/orders` | `api-http/src/portal/` |
+| Admin order approve/reject | `api-http/src/admin_orders.rs` |
+| Order list/detail/submit/reject infra | `infra-postgres/orders` |
+| Portal product catalog + primary image presign | `infra-postgres/inventory` |
+
+---
+
 ## Phase 09 additions (2026-07-04)
 
 | Change | Migration |

@@ -148,6 +148,109 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /portal/products:
+    get:
+      summary: List portal catalog (CommerceContact)
+      operationId: listPortalProducts
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Active products with optional primaryImageUrl
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /portal/orders:
+    get:
+      summary: List portal orders
+      operationId: listPortalOrders
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated orders for JWT commerceId
+    post:
+      summary: Create draft order
+      operationId: createPortalOrder
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Draft order created
+
+  /portal/orders/{id}/submit:
+    post:
+      summary: Submit draft order
+      operationId: submitPortalOrder
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: PendingApproval
+        '409':
+          $ref: '#/components/responses/InvalidOrderTransition'
+
+  /orders/{id}/approve:
+    post:
+      summary: Approve pending order (Admin)
+      operationId: approveOrder
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Approved with reservations
+        '409':
+          $ref: '#/components/responses/InsufficientStock'
+
+  /orders/{id}/reject:
+    post:
+      summary: Reject pending order (Admin)
+      operationId: rejectOrder
+      tags: [Orders]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Rejected
+        '400':
+          description: REJECTION_REASON_REQUIRED
+
 components:
   securitySchemes:
     bearerAuth:
@@ -178,6 +281,13 @@ components:
         minimum: 1
         maximum: 50
         default: 20
+    OrderId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   responses:
     BadRequest:
@@ -188,6 +298,24 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InsufficientStock:
+      description: Insufficient stock (INSUFFICIENT_STOCK)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InvalidOrderTransition:
+      description: Invalid order transition (INVALID_ORDER_TRANSITION)
       content:
         application/json:
           schema:

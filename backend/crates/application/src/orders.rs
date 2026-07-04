@@ -1,15 +1,23 @@
 use std::collections::HashMap;
 
-use domain_inventory::{ProductId, StockReservation};
+use domain_commerces::{Commerce, CommerceAddress};
+use domain_identity::UserId;
+use domain_inventory::{Product, ProductId, StockReservation};
 use domain_orders::{
-    InMemoryReservationPort, Order, OrderError, OrderStatus, StockSnapshot,
+    AddOrderItemInput, InMemoryReservationPort, Order, OrderError, OrderId, OrderItemId,
+    OrderSource, OrderStatus, StockSnapshot,
 };
+use domain_shared::TenantId;
 use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum OrdersAppError {
     #[error(transparent)]
     Order(#[from] OrderError),
+
+    #[error(transparent)]
+    Inventory(#[from] domain_inventory::InventoryError),
 
     #[error("order not found")]
     OrderNotFound,
@@ -87,6 +95,129 @@ pub struct ReservationLineDto {
     pub product_id: uuid::Uuid,
     pub quantity: i32,
     pub driver_id: Option<uuid::Uuid>,
+}
+
+pub struct PortalOrderLineInput {
+    pub item_id: OrderItemId,
+    pub product: Product,
+    pub quantity: i32,
+}
+
+pub struct CreatePortalOrderCommand {
+    pub order_id: OrderId,
+    pub tenant_id: TenantId,
+    pub commerce: Commerce,
+    pub delivery_address: CommerceAddress,
+    pub created_by: UserId,
+    pub notes: Option<String>,
+    pub lines: Vec<PortalOrderLineInput>,
+}
+
+pub struct UpdatePortalDraftCommand {
+    pub order: Order,
+    pub commerce: Commerce,
+    pub delivery_address: CommerceAddress,
+    pub notes: Option<String>,
+    pub lines: Vec<PortalOrderLineInput>,
+}
+
+pub fn create_portal_order(command: CreatePortalOrderCommand) -> Result<Order, OrdersAppError> {
+    let mut order = Order::create(domain_orders::OrderCreateInput {
+        id: command.order_id,
+        tenant_id: command.tenant_id,
+        commerce: command.commerce,
+        created_by: command.created_by,
+        source: OrderSource::CommercePortal,
+        delivery_address: command.delivery_address,
+        notes: command.notes,
+    })?;
+    for line in command.lines {
+        let quantity = domain_inventory::Quantity::of(line.quantity)?;
+        order = order.add_item(AddOrderItemInput {
+            item_id: line.item_id,
+            product: line.product,
+            quantity,
+        })?;
+    }
+    Ok(order)
+}
+
+pub fn update_portal_draft(command: UpdatePortalDraftCommand) -> Result<Order, OrdersAppError> {
+    let lines = command
+        .lines
+        .into_iter()
+        .map(|line| {
+            Ok(AddOrderItemInput {
+                item_id: line.item_id,
+                product: line.product,
+                quantity: domain_inventory::Quantity::of(line.quantity)?,
+            })
+        })
+        .collect::<Result<Vec<_>, domain_inventory::InventoryError>>()?;
+    command
+        .order
+        .update_draft(
+            &command.commerce,
+            command.delivery_address,
+            command.notes,
+            lines,
+        )
+        .map_err(OrdersAppError::from)
+}
+
+pub fn submit_portal_order(order: Order) -> Result<Order, OrdersAppError> {
+    order.submit().map_err(OrdersAppError::from)
+}
+
+pub fn reject_order(order: Order, reason: &str) -> Result<Order, OrdersAppError> {
+    order.reject(reason).map_err(OrdersAppError::from)
+}
+
+pub struct OrderDto {
+    pub id: Uuid,
+    pub commerce_id: Uuid,
+    pub status: OrderStatus,
+    pub delivery_address_id: Uuid,
+    pub notes: Option<String>,
+    pub total_amount: i64,
+    pub total_currency: String,
+    pub rejection_reason: Option<String>,
+    pub items: Vec<OrderItemDto>,
+}
+
+pub struct OrderItemDto {
+    pub id: Uuid,
+    pub product_id: Uuid,
+    pub quantity: i32,
+    pub unit_price_amount: i64,
+    pub unit_price_currency: String,
+    pub line_total_amount: i64,
+}
+
+pub fn order_to_dto(order: &Order) -> Result<OrderDto, domain_shared::DomainError> {
+    let total = order.total()?;
+    Ok(OrderDto {
+        id: order.id().as_uuid(),
+        commerce_id: order.commerce_id().as_uuid(),
+        status: order.status(),
+        delivery_address_id: order.delivery_address_id().as_uuid(),
+        notes: order.notes().map(str::to_owned),
+        total_amount: total.amount_minor(),
+        total_currency: total.currency().as_str().to_owned(),
+        rejection_reason: order.rejection_reason().map(str::to_owned),
+        items: order
+            .items()
+            .iter()
+            .map(|item| OrderItemDto {
+                id: item.id().as_uuid(),
+                product_id: item.product_id().as_uuid(),
+                quantity: item.quantity_requested().value(),
+                unit_price_amount: item.unit_price().amount_minor(),
+                unit_price_currency: item.unit_price().currency().as_str().to_owned(),
+                line_total_amount: item.line_total().amount_minor(),
+            })
+            .collect(),
+    })
 }
 
 #[cfg(test)]

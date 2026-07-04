@@ -15,12 +15,15 @@ axum.workspace = true
 domain-commerces.workspace = true
 domain-identity.workspace = true
 domain-inventory.workspace = true
+domain-orders.workspace = true
 domain-sales.workspace = true
 domain-shared.workspace = true
 http.workspace = true
 infra-crypto.workspace = true
 infra-postgres.workspace = true
 infra-redis.workspace = true
+infra-storage.workspace = true
+chrono.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
@@ -36,6 +39,7 @@ domain-shared.workspace = true
 infra-crypto.workspace = true
 infra-postgres.workspace = true
 infra-redis.workspace = true
+infra-storage.workspace = true
 testcontainers = "0.23"
 testcontainers-modules = { version = "0.11", features = ["postgres"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

@@ -140,6 +140,27 @@ pub async fn release_reservations(
     Ok(released)
 }
 
+pub async fn tenant_stock_snapshot(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product_id: Uuid,
+) -> Result<(i32, i32), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let balance = tenant_product_available(&mut tx, tenant_id.as_uuid(), product_id).await?;
+    let reserved: i64 = sqlx::query_scalar(
+        "SELECT COALESCE(SUM(quantity_reserved), 0)
+         FROM inventory.stock_reservations
+         WHERE tenant_id = $1 AND product_id = $2 AND status = 'Active'",
+    )
+    .bind(tenant_id.as_uuid())
+    .bind(product_id)
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok((balance, reserved.max(0) as i32))
+}
+
 /// RN2 — marks Active reservations Consumed within an existing transaction.
 pub async fn consume_reservations_in_tx(
     tx: &mut Transaction<'_, Postgres>,

@@ -146,6 +146,40 @@ impl Order {
         Ok(self)
     }
 
+    /// Draft-only update — replace lines, notes, and delivery address (portal CRUD).
+    pub fn update_draft(
+        mut self,
+        commerce: &Commerce,
+        delivery_address: CommerceAddress,
+        notes: Option<String>,
+        lines: Vec<AddOrderItemInput>,
+    ) -> Result<Self, OrderError> {
+        if self.status != OrderStatus::Draft {
+            return Err(OrderError::InvalidTransition {
+                from: self.status,
+                to: OrderStatus::Draft,
+            });
+        }
+        validate_order_delivery_address(commerce, &delivery_address).map_err(map_commerce_error)?;
+        self.delivery_address_id = delivery_address.id();
+        self.notes = notes.filter(|n| !n.trim().is_empty());
+        self.items.clear();
+        for input in lines {
+            if !input.product.is_active() {
+                return Err(OrderError::InactiveProduct);
+            }
+            let item = OrderItem::create(
+                input.item_id,
+                input.product.id(),
+                input.quantity,
+                input.product.unit_price().clone(),
+            )
+            .map_err(|_| OrderError::EmptyOrder)?;
+            self.items.push(item);
+        }
+        Ok(self)
+    }
+
     pub fn approve(
         mut self,
         port: &mut impl StockReservationPort,

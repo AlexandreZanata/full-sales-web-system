@@ -59,6 +59,7 @@ async fn setup() -> TestEnv {
         idempotency_store: AppState::in_memory_idempotency(),
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: application::REFRESH_TOKEN_TTL,
+        storage: AppState::in_memory_storage(),
     };
 
     let driver_id = seed_user(&app_pool, tenant_id, "driver@e2e.test", "Driver").await;

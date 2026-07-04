@@ -99,12 +99,26 @@ pub async fn list_products(
     limit: i64,
     offset: i64,
 ) -> Result<Vec<ProductRow>, PostgresError> {
+    list_portal_products(pool, tenant_id, None, limit, offset).await
+}
+
+pub async fn list_portal_products(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    category: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<ProductRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let rows = sqlx::query_as::<_, (Uuid, String, String, i64, String, bool, Option<String>, String)>(
         "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
-         FROM inventory.products ORDER BY sku LIMIT $1 OFFSET $2",
+         FROM inventory.products
+         WHERE active = true
+           AND ($1::text IS NULL OR category = $1)
+         ORDER BY sku LIMIT $2 OFFSET $3",
     )
+    .bind(category)
     .bind(limit)
     .bind(offset)
     .fetch_all(&mut *tx)
@@ -127,6 +141,24 @@ pub async fn list_products(
             },
         )
         .collect())
+}
+
+pub async fn count_portal_products(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    category: Option<&str>,
+) -> Result<i64, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM inventory.products
+         WHERE active = true AND ($1::text IS NULL OR category = $1)",
+    )
+    .bind(category)
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(count)
 }
 
 pub async fn count_products(pool: &PgPool, tenant_id: TenantId) -> Result<i64, PostgresError> {

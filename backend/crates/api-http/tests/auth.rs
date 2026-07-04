@@ -57,6 +57,7 @@ async fn setup() -> TestEnv {
         idempotency_store: AppState::in_memory_idempotency(),
         jwt: JwtService::new("test-secret", Duration::from_secs(900)),
         refresh_ttl: REFRESH_TOKEN_TTL,
+        storage: AppState::in_memory_storage(),
     };
 
     TestEnv {

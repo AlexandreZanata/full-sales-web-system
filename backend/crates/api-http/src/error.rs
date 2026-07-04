@@ -130,6 +130,38 @@ impl ApiError {
         }
     }
 
+    pub fn order_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "ORDER_NOT_FOUND",
+            message: "Order not found",
+        }
+    }
+
+    pub fn invalid_order_transition() -> Self {
+        Self {
+            status: StatusCode::CONFLICT,
+            code: "INVALID_ORDER_TRANSITION",
+            message: "Order cannot transition to requested state",
+        }
+    }
+
+    pub fn invalid_delivery_address() -> Self {
+        Self {
+            status: StatusCode::UNPROCESSABLE_ENTITY,
+            code: "INVALID_DELIVERY_ADDRESS",
+            message: "Delivery address is invalid for this commerce",
+        }
+    }
+
+    pub fn rejection_reason_required() -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            code: "REJECTION_REASON_REQUIRED",
+            message: "Rejection reason is required",
+        }
+    }
+
     pub fn internal() -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,

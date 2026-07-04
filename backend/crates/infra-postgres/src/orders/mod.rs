@@ -35,6 +35,36 @@ pub struct OrderRow {
     pub status: String,
 }
 
+pub struct OrderDetailRow {
+    pub id: Uuid,
+    pub commerce_id: Uuid,
+    pub created_by_user_id: Uuid,
+    pub status: String,
+    pub delivery_address_id: Uuid,
+    pub notes: Option<String>,
+    pub total_amount: i64,
+    pub total_currency: String,
+    pub rejection_reason: Option<String>,
+    pub source: String,
+}
+
+pub struct OrderListRow {
+    pub id: Uuid,
+    pub status: String,
+    pub total_amount: i64,
+    pub total_currency: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+pub struct OrderItemRow {
+    pub id: Uuid,
+    pub product_id: Uuid,
+    pub quantity_requested: i32,
+    pub unit_price_amount: i64,
+    pub unit_price_currency: String,
+    pub line_total_amount: i64,
+}
+
 pub async fn insert_order(
     pool: &PgPool,
     session: &SessionContext,
@@ -172,6 +202,251 @@ pub async fn update_order_status(
     update_order_status_in_tx(&mut tx, order_id, status).await?;
     tx.commit().await?;
     Ok(())
+}
+
+pub async fn list_orders(
+    pool: &PgPool,
+    session: &SessionContext,
+    status: Option<&str>,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<OrderListRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let rows = sqlx::query_as::<_, (Uuid, String, i64, String, chrono::DateTime<chrono::Utc>)>(
+        "SELECT id, status, total_amount, total_currency, created_at
+         FROM orders.orders
+         WHERE ($1::text IS NULL OR status = $1)
+         ORDER BY created_at DESC
+         LIMIT $2 OFFSET $3",
+    )
+    .bind(status)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, status, total_amount, total_currency, created_at)| OrderListRow {
+            id,
+            status,
+            total_amount,
+            total_currency,
+            created_at,
+        })
+        .collect())
+}
+
+pub async fn count_orders(
+    pool: &PgPool,
+    session: &SessionContext,
+    status: Option<&str>,
+) -> Result<i64, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM orders.orders WHERE ($1::text IS NULL OR status = $1)",
+    )
+    .bind(status)
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(count)
+}
+
+pub async fn find_order_detail(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+) -> Result<Option<OrderDetailRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let row = sqlx::query_as::<_, (
+        Uuid,
+        Uuid,
+        Uuid,
+        String,
+        Uuid,
+        Option<String>,
+        i64,
+        String,
+        Option<String>,
+        String,
+    )>(
+        "SELECT id, commerce_id, created_by_user_id, status, delivery_address_id, notes,
+                total_amount, total_currency, rejection_reason, source
+         FROM orders.orders WHERE id = $1",
+    )
+    .bind(order_id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(
+        |(
+            id,
+            commerce_id,
+            created_by_user_id,
+            status,
+            delivery_address_id,
+            notes,
+            total_amount,
+            total_currency,
+            rejection_reason,
+            source,
+        )| OrderDetailRow {
+            id,
+            commerce_id,
+            created_by_user_id,
+            status,
+            delivery_address_id,
+            notes,
+            total_amount,
+            total_currency,
+            rejection_reason,
+            source,
+        },
+    ))
+}
+
+pub async fn list_order_items(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+) -> Result<Vec<OrderItemRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let rows = sqlx::query_as::<_, (Uuid, Uuid, i32, i64, String, i64)>(
+        "SELECT id, product_id, quantity_requested, unit_price_amount, unit_price_currency, line_total_amount
+         FROM orders.order_items WHERE order_id = $1 ORDER BY created_at",
+    )
+    .bind(order_id)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(id, product_id, quantity_requested, unit_price_amount, unit_price_currency, line_total_amount)| {
+                OrderItemRow {
+                    id,
+                    product_id,
+                    quantity_requested,
+                    unit_price_amount,
+                    unit_price_currency,
+                    line_total_amount,
+                }
+            },
+        )
+        .collect())
+}
+
+pub async fn insert_order_with_items(
+    pool: &PgPool,
+    session: &SessionContext,
+    order: &OrderInsert,
+    items: &[OrderItemInsert],
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    insert_order_in_tx(&mut tx, session.tenant_id, order).await?;
+    for item in items {
+        insert_order_item_in_tx(&mut tx, session.tenant_id, item).await?;
+    }
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn replace_draft_order(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+    delivery_address_id: Uuid,
+    notes: Option<String>,
+    total_amount: i64,
+    total_currency: &str,
+    items: &[OrderItemInsert],
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let updated = sqlx::query(
+        "UPDATE orders.orders
+         SET delivery_address_id = $2, notes = $3, total_amount = $4, total_currency = $5
+         WHERE id = $1 AND status = 'Draft'",
+    )
+    .bind(order_id)
+    .bind(delivery_address_id)
+    .bind(notes)
+    .bind(total_amount)
+    .bind(total_currency)
+    .execute(&mut *tx)
+    .await?;
+    if updated.rows_affected() == 0 {
+        return Err(PostgresError::Database(sqlx::Error::RowNotFound));
+    }
+    sqlx::query("DELETE FROM orders.order_items WHERE order_id = $1")
+        .bind(order_id)
+        .execute(&mut *tx)
+        .await?;
+    for item in items {
+        insert_order_item_in_tx(&mut tx, session.tenant_id, item).await?;
+    }
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn submit_order(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let updated = sqlx::query(
+        "UPDATE orders.orders SET status = 'PendingApproval'
+         WHERE id = $1 AND status = 'Draft'
+           AND EXISTS (SELECT 1 FROM orders.order_items WHERE order_id = $1)",
+    )
+    .bind(order_id)
+    .execute(&mut *tx)
+    .await?;
+    if updated.rows_affected() == 0 {
+        return Err(PostgresError::Database(sqlx::Error::RowNotFound));
+    }
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn reject_order(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+    reason: &str,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let updated = sqlx::query(
+        "UPDATE orders.orders
+         SET status = 'Rejected', rejection_reason = $2
+         WHERE id = $1 AND status = 'PendingApproval'",
+    )
+    .bind(order_id)
+    .bind(reason)
+    .execute(&mut *tx)
+    .await?;
+    if updated.rows_affected() == 0 {
+        return Err(PostgresError::Database(sqlx::Error::RowNotFound));
+    }
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn cancel_draft_order(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+) -> Result<(), PostgresError> {
+    cancel_order_transaction(pool, session, order_id, false).await
 }
 
 async fn insert_order_in_tx(
