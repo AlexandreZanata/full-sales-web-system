@@ -1,0 +1,34 @@
+{
+  "name": "@full-sales/portal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "tsc -p tsconfig.json --noEmit && eslint src && prettier --check 'src/**/*.{ts,tsx}' index.html vite.config.ts vitest.config.ts tests/**/*.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.101.1",
+    "@tanstack/react-router": "^1.170.16",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.575.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@tanstack/router-plugin": "^1.168.18",
+    "@types/node": "^22.16.5",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2",
+    "vite-tsconfig-paths": "^6.0.2",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,126 @@
+export type Messages = {
+  nav: {
+    catalog: string;
+    cart: string;
+    orders: string;
+  };
+  auth: {
+    signIn: string;
+    signingIn: string;
+    signInTitle: string;
+    signInDescription: string;
+    email: string;
+    password: string;
+    logout: string;
+    devEnter: string;
+    portalLabel: string;
+  };
+  shell: {
+    locale: string;
+    openNav: string;
+    closeNav: string;
+  };
+  common: {
+    cancel: string;
+    confirm: string;
+    working: string;
+    tryAgain: string;
+    backToCatalog: string;
+    somethingWentWrong: string;
+    unexpectedError: string;
+    pageNotFound: string;
+    search: string;
+    addToCart: string;
+    quantity: string;
+    total: string;
+    loading: { default: string };
+    empty: { products: string; orders: string; cart: string };
+    error: { loadFailed: string };
+  };
+  catalog: {
+    title: string;
+    searchPlaceholder: string;
+    sku: string;
+    unitPrice: string;
+    productDetail: string;
+  };
+  cart: {
+    title: string;
+    checkout: string;
+    submitOrder: string;
+    deliveryAddress: string;
+    notes: string;
+    notesPlaceholder: string;
+    emptyDescription: string;
+    itemCount: string;
+    removeItem: string;
+    orderSubmitted: string;
+  };
+  orders: {
+    title: string;
+    detail: string;
+    submit: string;
+    cancelDraft: string;
+    draftSaved: string;
+    timeline: string;
+    rejectionReason: string;
+    status: Record<string, string>;
+  };
+};
+
+export type MessageKey =
+  | 'nav.catalog'
+  | 'nav.cart'
+  | 'nav.orders'
+  | 'auth.signIn'
+  | 'auth.signingIn'
+  | 'auth.signInTitle'
+  | 'auth.signInDescription'
+  | 'auth.email'
+  | 'auth.password'
+  | 'auth.logout'
+  | 'auth.devEnter'
+  | 'auth.portalLabel'
+  | 'shell.locale'
+  | 'shell.openNav'
+  | 'shell.closeNav'
+  | 'common.cancel'
+  | 'common.confirm'
+  | 'common.working'
+  | 'common.tryAgain'
+  | 'common.backToCatalog'
+  | 'common.somethingWentWrong'
+  | 'common.unexpectedError'
+  | 'common.pageNotFound'
+  | 'common.search'
+  | 'common.addToCart'
+  | 'common.quantity'
+  | 'common.total'
+  | 'common.loading.default'
+  | 'common.empty.products'
+  | 'common.empty.orders'
+  | 'common.empty.cart'
+  | 'common.error.loadFailed'
+  | 'catalog.title'
+  | 'catalog.searchPlaceholder'
+  | 'catalog.sku'
+  | 'catalog.unitPrice'
+  | 'catalog.productDetail'
+  | 'cart.title'
+  | 'cart.checkout'
+  | 'cart.submitOrder'
+  | 'cart.deliveryAddress'
+  | 'cart.notes'
+  | 'cart.notesPlaceholder'
+  | 'cart.emptyDescription'
+  | 'cart.itemCount'
+  | 'cart.removeItem'
+  | 'cart.orderSubmitted'
+  | 'orders.title'
+  | 'orders.detail'
+  | 'orders.submit'
+  | 'orders.cancelDraft'
+  | 'orders.draftSaved'
+  | 'orders.timeline'
+  | 'orders.rejectionReason'
+  | `orders.status.${string}`;

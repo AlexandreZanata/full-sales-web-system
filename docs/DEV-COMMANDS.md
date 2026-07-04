@@ -19,6 +19,8 @@ pnpm lint && pnpm test && pnpm build
 | API | `pnpm dev:api` or `cd backend && cargo run -p api-http` | `http://127.0.0.1:8080/health` |
 | Web | `pnpm dev:web` | `http://127.0.0.1:5173` |
 | Admin | `pnpm dev:admin` | `http://127.0.0.1:5174` |
+| Portal | `pnpm dev:portal` | `http://127.0.0.1:5175` |
+| Field | `pnpm dev:field` | `http://127.0.0.1:5176` |
 
 Admin quality gates:
 
@@ -28,6 +30,17 @@ pnpm test:e2e:admin    # Playwright — login, orders, mobile nav
 ```
 
 See [features/admin-panel.md](features/admin-panel.md) for routes, i18n, and E2E details.
+
+Portal and field PWAs (Phase 39):
+
+```bash
+pnpm --filter @full-sales/portal lint test build
+pnpm --filter @full-sales/field lint test build
+pnpm test:e2e:portal
+pnpm test:e2e:field
+```
+
+See [features/client-apps.md](features/client-apps.md).
 
 Copy `.env.example` (root) and `backend/.env.example` for local configuration.
 

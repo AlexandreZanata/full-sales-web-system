@@ -1,0 +1,89 @@
+export type Messages = {
+  nav: { sales: string; newSale: string };
+  auth: {
+    signIn: string;
+    signingIn: string;
+    signInTitle: string;
+    signInDescription: string;
+    email: string;
+    password: string;
+    logout: string;
+    devEnter: string;
+    fieldLabel: string;
+  };
+  common: {
+    cancel: string;
+    confirm: string;
+    working: string;
+    tryAgain: string;
+    pageNotFound: string;
+    somethingWentWrong: string;
+    unexpectedError: string;
+    loading: string;
+    emptySales: string;
+    loadFailed: string;
+    search: string;
+    quantity: string;
+    total: string;
+    stockAvailable: string;
+  };
+  sales: {
+    title: string;
+    new: string;
+    detail: string;
+    confirm: string;
+    cancel: string;
+    commerce: string;
+    paymentMethod: string;
+    addLine: string;
+    removeLine: string;
+    product: string;
+    selectCommerce: string;
+    selectProduct: string;
+    created: string;
+    confirmed: string;
+    cancelled: string;
+  };
+};
+
+export type MessageKey =
+  | 'nav.sales'
+  | 'nav.newSale'
+  | 'auth.signIn'
+  | 'auth.signingIn'
+  | 'auth.signInTitle'
+  | 'auth.signInDescription'
+  | 'auth.email'
+  | 'auth.password'
+  | 'auth.logout'
+  | 'auth.devEnter'
+  | 'auth.fieldLabel'
+  | 'common.cancel'
+  | 'common.confirm'
+  | 'common.working'
+  | 'common.tryAgain'
+  | 'common.pageNotFound'
+  | 'common.somethingWentWrong'
+  | 'common.unexpectedError'
+  | 'common.loading'
+  | 'common.emptySales'
+  | 'common.loadFailed'
+  | 'common.search'
+  | 'common.quantity'
+  | 'common.total'
+  | 'common.stockAvailable'
+  | 'sales.title'
+  | 'sales.new'
+  | 'sales.detail'
+  | 'sales.confirm'
+  | 'sales.cancel'
+  | 'sales.commerce'
+  | 'sales.paymentMethod'
+  | 'sales.addLine'
+  | 'sales.removeLine'
+  | 'sales.product'
+  | 'sales.selectCommerce'
+  | 'sales.selectProduct'
+  | 'sales.created'
+  | 'sales.confirmed'
+  | 'sales.cancelled';

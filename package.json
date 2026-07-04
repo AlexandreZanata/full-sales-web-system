@@ -13,13 +13,17 @@
     "build": "pnpm -r build",
     "test:e2e": "playwright test",
     "test:e2e:admin": "playwright test e2e/admin-login.spec.ts e2e/admin-orders.spec.ts e2e/admin-mobile.spec.ts",
+    "test:e2e:portal": "playwright test e2e/portal-order.spec.ts --config=playwright.portal.config.ts",
+    "test:e2e:field": "playwright test e2e/field-sale.spec.ts --config=playwright.field.config.ts",
     "verify": "pnpm lint && pnpm test && pnpm build && pnpm verify:backend",
     "verify:backend": "cd backend && cargo fmt --check && cargo clippy --workspace -- -D warnings && cargo test --workspace",
     "validate:openapi": "npx --yes @apidevtools/swagger-cli validate docs/openapi.yaml",
-    "dev": "pnpm --parallel --filter @full-sales/api --filter @full-sales/web --filter @full-sales/admin dev",
+    "dev": "pnpm --parallel --filter @full-sales/api --filter @full-sales/web --filter @full-sales/admin --filter @full-sales/portal --filter @full-sales/field dev",
     "dev:web": "pnpm --filter @full-sales/web dev",
     "dev:api": "pnpm --filter @full-sales/api dev",
     "dev:admin": "pnpm --filter @full-sales/admin dev",
+    "dev:portal": "pnpm --filter @full-sales/portal dev",
+    "dev:field": "pnpm --filter @full-sales/field dev",
     "seed:dev": "cd backend && ALLOW_DEV_SEED=1 cargo run -p dev-seed"
   },
   "devDependencies": {
