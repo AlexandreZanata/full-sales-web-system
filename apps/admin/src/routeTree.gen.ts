@@ -23,6 +23,10 @@ import { Route as AuthenticatedCommercesIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedAuditIndexRouteImport } from './routes/_authenticated/audit/index'
 import { Route as AuthenticatedUsersNewRouteImport } from './routes/_authenticated/users/new'
 import { Route as AuthenticatedUsersIdRouteImport } from './routes/_authenticated/users/$id'
+import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products/new'
+import { Route as AuthenticatedProductsIdRouteImport } from './routes/_authenticated/products/$id'
+import { Route as AuthenticatedInventoryLedgerRouteImport } from './routes/_authenticated/inventory/ledger'
+import { Route as AuthenticatedInventoryAdjustmentsRouteImport } from './routes/_authenticated/inventory/adjustments'
 import { Route as AuthenticatedCommercesNewRouteImport } from './routes/_authenticated/commerces/new'
 import { Route as AuthenticatedCommercesIdRouteImport } from './routes/_authenticated/commerces/$id'
 
@@ -101,6 +105,29 @@ const AuthenticatedUsersIdRoute = AuthenticatedUsersIdRouteImport.update({
   path: '/users/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedProductsNewRoute =
+  AuthenticatedProductsNewRouteImport.update({
+    id: '/products/new',
+    path: '/products/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedProductsIdRoute = AuthenticatedProductsIdRouteImport.update({
+  id: '/products/$id',
+  path: '/products/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedInventoryLedgerRoute =
+  AuthenticatedInventoryLedgerRouteImport.update({
+    id: '/inventory/ledger',
+    path: '/inventory/ledger',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedInventoryAdjustmentsRoute =
+  AuthenticatedInventoryAdjustmentsRouteImport.update({
+    id: '/inventory/adjustments',
+    path: '/inventory/adjustments',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCommercesNewRoute =
   AuthenticatedCommercesNewRouteImport.update({
     id: '/commerces/new',
@@ -119,6 +146,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/commerces/$id': typeof AuthenticatedCommercesIdRoute
   '/commerces/new': typeof AuthenticatedCommercesNewRoute
+  '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
+  '/inventory/ledger': typeof AuthenticatedInventoryLedgerRoute
+  '/products/$id': typeof AuthenticatedProductsIdRoute
+  '/products/new': typeof AuthenticatedProductsNewRoute
   '/users/$id': typeof AuthenticatedUsersIdRoute
   '/users/new': typeof AuthenticatedUsersNewRoute
   '/audit/': typeof AuthenticatedAuditIndexRoute
@@ -136,6 +167,10 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/commerces/$id': typeof AuthenticatedCommercesIdRoute
   '/commerces/new': typeof AuthenticatedCommercesNewRoute
+  '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
+  '/inventory/ledger': typeof AuthenticatedInventoryLedgerRoute
+  '/products/$id': typeof AuthenticatedProductsIdRoute
+  '/products/new': typeof AuthenticatedProductsNewRoute
   '/users/$id': typeof AuthenticatedUsersIdRoute
   '/users/new': typeof AuthenticatedUsersNewRoute
   '/audit': typeof AuthenticatedAuditIndexRoute
@@ -155,6 +190,10 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/commerces/$id': typeof AuthenticatedCommercesIdRoute
   '/_authenticated/commerces/new': typeof AuthenticatedCommercesNewRoute
+  '/_authenticated/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
+  '/_authenticated/inventory/ledger': typeof AuthenticatedInventoryLedgerRoute
+  '/_authenticated/products/$id': typeof AuthenticatedProductsIdRoute
+  '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/_authenticated/users/$id': typeof AuthenticatedUsersIdRoute
   '/_authenticated/users/new': typeof AuthenticatedUsersNewRoute
   '/_authenticated/audit/': typeof AuthenticatedAuditIndexRoute
@@ -174,6 +213,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/commerces/$id'
     | '/commerces/new'
+    | '/inventory/adjustments'
+    | '/inventory/ledger'
+    | '/products/$id'
+    | '/products/new'
     | '/users/$id'
     | '/users/new'
     | '/audit/'
@@ -191,6 +234,10 @@ export interface FileRouteTypes {
     | '/'
     | '/commerces/$id'
     | '/commerces/new'
+    | '/inventory/adjustments'
+    | '/inventory/ledger'
+    | '/products/$id'
+    | '/products/new'
     | '/users/$id'
     | '/users/new'
     | '/audit'
@@ -209,6 +256,10 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/commerces/$id'
     | '/_authenticated/commerces/new'
+    | '/_authenticated/inventory/adjustments'
+    | '/_authenticated/inventory/ledger'
+    | '/_authenticated/products/$id'
+    | '/_authenticated/products/new'
     | '/_authenticated/users/$id'
     | '/_authenticated/users/new'
     | '/_authenticated/audit/'
@@ -327,6 +378,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/products/new': {
+      id: '/_authenticated/products/new'
+      path: '/products/new'
+      fullPath: '/products/new'
+      preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/products/$id': {
+      id: '/_authenticated/products/$id'
+      path: '/products/$id'
+      fullPath: '/products/$id'
+      preLoaderRoute: typeof AuthenticatedProductsIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventory/ledger': {
+      id: '/_authenticated/inventory/ledger'
+      path: '/inventory/ledger'
+      fullPath: '/inventory/ledger'
+      preLoaderRoute: typeof AuthenticatedInventoryLedgerRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventory/adjustments': {
+      id: '/_authenticated/inventory/adjustments'
+      path: '/inventory/adjustments'
+      fullPath: '/inventory/adjustments'
+      preLoaderRoute: typeof AuthenticatedInventoryAdjustmentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/commerces/new': {
       id: '/_authenticated/commerces/new'
       path: '/commerces/new'
@@ -348,6 +427,10 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedCommercesIdRoute: typeof AuthenticatedCommercesIdRoute
   AuthenticatedCommercesNewRoute: typeof AuthenticatedCommercesNewRoute
+  AuthenticatedInventoryAdjustmentsRoute: typeof AuthenticatedInventoryAdjustmentsRoute
+  AuthenticatedInventoryLedgerRoute: typeof AuthenticatedInventoryLedgerRoute
+  AuthenticatedProductsIdRoute: typeof AuthenticatedProductsIdRoute
+  AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
   AuthenticatedUsersIdRoute: typeof AuthenticatedUsersIdRoute
   AuthenticatedUsersNewRoute: typeof AuthenticatedUsersNewRoute
   AuthenticatedAuditIndexRoute: typeof AuthenticatedAuditIndexRoute
@@ -365,6 +448,11 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedCommercesIdRoute: AuthenticatedCommercesIdRoute,
   AuthenticatedCommercesNewRoute: AuthenticatedCommercesNewRoute,
+  AuthenticatedInventoryAdjustmentsRoute:
+    AuthenticatedInventoryAdjustmentsRoute,
+  AuthenticatedInventoryLedgerRoute: AuthenticatedInventoryLedgerRoute,
+  AuthenticatedProductsIdRoute: AuthenticatedProductsIdRoute,
+  AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
   AuthenticatedUsersIdRoute: AuthenticatedUsersIdRoute,
   AuthenticatedUsersNewRoute: AuthenticatedUsersNewRoute,
   AuthenticatedAuditIndexRoute: AuthenticatedAuditIndexRoute,

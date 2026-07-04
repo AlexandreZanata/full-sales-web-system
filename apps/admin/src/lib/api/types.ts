@@ -148,3 +148,72 @@ export type CommerceAddressRequest = {
 };
 
 export type UpdateCommerceAddressRequest = Partial<Omit<CommerceAddressRequest, 'addressType'>>;
+
+export type Product = {
+  id: string;
+  name: string;
+  sku: string;
+  priceAmount: number;
+  priceCurrency: string;
+  active: boolean;
+  category?: string;
+  unitOfMeasure?: string;
+};
+
+export type ProductSummary = Pick<
+  Product,
+  'id' | 'name' | 'sku' | 'priceAmount' | 'priceCurrency' | 'active'
+>;
+
+export type CreateProductRequest = {
+  name: string;
+  sku: string;
+  priceAmount: number;
+  priceCurrency?: string;
+  category?: string;
+  unitOfMeasure?: string;
+};
+
+export type UpdateProductRequest = {
+  name?: string;
+  priceAmount?: number;
+  priceCurrency?: string;
+  active?: boolean;
+  category?: string;
+  unitOfMeasure?: string;
+};
+
+export type ProductImage = {
+  id: string;
+  fileId: string;
+  sortOrder: number;
+  isPrimary: boolean;
+};
+
+export type AttachProductImageRequest = {
+  fileId: string;
+  isPrimary?: boolean;
+};
+
+export type StockBalance = {
+  productId: string;
+  available: number;
+};
+
+export type StockMovement = {
+  id: string;
+  productId: string;
+  responsibleId: string;
+  movementType: string;
+  quantity: number;
+  referenceId?: string;
+  reason?: string;
+  createdAt: string;
+};
+
+export type RecordMovementRequest = {
+  productId: string;
+  movementType: 'Adjustment';
+  quantity: number;
+  reason: string;
+};

@@ -218,6 +218,13 @@ export async function apiPatch<T>(path: string, init?: ApiRequestOptions): Promi
   });
 }
 
+export async function apiDelete(path: string, init?: ApiRequestOptions): Promise<void> {
+  await apiFetch(path, {
+    ...init,
+    method: 'DELETE',
+  });
+}
+
 export function isUnauthorizedError(error: unknown): boolean {
   return error instanceof ApiError && error.status === 401;
 }
