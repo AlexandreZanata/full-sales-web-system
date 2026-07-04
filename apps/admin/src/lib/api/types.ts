@@ -91,10 +91,60 @@ export type SellerProfileRequest = {
   monthlyTargetAmount?: number;
 };
 
-export type CommerceSummary = {
+export type Commerce = {
   id: string;
   cnpj: string;
   legalName: string;
   tradeName: string;
   active: boolean;
 };
+
+export type CommerceSummary = Commerce;
+
+export type CreateCommerceRequest = {
+  cnpj: string;
+  legalName: string;
+  tradeName?: string;
+  address: {
+    street: string;
+    number: string;
+    district?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  };
+  contact: {
+    phone?: string;
+    email?: string;
+  };
+};
+
+export type CommerceAddressType = 'Billing' | 'Delivery';
+
+export type CommerceAddress = {
+  id: string;
+  commerceId: string;
+  addressType: CommerceAddressType;
+  street: string;
+  number: string;
+  district?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  latitude?: number;
+  longitude?: number;
+  isPrimary: boolean;
+};
+
+export type CommerceAddressRequest = {
+  addressType: CommerceAddressType;
+  street: string;
+  number: string;
+  district?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  isPrimary?: boolean;
+};
+
+export type UpdateCommerceAddressRequest = Partial<Omit<CommerceAddressRequest, 'addressType'>>;

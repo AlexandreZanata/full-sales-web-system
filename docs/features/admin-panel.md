@@ -3,7 +3,7 @@
 > Standalone SPA at `apps/admin` (`@full-sales/admin`).  
 > API contract: [API-CONTRACT.md](../API-CONTRACT.md) · Backend routes: [ROUTE-MATRIX.md](../ROUTE-MATRIX.md)
 
-**Status:** 🟡 Users complete (Phase 30) — remaining domain screens in Phases 31–36.
+**Status:** 🟡 Commerces complete (Phase 31) — remaining domain screens in Phases 32–36.
 
 ---
 
@@ -34,7 +34,7 @@ Vite proxies `/v1` and `/health` to `http://127.0.0.1:8080` (override with `VITE
 |-------|-------|-------|-----|
 | Dashboard | `/` | 29 | ✅ live |
 | Users | `/users` | 30 | ✅ live |
-| Commerces | `/commerces` | 31 | ✅ stub |
+| Commerces | `/commerces` | 31 | ✅ live |
 | Products | `/products` | 32 | ✅ stub |
 | Inventory | `/inventory` | 32 | ✅ stub |
 | Orders | `/orders` | 33 | ✅ stub |
@@ -65,7 +65,8 @@ Vite proxies `/v1` and `/health` to `http://127.0.0.1:8080` (override with `VITE
 | **28** | `.local/phases/28-admin-shell/` | ✅ App scaffold, theme, shell, API client |
 | **29** | `.local/phases/29-admin-auth-dashboard/` | ✅ Login, JWT session, dashboard |
 | **30** | `.local/phases/30-admin-users/` | ✅ Users list, create, detail, profiles |
-| **31–36** | `.local/phases/31-admin-commerces/` … | Remaining domain screens + governance |
+| **31** | `.local/phases/31-admin-commerces/` | ✅ Commerces list, create, detail, addresses, logo |
+| **32–36** | `.local/phases/32-admin-products/` … | Remaining domain screens + governance |
 
 **UI route matrix:** `.local/phases/27-admin-panel-master/documentation/UI-ROUTE-MATRIX.md`  
 **Gap tracker:** `.local/phases/27-admin-panel-master/documentation/GAP-TASKS.md`
@@ -82,4 +83,4 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 
 ---
 
-**Updated:** 2026-07-04 (Phase 29)
+**Updated:** 2026-07-04 (Phase 31)
