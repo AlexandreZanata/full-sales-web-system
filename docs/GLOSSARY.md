@@ -105,6 +105,15 @@
 
 ---
 
+## CatalogViewMode
+
+**Definition:** Portal catalog product layout preference — list (horizontal row) or grid (vertical card).
+**Enum values:** `list`, `grid`
+**Code name:** `CatalogViewMode`  
+**Persistence:** Browser `localStorage` key `portal.catalog.viewMode`
+
+---
+
 ## UnitOfMeasure
 
 **Definition:** Catalog unit for a Product — how quantity is expressed on orders and in stock.

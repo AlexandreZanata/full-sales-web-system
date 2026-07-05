@@ -43,6 +43,14 @@ async fn route_smoke_protected_routes_return_unauthorized_not_not_found() {
         ("GET", format!("/v1/products/{id}/images")),
         ("POST", format!("/v1/products/{id}/images")),
         ("DELETE", format!("/v1/products/{id}/images/{id}")),
+        ("GET", "/v1/categories".into()),
+        ("POST", "/v1/categories".into()),
+        ("GET", format!("/v1/categories/{id}")),
+        ("PATCH", format!("/v1/categories/{id}")),
+        ("DELETE", format!("/v1/categories/{id}")),
+        ("POST", "/v1/categories/reorder".into()),
+        ("PUT", format!("/v1/categories/{id}/image")),
+        ("GET", "/v1/inventory/balances".into()),
         ("GET", format!("/v1/inventory/products/{id}/balance")),
         ("POST", "/v1/inventory/movements".into()),
         ("GET", format!("/v1/inventory/products/{id}/movements")),
@@ -59,6 +67,8 @@ async fn route_smoke_protected_routes_return_unauthorized_not_not_found() {
         ("PUT", format!("/v1/portal/orders/{id}")),
         ("DELETE", format!("/v1/portal/orders/{id}")),
         ("POST", format!("/v1/portal/orders/{id}/submit")),
+        ("GET", "/v1/portal/categories".into()),
+        ("GET", "/v1/portal/categories/bebidas".into()),
         ("GET", "/v1/orders".into()),
         ("GET", format!("/v1/orders/{id}")),
         ("POST", format!("/v1/orders/{id}/approve")),
@@ -126,6 +136,20 @@ async fn route_smoke_public_routes_are_mounted() {
 
     let (products_status, _) = request(&env, "GET", "/v1/public/products", None, None).await;
     assert_eq!(products_status, StatusCode::OK);
+
+    let (categories_status, _) = request(&env, "GET", "/v1/public/categories", None, None).await;
+    assert_eq!(categories_status, StatusCode::OK);
+
+    let (category_slug_status, category_slug_body) = request(
+        &env,
+        "GET",
+        "/v1/public/categories/missing-slug",
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(category_slug_status, StatusCode::NOT_FOUND);
+    assert_eq!(category_slug_body["error"]["code"], "CATEGORY_NOT_FOUND");
 
     let (media_status, media_body) = request(
         &env,

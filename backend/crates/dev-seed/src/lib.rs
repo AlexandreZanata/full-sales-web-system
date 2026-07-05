@@ -30,7 +30,10 @@ pub struct SeedPools {
 /// Populates the dev tenant with realistic data for every admin screen.
 pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     if is_already_seeded(&pools.admin, &pools.app).await? {
-        tracing::info!("dev seed already applied — skipping");
+        tracing::info!("dev seed already applied — ensuring catalog backfill");
+        catalog::ensure_catalog_categories(&pools.app, crate::ids::tenant_id())
+            .await
+            .map_err(|e| wrap_step("catalog_backfill", e))?;
         catalog::ensure_catalog_storage_objects().await?;
         return Ok(());
     }

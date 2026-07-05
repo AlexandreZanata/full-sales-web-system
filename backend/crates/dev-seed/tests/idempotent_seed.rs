@@ -96,4 +96,20 @@ async fn given_fresh_db_when_seed_twice_then_idempotent_and_populated() {
         .await
         .expect("audit");
     assert!(audit_count >= 10);
+
+    let categories = infra_postgres::inventory::product_categories::list_categories(
+        &pools.app,
+        tenant,
+        None,
+        20,
+        0,
+    )
+    .await
+    .expect("categories");
+    assert!(categories.len() >= 5);
+    assert!(
+        categories
+            .iter()
+            .any(|row| row.slug == "bebidas" && row.name == "Bebidas")
+    );
 }

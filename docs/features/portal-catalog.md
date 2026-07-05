@@ -1,15 +1,11 @@
-# Portal catalog (Phases 45–46)
+# Portal catalog (Phases 45–47)
 
 > Reusable catalog UI + production catalog page in `apps/portal` (`@full-sales/portal`).  
 > API contract: [API-CONTRACT.md](../API-CONTRACT.md) · Backend routes: [ROUTE-MATRIX.md](../ROUTE-MATRIX.md)
 
-**Status:** Phase 46 complete — production catalog page with category navigation.
+**Status:** Phase 47 complete — demo-ready dev seed + documentation.
 
----
-
-## Purpose
-
-Professional catalog experience for the commerce portal — category bar, product cards (list/grid), toolbar, category-scoped data loading, and shareable `?category=` URLs. Inspired by FoodKing `MenuComponent` and `CategoryComponent`.
+**Design inspiration:** [FoodKing](https://github.com/inilabs/foodking) catalog UX (`MenuComponent`, `CategoryComponent`). Side-by-side mapping: `.local/phases/_reference/FOODKING-CATALOG-MAP.md`.
 
 ---
 
@@ -17,8 +13,23 @@ Professional catalog experience for the commerce portal — category bar, produc
 
 ```bash
 pnpm dev:portal                              # http://127.0.0.1:5175
+pnpm seed:dev                                # categories + products (idempotent)
 pnpm --filter @full-sales/portal lint test build
 ```
+
+### Dev seed catalog (Phase 47)
+
+After `pnpm seed:dev`, the portal catalog shows five categories with placeholder images on the first three:
+
+| Slug | Name | Products (sample) |
+|------|------|-------------------|
+| `bebidas` | Bebidas | Refrigerante Cola 2L |
+| `snacks` | Snacks | Batata Chips Original |
+| `limpeza` | Limpeza | Detergente Neutro 500ml |
+| `congelados` | Congelados | Pizza Congelada Mussarela (inactive) |
+| `mercearia` | Mercearia | — (empty category for demo) |
+
+Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by slug on re-run.
 
 ---
 
@@ -112,4 +123,4 @@ See `.local/phases/46-portal-catalog-page/ROUTE-GAPS.md`:
 
 ---
 
-**Updated:** 2026-07-05 (Phase 46)
+**Updated:** 2026-07-05 (Phase 47)
