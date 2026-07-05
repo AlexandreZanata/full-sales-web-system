@@ -127,7 +127,7 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {slotImages.map((image, slotIndex) => (
             <ProductImageSlot
-              key={`slot-${slotIndex}`}
+              key={`slot-${String(slotIndex)}`}
               productId={productId}
               image={image}
               onUploadComplete={(fileId) => handleSlotUpload(fileId, slotIndex, image)}

@@ -21,6 +21,7 @@ import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedInventoryIndexRouteImport } from './routes/_authenticated/inventory/index'
 import { Route as AuthenticatedDeliveriesIndexRouteImport } from './routes/_authenticated/deliveries/index'
 import { Route as AuthenticatedCommercesIndexRouteImport } from './routes/_authenticated/commerces/index'
+import { Route as AuthenticatedCategoriesIndexRouteImport } from './routes/_authenticated/categories/index'
 import { Route as AuthenticatedAuditIndexRouteImport } from './routes/_authenticated/audit/index'
 import { Route as AuthenticatedUsersNewRouteImport } from './routes/_authenticated/users/new'
 import { Route as AuthenticatedUsersIdRouteImport } from './routes/_authenticated/users/$id'
@@ -101,6 +102,12 @@ const AuthenticatedCommercesIndexRoute =
   AuthenticatedCommercesIndexRouteImport.update({
     id: '/commerces/',
     path: '/commerces/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCategoriesIndexRoute =
+  AuthenticatedCategoriesIndexRouteImport.update({
+    id: '/categories/',
+    path: '/categories/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAuditIndexRoute = AuthenticatedAuditIndexRouteImport.update({
@@ -203,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/users/$id': typeof AuthenticatedUsersIdRoute
   '/users/new': typeof AuthenticatedUsersNewRoute
   '/audit/': typeof AuthenticatedAuditIndexRoute
+  '/categories/': typeof AuthenticatedCategoriesIndexRoute
   '/commerces/': typeof AuthenticatedCommercesIndexRoute
   '/deliveries/': typeof AuthenticatedDeliveriesIndexRoute
   '/inventory/': typeof AuthenticatedInventoryIndexRoute
@@ -231,6 +239,7 @@ export interface FileRoutesByTo {
   '/users/$id': typeof AuthenticatedUsersIdRoute
   '/users/new': typeof AuthenticatedUsersNewRoute
   '/audit': typeof AuthenticatedAuditIndexRoute
+  '/categories': typeof AuthenticatedCategoriesIndexRoute
   '/commerces': typeof AuthenticatedCommercesIndexRoute
   '/deliveries': typeof AuthenticatedDeliveriesIndexRoute
   '/inventory': typeof AuthenticatedInventoryIndexRoute
@@ -261,6 +270,7 @@ export interface FileRoutesById {
   '/_authenticated/users/$id': typeof AuthenticatedUsersIdRoute
   '/_authenticated/users/new': typeof AuthenticatedUsersNewRoute
   '/_authenticated/audit/': typeof AuthenticatedAuditIndexRoute
+  '/_authenticated/categories/': typeof AuthenticatedCategoriesIndexRoute
   '/_authenticated/commerces/': typeof AuthenticatedCommercesIndexRoute
   '/_authenticated/deliveries/': typeof AuthenticatedDeliveriesIndexRoute
   '/_authenticated/inventory/': typeof AuthenticatedInventoryIndexRoute
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/users/$id'
     | '/users/new'
     | '/audit/'
+    | '/categories/'
     | '/commerces/'
     | '/deliveries/'
     | '/inventory/'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/users/$id'
     | '/users/new'
     | '/audit'
+    | '/categories'
     | '/commerces'
     | '/deliveries'
     | '/inventory'
@@ -348,6 +360,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users/$id'
     | '/_authenticated/users/new'
     | '/_authenticated/audit/'
+    | '/_authenticated/categories/'
     | '/_authenticated/commerces/'
     | '/_authenticated/deliveries/'
     | '/_authenticated/inventory/'
@@ -448,6 +461,13 @@ declare module '@tanstack/react-router' {
       path: '/commerces'
       fullPath: '/commerces/'
       preLoaderRoute: typeof AuthenticatedCommercesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/categories/': {
+      id: '/_authenticated/categories/'
+      path: '/categories'
+      fullPath: '/categories/'
+      preLoaderRoute: typeof AuthenticatedCategoriesIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/audit/': {
@@ -575,6 +595,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedUsersIdRoute: typeof AuthenticatedUsersIdRoute
   AuthenticatedUsersNewRoute: typeof AuthenticatedUsersNewRoute
   AuthenticatedAuditIndexRoute: typeof AuthenticatedAuditIndexRoute
+  AuthenticatedCategoriesIndexRoute: typeof AuthenticatedCategoriesIndexRoute
   AuthenticatedCommercesIndexRoute: typeof AuthenticatedCommercesIndexRoute
   AuthenticatedDeliveriesIndexRoute: typeof AuthenticatedDeliveriesIndexRoute
   AuthenticatedInventoryIndexRoute: typeof AuthenticatedInventoryIndexRoute
@@ -604,6 +625,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedUsersIdRoute: AuthenticatedUsersIdRoute,
   AuthenticatedUsersNewRoute: AuthenticatedUsersNewRoute,
   AuthenticatedAuditIndexRoute: AuthenticatedAuditIndexRoute,
+  AuthenticatedCategoriesIndexRoute: AuthenticatedCategoriesIndexRoute,
   AuthenticatedCommercesIndexRoute: AuthenticatedCommercesIndexRoute,
   AuthenticatedDeliveriesIndexRoute: AuthenticatedDeliveriesIndexRoute,
   AuthenticatedInventoryIndexRoute: AuthenticatedInventoryIndexRoute,

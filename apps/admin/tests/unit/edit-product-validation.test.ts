@@ -12,6 +12,7 @@ describe('edit product validation — Phase 43 contract', () => {
       price: '10.00',
       priceCurrency: 'BRL',
       unitOfMeasure: '   ',
+      categoryId: '',
     });
 
     expect(errors.unitOfMeasure).toBe('forms.validation.unitOfMeasureRequired');
@@ -23,6 +24,7 @@ describe('edit product validation — Phase 43 contract', () => {
       price: '12,50',
       priceCurrency: 'BRL',
       unitOfMeasure: ' Box ',
+      categoryId: 'cat-1',
     });
 
     expect(payload).toEqual({
@@ -30,6 +32,19 @@ describe('edit product validation — Phase 43 contract', () => {
       priceAmount: 1250,
       priceCurrency: 'BRL',
       unitOfMeasure: 'Box',
+      categoryId: 'cat-1',
     });
+  });
+
+  it('given_empty_category_when_to_update_payload_then_clears_category', () => {
+    const payload = toUpdateProductPayload({
+      name: 'Widget',
+      price: '12,50',
+      priceCurrency: 'BRL',
+      unitOfMeasure: 'Box',
+      categoryId: '',
+    });
+
+    expect(payload.categoryId).toBeNull();
   });
 });

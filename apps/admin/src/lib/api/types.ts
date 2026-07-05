@@ -225,8 +225,38 @@ export type Product = {
 
 export type ProductSummary = Pick<
   Product,
-  'id' | 'name' | 'sku' | 'priceAmount' | 'priceCurrency' | 'active'
+  'id' | 'name' | 'sku' | 'priceAmount' | 'priceCurrency' | 'active' | 'categoryId' | 'categoryName'
 >;
+
+export type CategorySummary = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  sortOrder: number;
+  active: boolean;
+  imageFileId?: string;
+  thumbUrl?: string;
+  productCount?: number;
+};
+
+export type CategoryDetail = CategorySummary;
+
+export type CreateCategoryRequest = {
+  name: string;
+  description?: string;
+  sortOrder?: number;
+  active?: boolean;
+  slug?: string;
+};
+
+export type UpdateCategoryRequest = {
+  name?: string;
+  description?: string;
+  sortOrder?: number;
+  active?: boolean;
+  slug?: string;
+};
 
 export type CreateProductRequest = {
   name: string;

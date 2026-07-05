@@ -12,6 +12,7 @@ export type Messages = {
     users: string;
     commerces: string;
     products: string;
+    categories: string;
     inventory: string;
     orders: string;
     deliveries: string;
@@ -50,6 +51,7 @@ export type Messages = {
     edit: string;
     remove: string;
     deactivate: string;
+    search: string;
     viewAll: string;
     tryAgain: string;
     backToDashboard: string;
@@ -61,6 +63,7 @@ export type Messages = {
       allStatuses: string;
       allRoles: string;
       allCommerces: string;
+      allCategories: string;
       allDrivers: string;
       activeOnly: string;
       inactiveOnly: string;
@@ -100,6 +103,7 @@ export type Messages = {
       users: string;
       commerces: string;
       products: string;
+      categories: string;
       inventory: string;
       orders: string;
       deliveries: string;
@@ -174,6 +178,7 @@ export type Messages = {
       selectCommerce: string;
       selectProduct: string;
       selectDriver: string;
+      selectCategory: string;
       selectPaymentMethod: string;
       selectReportType: string;
       selectAddressType: string;
@@ -421,6 +426,7 @@ export type Messages = {
       newProduct: string;
       caption: string;
       filterByStatus: string;
+      filterByCategory: string;
       searchPlaceholder: string;
       empty: {
         title: string;
@@ -489,6 +495,64 @@ export type Messages = {
       primaryImageUpdated: string;
     };
   };
+  categories: {
+    list: {
+      title: string;
+      description: string;
+      newCategory: string;
+      caption: string;
+      filterByStatus: string;
+      sortOrder: string;
+      slug: string;
+      productCount: string;
+      empty: {
+        title: string;
+        descriptionDefault: string;
+        descriptionFiltered: string;
+      };
+    };
+    create: {
+      title: string;
+      description: string;
+      submit: string;
+      submitting: string;
+    };
+    edit: {
+      title: string;
+      description: string;
+    };
+    form: {
+      description: string;
+      sortOrder: string;
+      active: string;
+      imageLabel: string;
+      imageSaving: string;
+      imageAfterSave: string;
+      save: string;
+      saving: string;
+    };
+    actions: {
+      moveUp: string;
+      moveDown: string;
+      reactivate: string;
+    };
+    deactivateDialog: {
+      title: string;
+      message: string;
+      confirm: string;
+    };
+    validation: {
+      sortOrderInvalid: string;
+    };
+    toast: {
+      created: string;
+      updated: string;
+      deactivated: string;
+      reactivated: string;
+      reordered: string;
+      imageSaved: string;
+    };
+  };
   settings: {
     title: string;
     description: string;
@@ -524,6 +588,22 @@ export type Messages = {
       ledger: {
         title: string;
         description: string;
+      };
+    };
+    overview: {
+      title: string;
+      description: string;
+      searchPlaceholder: string;
+      caption: string;
+      loadError: string;
+      empty: {
+        title: string;
+        description: string;
+      };
+      columns: {
+        available: string;
+        balanceTotal: string;
+        reserved: string;
       };
     };
     adjustments: {

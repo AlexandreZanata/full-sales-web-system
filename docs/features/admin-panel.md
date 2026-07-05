@@ -3,13 +3,13 @@
 > Standalone SPA at `apps/admin` (`@full-sales/admin`).  
 > API contract: [API-CONTRACT.md](../API-CONTRACT.md) · Backend routes: [ROUTE-MATRIX.md](../ROUTE-MATRIX.md)
 
-**Status:** ✅ Complete (Phases 27–36)
+**Status:** ✅ Complete (Phases 27–36, 44)
 
 ---
 
 ## Purpose
 
-Internal operations console for **Admin** role: users, commerces, catalog, inventory, orders, deliveries, sales, signed reports, and audit log.
+Internal operations console for **Admin** role: users, commerces, catalog, categories, inventory, orders, deliveries, sales, signed reports, and audit log.
 
 ---
 
@@ -33,14 +33,15 @@ See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev`
 
 ---
 
-## Routes (24 screens)
+## Routes (25 screens)
 
 | Label | Route | Domain |
 |-------|-------|--------|
 | Dashboard | `/` | Stats + recent sales |
 | Users | `/users`, `/users/new`, `/users/$id` | CRUD + profiles |
 | Commerces | `/commerces`, `/commerces/new`, `/commerces/$id` | CRUD + addresses + logo |
-| Products | `/products`, `/products/new`, `/products/$id` | Create, edit, deactivate/reactivate, images, stock |
+| Products | `/products`, `/products/new`, `/products/$id` | Create, edit, deactivate/reactivate, images, stock, category picker |
+| Categories | `/categories` | CRUD, reorder, image upload, product count |
 | Inventory | `/inventory`, `/inventory/adjustments`, `/inventory/ledger` | Adjustments + ledger |
 | Orders | `/orders`, `/orders/$id` | List + workflow actions |
 | Deliveries | `/deliveries`, `/deliveries/$id` | List + read-only detail |
@@ -67,7 +68,7 @@ Full locale coverage (`en`, `pt-BR`) with `localStorage` persistence and nested 
 | API error mapping | `errors.*` |
 | Status badges | `status.order.*`, `status.sale.*`, `status.delivery.*`, `status.report.*` |
 | Roles / payment / addresses | `role.*`, `payment.*`, `addressType.*` |
-| Domain screens | `dashboard.*`, `users.*`, `commerces.*`, `products.*`, `inventory.*`, `orders.*`, `deliveries.*`, `sales.*`, `reports.*`, `audit.*` |
+| Domain screens | `dashboard.*`, `users.*`, `commerces.*`, `products.*`, `categories.*`, `inventory.*`, `orders.*`, `deliveries.*`, `sales.*`, `reports.*`, `audit.*` |
 | Uploads | `uploads.*` |
 
 Helpers: `apps/admin/src/lib/i18n/labels.ts` (`translateOrderStatus`, filter labels, `formatPaginationSummary`, action error keys).
@@ -124,6 +125,17 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 | 38 | Full admin i18n (en + pt-BR, all 23 screens) |
 | 40 | Admin product lifecycle — image gallery hydrate, reactivate, list filters |
 | 41 | Site settings — tenant display name + logo in `/settings` and app shells |
+| 44 | Product categories — admin CRUD, reorder, image, product category picker |
+
+---
+
+## Categories (Phase 44)
+
+- **Route:** `/categories` (sidebar, after Products)
+- **API:** `GET/POST /v1/categories`, `PATCH/DELETE /v1/categories/{id}`, `POST /v1/categories/reorder`, `PUT /v1/categories/{id}/image`
+- **Features:** List with sort order, slug, product count, active badge; create/edit modal; up/down reorder; deactivate/reactivate; category image via `ProductCategory` media entity
+- **Products:** Create/edit forms use category `Select` from active categories; product list shows category column + client-side category filter
+- **Deactivated categories:** Hidden from product picker; products keep existing assignment (shows inactive category name on edit if assigned)
 
 ---
 
@@ -138,11 +150,11 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 
 ## Products (Phase 40)
 
-- **List:** status filter (active / inactive / all), client-side name/SKU search, empty-state CTA to create
-- **Detail:** edit name, price, category, unit of measure; SKU read-only; deactivate with confirm dialog; reactivate button for inactive products
+- **List:** status filter (active / inactive / all), category filter, client-side name/SKU search, category column, empty-state CTA to create
+- **Detail:** edit name, price, category (picker), unit of measure; SKU read-only; deactivate with confirm dialog; reactivate button for inactive products
 - **Images:** `GET /v1/products/{id}/images` hydrates gallery on load; upload, remove, set-primary invalidate the query
 - **Out of scope:** hard delete (`DELETE /v1/products/{id}`) — soft deactivate only per domain rules
 
 ---
 
-**Updated:** 2026-07-04 (Phases 40–41)
+**Updated:** 2026-07-05 (Phase 44)

@@ -14,5 +14,13 @@ describe('invalidateAdminCatalogQueries', () => {
       queryKey: ['products'],
       refetchType: 'active',
     });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['categories'],
+      refetchType: 'active',
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['inventory', 'balances'],
+      refetchType: 'active',
+    });
   });
 });

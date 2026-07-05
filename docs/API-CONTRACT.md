@@ -167,7 +167,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 - **Auth:** Admin, Driver, Seller
 - **Query:** `page`, `pageSize`, `active?` (`true` | `false`; omit for all)
-- **Response 200:** Paginated list
+- **Response 200:** Paginated list — each item includes optional `categoryId`, `categoryName`, `categorySlug`
 
 ### `GET /v1/products/{id}`
 

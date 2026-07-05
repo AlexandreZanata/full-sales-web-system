@@ -1,6 +1,7 @@
 import { apiRequest, parseApiErrorBody, ApiError } from '@/lib/api/client';
 
-export type MediaEntityType = 'Product' | 'User' | 'Commerce' | 'Delivery' | 'Tenant';
+export type MediaEntityType =
+  'Product' | 'ProductCategory' | 'User' | 'Commerce' | 'Delivery' | 'Tenant';
 
 export type MediaUploadResponse = {
   id: string;
@@ -54,6 +55,10 @@ function isMemoryPresignedUrl(url: string): boolean {
   return url.startsWith('memory://');
 }
 
+export function resolvePublicProductMediaUrl(fileId: string): string {
+  return `/v1/public/media/${fileId}/content`;
+}
+
 export function resolveMediaContentUrl(fileId: string, presignedUrl: string): string {
   if (!isMemoryPresignedUrl(presignedUrl)) {
     return presignedUrl;
@@ -61,7 +66,31 @@ export function resolveMediaContentUrl(fileId: string, presignedUrl: string): st
   return `/v1/media/${fileId}/content`;
 }
 
+function isAuthenticatedMediaPath(url: string): boolean {
+  return url.startsWith('/v1/media/');
+}
+
+async function fetchAuthenticatedMediaBlobUrl(fileId: string): Promise<string> {
+  const response = await apiRequest(`/media/${fileId}/content`);
+  if (!response.ok) {
+    const body = await parseApiErrorBody(response);
+    throw new ApiError(response.status, body);
+  }
+  return URL.createObjectURL(await response.blob());
+}
+
+/** Product catalog images — safe for `<img src>` (public route, no auth header). */
+export function resolveProductImagePreviewUrl(fileId: string): string {
+  return resolvePublicProductMediaUrl(fileId);
+}
+
 export async function resolveMediaPreviewUrl(fileId: string): Promise<string> {
   const { url } = await fetchMediaUrl(fileId);
-  return resolveMediaContentUrl(fileId, url);
+  const contentUrl = resolveMediaContentUrl(fileId, url);
+
+  if (isAuthenticatedMediaPath(contentUrl)) {
+    return fetchAuthenticatedMediaBlobUrl(fileId);
+  }
+
+  return contentUrl;
 }

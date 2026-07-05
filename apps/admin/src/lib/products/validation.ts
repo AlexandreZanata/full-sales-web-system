@@ -6,6 +6,7 @@ export type CreateProductFormValues = {
   sku: string;
   price: string;
   priceCurrency: string;
+  categoryId: string;
 };
 
 export type EditProductFormValues = {
@@ -13,6 +14,7 @@ export type EditProductFormValues = {
   price: string;
   priceCurrency: string;
   unitOfMeasure: string;
+  categoryId: string;
 };
 
 export type FormErrors<T extends string> = Partial<Record<T, string>>;
@@ -68,6 +70,7 @@ export function toCreateProductPayload(values: CreateProductFormValues): CreateP
     sku: values.sku.trim(),
     priceAmount,
     priceCurrency: values.priceCurrency.trim() || 'BRL',
+    ...(values.categoryId ? { categoryId: values.categoryId } : {}),
   };
 }
 
@@ -82,5 +85,6 @@ export function toUpdateProductPayload(values: EditProductFormValues) {
     priceAmount,
     priceCurrency: values.priceCurrency.trim() || 'BRL',
     unitOfMeasure: values.unitOfMeasure.trim(),
+    categoryId: values.categoryId || null,
   };
 }

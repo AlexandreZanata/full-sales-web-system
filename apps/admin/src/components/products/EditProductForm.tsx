@@ -1,9 +1,12 @@
+import { useQuery } from '@tanstack/react-query';
 import { useState, type SubmitEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { useToast } from '@/hooks/useToast';
+import { fetchCategoriesForPicker } from '@/lib/api/categories';
 import type { Product } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
 import { translateFormError } from '@/lib/i18n/labels';
@@ -29,9 +32,15 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
     price: formatPriceInput(product.priceAmount),
     priceCurrency: product.priceCurrency,
     unitOfMeasure: product.unitOfMeasure ?? 'Unit',
+    categoryId: product.categoryId ?? '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EditProductFormValues, string>>>({});
   const [submitting, setSubmitting] = useState(false);
+
+  const categories = useQuery({
+    queryKey: ['categories', 'picker'],
+    queryFn: fetchCategoriesForPicker,
+  });
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,12 +89,26 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
               setValues((current) => ({ ...current, price: event.target.value }));
             }}
           />
-          <Input
+          <Select
             label={t('forms.fields.category')}
-            name="category"
-            value={product.categoryName ?? '—'}
-            disabled
-          />
+            value={values.categoryId}
+            onChange={(event) => {
+              setValues((current) => ({ ...current, categoryId: event.target.value }));
+            }}
+            disabled={!product.active}
+          >
+            <option value="">{t('forms.placeholders.selectCategory')}</option>
+            {(categories.data ?? []).map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+            {product.categoryId &&
+            product.categoryName &&
+            !(categories.data ?? []).some((category) => category.id === product.categoryId) ? (
+              <option value={product.categoryId}>{product.categoryName}</option>
+            ) : null}
+          </Select>
           <Input
             label={t('forms.fields.unitOfMeasure')}
             name="unitOfMeasure"

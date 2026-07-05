@@ -2142,6 +2142,13 @@ components:
           type: string
         active:
           type: boolean
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        categorySlug:
+          type: string
 
     ProductDetail:
       allOf:

@@ -5,6 +5,11 @@ const CATALOG_SSE_EVENT = 'catalog.changed';
 
 export function invalidateAdminCatalogQueries(queryClient: QueryClient): void {
   void queryClient.invalidateQueries({ queryKey: ['products'], refetchType: 'active' });
+  void queryClient.invalidateQueries({ queryKey: ['categories'], refetchType: 'active' });
+  void queryClient.invalidateQueries({
+    queryKey: ['inventory', 'balances'],
+    refetchType: 'active',
+  });
 }
 
 export function useCatalogRealtime(queryClient: QueryClient): void {

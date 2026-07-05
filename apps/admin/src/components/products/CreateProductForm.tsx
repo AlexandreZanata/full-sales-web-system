@@ -1,9 +1,12 @@
+import { useQuery } from '@tanstack/react-query';
 import { useState, type SubmitEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { useToast } from '@/hooks/useToast';
+import { fetchCategoriesForPicker } from '@/lib/api/categories';
 import type { CreateProductRequest, Product } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
 import { translateFormError } from '@/lib/i18n/labels';
@@ -24,6 +27,7 @@ const emptyForm: CreateProductFormValues = {
   sku: '',
   price: '',
   priceCurrency: 'BRL',
+  categoryId: '',
 };
 
 export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProps) {
@@ -32,6 +36,11 @@ export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProp
   const [values, setValues] = useState<CreateProductFormValues>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof CreateProductFormValues, string>>>({});
   const [submitting, setSubmitting] = useState(false);
+
+  const categories = useQuery({
+    queryKey: ['categories', 'picker'],
+    queryFn: fetchCategoriesForPicker,
+  });
 
   function updateField<K extends keyof CreateProductFormValues>(
     key: K,
@@ -100,6 +109,20 @@ export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProp
               updateField('priceCurrency', event.target.value.toUpperCase());
             }}
           />
+          <Select
+            label={t('forms.fields.category')}
+            value={values.categoryId}
+            onChange={(event) => {
+              updateField('categoryId', event.target.value);
+            }}
+          >
+            <option value="">{t('forms.placeholders.selectCategory')}</option>
+            {(categories.data ?? []).map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </Select>
         </div>
 
         <Button type="submit" disabled={submitting}>

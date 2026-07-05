@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
+import { fetchCategoriesForPicker } from '@/lib/api/categories';
 import { fetchProducts } from '@/lib/api/products';
 import type { ProductSummary } from '@/lib/api/types';
 import { ACTIVE_FILTERS, type ActiveFilter } from '@/lib/commerces/constants';
@@ -33,12 +34,25 @@ function matchesSearch(product: ProductSummary, search: string): boolean {
   );
 }
 
+function matchesCategory(product: ProductSummary, categoryId: string): boolean {
+  if (!categoryId) {
+    return true;
+  }
+  return product.categoryId === categoryId;
+}
+
 function ProductsListPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [search, setSearch] = useState('');
   const pageSize = 20;
+
+  const categories = useQuery({
+    queryKey: ['categories', 'picker'],
+    queryFn: fetchCategoriesForPicker,
+  });
 
   const products = useQuery({
     queryKey: ['products', page, pageSize, activeFilter],
@@ -46,8 +60,11 @@ function ProductsListPage() {
   });
 
   const filteredItems = useMemo(
-    () => (products.data?.items ?? []).filter((item) => matchesSearch(item, search)),
-    [products.data?.items, search],
+    () =>
+      (products.data?.items ?? [])
+        .filter((item) => matchesSearch(item, search))
+        .filter((item) => matchesCategory(item, categoryFilter)),
+    [products.data?.items, search, categoryFilter],
   );
 
   const pagination = products.data ? paginatedResponseToTable(products.data) : null;
@@ -67,6 +84,11 @@ function ProductsListPage() {
             {row.name}
           </Link>
         ),
+      },
+      {
+        id: 'category',
+        header: t('forms.fields.category'),
+        cell: (row) => row.categoryName ?? '—',
       },
       {
         id: 'price',
@@ -101,7 +123,7 @@ function ProductsListPage() {
     [t],
   );
 
-  const hasFilters = Boolean(activeFilter || search.trim());
+  const hasFilters = Boolean(activeFilter || categoryFilter || search.trim());
 
   return (
     <div>
@@ -115,7 +137,7 @@ function ProductsListPage() {
         }
       />
 
-      <div className="mb-4 grid gap-4 sm:grid-cols-2">
+      <div className="mb-4 grid gap-4 sm:grid-cols-3">
         <Select
           label={t('products.list.filterByStatus')}
           value={activeFilter}
@@ -127,6 +149,21 @@ function ProductsListPage() {
           {ACTIVE_FILTERS.map((value) => (
             <option key={value || 'all'} value={value}>
               {activeFilterLabel(t, value)}
+            </option>
+          ))}
+        </Select>
+        <Select
+          label={t('products.list.filterByCategory')}
+          value={categoryFilter}
+          onChange={(event) => {
+            setCategoryFilter(event.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">{t('common.filter.allCategories')}</option>
+          {(categories.data ?? []).map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
             </option>
           ))}
         </Select>

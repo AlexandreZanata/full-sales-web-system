@@ -23,6 +23,12 @@ pub struct ProductResponse {
     #[serde(rename = "priceCurrency")]
     pub price_currency: String,
     pub active: bool,
+    #[serde(rename = "categoryId", skip_serializing_if = "Option::is_none")]
+    pub category_id: Option<uuid::Uuid>,
+    #[serde(rename = "categoryName", skip_serializing_if = "Option::is_none")]
+    pub category_name: Option<String>,
+    #[serde(rename = "categorySlug", skip_serializing_if = "Option::is_none")]
+    pub category_slug: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -44,6 +50,9 @@ pub(crate) fn product_response_from_row(
         price_amount: row.price_amount,
         price_currency: row.price_currency.clone(),
         active: row.active,
+        category_id: row.category_id,
+        category_name: row.category_name.clone(),
+        category_slug: row.category_slug.clone(),
     }
 }
 

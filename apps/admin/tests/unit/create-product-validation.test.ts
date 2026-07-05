@@ -17,6 +17,7 @@ describe('validateCreateProductForm — Phase 32 contract', () => {
       sku: 'SKU-001',
       price: '10,00',
       priceCurrency: 'BRL',
+      categoryId: '',
     });
     expect(hasFormErrors(errors)).toBe(false);
   });
@@ -27,6 +28,7 @@ describe('validateCreateProductForm — Phase 32 contract', () => {
       sku: '',
       price: '10,00',
       priceCurrency: 'BRL',
+      categoryId: '',
     });
     expect(errors.sku).toBe('forms.validation.skuRequired');
   });
@@ -39,8 +41,21 @@ describe('toCreateProductPayload — API contract', () => {
       sku: 'SKU-001',
       price: '10,50',
       priceCurrency: 'BRL',
+      categoryId: 'cat-1',
     });
     expect(payload.priceAmount).toBe(1050);
+    expect(payload.categoryId).toBe('cat-1');
+  });
+
+  it('given_no_category_when_to_payload_then_omits_category_id', () => {
+    const payload = toCreateProductPayload({
+      name: 'Widget',
+      sku: 'SKU-001',
+      price: '10,50',
+      priceCurrency: 'BRL',
+      categoryId: '',
+    });
+    expect(payload.categoryId).toBeUndefined();
   });
 });
 
@@ -50,8 +65,8 @@ describe('validateEditProductForm — Phase 32 contract', () => {
       name: 'Widget',
       price: '',
       priceCurrency: 'BRL',
-      category: '',
       unitOfMeasure: 'Unit',
+      categoryId: '',
     });
     expect(errors.price).toBe('forms.validation.priceInvalid');
   });

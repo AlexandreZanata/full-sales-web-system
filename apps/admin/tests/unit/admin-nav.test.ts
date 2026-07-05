@@ -4,13 +4,14 @@ import { adminNavItems } from '@/lib/admin-nav';
 
 /** Contract: Phase 27 sidebar table — 11 nav items, unique routes. */
 describe('adminNavItems — Phase 27 sidebar contract', () => {
-  it('lists all 11 admin panel routes', () => {
-    expect(adminNavItems).toHaveLength(11);
+  it('lists all 12 admin panel routes', () => {
+    expect(adminNavItems).toHaveLength(12);
     expect(adminNavItems.map((item) => item.to)).toEqual([
       '/',
       '/users',
       '/commerces',
       '/products',
+      '/categories',
       '/inventory',
       '/orders',
       '/deliveries',
