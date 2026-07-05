@@ -43,6 +43,10 @@ export type Messages = {
     sku: string;
     unitPrice: string;
     productDetail: string;
+    allCategories: string;
+    viewList: string;
+    viewGrid: string;
+    emptyDescription: string;
   };
   cart: {
     title: string;
@@ -110,6 +114,10 @@ export type MessageKey =
   | 'catalog.sku'
   | 'catalog.unitPrice'
   | 'catalog.productDetail'
+  | 'catalog.allCategories'
+  | 'catalog.viewList'
+  | 'catalog.viewGrid'
+  | 'catalog.emptyDescription'
   | 'cart.title'
   | 'cart.checkout'
   | 'cart.submitOrder'

@@ -14,5 +14,9 @@ describe('invalidatePortalCatalogQueries', () => {
       queryKey: ['portal', 'products'],
       refetchType: 'active',
     });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['portal', 'categories'],
+      refetchType: 'active',
+    });
   });
 });

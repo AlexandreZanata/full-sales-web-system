@@ -49,6 +49,10 @@ export const ptBR: Messages = {
     sku: 'SKU',
     unitPrice: 'Preço unitário',
     productDetail: 'Detalhe do produto',
+    allCategories: 'Todos',
+    viewList: 'Visualização em lista',
+    viewGrid: 'Visualização em grade',
+    emptyDescription: 'Tente outra categoria ou termo de busca.',
   },
   cart: {
     title: 'Carrinho',

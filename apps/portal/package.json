@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "tsc -p tsconfig.json --noEmit && eslint src && prettier --check 'src/**/*.{ts,tsx}' index.html vite.config.ts vitest.config.ts tests/**/*.ts",
+    "lint": "tsc -p tsconfig.json --noEmit && eslint src && prettier --check 'src/**/*.{ts,tsx}' index.html vite.config.ts vitest.config.ts 'tests/**/*.{ts,tsx}'",
     "test": "vitest run"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.1",
     "@tanstack/react-router": "^1.170.16",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "clsx": "^2.1.1",
+    "happy-dom": "^20.10.6",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

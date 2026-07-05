@@ -42,8 +42,16 @@
   --status-neutral: oklch(0.55 0.01 240);
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body, #root { min-height: 100%; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  min-height: 100%;
+}
 body {
   margin: 0;
   font-family: var(--font-sans);
@@ -51,4 +59,49 @@ body {
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
 }
-:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .catalog-category-chip {
+    @apply flex shrink-0 flex-col items-center gap-2 rounded-2xl border border-hairline bg-surface px-3 py-2 transition-colors;
+  }
+
+  .catalog-category-chip--home {
+    @apply min-w-[5.5rem];
+  }
+
+  .catalog-category-chip--menu {
+    @apply min-w-[4.5rem] rounded-xl px-2 py-1.5;
+  }
+
+  .catalog-category-chip--active {
+    @apply border-primary bg-surface-muted shadow-sm;
+  }
+
+  .catalog-category-thumb {
+    @apply flex size-12 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-sm font-semibold text-muted-foreground;
+  }
+
+  .catalog-category-thumb--home {
+    @apply size-14;
+  }
+
+  .catalog-product-card-grid {
+    @apply flex flex-col overflow-hidden rounded-lg border border-hairline bg-surface shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md;
+  }
+
+  .catalog-product-card-list {
+    @apply flex gap-3 overflow-hidden rounded-lg border border-hairline bg-surface p-3 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md;
+  }
+
+  .catalog-price {
+    @apply text-sm font-semibold tabular-nums text-foreground;
+  }
+
+  .catalog-price--prominent {
+    @apply text-base font-bold;
+  }
+}

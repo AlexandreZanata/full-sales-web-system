@@ -49,6 +49,10 @@ export const en: Messages = {
     sku: 'SKU',
     unitPrice: 'Unit price',
     productDetail: 'Product detail',
+    allCategories: 'All',
+    viewList: 'List view',
+    viewGrid: 'Grid view',
+    emptyDescription: 'Try another category or search term.',
   },
   cart: {
     title: 'Cart',

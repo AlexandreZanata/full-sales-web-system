@@ -3,6 +3,8 @@ import { getAccessToken } from '@/lib/auth/tokens';
 import type {
   CreatePortalOrderRequest,
   PaginatedResponse,
+  PortalCategory,
+  PortalCategoryWithProducts,
   PortalOrderDetail,
   PortalOrderSummary,
   PortalProduct,
@@ -20,6 +22,42 @@ export type PortalOrdersParams = {
   pageSize?: number;
   status?: string;
 };
+
+export type PortalCategoryBySlugParams = {
+  page?: number;
+  pageSize?: number;
+};
+
+function portalAuthPath(
+  portalPath: string,
+  publicPath: string,
+): {
+  path: string;
+  init?: { skipAuth: true };
+} {
+  const hasSession = Boolean(getAccessToken());
+  return hasSession ? { path: portalPath } : { path: publicPath, init: { skipAuth: true } };
+}
+
+export async function fetchPortalCategories(): Promise<PortalCategory[]> {
+  const { path, init } = portalAuthPath('/portal/categories', '/public/categories');
+  return apiFetch<PortalCategory[]>(path, init);
+}
+
+export async function fetchPortalCategoryBySlug(
+  slug: string,
+  params: PortalCategoryBySlugParams = {},
+): Promise<PortalCategoryWithProducts> {
+  const query = new URLSearchParams({
+    page: String(params.page ?? 1),
+    pageSize: String(params.pageSize ?? 50),
+  });
+  const { path, init } = portalAuthPath(
+    `/portal/categories/${encodeURIComponent(slug)}?${query}`,
+    `/public/categories/${encodeURIComponent(slug)}?${query}`,
+  );
+  return apiFetch<PortalCategoryWithProducts>(path, init);
+}
 
 export async function fetchPortalProducts(
   params: PortalProductsParams = {},

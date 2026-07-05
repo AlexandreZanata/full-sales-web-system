@@ -20,6 +20,25 @@ export type PortalProduct = {
   primaryImageUrl?: string;
 };
 
+export type PortalCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  sortOrder: number;
+  active: boolean;
+  imageFileId?: string;
+  thumbUrl?: string;
+  productCount?: number;
+};
+
+export type PortalCategoryWithProducts = PortalCategory & {
+  products: PortalProduct[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
 export type PortalOrderItem = {
   id: string;
   productId: string;
