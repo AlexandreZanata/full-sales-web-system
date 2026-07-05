@@ -18,8 +18,11 @@ private val SellerAuthPlugin = createClientPlugin("SellerAuth", ::SellerAuthConf
     onRequest { request, _ ->
         val path = request.url.buildString()
         if (!path.contains("/auth/login") && !path.contains("/auth/refresh")) {
-            provider.accessToken()?.let { token ->
-                request.headers.append(HttpHeaders.Authorization, "Bearer $token")
+            val token = provider.accessToken()
+            if (token != null) {
+                request.headers[HttpHeaders.Authorization] = "Bearer $token"
+            } else {
+                request.headers.remove(HttpHeaders.Authorization)
             }
         }
     }
@@ -32,6 +35,7 @@ fun defaultSellerJson(): Json = Json {
 
 fun HttpClientConfig<*>.installSellerDefaults(
     tokenProvider: AuthTokenProvider,
+    tokenRefreshHandler: TokenRefreshHandler? = null,
     json: Json = defaultSellerJson(),
 ) {
     install(ContentNegotiation) { json(json) }
@@ -43,13 +47,20 @@ fun HttpClientConfig<*>.installSellerDefaults(
     install(SellerAuthPlugin) {
         this.tokenProvider = tokenProvider
     }
+    if (tokenRefreshHandler != null) {
+        install(SellerRefreshPlugin) {
+            this.refreshHandler = tokenRefreshHandler
+            this.tokenProvider = tokenProvider
+        }
+    }
 }
 
 fun createSellerHttpClient(
     tokenProvider: AuthTokenProvider,
+    tokenRefreshHandler: TokenRefreshHandler? = null,
     json: Json = defaultSellerJson(),
     config: HttpClientConfig<*>.() -> Unit = {},
 ): HttpClient = HttpClient {
-    installSellerDefaults(tokenProvider, json)
+    installSellerDefaults(tokenProvider, tokenRefreshHandler, json)
     config()
 }

@@ -29,11 +29,12 @@ internal fun testJson(): Json = defaultSellerJson()
 
 internal fun testClient(
     token: String? = "seller-token",
+    tokenProvider: AuthTokenProvider = AuthTokenProvider { token },
+    refreshHandler: TokenRefreshHandler? = null,
     engine: MockEngine,
 ): SellerApiClient {
-    val tokenProvider = AuthTokenProvider { token }
     val http = HttpClient(engine) {
-        installSellerDefaults(tokenProvider, testJson())
+        installSellerDefaults(tokenProvider, refreshHandler, testJson())
     }
     return SellerApiClient(http, baseUrl = "http://test/v1", json = testJson())
 }

@@ -56,10 +56,23 @@ Placeholder screen: app name, platform greeting, and configured API base URL.
 
 | Package | Contents |
 |---------|----------|
-| `shared/api/` | `SellerApiClient`, `HttpClientFactory`, `ApiError`, auth interceptor |
+| `shared/api/` | `SellerApiClient`, `HttpClientFactory`, `ApiError`, Bearer auth + 401 refresh interceptor |
 | `shared/model/` | DTOs mirroring `apps/field/src/lib/api/types.ts` (camelCase JSON) |
+| `shared/auth/` | JWT role gate (`Seller` only), `SecureTokenStore` expect/actual (iOS stub) |
 
 All Seller routes from `SELLER-ROUTE-MATRIX` have client methods. Unit tests use Ktor `MockEngine`.
+
+### Seller auth (Phase 53)
+
+| Component | Purpose |
+|-----------|---------|
+| `AuthViewModel` | Login, logout, session restore with JWT role gate |
+| `TokenStore` | Android `EncryptedSharedPreferences` for access/refresh tokens |
+| `SellerTokenRefresher` | Shared refresh for Ktor 401 retry + sync engine |
+| `LoginScreen` | M3 form — `OutlinedTextField`, `Button`, error `Card`; debug prefill |
+| `AuthRefreshPlugin` | On 401 (non-auth paths): refresh once, retry with new Bearer token |
+
+Login contract matches field PWA (`apps/field/src/lib/api/client.ts`). Only `Seller` role enters the shell.
 
 ### Offline persistence (Phase 55)
 
@@ -112,5 +125,9 @@ Catalog preload runs on login via `container.requestSync()`.
 | `ProductViewModel` | Room catalog flow + sync refresh |
 | `ProductDetailViewModel` | `GET /products/{id}` + inventory balance on open |
 | `MediaUrlCache` | Presigned URL cache via `GET /media/{id}/url` |
+
+### Material Design 3 (Phase 60 — next)
+
+Screens use `androidx.compose.material3` but default `MaterialTheme` (no custom theme). Phase 60 adds `SellerTheme` and retrofits all composables. Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
 
 **Updated:** 2026-07-05

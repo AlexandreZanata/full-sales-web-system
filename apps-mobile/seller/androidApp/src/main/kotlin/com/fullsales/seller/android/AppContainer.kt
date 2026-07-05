@@ -1,7 +1,7 @@
 package com.fullsales.seller.android
 
 import android.content.Context
-import com.fullsales.seller.android.auth.NoOpTokenRefresher
+import com.fullsales.seller.android.auth.SellerTokenRefresher
 import com.fullsales.seller.android.auth.TokenStore
 import com.fullsales.seller.android.media.MediaUrlCache
 import com.fullsales.seller.android.sync.SyncWorker
@@ -29,14 +29,17 @@ class AppContainer(context: Context) {
     val saleRepository: SaleRepository = RoomSaleRepository(database.saleDao())
     val outboxRepository: SyncOutboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
     private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
-    private val httpClient = createSellerHttpClient(tokenProvider)
+    private val authHttpClient = createSellerHttpClient(AuthTokenProvider { null })
+    private val authApiClient = SellerApiClient(authHttpClient)
+    private val tokenRefresher = SellerTokenRefresher(tokenStore, authApiClient)
+    private val httpClient = createSellerHttpClient(tokenProvider, tokenRefresher)
     val apiClient = SellerApiClient(httpClient)
     val mediaUrlCache = MediaUrlCache(apiClient)
     private val syncTransport = SellerSyncTransport(apiClient)
     val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
     val syncCoordinator = SellerSyncCoordinator(
         CatalogPullSync(catalogRepository, syncTransport),
-        SyncEngine(outboxRepository, saleRepository, syncTransport, NoOpTokenRefresher()),
+        SyncEngine(outboxRepository, saleRepository, syncTransport, tokenRefresher),
     )
 
     fun scheduleSync() {
