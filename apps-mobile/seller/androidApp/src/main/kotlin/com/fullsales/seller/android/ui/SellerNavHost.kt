@@ -13,7 +13,7 @@ import com.fullsales.seller.android.ui.auth.LoginScreen
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
 import com.fullsales.seller.android.ui.products.ProductViewModel
 import com.fullsales.seller.android.ui.sales.SalesListScreen
-import com.fullsales.seller.android.ui.sales.SalesViewModel
+import com.fullsales.seller.android.ui.sales.SalesListViewModel
 import com.fullsales.seller.android.ui.settings.SettingsViewModel
 import com.fullsales.seller.android.ui.sync.SyncStatusViewModel
 
@@ -22,7 +22,7 @@ fun SellerNavHost(container: AppContainer) {
     val factory = SellerViewModelFactory(container)
     val authViewModel: AuthViewModel = viewModel(factory = factory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
-    val salesViewModel: SalesViewModel = viewModel(factory = factory)
+    val salesListViewModel: SalesListViewModel = viewModel(factory = factory)
     val commerceViewModel: CommerceViewModel = viewModel(factory = factory)
     val productViewModel: ProductViewModel = viewModel(factory = factory)
     val syncViewModel: SyncStatusViewModel = viewModel(factory = factory)
@@ -47,9 +47,9 @@ fun SellerNavHost(container: AppContainer) {
         }
         shellRoute(SellerRoutes.SALES, navController, settings, syncBadge, authViewModel, settingsViewModel) {
             SalesListScreen(
-                salesViewModel = salesViewModel,
-                syncViewModel = syncViewModel,
+                viewModel = salesListViewModel,
                 onSaleClick = { id -> navController.navigate(SellerRoutes.saleDetail(id)) },
+                onNewSale = { navController.navigate(SellerRoutes.SALES_NEW) },
             )
         }
         shellRoute(SellerRoutes.SALES_NEW, navController, settings, syncBadge, authViewModel, settingsViewModel) {

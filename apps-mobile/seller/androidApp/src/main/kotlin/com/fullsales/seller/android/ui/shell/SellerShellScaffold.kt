@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -107,22 +109,27 @@ fun SellerShellScaffold(
 
 @Composable
 private fun SyncBadgeChip(badge: SyncBadge) {
-    val label = when (badge) {
-        SyncBadge.Offline -> "Offline"
-        SyncBadge.Syncing -> "Syncing"
-        SyncBadge.SyncFailed -> "Sync failed"
+    val (label, colors) = when (badge) {
+        SyncBadge.Offline -> "Offline" to AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SyncBadge.Syncing -> "Syncing" to AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        SyncBadge.SyncFailed -> "Sync failed" to AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            labelColor = MaterialTheme.colorScheme.onErrorContainer,
+        )
         SyncBadge.Idle -> return
     }
     Box(modifier = Modifier.padding(end = 4.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = when (badge) {
-                SyncBadge.SyncFailed -> MaterialTheme.colorScheme.error
-                SyncBadge.Offline -> MaterialTheme.colorScheme.outline
-                else -> MaterialTheme.colorScheme.primary
-            },
-            modifier = Modifier.padding(horizontal = 8.dp),
+        AssistChip(
+            onClick = {},
+            enabled = false,
+            label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+            colors = colors,
         )
     }
 }

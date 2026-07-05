@@ -126,8 +126,18 @@ Catalog preload runs on login via `container.requestSync()`.
 | `ProductDetailViewModel` | `GET /products/{id}` + inventory balance on open |
 | `MediaUrlCache` | Presigned URL cache via `GET /media/{id}/url` |
 
-### Material Design 3 (Phase 60 — next)
+### Material Design 3 + Sales list (Phase 60)
 
-Screens use `androidx.compose.material3` but default `MaterialTheme` (no custom theme). Phase 60 adds `SellerTheme` and retrofits all composables. Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
+| Component | Purpose |
+|-----------|---------|
+| `ui/theme/SellerTheme.kt` | M3 color scheme (dynamic on Android 12+), typography, shapes |
+| `SalesListScreen` | Merged remote + local sales, FAB, pull-to-refresh, empty states |
+| `SalesListViewModel` | `GET /v1/sales` page 1 + Room merge via `mergeSalesList` |
+| `SaleStatusChip` | M3 `AssistChip` for domain + sync statuses |
+| `SellerEmptyState` | Reusable empty/offline state with `FilledTonalButton` CTA |
+
+Merge logic lives in `shared/sales/SalesListMerger.kt` — remote status wins when deduped by remote id; pending sync rows sort to top.
+
+Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
 
 **Updated:** 2026-07-05
