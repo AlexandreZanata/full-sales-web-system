@@ -15,6 +15,7 @@ import com.fullsales.seller.android.ui.commerces.CommerceDetailScreen
 import com.fullsales.seller.android.ui.commerces.CommerceDetailViewModel
 import com.fullsales.seller.android.ui.commerces.CommerceListScreen
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
+import com.fullsales.seller.android.ui.products.ProductViewModel
 import com.fullsales.seller.android.ui.sales.CreateSaleScreen
 import com.fullsales.seller.android.ui.settings.SettingsUiState
 import com.fullsales.seller.android.ui.sync.SyncBadge
@@ -63,15 +64,22 @@ internal fun NavGraphBuilder.commerceRoutes(
 internal fun NewSaleWithCommercePicker(
     navController: NavHostController,
     commerceViewModel: CommerceViewModel,
+    productViewModel: ProductViewModel,
 ) {
     val newSaleEntry = navController.currentBackStackEntry
-    val pickerResult = newSaleEntry?.savedStateHandle?.getStateFlow<String?>(SELECTED_COMMERCE_ID, null)
-    val selectedId by pickerResult?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
+    val commerceResult = newSaleEntry?.savedStateHandle?.getStateFlow<String?>(SELECTED_COMMERCE_ID, null)
+    val productResult = newSaleEntry?.savedStateHandle?.getStateFlow<String?>(SELECTED_PRODUCT_ID, null)
+    val selectedCommerceId by commerceResult?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
+    val selectedProductId by productResult?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
     val commerceState by commerceViewModel.state.collectAsState()
-    val selectedLabel = commerceState.items.firstOrNull { it.id == selectedId }?.displayName()
+    val productState by productViewModel.state.collectAsState()
+    val selectedCommerceLabel = commerceState.items.firstOrNull { it.id == selectedCommerceId }?.displayName()
+    val selectedProductLabel = productState.items.firstOrNull { it.id == selectedProductId }?.name
     CreateSaleScreen(
-        selectedCommerceLabel = selectedLabel,
+        selectedCommerceLabel = selectedCommerceLabel,
+        selectedProductLabel = selectedProductLabel,
         onOpenCommercePicker = { navController.navigate(SellerRoutes.COMMERCE_PICK) },
         onBrowseCommerces = { navController.navigate(SellerRoutes.COMMERCES) },
+        onBrowseProducts = { navController.navigate(SellerRoutes.PRODUCTS) },
     )
 }

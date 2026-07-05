@@ -3,6 +3,7 @@ package com.fullsales.seller.android
 import android.content.Context
 import com.fullsales.seller.android.auth.NoOpTokenRefresher
 import com.fullsales.seller.android.auth.TokenStore
+import com.fullsales.seller.android.media.MediaUrlCache
 import com.fullsales.seller.android.sync.SyncWorker
 import com.fullsales.seller.shared.api.AuthTokenProvider
 import com.fullsales.seller.shared.api.SellerApiClient
@@ -30,6 +31,7 @@ class AppContainer(context: Context) {
     private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
     private val httpClient = createSellerHttpClient(tokenProvider)
     val apiClient = SellerApiClient(httpClient)
+    val mediaUrlCache = MediaUrlCache(apiClient)
     private val syncTransport = SellerSyncTransport(apiClient)
     val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
     val syncCoordinator = SellerSyncCoordinator(

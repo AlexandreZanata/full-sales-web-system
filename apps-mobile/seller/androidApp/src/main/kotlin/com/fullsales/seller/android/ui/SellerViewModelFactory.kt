@@ -6,6 +6,8 @@ import com.fullsales.seller.android.AppContainer
 import com.fullsales.seller.android.ui.auth.AuthViewModel
 import com.fullsales.seller.android.ui.commerces.CommerceDetailViewModel
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
+import com.fullsales.seller.android.ui.products.ProductDetailViewModel
+import com.fullsales.seller.android.ui.products.ProductViewModel
 import com.fullsales.seller.android.ui.sales.SalesViewModel
 import com.fullsales.seller.android.ui.settings.SettingsViewModel
 import com.fullsales.seller.android.ui.sync.SyncStatusViewModel
@@ -25,6 +27,10 @@ class SellerViewModelFactory(
             CommerceViewModel(container.catalogRepository, container.syncCoordinator) as T
         modelClass.isAssignableFrom(CommerceDetailViewModel::class.java) ->
             CommerceDetailViewModel(container.apiClient) as T
+        modelClass.isAssignableFrom(ProductViewModel::class.java) ->
+            ProductViewModel(container.catalogRepository, container.syncCoordinator) as T
+        modelClass.isAssignableFrom(ProductDetailViewModel::class.java) ->
+            ProductDetailViewModel(container.apiClient, container.mediaUrlCache) as T
         modelClass.isAssignableFrom(SyncStatusViewModel::class.java) ->
             SyncStatusViewModel(
                 container,

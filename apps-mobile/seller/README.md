@@ -103,4 +103,14 @@ No delivery routes — Seller nav matches field PWA (Sales + New sale only).
 
 Catalog preload runs on login via `container.requestSync()`.
 
+### Products UI (Phase 59)
+
+| Component | Purpose |
+|-----------|---------|
+| `ProductListScreen` | Cached active products + search; BRL price from minor units |
+| `ProductDetailScreen` | Detail + live stock badge; optional Coil thumbnail |
+| `ProductViewModel` | Room catalog flow + sync refresh |
+| `ProductDetailViewModel` | `GET /products/{id}` + inventory balance on open |
+| `MediaUrlCache` | Presigned URL cache via `GET /media/{id}/url` |
+
 **Updated:** 2026-07-05

@@ -1,5 +1,6 @@
 package com.fullsales.seller.shared.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,6 +14,8 @@ data class Product(
     val categoryId: String? = null,
     val categoryName: String? = null,
     val categorySlug: String? = null,
+    @SerialName("primaryImageUrl") val primaryImageUrl: String? = null,
+    @SerialName("primaryImageFileId") val primaryImageFileId: String? = null,
 )
 
 @Serializable
@@ -28,6 +31,8 @@ data class ProductDetail(
     val categorySlug: String? = null,
     val unitOfMeasure: String? = null,
     val description: String? = null,
+    @SerialName("primaryImageUrl") val primaryImageUrl: String? = null,
+    @SerialName("primaryImageFileId") val primaryImageFileId: String? = null,
 )
 
 @Serializable

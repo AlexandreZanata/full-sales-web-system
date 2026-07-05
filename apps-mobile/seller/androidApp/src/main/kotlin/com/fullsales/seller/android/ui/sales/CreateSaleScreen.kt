@@ -16,8 +16,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun CreateSaleScreen(
     selectedCommerceLabel: String?,
+    selectedProductLabel: String?,
     onOpenCommercePicker: () -> Unit,
     onBrowseCommerces: () -> Unit,
+    onBrowseProducts: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -27,7 +29,7 @@ fun CreateSaleScreen(
     ) {
         Text("New sale", style = MaterialTheme.typography.headlineSmall)
         Text(
-            "Select a commerce before adding products (Phase 60).",
+            "Select a commerce and product before confirming (Phase 60).",
             style = MaterialTheme.typography.bodyMedium,
         )
         Button(onClick = onOpenCommercePicker, modifier = Modifier.fillMaxWidth()) {
@@ -37,6 +39,12 @@ fun CreateSaleScreen(
         }
         OutlinedButton(onClick = onBrowseCommerces, modifier = Modifier.fillMaxWidth()) {
             Text("Browse commerces")
+        }
+        selectedProductLabel?.let {
+            Text("Product: $it", style = MaterialTheme.typography.titleMedium)
+        }
+        OutlinedButton(onClick = onBrowseProducts, modifier = Modifier.fillMaxWidth()) {
+            Text("Browse products")
         }
     }
 }

@@ -11,6 +11,7 @@ import com.fullsales.seller.android.AppContainer
 import com.fullsales.seller.android.ui.auth.AuthViewModel
 import com.fullsales.seller.android.ui.auth.LoginScreen
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
+import com.fullsales.seller.android.ui.products.ProductViewModel
 import com.fullsales.seller.android.ui.sales.SalesListScreen
 import com.fullsales.seller.android.ui.sales.SalesViewModel
 import com.fullsales.seller.android.ui.settings.SettingsViewModel
@@ -23,6 +24,7 @@ fun SellerNavHost(container: AppContainer) {
     val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
     val salesViewModel: SalesViewModel = viewModel(factory = factory)
     val commerceViewModel: CommerceViewModel = viewModel(factory = factory)
+    val productViewModel: ProductViewModel = viewModel(factory = factory)
     val syncViewModel: SyncStatusViewModel = viewModel(factory = factory)
     val auth by authViewModel.state.collectAsState()
     val settings by settingsViewModel.state.collectAsState()
@@ -51,19 +53,12 @@ fun SellerNavHost(container: AppContainer) {
             )
         }
         shellRoute(SellerRoutes.SALES_NEW, navController, settings, syncBadge, authViewModel, settingsViewModel) {
-            NewSaleWithCommercePicker(navController, commerceViewModel)
+            NewSaleWithCommercePicker(navController, commerceViewModel, productViewModel)
         }
         detailRoute(SellerRoutes.SALE_DETAIL, "saleId", navController, settings, syncBadge, authViewModel) { id ->
             PlaceholderScreen("Sale $id", "Sale detail — Phase 61")
         }
         commerceRoutes(navController, factory, commerceViewModel, settings, syncBadge, authViewModel)
-        composable(SellerRoutes.PRODUCTS) {
-            DetailShell(navController, settings, syncBadge, authViewModel) {
-                PlaceholderScreen("Products")
-            }
-        }
-        detailRoute(SellerRoutes.PRODUCT_DETAIL, "productId", navController, settings, syncBadge, authViewModel) { id ->
-            PlaceholderScreen("Product $id")
-        }
+        productRoutes(navController, factory, productViewModel, settings, syncBadge, authViewModel)
     }
 }

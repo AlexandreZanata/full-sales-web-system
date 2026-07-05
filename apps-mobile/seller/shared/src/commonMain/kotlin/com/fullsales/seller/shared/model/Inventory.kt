@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class StockBalance(
     val productId: String,
     val available: Int,
-    val asOf: String,
+    val asOf: String? = null,
 )
