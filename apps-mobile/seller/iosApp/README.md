@@ -1,31 +1,47 @@
-# iOS app stub — Phase 52
+# iOS app — Full Sales Seller
 
-Full Xcode project is not checked in yet. The `:shared` module compiles for iOS targets in CI.
+Compose Multiplatform shell consuming the `ComposeApp` framework from `:composeApp`.
 
 ## Prerequisites
 
 - macOS with Xcode 15+
 - JDK 17
-- CocoaPods (when the native shell is added)
+- Android Studio or IntelliJ with KMP plugin (optional)
 
-## Compile shared (CI / local)
+## Build shared + Compose framework
 
 From `apps-mobile/seller`:
 
 ```bash
 ./gradlew :shared:compileKotlinIosSimulatorArm64
-./gradlew :shared:compileKotlinIosArm64
-./gradlew :shared:compileKotlinIosX64
+./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
 ```
 
-## Future Xcode shell
+On Linux CI, iOS targets are skipped (`kotlin.native.ignoreDisabledTargets=true`); use the macOS CI job.
 
-When iOS shipping is planned:
+## Run on simulator (macOS)
 
-1. In Android Studio or IntelliJ, use **File → New → Kotlin Multiplatform App** or the [KMP wizard](https://kotlinlang.org/docs/multiplatform-create-first-app.html) as reference.
-2. Point the iOS target at `:shared` (package `com.fullsales.seller`).
-3. Add `iosApp/` Xcode project with a `ContentView` hosting shared Compose UI (when CMP iOS is adopted) or a SwiftUI placeholder.
-4. Set API base URL via build configuration (simulator: `http://127.0.0.1:8080/v1`).
-5. Wire `IosForegroundSync` on app resume (Phase 56 stub; full BGTask in Phase 66).
+1. Start the API on the host: `pnpm dev:api` (listens on `127.0.0.1:8080`).
+2. Open `iosApp/iosApp.xcodeproj` in Xcode.
+3. Select an iPhone simulator → Run.
+4. Login: `seller@test.com` / `secret123` (seed via `pnpm seed:dev`).
+
+### API base URL
+
+iOS simulator uses `http://127.0.0.1:8080/v1` from `shared/src/iosMain/.../ApiConfig.ios.kt`.
+
+Physical device: replace with your machine LAN IP, e.g. `http://192.168.1.10:8080/v1`.
+
+## Architecture
+
+| Piece | Role |
+|-------|------|
+| `ComposeApp` framework | Shared Compose UI (`SellerNavHost`, M3 theme) |
+| `IosAppContainer` | Keychain tokens + in-memory catalog/sales cache |
+| `MainViewController()` | `ComposeUIViewController` entry for SwiftUI host |
+
+## Media upload UI
+
+**Skipped for MVP** — `SellerApiClient.uploadMedia` exists (Phase 54); product photo picker not required for seller shell.
 
 **Updated:** 2026-07-05

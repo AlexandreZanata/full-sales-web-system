@@ -1,5 +1,6 @@
 package com.fullsales.seller.android.media
 
+import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.shared.api.SellerApiClient
 import java.time.Instant
 
@@ -7,12 +8,12 @@ class MediaUrlCache(
     private val apiClient: SellerApiClient,
     private val expiryBufferSeconds: Long = 60,
     private val nowEpochSeconds: () -> Long = { Instant.now().epochSecond },
-) {
+) : MediaUrlResolver {
     private data class Cached(val url: String, val expiresAtEpochSeconds: Long)
 
     private val cache = mutableMapOf<String, Cached>()
 
-    suspend fun resolveImageUrl(directUrl: String?, fileId: String?): String? {
+    override suspend fun resolveImageUrl(directUrl: String?, fileId: String?): String? {
         directUrl?.takeIf { it.isNotBlank() }?.let { return it }
         val id = fileId?.takeIf { it.isNotBlank() } ?: return null
         cache[id]?.takeIf { !isExpired(it) }?.let { return it.url }

@@ -49,11 +49,17 @@ See [features/client-apps.md](features/client-apps.md).
 | Field (driver) | `apps-mobile/field` | `cd apps-mobile/field && ./gradlew :shared:check :androidApp:assembleDebug` |
 | Seller | `apps-mobile/seller` | `pnpm mobile:seller:check` |
 
-Seller iOS shared compile (CI):
+Seller iOS shared compile (CI — macOS runner):
 
 ```bash
-cd apps-mobile/seller && ./gradlew :shared:compileKotlinIosSimulatorArm64
+cd apps-mobile/seller && ./gradlew :shared:compileKotlinIosSimulatorArm64 :composeApp:compileKotlinIosSimulatorArm64
 ```
+
+| Platform | API base URL |
+|----------|----------------|
+| Android emulator | `http://10.0.2.2:8080/v1` |
+| iOS simulator | `http://127.0.0.1:8080/v1` |
+| iOS physical device | `http://<host-lan-ip>:8080/v1` |
 
 Copy `.env.example` (root) and `backend/.env.example` for local configuration.
 

@@ -9,7 +9,7 @@
 | `@full-sales/portal` | 5175 | CommerceContact | `portal@seed-store.com` / `secret123` |
 | `@full-sales/field` | 5176 | Driver, Seller | `seller@test.com` / `driver-a@test.com` / `secret123` |
 | `apps-mobile/field` | — | Driver, Seller | KMP offline (39F) |
-| `apps-mobile/seller` | — | Seller | KMP seller shell; auth (53); M3 theme + sales list (60); i18n en/pt-BR (63); Room offline (55) |
+| `apps-mobile/seller` | — | Seller | KMP seller shell; auth (53); M3 + sales (60–62); i18n (63); iOS CMP (64); Room offline (55) |
 
 ## Stack
 

@@ -1,21 +1,17 @@
 package com.fullsales.seller.shared.auth
 
-// ponytail: Phase 64 replaces with Keychain-backed store
 actual class SecureTokenStore actual constructor() {
-    private var accessToken: String? = null
-    private var refreshToken: String? = null
+    private val keychain = KeychainTokenStore()
 
-    actual fun getAccessToken(): String? = accessToken
+    actual fun getAccessToken(): String? = keychain.getAccessToken()
 
-    actual fun getRefreshToken(): String? = refreshToken
+    actual fun getRefreshToken(): String? = keychain.getRefreshToken()
 
     actual fun saveTokens(accessToken: String, refreshToken: String) {
-        this.accessToken = accessToken
-        this.refreshToken = refreshToken
+        keychain.saveTokens(accessToken, refreshToken)
     }
 
     actual fun clear() {
-        accessToken = null
-        refreshToken = null
+        keychain.clear()
     }
 }

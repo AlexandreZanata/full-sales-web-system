@@ -3,6 +3,7 @@ package com.fullsales.seller.android.auth
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.fullsales.seller.app.platform.SellerTokenStore
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.api.TokenRefreshHandler
 import com.fullsales.seller.shared.auth.SellerRoleGateResult
@@ -33,7 +34,7 @@ class SellerTokenRefresher(
     }
 }
 
-class TokenStore(context: Context) {
+class TokenStore(context: Context) : SellerTokenStore {
     private val prefs = EncryptedSharedPreferences.create(
         context,
         PREFS_NAME,
@@ -42,18 +43,18 @@ class TokenStore(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
     )
 
-    fun getAccessToken(): String? = prefs.getString(KEY_ACCESS, null)
+    override fun getAccessToken(): String? = prefs.getString(KEY_ACCESS, null)
 
-    fun getRefreshToken(): String? = prefs.getString(KEY_REFRESH, null)
+    override fun getRefreshToken(): String? = prefs.getString(KEY_REFRESH, null)
 
-    fun saveTokens(accessToken: String, refreshToken: String) {
+    override fun saveTokens(accessToken: String, refreshToken: String) {
         prefs.edit()
             .putString(KEY_ACCESS, accessToken)
             .putString(KEY_REFRESH, refreshToken)
             .apply()
     }
 
-    fun clear() {
+    override fun clear() {
         prefs.edit().clear().apply()
     }
 

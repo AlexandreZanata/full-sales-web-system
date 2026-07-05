@@ -5,6 +5,12 @@ import com.fullsales.seller.android.auth.SellerTokenRefresher
 import com.fullsales.seller.android.auth.TokenStore
 import com.fullsales.seller.android.media.MediaUrlCache
 import com.fullsales.seller.android.sync.SyncWorker
+import com.fullsales.seller.app.platform.MediaUrlResolver
+import com.fullsales.seller.app.platform.NetworkMonitor
+import com.fullsales.seller.app.platform.SellerAppContainer
+import com.fullsales.seller.app.platform.SellerTokenStore
+import com.fullsales.seller.app.platform.createNetworkMonitor
+import com.fullsales.seller.app.platform.initAndroidPlatform
 import com.fullsales.seller.shared.api.AuthTokenProvider
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.api.SellerSyncTransport
@@ -21,32 +27,39 @@ import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 
-class AppContainer(context: Context) {
-    val appContext = context.applicationContext
-    val tokenStore = TokenStore(appContext)
-    private val database = SellerDatabase.build(appContext)
-    val catalogRepository: CatalogRepository = RoomCatalogRepository(database.catalogDao())
-    val saleRepository: SaleRepository = RoomSaleRepository(database.saleDao())
-    val outboxRepository: SyncOutboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
-    private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
+class AppContainer(context: Context) : SellerAppContainer {
+    init {
+        initAndroidPlatform(context)
+    }
+
+    private val androidContext = context.applicationContext
+    private val database = SellerDatabase.build(androidContext)
+    private val tokenStoreImpl = TokenStore(androidContext)
+    override val tokenStore: SellerTokenStore = tokenStoreImpl
+    override val catalogRepository: CatalogRepository = RoomCatalogRepository(database.catalogDao())
+    override val saleRepository: SaleRepository = RoomSaleRepository(database.saleDao())
+    override val outboxRepository: SyncOutboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
+    private val tokenProvider = AuthTokenProvider { tokenStoreImpl.getAccessToken() }
     private val authHttpClient = createSellerHttpClient(AuthTokenProvider { null })
     private val authApiClient = SellerApiClient(authHttpClient)
-    private val tokenRefresher = SellerTokenRefresher(tokenStore, authApiClient)
+    private val tokenRefresher = SellerTokenRefresher(tokenStoreImpl, authApiClient)
     private val httpClient = createSellerHttpClient(tokenProvider, tokenRefresher)
-    val apiClient = SellerApiClient(httpClient)
-    val mediaUrlCache = MediaUrlCache(apiClient)
+    override val apiClient = SellerApiClient(httpClient)
+    private val mediaUrlCacheImpl = MediaUrlCache(apiClient)
+    override val mediaUrlResolver: MediaUrlResolver = mediaUrlCacheImpl
     private val syncTransport = SellerSyncTransport(apiClient)
-    val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
-    val syncCoordinator = SellerSyncCoordinator(
+    override val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
+    override val syncCoordinator = SellerSyncCoordinator(
         CatalogPullSync(catalogRepository, syncTransport),
         SyncEngine(outboxRepository, saleRepository, syncTransport, tokenRefresher),
     )
+    override val networkMonitor: NetworkMonitor = createNetworkMonitor()
 
     fun scheduleSync() {
-        SyncWorker.enqueuePeriodic(appContext)
+        SyncWorker.enqueuePeriodic(androidContext)
     }
 
-    fun requestSync() {
-        SyncWorker.enqueueOneTime(appContext)
+    override fun requestSync() {
+        SyncWorker.enqueueOneTime(androidContext)
     }
 }

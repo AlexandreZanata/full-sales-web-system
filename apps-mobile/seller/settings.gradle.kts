@@ -16,4 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "seller"
 include(":shared")
+include(":composeApp")
 include(":androidApp")

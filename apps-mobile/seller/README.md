@@ -28,8 +28,8 @@ sdk.dir=/path/to/Android/sdk
 
 ```bash
 cd apps-mobile/seller
-./gradlew :shared:check :androidApp:assembleDebug
-./gradlew :shared:compileKotlinIosSimulatorArm64
+./gradlew :shared:check :composeApp:compileDebugKotlinAndroid :androidApp:assembleDebug
+./gradlew :shared:compileKotlinIosSimulatorArm64 :composeApp:compileKotlinIosSimulatorArm64  # macOS only
 ```
 
 From repo root:
@@ -42,15 +42,16 @@ pnpm mobile:seller:check
 
 Open `apps-mobile/seller` in Android Studio → run **androidApp** on an emulator or device.
 
-Placeholder screen: app name, platform greeting, and configured API base URL.
+For iOS simulator (macOS + Xcode): see [iosApp/README.md](iosApp/README.md).
 
 ## Structure
 
 | Module | Purpose |
 |--------|---------|
 | `shared` | KMP common code — API client, sync engine, repositories |
-| `androidApp` | Jetpack Compose Activity + WorkManager sync |
-| `iosApp/` | Stub — see `iosApp/README.md` |
+| `composeApp` | Compose Multiplatform UI — `SellerNavHost`, M3 theme (Android + iOS) |
+| `androidApp` | Android Activity, Room, WorkManager, EncryptedSharedPreferences |
+| `iosApp/` | SwiftUI shell hosting `MainViewController()` — see `iosApp/README.md` |
 
 ### Shared API layer (Phase 54)
 
@@ -171,6 +172,20 @@ Confirm/cancel only when status is `Pending` and sale has a remote id. Maps `INS
 | `LocaleSwitcher` | M3 `SegmentedButton` (EN / PT) in shell top bar + login screen |
 
 Validation errors and API error codes resolve to localized strings in Compose. Shared submitters return stable error codes only.
+
+### iOS + Compose Multiplatform (Phase 64)
+
+| Component | Purpose |
+|-----------|---------|
+| `composeApp` | Shared Compose UI for Android and iOS |
+| `MainViewController()` | iOS entry — `ComposeUIViewController` + `SellerRoot` |
+| `IosAppContainer` | Keychain tokens, in-memory catalog/sales (online-first MVP) |
+| `KeychainTokenStore` | iOS secure token storage in `shared/iosMain` |
+| Ktor Darwin | `ktor-client-darwin` on `iosMain` (Phase 54 baseline) |
+
+**Media upload UI:** skipped for MVP — `SellerApiClient.uploadMedia` client method + unit test cover the route; no image picker in seller shell.
+
+iOS simulator API: `http://127.0.0.1:8080/v1`. See [iosApp/README.md](iosApp/README.md).
 
 Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
 
