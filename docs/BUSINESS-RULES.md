@@ -292,8 +292,8 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 | `POST /v1/inventory/movements` | Yes | No | No | No | No |
 | `GET /v1/inventory/products/{productId}/movements` | Yes | No | No | No | No |
 | `POST /v1/sales` | Yes | Yes | Yes | No | No |
-| `GET /v1/sales` | Yes | Own | No | No | No |
-| `GET /v1/sales/{id}` | Yes | Own | No | No | No |
+| `GET /v1/sales` | Yes | Own | Own | No | No |
+| `GET /v1/sales/{id}` | Yes | Own | Own | No | No |
 | `POST /v1/sales/{id}/confirm` | Yes | Yes | Yes | No | No |
 | `POST /v1/sales/{id}/cancel` | Yes | Yes | Yes | No | No |
 | `POST /v1/sales/{id}/declare-payment` | No | Own | No | No | No |

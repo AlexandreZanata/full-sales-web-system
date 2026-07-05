@@ -116,8 +116,8 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 | Method | Path | Auth | Status | Migrations | Rules | Task |
 |--------|------|------|--------|------------|-------|------|
 | POST | `/v1/sales` | Driver, Seller, Admin | ✅ | `206`, `207` | BR-SA-*, idempotency | — |
-| GET | `/v1/sales` | Admin; Driver own | ✅ | `206`, `217` | filters | 20 |
-| GET | `/v1/sales/{id}` | Driver own, Admin | ✅ | `206` | — | — |
+| GET | `/v1/sales` | Admin; Driver own; Seller own | ✅ | `206`, `217` | filters | 51 |
+| GET | `/v1/sales/{id}` | Driver own, Seller own, Admin | ✅ | `206` | — | 51 |
 | POST | `/v1/sales/{id}/confirm` | Driver, Seller, Admin | ✅ | `206`, `204` | BR-IN-002 | — |
 | POST | `/v1/sales/{id}/cancel` | Driver, Seller, Admin | ✅ | `216` | Pending only | — |
 | POST | `/v1/sales/{id}/declare-payment` | Driver (owner) | ✅ | `235` | RN-PAG1–3 | 20 |
@@ -212,9 +212,9 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 |------|----------------|
 | **Admin** | users, commerces write, products, inventory adjust, orders approve/reject/cancel, reports generate, delivery assign |
 | **Driver** | sales, deliveries own, commerces/products read, verify report |
-| **Seller** | sales (field), commerces/products read |
+| **Seller** | sales (field + own list), commerces/products read |
 | **CommerceContact** | `/v1/portal/*` only (+ scoped media upload) |
 
 ---
 
-**Updated:** 2026-07-04 (promoted from `.local/phases/16`; audit row synced with Phase 26)
+**Updated:** 2026-07-05 (Phase 51 — Seller own sales list)

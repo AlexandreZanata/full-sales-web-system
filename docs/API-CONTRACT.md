@@ -298,13 +298,13 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ### `GET /v1/sales/{id}`
 
-- **Auth:** Driver (own), Admin (all)
+- **Auth:** Driver (own), Seller (own), Admin (all)
 - **Response 200 / 404**
 
 ### `GET /v1/sales`
 
-- **Auth:** Admin, Driver (own sales filter)
-- **Query:** `commerceId?`, `driverId?` (Admin only), `from?`, `to?`, `status?`, pagination
+- **Auth:** Admin, Driver (own), Seller (own)
+- **Query:** `commerceId?`, `driverId?` (Admin only; ignored for Driver/Seller), `from?`, `to?`, `status?`, pagination
 - **Response 200:** Paginated list
 
 ### `POST /v1/sales/{id}/declare-payment`

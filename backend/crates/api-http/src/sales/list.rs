@@ -44,13 +44,13 @@ pub async fn list_sales(
     Query(query): Query<ListSalesQuery>,
 ) -> Result<Json<PaginatedSalesResponse>, ApiError> {
     match auth.role {
-        Role::Admin | Role::Driver => {}
+        Role::Admin | Role::Driver | Role::Seller => {}
         _ => return Err(ApiError::forbidden()),
     }
 
     let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
     let driver_id = match auth.role {
-        Role::Driver => Some(auth.user_id),
+        Role::Driver | Role::Seller => Some(auth.user_id),
         Role::Admin => query.driver_id,
         _ => None,
     };
