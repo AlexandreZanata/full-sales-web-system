@@ -40,14 +40,14 @@ pnpm test:e2e:portal
 pnpm test:e2e:field
 ```
 
-See [features/client-apps.md](features/client-apps.md).
+See [features/client-apps.md](features/client-apps.md) and [features/seller-mobile-app.md](features/seller-mobile-app.md).
 
 ### Mobile — Kotlin Multiplatform
 
 | App | Path | Check |
 |-----|------|-------|
 | Field (driver) | `apps-mobile/field` | `cd apps-mobile/field && ./gradlew :shared:check :androidApp:assembleDebug` |
-| Seller | `apps-mobile/seller` | `pnpm mobile:seller:check` |
+| Seller | `apps-mobile/seller` | `pnpm mobile:seller:check` (shared check + composeApp compile + lint + assembleDebug) |
 
 Seller iOS shared compile (CI — macOS runner):
 

@@ -1,0 +1,134 @@
+# Seller mobile app — KMP (Phase 52–65)
+
+> Kotlin Multiplatform seller shell at `apps-mobile/seller`. Android (Room + WorkManager) and iOS (Compose Multiplatform + Keychain). **Seller role only** — no delivery routes.
+
+## Packages
+
+| Module | Purpose |
+|--------|---------|
+| `shared` | API client, sync engine, repositories, i18n, JWT role gate |
+| `composeApp` | Compose Multiplatform UI — M3 theme, navigation, ViewModels |
+| `androidApp` | Activity shell, Room, WorkManager, EncryptedSharedPreferences |
+| `iosApp/` | SwiftUI host for `MainViewController()` — see [iosApp/README.md](../../apps-mobile/seller/iosApp/README.md) |
+
+## Dev login
+
+| Field | Value |
+|-------|-------|
+| Email | `seller@test.com` |
+| Password | `secret123` |
+
+Requires dev seed (`pnpm seed:dev`) and API on `:8080`. **Driver accounts are rejected** at login (`JwtRoleGate` → `NotSeller`).
+
+## API base URL
+
+| Platform | URL |
+|----------|-----|
+| Android emulator | `http://10.0.2.2:8080/v1` |
+| iOS simulator | `http://127.0.0.1:8080/v1` |
+| iOS physical device | `http://<host-lan-ip>:8080/v1` |
+
+Override via `SELLER_API_BASE_URL` in root `.env` (see `.env.example`).
+
+## Commands
+
+```bash
+# From repo root
+pnpm mobile:seller:check
+
+# Full quality gate (Phase 65E)
+cd apps-mobile/seller
+./gradlew :shared:check :androidApp:lint :androidApp:assembleDebug
+./gradlew :composeApp:compileDebugKotlinAndroid
+./gradlew :shared:compileKotlinIosSimulatorArm64 :composeApp:compileKotlinIosSimulatorArm64  # macOS only
+pnpm verify:backend   # from repo root
+
+# Instrumented tests (emulator required)
+./gradlew :androidApp:connectedDebugAndroidTest
+```
+
+Open `apps-mobile/seller` in Android Studio → run **androidApp**. iOS: see [iosApp/README.md](../../apps-mobile/seller/iosApp/README.md).
+
+## Navigation routes
+
+| Route | Screen | API (when online) |
+|-------|--------|-------------------|
+| `login` | Login + locale switcher | `POST /v1/auth/login` |
+| `sales` | Sales list (merged remote + local) | `GET /v1/sales` |
+| `sales/new` | Create sale form | `POST /v1/sales` or offline outbox |
+| `sales/{saleId}` | Sale detail, confirm/cancel | `GET /v1/sales/{id}`, `POST …/confirm`, `POST …/cancel` |
+| `commerces` | Commerce catalog | Cached + `GET /v1/commerces` |
+| `commerces/pick` | Commerce picker (create sale) | Same as commerces |
+| `commerces/{commerceId}` | Commerce detail + addresses | `GET /v1/commerces/{id}`, `GET …/addresses` |
+| `products` | Product catalog | Cached + `GET /v1/products` |
+| `products/{productId}` | Product detail + stock | `GET /v1/products/{id}`, `GET /v1/inventory/products/{id}/balance` |
+
+Bottom nav: **Sales** and **New sale** only. No delivery routes.
+
+## API client coverage (SELLER-ROUTE-MATRIX)
+
+All seller-facing HTTP routes have `SellerApiClient` methods and MockEngine unit tests in `shared/src/commonTest/`.
+
+| Method | Path | Client |
+|--------|------|--------|
+| POST | `/auth/login`, `/auth/refresh`, `/auth/logout` | ✅ |
+| GET | `/settings` | ✅ |
+| GET | `/commerces`, `/commerces/{id}`, `/commerces/{id}/addresses` | ✅ |
+| GET | `/products`, `/products/{id}` | ✅ |
+| GET | `/inventory/products/{id}/balance` | ✅ |
+| GET/POST | `/sales`, `/sales/{id}`, `/sales/{id}/confirm`, `/sales/{id}/cancel` | ✅ |
+| GET/POST | `/media/{id}/url`, `/media/upload` | ✅ client only — **upload UI deferred** |
+
+## Offline sync
+
+1. **Create offline:** `OfflineSaleWriter` → Room sale (`PendingSync`) + outbox row.
+2. **Reconnect:** `SyncEngine.processOutbox()` via `SellerSyncCoordinator` (foreground on resume, WorkManager periodic).
+3. **Idempotency:** UUID v7 key on `POST /v1/sales`; server dedupes retries.
+
+Tests: `SyncEngineTest`, `OfflineSalePersistenceTest` (Robolectric), `OfflineSaleOutboxTest` + `CreateSaleInstrumentedTest` (instrumented).
+
+## i18n
+
+Default locale: **pt-BR**. Switch EN/PT via M3 `SegmentedButton` on login and shell top bar — no app restart. Messages in `shared/i18n/`.
+
+## Material Design 3
+
+**Library:** `androidx.compose.material3` only for UI components.  
+**Icons:** `androidx.compose.material.icons` (extended icons pack — not M2 Material components).
+
+| Item | Implementation |
+|------|----------------|
+| Entry | `SellerTheme { … }` in `SellerRoot` |
+| Colors | `lightColorScheme` / `darkColorScheme`; dynamic color on Android 12+ |
+| Typography / shapes | `MaterialTheme.typography`, `MaterialTheme.shapes` |
+| Components | `TopAppBar`, `NavigationBar`, `Card`, `AssistChip`, `OutlinedTextField`, `Snackbar`, `PullToRefreshBox`, etc. |
+
+**Do not use** `androidx.compose.material` (Material 2) for screens or theme.
+
+iOS hosts the same Compose UI and M3 theme via `MainViewController()`.
+
+## Manual acceptance script
+
+Run with API + seed + Android emulator:
+
+1. Login as `seller@test.com` → shell opens.
+2. Login as `driver-a@test.com` → error (not Seller).
+3. **Sales** tab → list loads; pull-to-refresh works.
+4. **New sale** → pick commerce, add line item, submit online → appears in list.
+5. Airplane mode → create sale → `Pending sync` badge; disable airplane mode → sync completes.
+6. Open sale detail → **Confirm** (pending sale with remote id).
+7. Locale switcher: PT default labels; switch EN → labels update without restart.
+8. Verify no crash on cold start with stored session.
+
+## CI
+
+GitHub Actions jobs `seller-kmp` (Ubuntu) and `seller-ios` (macOS) — see [.github/workflows/ci.yml](../../.github/workflows/ci.yml).
+
+## Related docs
+
+- [client-apps.md](client-apps.md) — all client packages
+- [DEV-COMMANDS.md](../DEV-COMMANDS.md) — monorepo commands
+- [ADR-051](../adr/ADR-051-seller-kmp-app.md) — separate seller app vs field
+- Module README: [apps-mobile/seller/README.md](../../apps-mobile/seller/README.md)
+
+**Updated:** 2026-07-05

@@ -66,6 +66,19 @@ Build phases aligned with domain dependencies. Local task breakdown: `.local/pha
 
 ---
 
+---
+
+## Phase 7 — Mobile clients ✅ (seller KMP)
+
+- KMP seller app (`apps-mobile/seller`) — Seller-only auth, offline sales, M3 UI
+- Compose Multiplatform shared UI (`composeApp`) — Android + iOS simulator
+- CI: `seller-kmp`, `seller-ios` jobs; quality gate in `pnpm mobile:seller:check`
+- Docs: [features/seller-mobile-app.md](features/seller-mobile-app.md), [ADR-051](adr/ADR-051-seller-kmp-app.md)
+
+**Exit criteria:** Shared unit tests (API, sync, repositories); Android lint + assemble; iOS simulator compile; documented routes and manual acceptance script.
+
+---
+
 ## Future (backlog)
 
 - Web/mobile client (simple UI — complexity stays in backend)

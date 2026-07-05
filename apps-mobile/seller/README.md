@@ -28,7 +28,7 @@ sdk.dir=/path/to/Android/sdk
 
 ```bash
 cd apps-mobile/seller
-./gradlew :shared:check :composeApp:compileDebugKotlinAndroid :androidApp:assembleDebug
+./gradlew :shared:check :composeApp:compileDebugKotlinAndroid :androidApp:lint :androidApp:assembleDebug
 ./gradlew :shared:compileKotlinIosSimulatorArm64 :composeApp:compileKotlinIosSimulatorArm64  # macOS only
 ```
 
@@ -187,6 +187,6 @@ Validation errors and API error codes resolve to localized strings in Compose. S
 
 iOS simulator API: `http://127.0.0.1:8080/v1`. See [iosApp/README.md](iosApp/README.md).
 
-Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
+Spec: [docs/features/seller-mobile-app.md](../../../docs/features/seller-mobile-app.md) (Material 3 section).
 
 **Updated:** 2026-07-05
