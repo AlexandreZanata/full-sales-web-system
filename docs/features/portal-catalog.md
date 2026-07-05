@@ -61,6 +61,25 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 | `CatalogEmptyState` | Empty catalog with illustration |
 | `CatalogSkeleton` | Loading placeholders |
 | `ProductImage` | Shared image with `alt={product.name}` |
+| `ProductImageCarousel` | Loop carousel with prev/next and dot indicators |
+| `ProductMediaPanel` | Sticky gallery wrapper for product detail |
+| `ProductDetailInfo` | Title, price, description, specs table |
+| `ProductDetailSkeleton` | Product detail loading state |
+
+---
+
+## Product detail page (`/products/$id`)
+
+| Step | Behavior |
+|------|----------|
+| 1 | User opens product from catalog → `/products/{id}?category={slug}` |
+| 2 | `fetchPortalProductById(id)` → `GET /v1/portal/products/{id}` (public when logged out) |
+| 3 | `ProductMediaPanel` builds gallery from `primaryImageUrl` + `imageUrls[]` |
+| 4 | Single image: no carousel chrome; 2+ images: arrows + dots |
+| 5 | Specs show SKU, unit of measure, category, status |
+| 6 | Sticky add-to-cart bar (mobile bottom; desktop inline) |
+
+**Route file:** `routes/_authenticated/products/$id.tsx`
 
 ---
 
@@ -68,6 +87,7 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 
 | Path | Purpose |
 |------|---------|
+| `src/lib/catalog/gallerySlides.ts` | `buildGallerySlides` — primary first, dedupe |
 | `src/lib/catalog/catalogSearch.ts` | Search param parsing, slug validation, client filter |
 | `src/lib/catalog/viewMode.ts` | `CatalogViewMode` + `localStorage` persistence |
 | `src/lib/catalog/useCatalogCategories.ts` | React Query hook — `staleTime` 5 min |
@@ -82,22 +102,22 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 |----------|----------------------------|
 | `fetchPortalCategories` | `GET /v1/public/categories` or `/v1/portal/categories` |
 | `fetchPortalCategoryBySlug` | `GET /v1/public/categories/{slug}` or `/v1/portal/categories/{slug}` |
-| `fetchPortalProductById` | `GET /v1/portal/products/{id}` (public fallback when logged out) |
+| `fetchPortalProductById` | `GET /v1/public/products/{id}` or `/v1/portal/products/{id}` |
 | `fetchPortalProducts` | `GET /v1/public/products?category=` (fallback) |
 
-Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct` in `src/lib/api/types.ts`.
+Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalProductDetail` in `src/lib/api/types.ts`.
 
 ---
 
 ## Portal shell
 
-`PortalShell` prefetches categories and links **Catalog** to `/?category=<firstSlug>` (desktop nav + mobile bottom bar).
+`PortalShell` prefetches categories and links **Catalog** to `/?category=<firstSlug>` (desktop nav + mobile bottom bar). Catalog nav stays active on `/products/$id` routes (GAP-061).
 
 ---
 
 ## i18n keys
 
-`catalog.categories`, `catalog.selectCategory`, `catalog.emptyCategory`, `catalog.viewList`, `catalog.viewGrid`, `catalog.emptyDescription` (+ existing `catalog.*`).
+`catalog.categories`, `catalog.selectCategory`, `catalog.emptyCategory`, `catalog.viewList`, `catalog.viewGrid`, `catalog.emptyDescription`, `productDetail.*` (+ existing `catalog.*`).
 
 ---
 
@@ -107,19 +127,20 @@ Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct` in `src/l
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 
-Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `useCatalogRealtime.test.ts`.
+Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`.
 
-Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart).
+Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
 
 ---
 
 ## Known gaps
 
-See `.local/phases/49-portal-product-detail-page/TASKS.md`:
-
-- Portal product detail page still uses category-walk client lookup until Phase 49
-- Product detail gallery UI (carousel) — Phase 49
+| Gap | Description | Owner |
+|-----|-------------|-------|
+| GAP-062 | Optional `/categories/$slug` path alias | Deferred |
+| GAP-049E | Related products rail on detail page | Phase 49 optional / future |
+| Phase 50 | Enhanced sticky bar actions (quantity stepper) | Phase 50 |
 
 ---
 
-**Updated:** 2026-07-05 (Phase 48 API)
+**Updated:** 2026-07-05 (Phase 49 product detail page)

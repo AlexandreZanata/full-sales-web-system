@@ -94,4 +94,16 @@ export const en: Messages = {
       Cancelled: 'Cancelled',
     },
   },
+  productDetail: {
+    description: 'Description',
+    specsTitle: 'Specifications',
+    unitOfMeasure: 'Unit of measure',
+    category: 'Category',
+    status: 'Status',
+    statusActive: 'Available',
+    imageCarousel: 'Product images',
+    prevImage: 'Previous image',
+    nextImage: 'Next image',
+    goToSlide: 'Go to image',
+  },
 };

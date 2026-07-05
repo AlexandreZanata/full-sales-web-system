@@ -20,6 +20,12 @@ export type PortalProduct = {
   primaryImageUrl?: string;
 };
 
+export type PortalProductDetail = PortalProduct & {
+  unitOfMeasure: string;
+  imageUrls: string[];
+  description?: string;
+};
+
 export type PortalCategory = {
   id: string;
   name: string;

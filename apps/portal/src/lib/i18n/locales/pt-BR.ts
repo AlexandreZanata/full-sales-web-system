@@ -94,4 +94,16 @@ export const ptBR: Messages = {
       Cancelled: 'Cancelado',
     },
   },
+  productDetail: {
+    description: 'Descrição',
+    specsTitle: 'Especificações',
+    unitOfMeasure: 'Unidade de medida',
+    category: 'Categoria',
+    status: 'Status',
+    statusActive: 'Disponível',
+    imageCarousel: 'Imagens do produto',
+    prevImage: 'Imagem anterior',
+    nextImage: 'Próxima imagem',
+    goToSlide: 'Ir para imagem',
+  },
 };

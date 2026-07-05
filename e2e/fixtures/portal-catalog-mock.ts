@@ -19,6 +19,14 @@ export const MOCK_PRODUCT = {
   categorySlug: MOCK_CATEGORY.slug,
 };
 
+export const MOCK_PRODUCT_DETAIL = {
+  ...MOCK_PRODUCT,
+  unitOfMeasure: 'UN',
+  primaryImageUrl: 'https://cdn.example/primary.jpg',
+  imageUrls: ['https://cdn.example/gallery-1.jpg'],
+  description: 'Seed product for E2E.',
+};
+
 export const MOCK_CATEGORIES = [MOCK_CATEGORY];
 
 export function isCategoriesList(path: string, method: string): boolean {
@@ -31,6 +39,10 @@ export function isCategoryBySlug(path: string, method: string): boolean {
 
 export function isProductsList(path: string, method: string): boolean {
   return method === 'GET' && (path === '/portal/products' || path === '/public/products');
+}
+
+export function isProductById(path: string, method: string): boolean {
+  return method === 'GET' && /^\/(portal|public)\/products\/[^/]+$/.test(path);
 }
 
 export function isCatalogEvents(path: string, method: string): boolean {
@@ -72,6 +84,14 @@ export async function fulfillProductsList(route: Route): Promise<void> {
   });
 }
 
+export async function fulfillProductById(route: Route): Promise<void> {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(MOCK_PRODUCT_DETAIL),
+  });
+}
+
 export async function fulfillCatalogEvents(route: Route): Promise<void> {
   await route.fulfill({ status: 200, contentType: 'text/event-stream', body: '' });
 }
@@ -101,6 +121,11 @@ export async function handlePortalCatalogRoutes(route: Route): Promise<boolean> 
 
   if (isProductsList(path, method)) {
     await fulfillProductsList(route);
+    return true;
+  }
+
+  if (isProductById(path, method)) {
+    await fulfillProductById(route);
     return true;
   }
 

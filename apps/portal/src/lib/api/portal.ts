@@ -1,4 +1,4 @@
-import { apiDelete, apiFetch, apiPost, apiPut } from '@/lib/api/client';
+import { ApiError, apiDelete, apiFetch, apiPost, apiPut } from '@/lib/api/client';
 import { getAccessToken } from '@/lib/auth/tokens';
 import type {
   CreatePortalOrderRequest,
@@ -8,6 +8,7 @@ import type {
   PortalOrderDetail,
   PortalOrderSummary,
   PortalProduct,
+  PortalProductDetail,
 } from '@/lib/api/types';
 
 export type PortalProductsParams = {
@@ -59,28 +60,20 @@ export async function fetchPortalCategoryBySlug(
   return apiFetch<PortalCategoryWithProducts>(path, init);
 }
 
-export async function fetchPortalProductById(
-  id: string,
-  categorySlug?: string,
-): Promise<PortalProduct | null> {
-  if (categorySlug) {
-    const category = await fetchPortalCategoryBySlug(categorySlug);
-    return category.products.find((product) => product.id === id) ?? null;
-  }
+export async function fetchPortalProductById(id: string): Promise<PortalProductDetail | null> {
+  const { path, init } = portalAuthPath(
+    `/portal/products/${encodeURIComponent(id)}`,
+    `/public/products/${encodeURIComponent(id)}`,
+  );
 
-  const categories = await fetchPortalCategories();
-  for (const category of categories) {
-    if (!category.active) {
-      continue;
+  try {
+    return await apiFetch<PortalProductDetail>(path, init);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
     }
-    const data = await fetchPortalCategoryBySlug(category.slug);
-    const product = data.products.find((item) => item.id === id);
-    if (product) {
-      return product;
-    }
+    throw error;
   }
-
-  return null;
 }
 
 export async function fetchPortalProducts(

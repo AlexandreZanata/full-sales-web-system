@@ -23,6 +23,16 @@ type NavItem = {
   search?: { category: string };
 };
 
+function isNavActive(pathname: string, to: NavItem['to']): boolean {
+  if (pathname === to) {
+    return true;
+  }
+  if (to === '/' && pathname.startsWith('/products/')) {
+    return true;
+  }
+  return to !== '/' && pathname.startsWith(to);
+}
+
 export function PortalShell({ children }: PortalShellProps) {
   const { t } = useI18n();
   const { logout, user } = usePortalAuth();
@@ -53,13 +63,10 @@ export function PortalShell({ children }: PortalShellProps) {
             {headerLogoUrl ? (
               <img
                 src={headerLogoUrl}
-                alt=""
+                alt={headerTitle}
                 className="size-8 shrink-0 rounded-md border border-hairline object-cover"
               />
             ) : null}
-            <span className="text-sm font-semibold tracking-tight text-foreground">
-              {headerTitle}
-            </span>
             <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
               {navItems.map(({ to, labelKey, icon: Icon, search }) => (
                 <Link
@@ -68,7 +75,7 @@ export function PortalShell({ children }: PortalShellProps) {
                   search={search}
                   className={cn(
                     'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                    pathname === to || (to !== '/' && pathname.startsWith(to))
+                    pathname === to || isNavActive(pathname, to)
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-surface-muted hover:text-foreground',
                   )}
@@ -120,7 +127,7 @@ export function PortalShell({ children }: PortalShellProps) {
               search={search}
               className={cn(
                 'flex flex-col items-center gap-1 py-2 text-xs font-medium',
-                pathname === to || (to !== '/' && pathname.startsWith(to))
+                pathname === to || isNavActive(pathname, to)
                   ? 'text-foreground'
                   : 'text-muted-foreground',
               )}

@@ -2,13 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 
 import { useCart } from '@/cart/CartProvider';
-import { ProductImage } from '@/components/catalog/ProductImage';
+import { ProductDetailInfo } from '@/components/catalog/ProductDetailInfo';
+import { ProductDetailSkeleton } from '@/components/catalog/ProductDetailSkeleton';
+import { ProductMediaPanel } from '@/components/catalog/ProductMediaPanel';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchPortalProductById } from '@/lib/api/portal';
 import { useI18n } from '@/lib/i18n/context';
-import { formatMoney } from '@/lib/products/formatPrice';
 import { cn } from '@/lib/utils';
 
 type ProductDetailSearch = {
@@ -33,14 +33,14 @@ function ProductDetailPage() {
   const { addProduct } = useCart();
 
   const productQuery = useQuery({
-    queryKey: ['portal', 'product', id, categorySlug ?? 'auto'],
-    queryFn: () => fetchPortalProductById(id, categorySlug),
+    queryKey: ['portal', 'product', id],
+    queryFn: () => fetchPortalProductById(id),
   });
 
   const product = productQuery.data;
 
   if (productQuery.isLoading) {
-    return <LoadingSpinner className="py-16" />;
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {
@@ -50,7 +50,7 @@ function ProductDetailPage() {
   const catalogSearch = product.categorySlug ?? categorySlug;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 pb-24 md:pb-0">
+    <div className="space-y-6 pb-24 md:pb-0">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-1">
           <li>
@@ -81,26 +81,10 @@ function ProductDetailPage() {
         </ol>
       </nav>
 
-      <article className="overflow-hidden rounded-lg border border-hairline bg-surface">
-        <ProductImage product={product} className="aspect-[4/3] w-full md:aspect-square" />
-        <div className="space-y-4 p-4 md:p-6">
-          <div className="space-y-2">
-            <span className="inline-flex rounded-full border border-hairline bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-              {t('catalog.sku')}: {product.sku}
-            </span>
-            <h1 className="text-2xl font-semibold text-foreground">{product.name}</h1>
-            {product.categoryName ? (
-              <p className="text-sm text-muted-foreground">{product.categoryName}</p>
-            ) : null}
-          </div>
-          <p className="catalog-price catalog-price--prominent text-xl">
-            {formatMoney(product.priceAmount, product.priceCurrency)}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {t('catalog.unitPrice')}: {formatMoney(product.priceAmount, product.priceCurrency)}
-          </p>
-        </div>
-      </article>
+      <div className="grid gap-8 lg:grid-cols-2">
+        <ProductMediaPanel product={product} />
+        <ProductDetailInfo product={product} />
+      </div>
 
       <div
         className={cn(

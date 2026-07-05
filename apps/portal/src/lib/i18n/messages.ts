@@ -77,6 +77,18 @@ export type Messages = {
     guestDescription: string;
     status: Record<string, string>;
   };
+  productDetail: {
+    description: string;
+    specsTitle: string;
+    unitOfMeasure: string;
+    category: string;
+    status: string;
+    statusActive: string;
+    imageCarousel: string;
+    prevImage: string;
+    nextImage: string;
+    goToSlide: string;
+  };
 };
 
 export type MessageKey =
@@ -145,4 +157,14 @@ export type MessageKey =
   | 'orders.rejectionReason'
   | 'orders.guestTitle'
   | 'orders.guestDescription'
-  | `orders.status.${string}`;
+  | `orders.status.${string}`
+  | 'productDetail.description'
+  | 'productDetail.specsTitle'
+  | 'productDetail.unitOfMeasure'
+  | 'productDetail.category'
+  | 'productDetail.status'
+  | 'productDetail.statusActive'
+  | 'productDetail.imageCarousel'
+  | 'productDetail.prevImage'
+  | 'productDetail.nextImage'
+  | 'productDetail.goToSlide';
