@@ -1065,6 +1065,27 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /portal/products/{id}:
+    get:
+      summary: Get portal product detail (CommerceContact)
+      operationId: getPortalProductById
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Active product with gallery URLs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortalProductDetail'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ProductNotFound'
+
   /portal/orders:
     get:
       summary: List portal orders
@@ -2106,6 +2127,9 @@ components:
         unitOfMeasure:
           type: string
           default: Unit
+        description:
+          type: string
+          maxLength: 2000
 
     UpdateProductRequest:
       type: object
@@ -2124,6 +2148,10 @@ components:
           nullable: true
         unitOfMeasure:
           type: string
+        description:
+          type: string
+          maxLength: 2000
+          nullable: true
 
     Product:
       type: object
@@ -2163,6 +2191,8 @@ components:
             categorySlug:
               type: string
             unitOfMeasure:
+              type: string
+            description:
               type: string
 
     Category:
@@ -2246,6 +2276,21 @@ components:
           type: string
         primaryImageUrl:
           type: string
+
+    PortalProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/PortalProduct'
+        - type: object
+          required: [unitOfMeasure, imageUrls]
+          properties:
+            unitOfMeasure:
+              type: string
+            imageUrls:
+              type: array
+              items:
+                type: string
+            description:
+              type: string
 
     ProductImage:
       type: object

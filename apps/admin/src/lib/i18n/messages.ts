@@ -131,6 +131,7 @@ export type Messages = {
       sku: string;
       category: string;
       unitOfMeasure: string;
+      description: string;
       price: string;
       currency: string;
       quantity: string;
@@ -208,6 +209,7 @@ export type Messages = {
       postalCodeRequired: string;
       skuRequired: string;
       unitOfMeasureRequired: string;
+      descriptionMax: string;
       priceInvalid: string;
       selectProduct: string;
       selectCommerce: string;

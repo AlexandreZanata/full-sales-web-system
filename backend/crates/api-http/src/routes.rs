@@ -25,8 +25,9 @@ use crate::categories::{
 };
 use crate::portal::{
     cancel_portal_order, create_portal_order, get_portal_category_by_slug, get_portal_order,
-    get_public_category_by_slug, list_portal_categories, list_portal_orders, list_portal_products,
-    list_public_categories, list_public_products, submit_portal_order, update_portal_order,
+    get_portal_product_by_id, get_public_category_by_slug, list_portal_categories, list_portal_orders,
+    list_portal_products, list_public_categories, list_public_products, submit_portal_order,
+    update_portal_order, get_public_product_by_id,
 };
 use crate::products::{
     attach_product_image, create_product, delete_product_image, get_product, list_product_images,
@@ -78,6 +79,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/auth/login", post(login))
         .route("/v1/auth/refresh", post(refresh))
         .route("/v1/public/products", get(list_public_products))
+        .route("/v1/public/products/{id}", get(get_public_product_by_id))
         .route("/v1/public/categories", get(list_public_categories))
         .route(
             "/v1/public/categories/{slug}",
@@ -145,6 +147,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/sales/{id}/cancel", post(cancel_sale))
         .route("/v1/sales/{id}/declare-payment", post(declare_sale_payment))
         .route("/v1/portal/products", get(list_portal_products))
+        .route("/v1/portal/products/{id}", get(get_portal_product_by_id))
         .route("/v1/portal/categories", get(list_portal_categories))
         .route(
             "/v1/portal/categories/{slug}",

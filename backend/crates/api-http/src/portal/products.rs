@@ -159,19 +159,26 @@ pub(crate) async fn build_portal_product_responses(
                 .map(|presigned| crate::media::catalog_image_url(*file_id, &presigned.url)),
             None => None,
         };
-        items.push(PortalProductResponse {
-            id: row.id,
-            name: row.name.clone(),
-            sku: row.sku.clone(),
-            price_amount: row.price_amount,
-            price_currency: row.price_currency.clone(),
-            category_id: row.category_id,
-            category_name: row.category_name.clone(),
-            category_slug: row.category_slug.clone(),
-            primary_image_url,
-        });
+        items.push(portal_product_from_row(row, primary_image_url));
     }
     Ok(items)
+}
+
+pub(crate) fn portal_product_from_row(
+    row: &infra_postgres::inventory::ProductRow,
+    primary_image_url: Option<String>,
+) -> PortalProductResponse {
+    PortalProductResponse {
+        id: row.id,
+        name: row.name.clone(),
+        sku: row.sku.clone(),
+        price_amount: row.price_amount,
+        price_currency: row.price_currency.clone(),
+        category_id: row.category_id,
+        category_name: row.category_name.clone(),
+        category_slug: row.category_slug.clone(),
+        primary_image_url,
+    }
 }
 
 pub(super) fn require_commerce_contact(auth: &AuthUser) -> Result<uuid::Uuid, ApiError> {

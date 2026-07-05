@@ -129,7 +129,9 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 | Method | Path | Auth | Status | Migrations | Rules | Task |
 |--------|------|------|--------|------------|-------|------|
 | GET | `/v1/public/products` | Public | ✅ | `228`, `229` | BR-IA-003 | — |
+| GET | `/v1/public/products/{id}` | Public | ✅ | `product_description` | Gallery detail | 48 |
 | GET | `/v1/portal/products` | CommerceContact | ✅ | `228`, `229` | BR-IA-003 | — |
+| GET | `/v1/portal/products/{id}` | CommerceContact | ✅ | `product_description` | Gallery detail | 48 |
 | GET | `/v1/portal/orders` | CommerceContact | ✅ | `231` | RLS | — |
 | GET | `/v1/portal/orders/{id}` | CommerceContact | ✅ | `231`, `232` | — | — |
 | POST | `/v1/portal/orders` | CommerceContact | ✅ | `231`, `232` | Draft | — |

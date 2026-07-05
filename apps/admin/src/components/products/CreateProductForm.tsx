@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { useToast } from '@/hooks/useToast';
 import { fetchCategoriesForPicker } from '@/lib/api/categories';
 import type { CreateProductRequest, Product } from '@/lib/api/types';
@@ -28,6 +29,7 @@ const emptyForm: CreateProductFormValues = {
   price: '',
   priceCurrency: 'BRL',
   categoryId: '',
+  description: '',
 };
 
 export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProps) {
@@ -124,6 +126,15 @@ export function CreateProductForm({ onSubmit, onSuccess }: CreateProductFormProp
             ))}
           </Select>
         </div>
+        <Textarea
+          label={t('forms.fields.description')}
+          name="description"
+          value={values.description}
+          error={translateFormError(t, errors.description)}
+          onChange={(event) => {
+            updateField('description', event.target.value);
+          }}
+        />
 
         <Button type="submit" disabled={submitting}>
           {submitting ? t('products.create.submitting') : t('products.create.submit')}

@@ -84,6 +84,7 @@ async fn given_category_when_product_assigned_then_filter_by_slug() {
             price_currency: "BRL".into(),
             category_id: Some(category_id),
             unit_of_measure: "Unit".into(),
+            description: None,
         },
     )
     .await

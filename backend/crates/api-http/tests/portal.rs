@@ -151,6 +151,7 @@ async fn setup() -> PortalEnv {
             price_currency: "BRL".into(),
             category_id: None,
             unit_of_measure: "Unit".into(),
+            description: None,
         },
     )
     .await
@@ -482,4 +483,154 @@ async fn contract_reject_order_when_missing_reason_then_400() {
         .expect("body");
     let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
     assert_eq!(json["error"]["code"], "REJECTION_REASON_REQUIRED");
+}
+
+async fn attach_gallery_image(
+    env: &PortalEnv,
+    product_id: Uuid,
+    object_key: &str,
+    sort_order: i32,
+    is_primary: bool,
+) {
+    let file_id = Uuid::now_v7();
+    infra_postgres::media::insert_file(
+        &env.app_pool,
+        env.tenant_id,
+        infra_postgres::media::FileInsert {
+            id: file_id,
+            entity_type: "Product".into(),
+            entity_id: product_id,
+            bucket: "catalog".into(),
+            object_key: object_key.into(),
+            mime_type: "image/jpeg".into(),
+            size_bytes: 512,
+            sha256: "abc".into(),
+            uploaded_by_user_id: Uuid::now_v7(),
+        },
+    )
+    .await
+    .expect("file");
+
+    infra_postgres::inventory::product_images::insert_product_image(
+        &env.app_pool,
+        env.tenant_id,
+        infra_postgres::inventory::product_images::ProductImageInsert {
+            id: Uuid::now_v7(),
+            product_id,
+            file_id,
+            sort_order,
+            is_primary,
+        },
+    )
+    .await
+    .expect("image");
+
+    env.state
+        .storage
+        .put_object("catalog", object_key, b"fake-image", "image/jpeg")
+        .await
+        .expect("seed object");
+}
+
+#[tokio::test]
+async fn contract_portal_product_detail_when_gallery_then_primary_and_image_urls() {
+    let env = setup().await;
+    attach_gallery_image(&env, env.product_id, "gallery-2.jpg", 1, false).await;
+    attach_gallery_image(&env, env.product_id, "gallery-3.jpg", 2, false).await;
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri(format!("/v1/portal/products/{}", env.product_id))
+                .header("authorization", format!("Bearer {}", env.contact_a_token))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("body");
+    let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
+    assert_eq!(json["sku"], "PORT-001");
+    assert_eq!(json["unitOfMeasure"], "Unit");
+    assert!(json["primaryImageUrl"].as_str().is_some());
+    assert_eq!(json["imageUrls"].as_array().map(|items| items.len()), Some(2));
+}
+
+#[tokio::test]
+async fn contract_portal_product_detail_when_inactive_then_not_found() {
+    let env = setup().await;
+    infra_postgres::inventory::update_product(
+        &env.app_pool,
+        env.tenant_id,
+        env.product_id,
+        &infra_postgres::inventory::ProductUpdate {
+            name: None,
+            price_amount: None,
+            price_currency: None,
+            active: Some(false),
+            category_id: None,
+            unit_of_measure: None,
+            description: None,
+        },
+    )
+    .await
+    .expect("deactivate");
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri(format!("/v1/portal/products/{}", env.product_id))
+                .header("authorization", format!("Bearer {}", env.contact_a_token))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn contract_driver_portal_product_detail_when_not_commerce_contact_then_forbidden() {
+    let env = setup().await;
+    seed_user(&env.app_pool, env.tenant_id, "driver@test.com", "Driver", None).await;
+    let driver_token = login(&env.state, "driver@test.com").await;
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri(format!("/v1/portal/products/{}", env.product_id))
+                .header("authorization", format!("Bearer {}", driver_token))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn contract_public_product_detail_when_other_tenant_product_then_not_found() {
+    let env = setup().await;
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri(format!("/v1/public/products/{}", env.product_id))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }

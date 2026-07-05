@@ -125,6 +125,7 @@ export const ptBR: Messages = {
       sku: 'SKU',
       category: 'Categoria',
       unitOfMeasure: 'Unidade de medida',
+      description: 'Descrição',
       price: 'Preço',
       currency: 'Moeda',
       quantity: 'Quantidade',
@@ -202,6 +203,7 @@ export const ptBR: Messages = {
       postalCodeRequired: 'CEP é obrigatório',
       skuRequired: 'SKU é obrigatório',
       unitOfMeasureRequired: 'Unidade de medida é obrigatória',
+      descriptionMax: 'A descrição deve ter no máximo 2000 caracteres',
       priceInvalid: 'Informe um preço válido',
       selectProduct: 'Selecione um produto',
       selectCommerce: 'Selecione um comércio',
@@ -461,7 +463,8 @@ export const ptBR: Messages = {
     },
     images: {
       title: 'Imagens do produto',
-      uploadHint: 'Envie imagens PNG ou JPEG (máx. 5). Clique em qualquer quadrado para enviar. Defina uma como principal.',
+      uploadHint:
+        'Envie imagens PNG ou JPEG (máx. 5). Clique em qualquer quadrado para enviar. Defina uma como principal.',
       setPrimary: 'Definir principal',
       primary: 'Principal',
       secondary: 'Secundária',
@@ -589,7 +592,8 @@ export const ptBR: Messages = {
     },
     overview: {
       title: 'Estoque por produto',
-      description: 'Quantidade disponível por produto em todos os motoristas (menos reservas ativas).',
+      description:
+        'Quantidade disponível por produto em todos os motoristas (menos reservas ativas).',
       searchPlaceholder: 'Buscar por nome ou SKU…',
       caption: 'Níveis de estoque por produto',
       loadError: 'Não foi possível carregar o estoque',

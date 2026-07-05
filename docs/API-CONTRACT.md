@@ -325,6 +325,13 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Query:** pagination, `category?` (category **slug**)
 - **Response 200:** Active products with `categoryId`, `categoryName`, `categorySlug`, optional `primaryImageUrl`
 
+### `GET /v1/public/products/{id}`
+
+- **Auth:** none
+- **Tenant:** same as public product list
+- **Response 200:** Active product detail with `unitOfMeasure`, `primaryImageUrl`, `imageUrls[]`, optional `description`
+- **Response 404:** inactive or unknown product
+
 ### `GET /v1/public/media/{id}/content`
 
 - **Auth:** none
@@ -343,6 +350,12 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Auth:** CommerceContact only
 - **Query:** pagination, `category?` (category **slug**)
 - **Response 200:** Active products with `categoryId`, `categoryName`, `categorySlug`, optional `primaryImageUrl`
+
+### `GET /v1/portal/products/{id}`
+
+- **Auth:** CommerceContact only
+- **Response 200:** Active product detail with `unitOfMeasure`, `primaryImageUrl`, `imageUrls[]`, optional `description`
+- **Response 404:** inactive or unknown product
 
 ### `GET /v1/public/categories`
 

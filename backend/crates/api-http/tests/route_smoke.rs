@@ -61,6 +61,7 @@ async fn route_smoke_protected_routes_return_unauthorized_not_not_found() {
         ("POST", format!("/v1/sales/{id}/cancel")),
         ("POST", format!("/v1/sales/{id}/declare-payment")),
         ("GET", "/v1/portal/products".into()),
+        ("GET", format!("/v1/portal/products/{id}")),
         ("GET", "/v1/portal/orders".into()),
         ("POST", "/v1/portal/orders".into()),
         ("GET", format!("/v1/portal/orders/{id}")),
@@ -136,6 +137,17 @@ async fn route_smoke_public_routes_are_mounted() {
 
     let (products_status, _) = request(&env, "GET", "/v1/public/products", None, None).await;
     assert_eq!(products_status, StatusCode::OK);
+
+    let (product_detail_status, product_detail_body) = request(
+        &env,
+        "GET",
+        &format!("/v1/public/products/{id}"),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(product_detail_status, StatusCode::NOT_FOUND);
+    assert_eq!(product_detail_body["error"]["code"], "PRODUCT_NOT_FOUND");
 
     let (categories_status, _) = request(&env, "GET", "/v1/public/categories", None, None).await;
     assert_eq!(categories_status, StatusCode::OK);

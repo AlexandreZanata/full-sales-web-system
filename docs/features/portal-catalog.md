@@ -82,7 +82,7 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 |----------|----------------------------|
 | `fetchPortalCategories` | `GET /v1/public/categories` or `/v1/portal/categories` |
 | `fetchPortalCategoryBySlug` | `GET /v1/public/categories/{slug}` or `/v1/portal/categories/{slug}` |
-| `fetchPortalProductById` | Category-scoped lookup (no single-product endpoint yet) |
+| `fetchPortalProductById` | `GET /v1/portal/products/{id}` (public fallback when logged out) |
 | `fetchPortalProducts` | `GET /v1/public/products?category=` (fallback) |
 
 Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct` in `src/lib/api/types.ts`.
@@ -115,12 +115,11 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ## Known gaps
 
-See `.local/phases/46-portal-catalog-page/ROUTE-GAPS.md`:
+See `.local/phases/49-portal-product-detail-page/TASKS.md`:
 
-- No `GET /v1/portal/products/{id}` — product detail uses category-scoped lookup
-- `unitOfMeasure` not on portal product DTO
-- Optional Playwright E2E — covered by `e2e/portal-catalog.spec.ts` (GAP-058 resolved)
+- Portal product detail page still uses category-walk client lookup until Phase 49
+- Product detail gallery UI (carousel) — Phase 49
 
 ---
 
-**Updated:** 2026-07-05 (Phase 47)
+**Updated:** 2026-07-05 (Phase 48 API)

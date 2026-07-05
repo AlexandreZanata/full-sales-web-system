@@ -48,6 +48,7 @@ pub async fn seed_catalog(
                     active: Some(false),
                     category_id: None,
                     unit_of_measure: None,
+                    description: None,
                 },
             )
             .await?;
@@ -217,6 +218,7 @@ async fn seed_product_if_missing(
                 active: None,
                 category_id: Some(Some(category_id)),
                 unit_of_measure: None,
+                description: None,
             },
         )
         .await?;
@@ -233,6 +235,7 @@ async fn seed_product_if_missing(
             price_currency: "BRL".into(),
             category_id: Some(category_id),
             unit_of_measure: "Unit".into(),
+            description: None,
         },
     )
     .await?;
@@ -391,6 +394,7 @@ pub async fn ensure_catalog_categories(app_pool: &PgPool, tenant: TenantId) -> D
                     active: None,
                     category_id: Some(Some(*category_id)),
                     unit_of_measure: None,
+                    description: None,
                 },
             )
             .await?;

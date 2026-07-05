@@ -166,6 +166,7 @@ async fn given_order_flow_when_deliver_then_sale_matches_delivered_totals() {
             price_currency: "BRL".into(),
             category_id: None,
             unit_of_measure: "Unit".into(),
+            description: None,
         },
     )
     .await

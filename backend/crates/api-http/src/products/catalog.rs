@@ -26,6 +26,7 @@ pub struct CreateProductRequest {
     pub category_id: Option<Uuid>,
     #[serde(rename = "unitOfMeasure", default = "default_uom")]
     pub unit_of_measure: String,
+    pub description: Option<String>,
     #[serde(rename = "category")]
     pub legacy_category: Option<String>,
 }
@@ -42,6 +43,7 @@ pub struct UpdateProductRequest {
     pub category_id: Option<Option<Uuid>>,
     #[serde(rename = "unitOfMeasure")]
     pub unit_of_measure: Option<String>,
+    pub description: Option<Option<String>>,
     #[serde(rename = "category")]
     pub legacy_category: Option<String>,
 }
@@ -58,6 +60,8 @@ pub struct ProductDetailResponse {
     pub category_slug: Option<String>,
     #[serde(rename = "unitOfMeasure")]
     pub unit_of_measure: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
 }
 
 fn default_currency() -> String {
@@ -82,6 +86,10 @@ pub async fn create_product(
     }
     if let Some(category_id) = body.category_id {
         ensure_category(&state, auth.tenant_id, category_id).await?;
+    }
+
+    if let Some(description) = body.description.as_deref() {
+        validate_description(description)?;
     }
 
     let product_id = Uuid::now_v7();
@@ -109,6 +117,7 @@ pub async fn create_product(
             price_currency: body.price_currency.clone(),
             category_id: body.category_id,
             unit_of_measure: body.unit_of_measure.clone(),
+            description: normalize_description(body.description.as_deref()),
         },
     )
     .await
@@ -156,6 +165,10 @@ pub async fn update_product(
         ensure_category(&state, auth.tenant_id, category_id).await?;
     }
 
+    if let Some(Some(description)) = body.description.as_ref() {
+        validate_description(description)?;
+    }
+
     let updated = infra_postgres::inventory::update_product(
         &state.app_pool,
         auth.tenant_id,
@@ -167,6 +180,10 @@ pub async fn update_product(
             active: body.active,
             category_id: body.category_id,
             unit_of_measure: body.unit_of_measure,
+            description: body
+                .description
+                .as_ref()
+                .map(|value| normalize_description(value.as_deref())),
         },
     )
     .await
@@ -234,7 +251,25 @@ fn product_detail_from_row(row: &infra_postgres::inventory::ProductRow) -> Produ
         category_name: row.category_name.clone(),
         category_slug: row.category_slug.clone(),
         unit_of_measure: row.unit_of_measure.clone(),
+        description: row.description.clone(),
     }
+}
+
+fn validate_description(description: &str) -> Result<(), ApiError> {
+    if description.chars().count() > 2_000 {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Description must be at most 2000 characters",
+        ));
+    }
+    Ok(())
+}
+
+fn normalize_description(description: Option<&str>) -> Option<String> {
+    description
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
 }
 
 fn map_products_error(err: application::products::ProductsAppError) -> ApiError {

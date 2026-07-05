@@ -92,7 +92,7 @@
 
 ## Product
 
-**Definition:** Sellable SKU with name, identifier, unit price, optional category assignment (`categoryId`), and unit of measure.
+**Definition:** Sellable SKU with name, identifier, unit price, optional category assignment (`categoryId`), unit of measure, and optional portal description (max 2000 chars).
 **Code name:** `Product`
 
 ---

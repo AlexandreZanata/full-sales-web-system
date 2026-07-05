@@ -11,7 +11,8 @@ pub mod reservations;
 pub mod stock_overview;
 
 const PRODUCT_SELECT: &str = "SELECT p.id, p.sku, p.name, p.price_amount, p.price_currency, p.active,
-         p.unit_of_measure, p.category_id, c.name AS category_name, c.slug AS category_slug
+         p.unit_of_measure, p.category_id, c.name AS category_name, c.slug AS category_slug,
+         p.description
          FROM inventory.products p
          LEFT JOIN inventory.product_categories c
            ON c.id = p.category_id AND c.tenant_id = p.tenant_id";
@@ -24,6 +25,7 @@ pub struct ProductInsert {
     pub price_currency: String,
     pub category_id: Option<Uuid>,
     pub unit_of_measure: String,
+    pub description: Option<String>,
 }
 
 pub async fn insert_product(
@@ -46,6 +48,7 @@ pub async fn insert_product(
             price_currency: price_currency.to_owned(),
             category_id: None,
             unit_of_measure: "Unit".to_owned(),
+            description: None,
         },
     )
     .await
@@ -60,8 +63,8 @@ pub async fn insert_product_with_catalog(
     apply_tenant_context(&mut tx, tenant_id).await?;
     sqlx::query(
         "INSERT INTO inventory.products
-         (id, tenant_id, sku, name, price_amount, price_currency, category_id, unit_of_measure)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+         (id, tenant_id, sku, name, price_amount, price_currency, category_id, unit_of_measure, description)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
     )
     .bind(product.id)
     .bind(tenant_id.as_uuid())
@@ -71,6 +74,7 @@ pub async fn insert_product_with_catalog(
     .bind(product.price_currency)
     .bind(product.category_id)
     .bind(product.unit_of_measure)
+    .bind(product.description.as_deref())
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -101,6 +105,7 @@ pub struct ProductRow {
     pub category_id: Option<Uuid>,
     pub category_name: Option<String>,
     pub category_slug: Option<String>,
+    pub description: Option<String>,
 }
 
 type ProductDbRow = (
@@ -112,6 +117,7 @@ type ProductDbRow = (
     bool,
     String,
     Option<Uuid>,
+    Option<String>,
     Option<String>,
     Option<String>,
 );
@@ -128,6 +134,7 @@ fn map_product_row(
         category_id,
         category_name,
         category_slug,
+        description,
     ): ProductDbRow,
 ) -> ProductRow {
     ProductRow {
@@ -141,6 +148,7 @@ fn map_product_row(
         category_id,
         category_name,
         category_slug,
+        description,
     }
 }
 
@@ -265,6 +273,23 @@ pub async fn find_product_by_id(
     Ok(row.map(map_product_row))
 }
 
+pub async fn find_portal_product_by_id(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+) -> Result<Option<ProductRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, ProductDbRow>(&format!(
+        "{PRODUCT_SELECT} WHERE p.id = $1 AND p.active = true"
+    ))
+    .bind(id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(map_product_row))
+}
+
 pub struct ProductUpdate {
     pub name: Option<String>,
     pub price_amount: Option<i64>,
@@ -272,6 +297,7 @@ pub struct ProductUpdate {
     pub active: Option<bool>,
     pub category_id: Option<Option<Uuid>>,
     pub unit_of_measure: Option<String>,
+    pub description: Option<Option<String>>,
 }
 
 pub async fn update_product(
@@ -290,6 +316,7 @@ pub async fn update_product(
            active = COALESCE($5, active),
            category_id = CASE WHEN $6::bool THEN $7 ELSE category_id END,
            unit_of_measure = COALESCE($8, unit_of_measure),
+           description = CASE WHEN $9::bool THEN $10 ELSE description END,
            updated_at = now()
          WHERE id = $1",
     )
@@ -301,6 +328,8 @@ pub async fn update_product(
     .bind(update.category_id.is_some())
     .bind(update.category_id.as_ref().and_then(|value| *value))
     .bind(update.unit_of_measure.as_deref())
+    .bind(update.description.is_some())
+    .bind(update.description.as_ref().and_then(|value| value.as_deref()))
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;

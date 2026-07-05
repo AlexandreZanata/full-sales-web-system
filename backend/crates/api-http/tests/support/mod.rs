@@ -168,6 +168,7 @@ pub async fn seed_product(env: &TestEnv, sku: &str, name: &str, price_amount: i6
             price_currency: "BRL".into(),
             category_id: None,
             unit_of_measure: "Unit".into(),
+            description: None,
         },
     )
     .await

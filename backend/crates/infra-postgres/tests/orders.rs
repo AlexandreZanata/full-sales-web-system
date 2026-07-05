@@ -168,6 +168,7 @@ async fn seed_order_fixture(pools: &TestPools) -> OrderFixture {
             price_currency: "BRL".into(),
             category_id: None,
             unit_of_measure: "Unit".into(),
+            description: None,
         },
     )
     .await

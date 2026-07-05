@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { useToast } from '@/hooks/useToast';
 import { fetchCategoriesForPicker } from '@/lib/api/categories';
 import type { Product } from '@/lib/api/types';
@@ -33,6 +34,7 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
     priceCurrency: product.priceCurrency,
     unitOfMeasure: product.unitOfMeasure ?? 'Unit',
     categoryId: product.categoryId ?? '',
+    description: product.description ?? '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EditProductFormValues, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -119,6 +121,16 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
             }}
           />
         </div>
+        <Textarea
+          label={t('forms.fields.description')}
+          name="description"
+          value={values.description}
+          error={translateFormError(t, errors.description)}
+          disabled={!product.active}
+          onChange={(event) => {
+            setValues((current) => ({ ...current, description: event.target.value }));
+          }}
+        />
         <Button type="submit" disabled={submitting || !product.active}>
           {submitting ? t('products.form.saving') : t('products.form.save')}
         </Button>

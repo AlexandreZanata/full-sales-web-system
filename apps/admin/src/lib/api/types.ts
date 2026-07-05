@@ -221,6 +221,7 @@ export type Product = {
   categoryName?: string;
   categorySlug?: string;
   unitOfMeasure?: string;
+  description?: string;
 };
 
 export type ProductSummary = Pick<
@@ -265,6 +266,7 @@ export type CreateProductRequest = {
   priceCurrency?: string;
   categoryId?: string;
   unitOfMeasure?: string;
+  description?: string;
 };
 
 export type UpdateProductRequest = {
@@ -274,6 +276,7 @@ export type UpdateProductRequest = {
   active?: boolean;
   categoryId?: string | null;
   unitOfMeasure?: string;
+  description?: string | null;
 };
 
 export type ProductImage = {

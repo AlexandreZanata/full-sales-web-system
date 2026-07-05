@@ -76,6 +76,46 @@ pub async fn list_product_images(
         .collect())
 }
 
+pub struct ProductGalleryImageRow {
+    pub file_id: Uuid,
+    pub sort_order: i32,
+    pub is_primary: bool,
+    pub bucket: String,
+    pub object_key: String,
+}
+
+pub async fn find_gallery_images_for_product(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product_id: Uuid,
+) -> Result<Vec<ProductGalleryImageRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (Uuid, i32, bool, String, String)>(
+        "SELECT pi.file_id, pi.sort_order, pi.is_primary, mf.bucket, mf.object_key
+         FROM inventory.product_images pi
+         JOIN media.files mf ON mf.id = pi.file_id
+         WHERE pi.product_id = $1
+         ORDER BY pi.is_primary DESC, pi.sort_order, pi.created_at",
+    )
+    .bind(product_id)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(file_id, sort_order, is_primary, bucket, object_key)| ProductGalleryImageRow {
+                file_id,
+                sort_order,
+                is_primary,
+                bucket,
+                object_key,
+            },
+        )
+        .collect())
+}
+
 pub async fn find_product_image_by_id(
     pool: &PgPool,
     tenant_id: TenantId,

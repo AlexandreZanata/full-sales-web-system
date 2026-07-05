@@ -125,6 +125,7 @@ export const en: Messages = {
       sku: 'SKU',
       category: 'Category',
       unitOfMeasure: 'Unit of measure',
+      description: 'Description',
       price: 'Price',
       currency: 'Currency',
       quantity: 'Quantity',
@@ -202,6 +203,7 @@ export const en: Messages = {
       postalCodeRequired: 'Postal code is required',
       skuRequired: 'SKU is required',
       unitOfMeasureRequired: 'Unit of measure is required',
+      descriptionMax: 'Description must be at most 2000 characters',
       priceInvalid: 'Enter a valid price',
       selectProduct: 'Select a product',
       selectCommerce: 'Select a commerce',
@@ -460,7 +462,8 @@ export const en: Messages = {
     },
     images: {
       title: 'Product images',
-      uploadHint: 'Upload PNG or JPEG images (max 5). Click any slot to upload. Set one as primary.',
+      uploadHint:
+        'Upload PNG or JPEG images (max 5). Click any slot to upload. Set one as primary.',
       setPrimary: 'Set primary',
       primary: 'Primary',
       secondary: 'Secondary',

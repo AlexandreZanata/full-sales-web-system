@@ -13,6 +13,7 @@ describe('edit product validation — Phase 43 contract', () => {
       priceCurrency: 'BRL',
       unitOfMeasure: '   ',
       categoryId: '',
+      description: '',
     });
 
     expect(errors.unitOfMeasure).toBe('forms.validation.unitOfMeasureRequired');
@@ -25,6 +26,7 @@ describe('edit product validation — Phase 43 contract', () => {
       priceCurrency: 'BRL',
       unitOfMeasure: ' Box ',
       categoryId: 'cat-1',
+      description: 'Refreshing drink.',
     });
 
     expect(payload).toEqual({
@@ -33,6 +35,7 @@ describe('edit product validation — Phase 43 contract', () => {
       priceCurrency: 'BRL',
       unitOfMeasure: 'Box',
       categoryId: 'cat-1',
+      description: 'Refreshing drink.',
     });
   });
 
@@ -43,8 +46,10 @@ describe('edit product validation — Phase 43 contract', () => {
       priceCurrency: 'BRL',
       unitOfMeasure: 'Box',
       categoryId: '',
+      description: '',
     });
 
     expect(payload.categoryId).toBeNull();
+    expect(payload.description).toBeNull();
   });
 });

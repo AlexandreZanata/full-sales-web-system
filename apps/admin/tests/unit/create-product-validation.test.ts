@@ -18,6 +18,7 @@ describe('validateCreateProductForm — Phase 32 contract', () => {
       price: '10,00',
       priceCurrency: 'BRL',
       categoryId: '',
+      description: '',
     });
     expect(hasFormErrors(errors)).toBe(false);
   });
@@ -29,8 +30,21 @@ describe('validateCreateProductForm — Phase 32 contract', () => {
       price: '10,00',
       priceCurrency: 'BRL',
       categoryId: '',
+      description: '',
     });
     expect(errors.sku).toBe('forms.validation.skuRequired');
+  });
+
+  it('given_description_over_limit_when_validate_then_description_error', () => {
+    const errors = validateCreateProductForm({
+      name: 'Widget',
+      sku: 'SKU-001',
+      price: '10,00',
+      priceCurrency: 'BRL',
+      categoryId: '',
+      description: 'x'.repeat(2001),
+    });
+    expect(errors.description).toBe('forms.validation.descriptionMax');
   });
 });
 
@@ -42,6 +56,7 @@ describe('toCreateProductPayload — API contract', () => {
       price: '10,50',
       priceCurrency: 'BRL',
       categoryId: 'cat-1',
+      description: 'Cold drink for summer.',
     });
     expect(payload.priceAmount).toBe(1050);
     expect(payload.categoryId).toBe('cat-1');
@@ -54,6 +69,7 @@ describe('toCreateProductPayload — API contract', () => {
       price: '10,50',
       priceCurrency: 'BRL',
       categoryId: '',
+      description: '',
     });
     expect(payload.categoryId).toBeUndefined();
   });
@@ -67,6 +83,7 @@ describe('validateEditProductForm — Phase 32 contract', () => {
       priceCurrency: 'BRL',
       unitOfMeasure: 'Unit',
       categoryId: '',
+      description: '',
     });
     expect(errors.price).toBe('forms.validation.priceInvalid');
   });

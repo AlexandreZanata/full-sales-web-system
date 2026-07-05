@@ -160,6 +160,7 @@ async fn seed_in_transit_delivery(pools: &TestPools) -> DeliveryFixture {
             price_currency: "BRL".into(),
             category_id: None,
             unit_of_measure: "Unit".into(),
+            description: None,
         },
     )
     .await
