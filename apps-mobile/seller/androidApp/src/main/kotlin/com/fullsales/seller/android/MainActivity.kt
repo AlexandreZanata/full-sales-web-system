@@ -3,36 +3,19 @@ package com.fullsales.seller.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.fullsales.seller.shared.Greeting
-import com.fullsales.seller.shared.api.apiBaseUrl
+import com.fullsales.seller.android.ui.SellerNavHost
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val container = (application as SellerApplication).container
         setContent {
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(text = "Full Sales Seller")
-                        Text(text = Greeting().greet())
-                        Text(text = "API: $apiBaseUrl")
-                    }
+                Surface(modifier = Modifier) {
+                    SellerNavHost(container = container)
                 }
             }
         }
@@ -40,7 +23,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        val container = (application as SellerApplication).container
-        container.requestSync()
+        (application as SellerApplication).container.requestSync()
     }
 }

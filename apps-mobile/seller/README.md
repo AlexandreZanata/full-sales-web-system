@@ -81,4 +81,15 @@ Local sales use UUID v7 idempotency keys. Catalog sync uses atomic replace-all w
 
 Foreground sync runs on `MainActivity.onResume`. After login (Phase 53), offline sales replay with the stored idempotency key.
 
+### App shell (Phase 57)
+
+| Component | Purpose |
+|-----------|---------|
+| `SellerNavHost` | Auth-gated navigation — sales, new sale, detail placeholders |
+| `SellerShellScaffold` | Top bar (tenant branding + sync badge) + 2-tab bottom nav |
+| `LoginScreen` | Seller-only login with JWT role gate |
+| `SettingsViewModel` | `GET /v1/settings` with 5 min cache |
+
+No delivery routes — Seller nav matches field PWA (Sales + New sale only).
+
 **Updated:** 2026-07-05

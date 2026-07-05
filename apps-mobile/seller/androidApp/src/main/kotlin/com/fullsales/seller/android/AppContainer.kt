@@ -21,7 +21,7 @@ import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 
 class AppContainer(context: Context) {
-    private val appContext = context.applicationContext
+    val appContext = context.applicationContext
     val tokenStore = TokenStore(appContext)
     private val database = SellerDatabase.build(appContext)
     val catalogRepository: CatalogRepository = RoomCatalogRepository(database.catalogDao())
@@ -29,7 +29,8 @@ class AppContainer(context: Context) {
     val outboxRepository: SyncOutboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
     private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
     private val httpClient = createSellerHttpClient(tokenProvider)
-    private val syncTransport = SellerSyncTransport(SellerApiClient(httpClient))
+    val apiClient = SellerApiClient(httpClient)
+    private val syncTransport = SellerSyncTransport(apiClient)
     val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
     val syncCoordinator = SellerSyncCoordinator(
         CatalogPullSync(catalogRepository, syncTransport),
