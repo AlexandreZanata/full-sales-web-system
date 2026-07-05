@@ -25,6 +25,7 @@
     "dev:admin": "pnpm --filter @full-sales/admin dev",
     "dev:portal": "pnpm --filter @full-sales/portal dev",
     "dev:field": "pnpm --filter @full-sales/field dev",
+    "mobile:seller:check": "cd apps-mobile/seller && ./gradlew :shared:check :androidApp:assembleDebug",
     "seed:dev": "cd backend && ALLOW_DEV_SEED=1 cargo run -p dev-seed"
   },
   "devDependencies": {

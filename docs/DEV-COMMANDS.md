@@ -42,6 +42,19 @@ pnpm test:e2e:field
 
 See [features/client-apps.md](features/client-apps.md).
 
+### Mobile — Kotlin Multiplatform
+
+| App | Path | Check |
+|-----|------|-------|
+| Field (driver) | `apps-mobile/field` | `cd apps-mobile/field && ./gradlew :shared:check :androidApp:assembleDebug` |
+| Seller | `apps-mobile/seller` | `pnpm mobile:seller:check` |
+
+Seller iOS shared compile (CI):
+
+```bash
+cd apps-mobile/seller && ./gradlew :shared:compileKotlinIosSimulatorArm64
+```
+
 Copy `.env.example` (root) and `backend/.env.example` for local configuration.
 
 ### Dev database seed (Phase 37)
