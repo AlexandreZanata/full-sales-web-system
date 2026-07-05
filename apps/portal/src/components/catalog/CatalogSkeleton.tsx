@@ -33,7 +33,7 @@ export function CatalogSkeleton({
       ) : (
         <div className="space-y-3">
           {Array.from({ length: productCount }, (_, index) => (
-            <SkeletonBlock key={`product-${String(index)}`} className="h-28 w-full rounded-lg" />
+            <SkeletonBlock key={`product-${String(index)}`} className="h-36 w-full rounded-xl" />
           ))}
         </div>
       )}

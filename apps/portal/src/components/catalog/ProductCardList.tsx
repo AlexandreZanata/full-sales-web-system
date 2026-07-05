@@ -3,6 +3,11 @@ import type { ProductCardProps } from '@/components/catalog/productCardProps';
 import { ProductImage } from '@/components/catalog/ProductImage';
 import { formatMoney } from '@/lib/products/formatPrice';
 
+function productMetaLine(product: ProductCardProps['product'], skuLabel: string): string {
+  const sku = `${skuLabel}: ${product.sku}`;
+  return product.categoryName ? `${sku} · ${product.categoryName}` : sku;
+}
+
 export function ProductCardList({
   product,
   onAddToCart,
@@ -18,39 +23,41 @@ export function ProductCardList({
     <article className="catalog-product-card-list">
       <button
         type="button"
-        className="shrink-0 focus-visible:outline-none"
+        className="shrink-0 self-start focus-visible:outline-none"
         onClick={openDetail}
         disabled={!onOpenDetail}
+        aria-label={product.name}
       >
-        <ProductImage product={product} className="size-20 rounded-md sm:size-24" />
+        <ProductImage product={product} className="size-28 rounded-lg sm:size-32" />
       </button>
-      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
-        <div className="min-w-0 space-y-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:gap-3">
+        <div className="min-w-0">
           <button
             type="button"
-            className="text-left focus-visible:outline-none"
+            className="w-full text-left focus-visible:outline-none"
             onClick={openDetail}
             disabled={!onOpenDetail}
           >
-            <h3 className="truncate text-sm font-semibold text-foreground">{product.name}</h3>
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground">
+              {product.name}
+            </h3>
           </button>
-          <p className="text-xs text-muted-foreground">
-            {skuLabel}: {product.sku}
-          </p>
-          {product.categoryName ? (
-            <p className="text-xs text-muted-foreground">{product.categoryName}</p>
-          ) : null}
-          <p className="catalog-price">{formatMoney(product.priceAmount, product.priceCurrency)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{productMetaLine(product, skuLabel)}</p>
         </div>
-        <Button
-          className="self-start"
-          variant="secondary"
-          onClick={() => {
-            onAddToCart(product);
-          }}
-        >
-          {addToCartLabel}
-        </Button>
+        <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <p className="catalog-price catalog-price--prominent">
+            {formatMoney(product.priceAmount, product.priceCurrency)}
+          </p>
+          <Button
+            className="w-full sm:w-auto sm:shrink-0"
+            variant="secondary"
+            onClick={() => {
+              onAddToCart(product);
+            }}
+          >
+            {addToCartLabel}
+          </Button>
+        </div>
       </div>
     </article>
   );

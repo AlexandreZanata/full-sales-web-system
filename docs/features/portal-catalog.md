@@ -54,7 +54,7 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 |-----------|------|
 | `CategoryBar` | Horizontal scroll category chips; arrow-key navigation |
 | `ProductCardGrid` | Vertical product card |
-| `ProductCardList` | Horizontal list row card |
+| `ProductCardList` | Horizontal list row card — larger mobile thumbnail, grouped SKU/category meta, prominent price, full-width CTA on small screens |
 | `ProductCatalog` | Composes bar + toolbar + cards |
 | `CatalogToolbar` | Category title, search slot, list/grid toggle |
 | `CatalogPageContent` | Catalog route body (data + composition) |
@@ -132,7 +132,7 @@ Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalP
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 
-Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`.
+Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `ProductCardList.test.tsx` (list card hierarchy + metadata), `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`.
 
 Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
 
@@ -148,4 +148,4 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ---
 
-**Updated:** 2026-07-05 (Phase 49 product detail page)
+**Updated:** 2026-07-05 (list card mobile layout)

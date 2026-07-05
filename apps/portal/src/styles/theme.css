@@ -94,7 +94,7 @@ body {
   }
 
   .catalog-product-card-list {
-    @apply flex gap-3 overflow-hidden rounded-lg border border-hairline bg-surface p-3 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md;
+    @apply flex items-start gap-4 overflow-hidden rounded-xl border border-hairline bg-surface p-3.5 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md sm:p-4;
   }
 
   .catalog-price {
