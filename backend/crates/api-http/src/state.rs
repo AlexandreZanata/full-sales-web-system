@@ -8,7 +8,9 @@ use infra_redis::{
     IdempotencyStore, InMemoryIdempotencyStore, InMemoryRateLimiter, RateLimitPolicy, RateLimiter,
     RefreshTokenStore,
 };
-use infra_storage::{InMemoryObjectStorage, ObjectStorage};
+use infra_storage::{InMemoryObjectStorage, LocalFsObjectStorage, ObjectStorage};
+
+use crate::catalog_events::CatalogEventHub;
 
 pub const JWT_SECRET_ENV: &str = "JWT_SECRET";
 
@@ -26,6 +28,7 @@ pub struct AppState {
     pub refresh_ttl: Duration,
     pub storage: Arc<dyn ObjectStorage>,
     pub report_signing_key: Option<SigningKey>,
+    pub catalog_events: Arc<CatalogEventHub>,
 }
 
 impl AppState {
@@ -56,7 +59,23 @@ impl AppState {
         }
     }
 
+    pub fn default_catalog_events() -> Arc<CatalogEventHub> {
+        CatalogEventHub::new()
+    }
+
     pub fn in_memory_storage() -> Arc<dyn ObjectStorage> {
+        Arc::new(InMemoryObjectStorage::new())
+    }
+
+    pub fn dev_storage() -> Arc<dyn ObjectStorage> {
+        if let Ok(path) = std::env::var("MEDIA_LOCAL_PATH") {
+            if let Ok(storage) = LocalFsObjectStorage::new(path) {
+                return Arc::new(storage);
+            }
+        }
+        if let Ok(storage) = LocalFsObjectStorage::new(".local/object-storage") {
+            return Arc::new(storage);
+        }
         Arc::new(InMemoryObjectStorage::new())
     }
 

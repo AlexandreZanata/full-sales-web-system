@@ -5,12 +5,14 @@ import { useMemo } from 'react';
 import { PortalAuthProvider } from '@/auth/PortalAuthProvider';
 import { usePortalAuth } from '@/auth/usePortalAuth';
 import { CartProvider } from '@/cart/CartProvider';
+import { useCatalogRealtime } from '@/lib/catalog/useCatalogRealtime';
 import { I18nProvider } from '@/lib/i18n/context';
 import { router } from '@/router';
 
 function PortalRouter() {
   const auth = usePortalAuth();
   const queryClient = useMemo(() => new QueryClient(), []);
+  useCatalogRealtime(queryClient);
 
   return (
     <QueryClientProvider client={queryClient}>

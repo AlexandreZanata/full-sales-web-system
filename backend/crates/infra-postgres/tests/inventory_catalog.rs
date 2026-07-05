@@ -258,6 +258,42 @@ async fn given_two_primary_images_when_second_insert_then_unique_violation() {
 }
 
 #[tokio::test]
+async fn given_product_image_when_delete_then_removed() {
+    let pools = setup_pools().await;
+    let tenant = TenantId::generate();
+    infra_postgres::shared::insert_tenant(&pools.admin, tenant, "Tenant")
+        .await
+        .expect("tenant");
+
+    let product_id = seed_product_with_stock(&pools.app, tenant, 1).await;
+    let image_id = Uuid::now_v7();
+    let file_id = Uuid::now_v7();
+    product_images::insert_product_image(
+        &pools.app,
+        tenant,
+        product_images::ProductImageInsert {
+            id: image_id,
+            product_id,
+            file_id,
+            sort_order: 0,
+            is_primary: true,
+        },
+    )
+    .await
+    .expect("insert image");
+
+    let deleted = product_images::delete_product_image(&pools.app, tenant, image_id)
+        .await
+        .expect("delete");
+    assert!(deleted);
+
+    let rows = product_images::list_product_images(&pools.app, tenant, product_id)
+        .await
+        .expect("list");
+    assert!(rows.is_empty());
+}
+
+#[tokio::test]
 async fn given_order_approved_when_reserve_release_consume_then_rn2_lifecycle() {
     let pools = setup_pools().await;
     let tenant = TenantId::generate();

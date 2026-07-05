@@ -9,6 +9,7 @@ use tracing::info;
 
 #[tokio::main]
 async fn main() {
+    let _ = dotenvy::dotenv();
     init_tracing();
 
     let addr: SocketAddr = listen_addr().parse().unwrap_or_else(|err| {
@@ -39,7 +40,13 @@ async fn main() {
 async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
     let database_url = match std::env::var("DATABASE_URL") {
         Ok(url) => url,
-        Err(_) => return Ok(app()),
+        Err(_) => {
+            eprintln!(
+                "warning: DATABASE_URL not set — only GET /health is available; \
+                 ensure backend/.env exists (see backend/.env.example)"
+            );
+            return Ok(app());
+        }
     };
 
     let admin_url = std::env::var("DATABASE_ADMIN_URL").unwrap_or(database_url.clone());
@@ -64,8 +71,9 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         verify_rate_limit: AppState::default_verify_rate_limit(),
         jwt: AppState::jwt_from_env(),
         refresh_ttl: REFRESH_TOKEN_TTL,
-        storage: AppState::in_memory_storage(),
+        storage: AppState::dev_storage(),
         report_signing_key: AppState::report_signing_key_from_env(),
+        catalog_events: AppState::default_catalog_events(),
     };
 
     Ok(full_app(state))

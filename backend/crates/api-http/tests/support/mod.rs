@@ -68,6 +68,7 @@ pub async fn setup_with_tenant(tenant_id: domain_shared::TenantId) -> TestEnv {
         refresh_ttl: REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
         report_signing_key: Some(AppState::test_signing_key()),
+        catalog_events: AppState::default_catalog_events(),
     };
 
     TestEnv {
@@ -410,6 +411,30 @@ pub async fn request(
         serde_json::from_slice(&bytes).unwrap_or(json!({ "raw": String::from_utf8_lossy(&bytes) }))
     };
     (status, json)
+}
+
+pub async fn request_bytes(
+    env: &TestEnv,
+    method: &str,
+    uri: &str,
+    token: Option<&str>,
+) -> (StatusCode, Vec<u8>) {
+    let mut builder = Request::builder().method(method).uri(uri);
+    if let Some(token) = token {
+        builder = builder.header("authorization", format!("Bearer {token}"));
+    }
+    let request = builder.body(Body::empty()).expect("request");
+
+    let response = full_app(env.state.clone())
+        .oneshot(request)
+        .await
+        .expect("response");
+    let status = response.status();
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("bytes")
+        .to_vec();
+    (status, bytes)
 }
 
 pub fn minimal_webp_bytes() -> Vec<u8> {

@@ -68,6 +68,7 @@ async fn setup() -> PortalEnv {
         refresh_ttl: application::REFRESH_TOKEN_TTL,
         storage: Arc::new(InMemoryObjectStorage::new()),
         report_signing_key: None,
+        catalog_events: AppState::default_catalog_events(),
     };
 
     let commerce_a = Uuid::now_v7();
@@ -286,7 +287,13 @@ async fn contract_portal_products_when_commerce_contact_then_200_with_image_url(
         .expect("body");
     let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
     assert_eq!(json["items"][0]["sku"], "PORT-001");
-    assert!(json["items"][0]["primaryImageUrl"].is_string());
+    let image_url = json["items"][0]["primaryImageUrl"]
+        .as_str()
+        .expect("primaryImageUrl");
+    assert!(
+        image_url.starts_with("/v1/public/media/"),
+        "expected browser-loadable public media URL, got {image_url}"
+    );
 }
 
 #[tokio::test]

@@ -33,4 +33,10 @@ pub trait ObjectStorage: Send + Sync {
         key: &str,
         ttl: Duration,
     ) -> Result<PresignedUrl, crate::error::StorageError>;
+
+    async fn get_object(
+        &self,
+        bucket: &str,
+        key: &str,
+    ) -> Result<(Vec<u8>, String), crate::error::StorageError>;
 }

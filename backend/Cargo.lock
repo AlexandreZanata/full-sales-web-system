@@ -49,7 +49,9 @@ dependencies = [
  "domain-reports",
  "domain-sales",
  "domain-shared",
+ "dotenvy",
  "ed25519-dalek",
+ "futures-util",
  "hex",
  "http 1.4.2",
  "infra-crypto",
@@ -61,6 +63,7 @@ dependencies = [
  "testcontainers",
  "testcontainers-modules",
  "tokio",
+ "tokio-stream",
  "tower",
  "tower-http",
  "tracing",
@@ -1170,6 +1173,7 @@ dependencies = [
  "hex",
  "infra-crypto",
  "infra-postgres",
+ "infra-storage",
  "serde_json",
  "sqlx",
  "testcontainers",
@@ -4111,6 +4115,7 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]

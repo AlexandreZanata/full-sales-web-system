@@ -62,6 +62,7 @@ async fn setup() -> TestEnv {
         refresh_ttl: REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
         report_signing_key: None,
+        catalog_events: AppState::default_catalog_events(),
     };
 
     TestEnv {

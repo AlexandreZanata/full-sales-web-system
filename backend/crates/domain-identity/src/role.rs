@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use crate::error::IdentityError;
 
 /// Authorization profile — Admin | Driver | Seller | CommerceContact (GLOSSARY).

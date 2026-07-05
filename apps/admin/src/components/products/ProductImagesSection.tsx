@@ -1,9 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { ProductImagePreview } from '@/components/products/ProductImagePreview';
-import { FileUploadField } from '@/components/uploads/FileUploadField';
-import { Button } from '@/components/ui/Button';
+import { ProductImageSlot } from '@/components/products/ProductImageSlot';
+import {
+  imagesBySlot,
+  slotCount,
+} from '@/components/products/productImageSlots';
 import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/hooks/useToast';
@@ -24,8 +26,6 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [isPrimaryUpload, setIsPrimaryUpload] = useState(false);
-  const [attaching, setAttaching] = useState(false);
-  const [uploadKey, setUploadKey] = useState(0);
 
   const imagesQuery = useQuery({
     queryKey: productImagesQueryKey(productId),
@@ -33,26 +33,44 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
   });
 
   const images = imagesQuery.data?.items ?? [];
+  const slots = slotCount(images);
+  const slotImages = imagesBySlot(images, slots);
 
   async function invalidateImages() {
     await queryClient.invalidateQueries({ queryKey: productImagesQueryKey(productId) });
   }
 
-  async function handleUploadComplete(fileId: string) {
-    setAttaching(true);
+  async function handleSlotUpload(
+    fileId: string,
+    slotIndex: number,
+    existingImage?: ProductImage,
+  ) {
     try {
-      await attachProductImage(productId, {
-        fileId,
-        isPrimary: isPrimaryUpload,
-      });
+      if (existingImage) {
+        const wasPrimary = existingImage.isPrimary;
+        await deleteProductImage(productId, existingImage.id);
+        await attachProductImage(productId, {
+          fileId,
+          isPrimary: wasPrimary,
+          sortOrder: slotIndex,
+        });
+      } else {
+        const isFirstImage = images.length === 0;
+        await attachProductImage(productId, {
+          fileId,
+          isPrimary: isPrimaryUpload || isFirstImage,
+          sortOrder: slotIndex,
+        });
+      }
+
       await invalidateImages();
       toast.success(t('products.toast.imageAttached'));
-      setIsPrimaryUpload(false);
-      setUploadKey((value) => value + 1);
+      if (!existingImage) {
+        setIsPrimaryUpload(false);
+      }
     } catch {
       toast.error(t('errors.actionFailed'));
-    } finally {
-      setAttaching(false);
+      throw new Error('attach failed');
     }
   }
 
@@ -72,6 +90,7 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
       await attachProductImage(productId, {
         fileId: image.fileId,
         isPrimary: true,
+        sortOrder: image.sortOrder,
       });
       await invalidateImages();
       toast.success(t('products.toast.primaryImageUpdated'));
@@ -98,54 +117,23 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
         {t('products.images.setPrimaryUpload')}
       </label>
 
-      <FileUploadField
-        key={uploadKey}
-        label={t('products.images.label')}
-        fileId=""
-        onChange={(fileId) => void handleUploadComplete(fileId)}
-        entityType="Product"
-        entityId={productId}
-      />
-      {attaching ? (
-        <p className="text-xs text-muted-foreground">{t('products.images.attaching')}</p>
-      ) : null}
-
       {imagesQuery.isLoading ? (
         <div className="flex justify-center py-8">
           <LoadingSpinner />
         </div>
       ) : imagesQuery.isError ? (
         <p className="text-sm text-destructive">{t('products.images.loadError')}</p>
-      ) : images.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('products.images.empty')}</p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {images.map((image) => (
-            <li
-              key={image.id}
-              className="flex flex-col gap-3 rounded-lg border border-hairline p-3"
-            >
-              <div className="flex size-24 items-center justify-center overflow-hidden rounded-md border border-hairline bg-surface">
-                <ProductImagePreview fileId={image.fileId} />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {image.isPrimary ? t('products.images.primary') : t('products.images.secondary')}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {!image.isPrimary ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => void handleSetPrimary(image)}
-                  >
-                    {t('products.images.setPrimary')}
-                  </Button>
-                ) : null}
-                <Button type="button" variant="danger" onClick={() => void handleDelete(image)}>
-                  {t('products.images.remove')}
-                </Button>
-              </div>
-            </li>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {slotImages.map((image, slotIndex) => (
+            <ProductImageSlot
+              key={`slot-${slotIndex}`}
+              productId={productId}
+              image={image}
+              onUploadComplete={(fileId) => handleSlotUpload(fileId, slotIndex, image)}
+              onDelete={image ? () => handleDelete(image) : undefined}
+              onSetPrimary={image ? () => handleSetPrimary(image) : undefined}
+            />
           ))}
         </ul>
       )}

@@ -17,6 +17,8 @@ pub struct AttachImageRequest {
     pub file_id: Uuid,
     #[serde(rename = "isPrimary", default)]
     pub is_primary: bool,
+    #[serde(rename = "sortOrder", default)]
+    pub sort_order: Option<i32>,
 }
 
 #[derive(Serialize)]
@@ -83,7 +85,7 @@ pub async fn attach_product_image(
             id: image_id,
             product_id,
             file_id: body.file_id,
-            sort_order: 0,
+            sort_order: body.sort_order.unwrap_or(0),
             is_primary: body.is_primary,
         },
     )
@@ -98,6 +100,8 @@ pub async fn attach_product_image(
     .await
     .map_err(|_| ApiError::internal())?
     .ok_or_else(ApiError::internal)?;
+
+    notify_product_image_changed(&state, auth.tenant_id, product_id).await?;
 
     Ok((StatusCode::CREATED, Json(product_image_response(&row))))
 }
@@ -132,7 +136,26 @@ pub async fn delete_product_image(
     if !deleted {
         return Err(ApiError::media_not_found());
     }
+    notify_product_image_changed(&state, auth.tenant_id, product_id).await?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+async fn notify_product_image_changed(
+    state: &AppState,
+    tenant_id: domain_shared::TenantId,
+    product_id: Uuid,
+) -> Result<(), ApiError> {
+    let row = infra_postgres::inventory::find_product_by_id(&state.app_pool, tenant_id, product_id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::product_not_found)?;
+    crate::catalog_events::notify_product_changed(
+        &state.catalog_events,
+        "updated",
+        product_id,
+        &row.sku,
+    );
+    Ok(())
 }
 
 fn product_image_response(

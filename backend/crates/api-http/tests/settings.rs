@@ -63,7 +63,13 @@ async fn contract_put_site_logo_when_valid_file_then_logo_file_id_set() {
     .await;
     assert_eq!(put_status, StatusCode::OK);
     assert_eq!(put_body["logoFileId"].as_str(), Some(file_id));
-    assert!(put_body["logoUrl"].as_str().is_some_and(|url| !url.is_empty()));
+    assert!(
+        put_body["logoUrl"]
+            .as_str()
+            .is_some_and(|url| url.starts_with("/v1/media/")),
+        "expected browser-loadable logo URL, got {:?}",
+        put_body["logoUrl"]
+    );
 
     let _ = admin_id;
 }

@@ -114,11 +114,11 @@ async fn settings_response(
                 .await
                 .map_err(|_| ApiError::internal())?
                 .ok_or_else(ApiError::internal)?;
-            Some(
-                media::presign_object(state, &file.bucket, &file.object_key)
-                    .await?
-                    .url,
-            )
+            let presigned = media::presign_object(state, &file.bucket, &file.object_key).await?;
+            Some(media::authenticated_media_content_url(
+                file_id,
+                &presigned.url,
+            ))
         }
         None => None,
     };

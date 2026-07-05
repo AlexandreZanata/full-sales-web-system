@@ -134,8 +134,15 @@ pub async fn delete_product_image(
 
 pub struct PrimaryProductImageRow {
     pub product_id: Uuid,
+    pub file_id: Uuid,
     pub bucket: String,
     pub object_key: String,
+}
+
+pub struct PublicProductMediaRow {
+    pub bucket: String,
+    pub object_key: String,
+    pub mime_type: String,
 }
 
 pub async fn find_primary_images_for_products(
@@ -148,8 +155,8 @@ pub async fn find_primary_images_for_products(
     }
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String)>(
-        "SELECT pi.product_id, mf.bucket, mf.object_key
+    let rows = sqlx::query_as::<_, (Uuid, Uuid, String, String)>(
+        "SELECT pi.product_id, mf.id, mf.bucket, mf.object_key
          FROM inventory.product_images pi
          JOIN media.files mf ON mf.id = pi.file_id
          WHERE pi.is_primary = true AND pi.product_id = ANY($1)",
@@ -160,10 +167,36 @@ pub async fn find_primary_images_for_products(
     tx.commit().await?;
     Ok(rows
         .into_iter()
-        .map(|(product_id, bucket, object_key)| PrimaryProductImageRow {
+        .map(|(product_id, file_id, bucket, object_key)| PrimaryProductImageRow {
             product_id,
+            file_id,
             bucket,
             object_key,
         })
         .collect())
+}
+
+pub async fn find_active_product_media(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    file_id: Uuid,
+) -> Result<Option<PublicProductMediaRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (String, String, String)>(
+        "SELECT mf.bucket, mf.object_key, mf.mime_type
+         FROM media.files mf
+         JOIN inventory.product_images pi ON pi.file_id = mf.id
+         JOIN inventory.products p ON p.id = pi.product_id
+         WHERE mf.id = $1 AND mf.entity_type = 'Product' AND p.active = true",
+    )
+    .bind(file_id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
+        bucket,
+        object_key,
+        mime_type,
+    }))
 }

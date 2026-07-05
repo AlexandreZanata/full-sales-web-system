@@ -64,6 +64,7 @@ async fn setup() -> TestEnv {
         refresh_ttl: application::REFRESH_TOKEN_TTL,
         storage: AppState::in_memory_storage(),
         report_signing_key: None,
+        catalog_events: AppState::default_catalog_events(),
     };
 
     let driver_id = seed_user(&app_pool, tenant_id, "driver@e2e.test", "Driver").await;

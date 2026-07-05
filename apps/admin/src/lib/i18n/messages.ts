@@ -470,6 +470,9 @@ export type Messages = {
       attaching: string;
       loadError: string;
       empty: string;
+      clickToUpload: string;
+      emptySlot: string;
+      replaceImage: string;
     };
     stock: {
       available: string;

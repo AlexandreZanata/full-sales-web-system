@@ -235,6 +235,83 @@ async fn contract_list_product_images_when_attached_then_returns_items() {
     let _ = admin_id;
 }
 
+// Contract: DELETE product image → 204 and list empty
+#[tokio::test]
+async fn contract_delete_product_image_when_attached_then_removed() {
+    let env = setup().await;
+    let admin_token = seed_admin(&env).await.1;
+
+    let (create_status, created) = request(
+        &env,
+        "POST",
+        "/v1/products",
+        Some(&admin_token),
+        Some(
+            json!({
+                "name": "Delete Photo Widget",
+                "sku": "IMG-DEL",
+                "priceAmount": 900
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(create_status, StatusCode::CREATED);
+    let product_id = created["id"].as_str().expect("id");
+
+    let webp = minimal_webp_bytes();
+    let (upload_status, upload_body) = upload_multipart(
+        &env,
+        &admin_token,
+        "photo.webp",
+        "image/webp",
+        &webp,
+        "Product",
+        Uuid::parse_str(product_id).expect("uuid"),
+    )
+    .await;
+    assert_eq!(upload_status, StatusCode::OK);
+    let file_id = upload_body["id"].as_str().expect("file id");
+
+    let (attach_status, attach_body) = request(
+        &env,
+        "POST",
+        &format!("/v1/products/{product_id}/images"),
+        Some(&admin_token),
+        Some(
+            json!({
+                "fileId": file_id,
+                "isPrimary": true
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(attach_status, StatusCode::CREATED);
+    let image_id = attach_body["id"].as_str().expect("image id");
+
+    let (delete_status, _) = request(
+        &env,
+        "DELETE",
+        &format!("/v1/products/{product_id}/images/{image_id}"),
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(delete_status, StatusCode::NO_CONTENT);
+
+    let (list_status, list_body) = request(
+        &env,
+        "GET",
+        &format!("/v1/products/{product_id}/images"),
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(list_status, StatusCode::OK);
+    assert_eq!(list_body["items"].as_array().expect("items").len(), 0);
+}
+
 // Contract: inactive product appears when active=false filter set
 #[tokio::test]
 async fn contract_list_products_when_deactivated_then_visible_with_inactive_filter() {

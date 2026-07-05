@@ -106,5 +106,4 @@ mod read;
 
 pub use addresses_handlers::{create_address, list_addresses};
 pub use addresses_manage::{update_address, update_logo};
-pub use addresses_support::AddressResponse;
 pub use read::{deactivate_commerce, get_commerce, list_commerces};

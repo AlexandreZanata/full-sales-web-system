@@ -455,7 +455,7 @@ export const ptBR: Messages = {
     },
     images: {
       title: 'Imagens do produto',
-      uploadHint: 'Envie imagens PNG ou JPEG. Defina uma como principal.',
+      uploadHint: 'Envie imagens PNG ou JPEG (máx. 5). Clique em qualquer quadrado para enviar. Defina uma como principal.',
       setPrimary: 'Definir principal',
       primary: 'Principal',
       secondary: 'Secundária',
@@ -465,7 +465,10 @@ export const ptBR: Messages = {
       setPrimaryUpload: 'Definir imagem enviada como principal',
       attaching: 'Anexando imagem…',
       loadError: 'Não foi possível carregar as imagens do produto',
-      empty: 'Nenhuma imagem ainda. Envie uma acima.',
+      empty: 'Nenhuma imagem ainda. Clique em um quadrado para enviar.',
+      clickToUpload: 'Clique para enviar',
+      emptySlot: 'Vazio',
+      replaceImage: 'Substituir imagem',
     },
     stock: {
       available: 'Estoque disponível',

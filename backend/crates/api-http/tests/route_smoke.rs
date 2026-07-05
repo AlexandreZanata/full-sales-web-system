@@ -3,7 +3,9 @@
 #[path = "support/mod.rs"]
 mod support;
 
+use api_http::full_app;
 use http::StatusCode;
+use tower::ServiceExt;
 use uuid::Uuid;
 
 use support::{request, seed_admin, setup};
@@ -70,6 +72,7 @@ async fn route_smoke_protected_routes_return_unauthorized_not_not_found() {
         ("POST", format!("/v1/deliveries/{id}/confirm")),
         ("POST", "/v1/media/upload".into()),
         ("GET", format!("/v1/media/{id}/url")),
+        ("GET", format!("/v1/media/{id}/content")),
         ("GET", "/v1/reports".into()),
         ("POST", "/v1/reports".into()),
         ("GET", format!("/v1/reports/{id}")),
@@ -120,6 +123,32 @@ async fn route_smoke_public_routes_are_mounted() {
         request(&env, "GET", &format!("/v1/reports/{id}/verify"), None, None).await;
     assert_eq!(verify_status, StatusCode::NOT_FOUND);
     assert_eq!(verify_body["error"]["code"], "REPORT_NOT_FOUND");
+
+    let (products_status, _) = request(&env, "GET", "/v1/public/products", None, None).await;
+    assert_eq!(products_status, StatusCode::OK);
+
+    let (media_status, media_body) = request(
+        &env,
+        "GET",
+        &format!("/v1/public/media/{id}/content"),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(media_status, StatusCode::NOT_FOUND);
+    assert_eq!(media_body["error"]["code"], "MEDIA_NOT_FOUND");
+
+    let sse_response = full_app(env.state.clone())
+        .oneshot(
+            http::Request::builder()
+                .method("GET")
+                .uri("/v1/public/catalog/events")
+                .body(axum::body::Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+    assert_eq!(sse_response.status(), StatusCode::OK);
 }
 
 /// Health/meta routes from ROUTE-MATRIX.

@@ -454,7 +454,7 @@ export const en: Messages = {
     },
     images: {
       title: 'Product images',
-      uploadHint: 'Upload PNG or JPEG images. Set one as primary.',
+      uploadHint: 'Upload PNG or JPEG images (max 5). Click any slot to upload. Set one as primary.',
       setPrimary: 'Set primary',
       primary: 'Primary',
       secondary: 'Secondary',
@@ -464,7 +464,10 @@ export const en: Messages = {
       setPrimaryUpload: 'Set uploaded image as primary',
       attaching: 'Attaching image…',
       loadError: 'Unable to load product images',
-      empty: 'No images yet. Upload one above.',
+      empty: 'No images yet. Click a slot to upload.',
+      clickToUpload: 'Click to upload',
+      emptySlot: 'Empty slot',
+      replaceImage: 'Replace image',
     },
     stock: {
       available: 'Available stock',

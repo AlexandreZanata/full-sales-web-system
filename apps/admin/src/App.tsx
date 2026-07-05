@@ -5,12 +5,14 @@ import { useMemo } from 'react';
 import { AdminAuthProvider } from '@/auth/AdminAuthProvider';
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { ToastProvider } from '@/components/ToastProvider';
+import { useCatalogRealtime } from '@/lib/catalog/useCatalogRealtime';
 import { I18nProvider } from '@/lib/i18n/context';
 import { router } from '@/router';
 
 function AdminRouter() {
   const auth = useAdminAuth();
   const queryClient = useMemo(() => new QueryClient(), []);
+  useCatalogRealtime(queryClient);
 
   return (
     <QueryClientProvider client={queryClient}>

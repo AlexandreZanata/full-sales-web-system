@@ -49,3 +49,19 @@ export async function fetchMediaUrl(fileId: string): Promise<MediaUrlResponse> {
 
   return (await response.json()) as MediaUrlResponse;
 }
+
+function isMemoryPresignedUrl(url: string): boolean {
+  return url.startsWith('memory://');
+}
+
+export function resolveMediaContentUrl(fileId: string, presignedUrl: string): string {
+  if (!isMemoryPresignedUrl(presignedUrl)) {
+    return presignedUrl;
+  }
+  return `/v1/media/${fileId}/content`;
+}
+
+export async function resolveMediaPreviewUrl(fileId: string): Promise<string> {
+  const { url } = await fetchMediaUrl(fileId);
+  return resolveMediaContentUrl(fileId, url);
+}

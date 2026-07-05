@@ -82,7 +82,7 @@ pub async fn create_product(
         auth.tenant_id,
         infra_postgres::inventory::ProductInsert {
             id: product_id,
-            sku: body.sku,
+            sku: body.sku.clone(),
             name: body.name,
             price_amount: body.price_amount,
             price_currency: body.price_currency.clone(),
@@ -92,6 +92,13 @@ pub async fn create_product(
     )
     .await
     .map_err(|_| ApiError::internal())?;
+
+    crate::catalog_events::notify_product_changed(
+        &state.catalog_events,
+        "created",
+        product_id,
+        &body.sku,
+    );
 
     get_product(State(state), auth, Path(product_id))
         .await
@@ -136,6 +143,16 @@ pub async fn update_product(
     if !updated {
         return Err(ApiError::product_not_found());
     }
+    let row = infra_postgres::inventory::find_product_by_id(&state.app_pool, auth.tenant_id, id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::product_not_found)?;
+    crate::catalog_events::notify_product_changed(
+        &state.catalog_events,
+        "updated",
+        id,
+        &row.sku,
+    );
     get_product(State(state), auth, Path(id)).await
 }
 

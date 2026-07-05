@@ -3,6 +3,7 @@ use infra_postgres::PgPool;
 use infra_postgres::inventory::product_images::{self, ProductImageInsert};
 use infra_postgres::inventory::{self, ProductInsert, StockMovementInsert};
 use infra_postgres::media::{self, FileInsert};
+use infra_storage::{LocalFsObjectStorage, ObjectStorage};
 use uuid::Uuid;
 
 use crate::commerces::CommercesSeed;
@@ -49,6 +50,7 @@ pub async fn seed_catalog(
     }
 
     seed_product_images(app_pool, tenant, ids[0], ids[1]).await?;
+    ensure_catalog_storage_objects().await?;
     seed_stock_and_movements(app_pool, tenant, users, &ids).await?;
 
     Ok(CatalogSeed {
@@ -130,6 +132,7 @@ async fn insert_image_file(
         .await?
         .is_some()
     {
+        ensure_storage_object(object_key).await?;
         return Ok(());
     }
     let bytes = minimal_webp_bytes();
@@ -149,7 +152,34 @@ async fn insert_image_file(
         },
     )
     .await?;
+    ensure_storage_object(object_key).await?;
     Ok(())
+}
+
+async fn ensure_storage_object(object_key: &str) -> DevSeedResult<()> {
+    let Some(storage) = open_dev_storage() else {
+        return Ok(());
+    };
+    let bytes = minimal_webp_bytes();
+    storage
+        .put_object(
+            DEV_MEDIA_BUCKET,
+            object_key,
+            &bytes,
+            "image/webp",
+        )
+        .await
+        .map_err(|err| crate::error::DevSeedError::Aborted(format!("storage put: {err}")))?;
+    Ok(())
+}
+
+fn open_dev_storage() -> Option<LocalFsObjectStorage> {
+    if let Ok(path) = std::env::var("MEDIA_LOCAL_PATH") {
+        if let Ok(storage) = LocalFsObjectStorage::new(path) {
+            return Some(storage);
+        }
+    }
+    LocalFsObjectStorage::new(".local/object-storage").ok()
 }
 
 async fn insert_product_image_row(
@@ -179,6 +209,13 @@ async fn insert_product_image_row(
         },
     )
     .await?;
+    Ok(())
+}
+
+/// Idempotent backfill for local object storage (safe when DB seed was applied earlier).
+pub async fn ensure_catalog_storage_objects() -> DevSeedResult<()> {
+    ensure_storage_object("products/widget-a.webp").await?;
+    ensure_storage_object("products/gadget-b.webp").await?;
     Ok(())
 }
 

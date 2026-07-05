@@ -4,12 +4,14 @@ import { useMemo } from 'react';
 
 import { FieldAuthProvider } from '@/auth/FieldAuthProvider';
 import { useFieldAuth } from '@/auth/useFieldAuth';
+import { useCatalogRealtime } from '@/lib/catalog/useCatalogRealtime';
 import { I18nProvider } from '@/lib/i18n/context';
 import { router } from '@/router';
 
 function FieldRouter() {
   const auth = useFieldAuth();
   const queryClient = useMemo(() => new QueryClient(), []);
+  useCatalogRealtime(queryClient);
 
   return (
     <QueryClientProvider client={queryClient}>

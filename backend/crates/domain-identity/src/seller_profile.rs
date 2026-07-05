@@ -35,4 +35,12 @@ impl SellerProfile {
     pub fn user_id(&self) -> UserId {
         self.user_id
     }
+
+    pub fn operating_region(&self) -> Option<&str> {
+        self.operating_region.as_deref()
+    }
+
+    pub fn monthly_target_amount(&self) -> Option<i64> {
+        self.monthly_target_amount
+    }
 }

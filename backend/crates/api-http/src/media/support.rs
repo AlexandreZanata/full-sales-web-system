@@ -5,6 +5,7 @@ use axum::extract::Multipart;
 use domain_identity::Role;
 use domain_media::{FileEntityType, MediaError};
 use infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS;
+use infra_storage::StorageError;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -144,12 +145,30 @@ pub async fn presign(
         .storage
         .presigned_get(bucket, object_key, ttl)
         .await
-        .map_err(|_| ApiError::internal())?;
+        .map_err(map_storage_error)?;
     Ok(MediaUrlResponse {
         url: presigned.url,
         expires_at: chrono::Utc::now()
             + chrono::Duration::seconds(presigned.expires_in_secs as i64),
     })
+}
+
+/// Browser-loadable URL for authenticated media (local dev uses content route).
+pub fn authenticated_media_content_url(file_id: Uuid, presigned_url: &str) -> String {
+    if presigned_url.starts_with("memory://") {
+        format!("/v1/media/{file_id}/content")
+    } else {
+        presigned_url.to_owned()
+    }
+}
+
+/// Browser-loadable URL for public catalog product thumbnails.
+pub fn catalog_image_url(file_id: Uuid, presigned_url: &str) -> String {
+    if presigned_url.starts_with("memory://") {
+        format!("/v1/public/media/{file_id}/content")
+    } else {
+        presigned_url.to_owned()
+    }
 }
 
 pub fn media_bucket() -> String {
@@ -185,5 +204,12 @@ pub fn map_media_error(err: MediaError) -> ApiError {
             ApiError::bad_request("VALIDATION_ERROR", "Invalid entityType")
         }
         _ => ApiError::bad_request("VALIDATION_ERROR", "Invalid media upload"),
+    }
+}
+
+pub fn map_storage_error(err: StorageError) -> ApiError {
+    match err {
+        StorageError::NotFound => ApiError::media_not_found(),
+        _ => ApiError::internal(),
     }
 }

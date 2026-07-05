@@ -31,6 +31,7 @@ pub struct SeedPools {
 pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     if is_already_seeded(&pools.admin, &pools.app).await? {
         tracing::info!("dev seed already applied — skipping");
+        catalog::ensure_catalog_storage_objects().await?;
         return Ok(());
     }
 

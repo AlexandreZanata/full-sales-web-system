@@ -188,7 +188,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `POST /v1/products/{id}/images`
 
 - **Auth:** Admin
-- **Body:** `{ "fileId", "isPrimary?" }`
+- **Body:** `{ "fileId", "isPrimary?", "sortOrder?" }`
 - **Response 201:** ProductImage
 
 ### `DELETE /v1/products/{id}/images/{imageId}`
@@ -267,13 +267,26 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Auth:** none (public catalog)
 - **Tenant:** `PUBLIC_CATALOG_TENANT_ID` env, or dev seed tenant in local environments
 - **Query:** pagination, `category?`
-- **Response 200:** Active products with optional `primaryImageUrl` (presigned ~15 min)
+- **Response 200:** Active products with optional `primaryImageUrl` — S3 presigned (~15 min) or `/v1/public/media/{fileId}/content` in local dev
+
+### `GET /v1/public/media/{id}/content`
+
+- **Auth:** none
+- **Precondition:** file is a primary image of an **active** product in the public catalog tenant
+- **Response 200:** image bytes (`image/*`)
+
+### `GET /v1/public/catalog/events`
+
+- **Auth:** none
+- **Content-Type:** `text/event-stream`
+- **Event:** `catalog.changed` — emitted when admin mutates products or product images
+- **Heartbeat:** `: ping` every 25s
 
 ### `GET /v1/portal/products`
 
 - **Auth:** CommerceContact only
 - **Query:** pagination, `category?`
-- **Response 200:** Active products with optional `primaryImageUrl` (presigned ~15 min)
+- **Response 200:** Active products with optional `primaryImageUrl` — same URL rules as public catalog
 
 ---
 
@@ -405,7 +418,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/settings`
 
 - **Auth:** Any authenticated role in tenant
-- **Response 200:** `{ "displayName", "logoFileId?", "logoUrl?" }` — `logoUrl` presigned when logo exists
+- **Response 200:** `{ "displayName", "logoFileId?", "logoUrl?" }` — `logoUrl` is S3 presigned or `/v1/media/{fileId}/content` in local dev
 
 ### `PATCH /v1/settings`
 
@@ -417,7 +430,7 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 - **Auth:** Admin
 - **Body:** `{ "fileId" }` — upload via `POST /v1/media/upload` with `entityType: "Tenant"` first
-- **Response 200:** Updated settings with presigned `logoUrl`
+- **Response 200:** Updated settings with browser-loadable `logoUrl`
 
 ---
 

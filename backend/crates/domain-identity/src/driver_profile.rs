@@ -58,4 +58,24 @@ impl DriverProfile {
     pub fn cnh_photo_file_id(&self) -> Option<Uuid> {
         self.cnh_photo_file_id
     }
+
+    pub fn cnh_number(&self) -> &str {
+        &self.cnh_number
+    }
+
+    pub fn cnh_category(&self) -> &str {
+        &self.cnh_category
+    }
+
+    pub fn vehicle_plate(&self) -> &str {
+        &self.vehicle_plate
+    }
+
+    pub fn vehicle_model(&self) -> &str {
+        &self.vehicle_model
+    }
+
+    pub fn vehicle_capacity_kg(&self) -> Option<f64> {
+        self.vehicle_capacity_kg
+    }
 }

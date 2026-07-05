@@ -73,7 +73,7 @@ pub async fn list_public_products(
     list_products_for_tenant(&state, tenant_id, &query).await
 }
 
-fn resolve_public_catalog_tenant() -> Result<TenantId, ApiError> {
+pub(crate) fn resolve_public_catalog_tenant() -> Result<TenantId, ApiError> {
     if let Ok(raw) = std::env::var("PUBLIC_CATALOG_TENANT_ID") {
         return TenantId::parse(raw.trim()).map_err(|_| ApiError::internal());
     }
@@ -114,21 +114,24 @@ async fn list_products_for_tenant(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let mut image_by_product: HashMap<uuid::Uuid, (String, String)> = HashMap::new();
+    let mut image_by_product: HashMap<uuid::Uuid, (uuid::Uuid, String, String)> = HashMap::new();
     for image in images {
-        image_by_product.insert(image.product_id, (image.bucket, image.object_key));
+        image_by_product.insert(
+            image.product_id,
+            (image.file_id, image.bucket, image.object_key),
+        );
     }
 
     let ttl = Duration::from_secs(DEFAULT_PRESIGN_TTL_SECS);
     let mut items = Vec::with_capacity(rows.len());
     for row in rows {
         let primary_image_url = match image_by_product.get(&row.id) {
-            Some((bucket, key)) => state
+            Some((file_id, bucket, key)) => state
                 .storage
                 .presigned_get(bucket, key, ttl)
                 .await
                 .ok()
-                .map(|p| p.url),
+                .map(|presigned| crate::media::catalog_image_url(*file_id, &presigned.url)),
             None => None,
         };
         items.push(PortalProductResponse {

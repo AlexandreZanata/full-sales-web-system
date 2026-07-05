@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
-import { fetchMediaUrl, uploadMediaFile, type MediaEntityType } from '@/lib/api/uploads';
+import { resolveMediaPreviewUrl, uploadMediaFile, type MediaEntityType } from '@/lib/api/uploads';
 import { useI18n } from '@/lib/i18n/context';
 import { translateFormError } from '@/lib/i18n/labels';
 import { IMAGE_UPLOAD_ACCEPT, IMAGE_UPLOAD_HINT } from '@/lib/uploadAccept';
@@ -42,13 +42,21 @@ export function FileUploadField({
     }
 
     let cancelled = false;
+    let blobUrl: string | null = null;
 
-    void fetchMediaUrl(fileId)
-      .then((response) => {
-        if (!cancelled) {
-          setRemotePreviewUrl(response.url);
-          setRemotePreviewFailed(false);
+    void resolveMediaPreviewUrl(fileId)
+      .then((previewUrl) => {
+        if (cancelled) {
+          if (previewUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+          }
+          return;
         }
+        if (previewUrl.startsWith('blob:')) {
+          blobUrl = previewUrl;
+        }
+        setRemotePreviewUrl(previewUrl);
+        setRemotePreviewFailed(false);
       })
       .catch(() => {
         if (!cancelled) {
@@ -59,6 +67,9 @@ export function FileUploadField({
 
     return () => {
       cancelled = true;
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
     };
   }, [fileId]);
 

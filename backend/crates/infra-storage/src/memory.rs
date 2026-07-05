@@ -78,6 +78,18 @@ impl ObjectStorage for InMemoryObjectStorage {
             expires_in_secs: expires,
         })
     }
+
+    async fn get_object(
+        &self,
+        bucket: &str,
+        key: &str,
+    ) -> Result<(Vec<u8>, String), StorageError> {
+        let guard = self.objects.read().await;
+        let obj = guard
+            .get(&(bucket.to_owned(), key.to_owned()))
+            .ok_or(StorageError::NotFound)?;
+        Ok((obj.bytes.clone(), obj.content_type.clone()))
+    }
 }
 
 fn parse_memory_url(url: &str) -> Result<(String, String), StorageError> {

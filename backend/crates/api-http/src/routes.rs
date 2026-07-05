@@ -17,7 +17,8 @@ use crate::deliveries::{
     confirm_delivery, create_order_delivery, get_delivery, list_deliveries, start_delivery_transit,
 };
 use crate::inventory::{get_stock_balance, list_movements, record_movement};
-use crate::media::{get_media_url, upload_media};
+use crate::media::{get_media_content, get_media_url, get_public_product_media_content, upload_media};
+use crate::catalog_events::stream_catalog_events;
 use crate::portal::{
     cancel_portal_order, create_portal_order, get_portal_order, list_portal_orders,
     list_portal_products, list_public_products, submit_portal_order, update_portal_order,
@@ -72,6 +73,8 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/auth/login", post(login))
         .route("/v1/auth/refresh", post(refresh))
         .route("/v1/public/products", get(list_public_products))
+        .route("/v1/public/media/{id}/content", get(get_public_product_media_content))
+        .route("/v1/public/catalog/events", get(stream_catalog_events))
         .route("/v1/reports/{id}/verify", get(verify_report))
         .with_state(state.clone());
 
@@ -146,6 +149,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/deliveries/{id}/confirm", post(confirm_delivery))
         .route("/v1/media/upload", post(upload_media))
         .route("/v1/media/{id}/url", get(get_media_url))
+        .route("/v1/media/{id}/content", get(get_media_content))
         .route("/v1/settings", get(get_settings).patch(patch_settings))
         .route("/v1/settings/logo", put(update_site_logo))
         .route("/v1/reports", post(generate_report).get(list_reports))

@@ -94,4 +94,31 @@ impl ObjectStorage for S3ObjectStorage {
             expires_in_secs: ttl.as_secs(),
         })
     }
+
+    async fn get_object(
+        &self,
+        bucket: &str,
+        key: &str,
+    ) -> Result<(Vec<u8>, String), StorageError> {
+        let response = self
+            .client
+            .get_object()
+            .bucket(bucket)
+            .key(key)
+            .send()
+            .await
+            .map_err(|err| StorageError::Operation(err.to_string()))?;
+        let content_type = response
+            .content_type()
+            .unwrap_or("application/octet-stream")
+            .to_owned();
+        let bytes = response
+            .body
+            .collect()
+            .await
+            .map_err(|err| StorageError::Operation(err.to_string()))?
+            .into_bytes()
+            .to_vec();
+        Ok((bytes, content_type))
+    }
 }

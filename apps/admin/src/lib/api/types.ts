@@ -254,6 +254,7 @@ export type ProductImage = {
 export type AttachProductImageRequest = {
   fileId: string;
   isPrimary?: boolean;
+  sortOrder?: number;
 };
 
 export type StockBalance = {
