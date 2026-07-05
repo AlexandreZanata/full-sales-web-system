@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 
+import { usePortalAuth } from '@/auth/usePortalAuth';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { deletePortalOrder, fetchPortalOrder, submitPortalOrder } from '@/lib/api/portal';
+import { setPostLoginRedirect } from '@/lib/auth/postLoginRedirect';
 import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';
 
@@ -18,11 +20,13 @@ export const Route = createFileRoute('/_authenticated/orders/$id')({
 function OrderDetailPage() {
   const { id } = Route.useParams();
   const { t } = useI18n();
+  const { user } = usePortalAuth();
   const queryClient = useQueryClient();
 
   const orderQuery = useQuery({
     queryKey: ['portal', 'orders', id],
     queryFn: () => fetchPortalOrder(id),
+    enabled: Boolean(user),
   });
 
   const submitMutation = useMutation({
@@ -40,6 +44,26 @@ function OrderDetailPage() {
       await orderQuery.refetch();
     },
   });
+
+  if (!user) {
+    return (
+      <EmptyState
+        title={t('orders.guestTitle')}
+        description={t('orders.guestDescription')}
+        action={
+          <Link
+            to="/login"
+            search={{ redirect: `/orders/${id}` }}
+            onClick={() => {
+              setPostLoginRedirect(`/orders/${id}`);
+            }}
+          >
+            <Button>{t('auth.signIn')}</Button>
+          </Link>
+        }
+      />
+    );
+  }
 
   if (orderQuery.isLoading) {
     return <LoadingSpinner className="py-16" />;

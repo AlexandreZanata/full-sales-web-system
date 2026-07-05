@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { loginPortal, mockPortalApi } from './fixtures/portal-api-mock';
+import { mockPortalApi } from './fixtures/portal-api-mock';
 
 const VIEWPORTS = [
   { label: '390px mobile', width: 390, height: 844, expectMobileNav: true },
@@ -10,12 +10,10 @@ const VIEWPORTS = [
 
 test.describe('Portal responsive shell', () => {
   for (const viewport of VIEWPORTS) {
-    test(`given_${viewport.label}_when_authenticated_then_nav_matches_breakpoint`, async ({
-      page,
-    }) => {
+    test(`given_${viewport.label}_when_guest_then_nav_matches_breakpoint`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await mockPortalApi(page);
-      await loginPortal(page);
+      await page.goto('/');
       await expect(page).toHaveURL('/');
 
       const mobileNav = page.getByRole('navigation', { name: 'Mobile' });

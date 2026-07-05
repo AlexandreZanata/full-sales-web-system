@@ -444,6 +444,29 @@ paths:
                 $ref: '#/components/schemas/ProductDetail'
 
   /products/{id}/images:
+    get:
+      summary: List product images (Admin)
+      operationId: listProductImages
+      tags: [Products]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Product images
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductImage'
+        '404':
+          $ref: '#/components/responses/ProductNotFound'
     post:
       summary: Attach product image (Admin)
       operationId: attachProductImage
@@ -1901,6 +1924,21 @@ components:
               type: string
             unitOfMeasure:
               type: string
+
+    ProductImage:
+      type: object
+      required: [id, fileId, sortOrder, isPrimary]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileId:
+          type: string
+          format: uuid
+        sortOrder:
+          type: integer
+        isPrimary:
+          type: boolean
 
     PaginatedProducts:
       allOf:

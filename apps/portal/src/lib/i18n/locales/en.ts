@@ -10,7 +10,7 @@ export const en: Messages = {
     signIn: 'Sign in',
     signingIn: 'Signing in…',
     signInTitle: 'Commerce portal',
-    signInDescription: 'Sign in with your commerce contact account to browse and order.',
+    signInDescription: 'Sign in to submit orders and track deliveries.',
     email: 'Email',
     password: 'Password',
     logout: 'Sign out',
@@ -61,6 +61,8 @@ export const en: Messages = {
     itemCount: '{count} items',
     removeItem: 'Remove',
     orderSubmitted: 'Order submitted for approval.',
+    loginToCheckout: 'Sign in to checkout',
+    loginRequiredMessage: 'Sign in to submit your order.',
   },
   orders: {
     title: 'My orders',
@@ -70,6 +72,9 @@ export const en: Messages = {
     draftSaved: 'Draft saved.',
     timeline: 'Order status',
     rejectionReason: 'Rejection reason',
+    guestTitle: 'Sign in to view your orders',
+    guestDescription:
+      'The catalog and cart are available without login. Sign in to submit orders and track their status.',
     status: {
       Draft: 'Draft',
       PendingApproval: 'Pending approval',

@@ -2,6 +2,12 @@ import type { Page, Route } from '@playwright/test';
 
 import { buildPortalAccessToken, loginResponse } from './client-auth';
 
+const EMPTY_PRODUCTS = { page: 1, pageSize: 50, total: 0, items: [] };
+
+function isProductsList(path: string, method: string): boolean {
+  return method === 'GET' && (path === '/portal/products' || path === '/public/products');
+}
+
 export async function mockPortalApi(page: Page): Promise<void> {
   const accessToken = buildPortalAccessToken();
 
@@ -19,11 +25,11 @@ export async function mockPortalApi(page: Page): Promise<void> {
       return;
     }
 
-    if (path === '/portal/products' && method === 'GET') {
+    if (isProductsList(path, method)) {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ page: 1, pageSize: 50, total: 0, items: [] }),
+        body: JSON.stringify(EMPTY_PRODUCTS),
       });
       return;
     }

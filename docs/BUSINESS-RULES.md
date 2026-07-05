@@ -285,6 +285,7 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 | `GET /v1/products` | Yes | Yes | Yes | No | No |
 | `GET /v1/products/{id}` | Yes | Yes | Yes | No | No |
 | `PATCH /v1/products/{id}` | Yes | No | No | No | No |
+| `GET /v1/products/{id}/images` | Yes | No | No | No | No |
 | `POST /v1/products/{id}/images` | Yes | No | No | No | No |
 | `DELETE /v1/products/{id}/images/{imageId}` | Yes | No | No | No | No |
 | `GET /v1/inventory/products/{productId}/balance` | Yes | Yes | Yes | No | No |

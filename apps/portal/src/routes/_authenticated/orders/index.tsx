@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 
+import { usePortalAuth } from '@/auth/usePortalAuth';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchPortalOrders } from '@/lib/api/portal';
+import { setPostLoginRedirect } from '@/lib/auth/postLoginRedirect';
 import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';
 
@@ -15,11 +17,33 @@ export const Route = createFileRoute('/_authenticated/orders/')({
 
 function OrdersPage() {
   const { t } = useI18n();
+  const { user } = usePortalAuth();
 
   const ordersQuery = useQuery({
     queryKey: ['portal', 'orders'],
     queryFn: () => fetchPortalOrders({ pageSize: 50 }),
+    enabled: Boolean(user),
   });
+
+  if (!user) {
+    return (
+      <EmptyState
+        title={t('orders.guestTitle')}
+        description={t('orders.guestDescription')}
+        action={
+          <Link
+            to="/login"
+            search={{ redirect: '/orders' }}
+            onClick={() => {
+              setPostLoginRedirect('/orders');
+            }}
+          >
+            <Button>{t('auth.signIn')}</Button>
+          </Link>
+        }
+      />
+    );
+  }
 
   if (ordersQuery.isLoading) {
     return <LoadingSpinner className="py-16" />;

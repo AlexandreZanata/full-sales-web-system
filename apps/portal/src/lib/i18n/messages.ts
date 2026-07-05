@@ -55,6 +55,8 @@ export type Messages = {
     itemCount: string;
     removeItem: string;
     orderSubmitted: string;
+    loginToCheckout: string;
+    loginRequiredMessage: string;
   };
   orders: {
     title: string;
@@ -64,6 +66,8 @@ export type Messages = {
     draftSaved: string;
     timeline: string;
     rejectionReason: string;
+    guestTitle: string;
+    guestDescription: string;
     status: Record<string, string>;
   };
 };
@@ -116,6 +120,8 @@ export type MessageKey =
   | 'cart.itemCount'
   | 'cart.removeItem'
   | 'cart.orderSubmitted'
+  | 'cart.loginToCheckout'
+  | 'cart.loginRequiredMessage'
   | 'orders.title'
   | 'orders.detail'
   | 'orders.submit'
@@ -123,4 +129,6 @@ export type MessageKey =
   | 'orders.draftSaved'
   | 'orders.timeline'
   | 'orders.rejectionReason'
+  | 'orders.guestTitle'
+  | 'orders.guestDescription'
   | `orders.status.${string}`;

@@ -10,7 +10,7 @@ export const ptBR: Messages = {
     signIn: 'Entrar',
     signingIn: 'Entrando…',
     signInTitle: 'Portal do comércio',
-    signInDescription: 'Entre com sua conta de contato comercial para ver o catálogo e pedidos.',
+    signInDescription: 'Entre com sua conta para enviar pedidos e acompanhar entregas.',
     email: 'E-mail',
     password: 'Senha',
     logout: 'Sair',
@@ -61,6 +61,8 @@ export const ptBR: Messages = {
     itemCount: '{count} itens',
     removeItem: 'Remover',
     orderSubmitted: 'Pedido enviado para aprovação.',
+    loginToCheckout: 'Entrar para enviar',
+    loginRequiredMessage: 'Entre na sua conta para enviar o pedido.',
   },
   orders: {
     title: 'Meus pedidos',
@@ -70,6 +72,9 @@ export const ptBR: Messages = {
     draftSaved: 'Rascunho salvo.',
     timeline: 'Status do pedido',
     rejectionReason: 'Motivo da rejeição',
+    guestTitle: 'Entre para ver seus pedidos',
+    guestDescription:
+      'O catálogo e o carrinho ficam disponíveis sem login. Para enviar pedidos e acompanhar o status, entre com sua conta.',
     status: {
       Draft: 'Rascunho',
       PendingApproval: 'Aguardando aprovação',

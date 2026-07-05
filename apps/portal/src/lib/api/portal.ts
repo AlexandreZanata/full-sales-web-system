@@ -1,4 +1,5 @@
 import { apiDelete, apiFetch, apiPost, apiPut } from '@/lib/api/client';
+import { getAccessToken } from '@/lib/auth/tokens';
 import type {
   CreatePortalOrderRequest,
   PaginatedResponse,
@@ -30,7 +31,12 @@ export async function fetchPortalProducts(
   if (params.category) {
     query.set('category', params.category);
   }
-  const response = await apiFetch<PaginatedResponse<PortalProduct>>(`/portal/products?${query}`);
+  const hasSession = Boolean(getAccessToken());
+  const path = hasSession ? `/portal/products?${query}` : `/public/products?${query}`;
+  const response = await apiFetch<PaginatedResponse<PortalProduct>>(
+    path,
+    hasSession ? undefined : { skipAuth: true },
+  );
   if (!params.search?.trim()) {
     return response;
   }

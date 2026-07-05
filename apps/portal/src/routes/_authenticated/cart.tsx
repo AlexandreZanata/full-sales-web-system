@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { createPortalOrder, submitPortalOrder } from '@/lib/api/portal';
 import { ApiError } from '@/lib/api/client';
+import { setPostLoginRedirect } from '@/lib/auth/postLoginRedirect';
 import { useI18n } from '@/lib/i18n/context';
 import { addressesForCommerce } from '@/lib/orders/constants';
 import { formatMoney } from '@/lib/products/formatPrice';
@@ -48,6 +49,16 @@ function CartPage() {
       setError(err instanceof ApiError ? err.message : t('common.error.loadFailed'));
     },
   });
+
+  function handleSubmitOrder() {
+    if (!user) {
+      setPostLoginRedirect('/cart');
+      void navigate({ to: '/login', search: { redirect: '/cart' } });
+      return;
+    }
+    setError(null);
+    checkoutMutation.mutate();
+  }
 
   if (itemCount === 0) {
     return (
@@ -137,15 +148,19 @@ function CartPage() {
           <span className="text-lg font-semibold">{formatMoney(totalAmount, currency)}</span>
         </div>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {!user ? (
+          <p className="text-sm text-muted-foreground">{t('cart.loginRequiredMessage')}</p>
+        ) : null}
         <Button
           className="w-full"
           disabled={checkoutMutation.isPending || !deliveryAddressId}
-          onClick={() => {
-            setError(null);
-            checkoutMutation.mutate();
-          }}
+          onClick={handleSubmitOrder}
         >
-          {checkoutMutation.isPending ? t('common.working') : t('cart.submitOrder')}
+          {checkoutMutation.isPending
+            ? t('common.working')
+            : user
+              ? t('cart.submitOrder')
+              : t('cart.loginToCheckout')}
         </Button>
       </Card>
     </div>

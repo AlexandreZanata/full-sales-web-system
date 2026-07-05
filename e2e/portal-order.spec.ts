@@ -44,6 +44,28 @@ test.describe('Portal order flow', () => {
         return;
       }
 
+      if (path === '/public/products' && method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            page: 1,
+            pageSize: 50,
+            total: 1,
+            items: [
+              {
+                id: productId,
+                name: 'Seed Widget',
+                sku: 'SKU-001',
+                priceAmount: 1500,
+                priceCurrency: 'BRL',
+              },
+            ],
+          }),
+        });
+        return;
+      }
+
       if (path === '/portal/orders' && method === 'GET') {
         await route.fulfill({
           status: 200,
@@ -135,14 +157,17 @@ test.describe('Portal order flow', () => {
       });
     });
 
-    await page.goto('/login');
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Adicionar ao carrinho' }).first().click();
+    await page.getByRole('link', { name: /Carrinho/ }).click();
+    await page.getByRole('button', { name: 'Entrar para enviar', exact: true }).click();
+
+    await expect(page).toHaveURL(/\/login/);
     await page.getByLabel('E-mail').fill('portal@seed-store.com');
     await page.getByLabel('Senha').fill('secret123');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
 
-    await expect(page).toHaveURL('/');
-    await page.getByRole('button', { name: 'Adicionar ao carrinho' }).first().click();
-    await page.getByRole('link', { name: /Carrinho/ }).click();
+    await expect(page).toHaveURL('/cart');
     await page.getByRole('button', { name: 'Enviar pedido' }).click();
 
     await expect(page).toHaveURL(new RegExp(`/orders/${orderId}`));

@@ -6,12 +6,15 @@ use axum::{
     extract::{Query, State},
 };
 use domain_identity::Role;
+use domain_shared::TenantId;
 use infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS;
 use serde::{Deserialize, Serialize};
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::state::AppState;
+
+const DEV_SEED_TENANT_ID: &str = "01900001-0000-7000-8000-000000000001";
 
 #[derive(Deserialize)]
 pub struct PortalProductsQuery {
@@ -59,6 +62,29 @@ pub async fn list_portal_products(
     Query(query): Query<PortalProductsQuery>,
 ) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
     let _commerce_id = require_commerce_contact(&auth)?;
+    list_products_for_tenant(&state, auth.tenant_id, &query).await
+}
+
+pub async fn list_public_products(
+    State(state): State<AppState>,
+    Query(query): Query<PortalProductsQuery>,
+) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
+    let tenant_id = resolve_public_catalog_tenant()?;
+    list_products_for_tenant(&state, tenant_id, &query).await
+}
+
+fn resolve_public_catalog_tenant() -> Result<TenantId, ApiError> {
+    if let Ok(raw) = std::env::var("PUBLIC_CATALOG_TENANT_ID") {
+        return TenantId::parse(raw.trim()).map_err(|_| ApiError::internal());
+    }
+    TenantId::parse(DEV_SEED_TENANT_ID).map_err(|_| ApiError::internal())
+}
+
+async fn list_products_for_tenant(
+    state: &AppState,
+    tenant_id: TenantId,
+    query: &PortalProductsQuery,
+) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
     let page_size = query.page_size.clamp(1, 50);
     let page = query.page.max(1);
     let offset = ((page - 1) as i64) * (page_size as i64);
@@ -66,7 +92,7 @@ pub async fn list_portal_products(
 
     let rows = infra_postgres::inventory::list_portal_products(
         &state.app_pool,
-        auth.tenant_id,
+        tenant_id,
         category,
         page_size as i64,
         offset,
@@ -75,14 +101,14 @@ pub async fn list_portal_products(
     .map_err(|_| ApiError::internal())?;
 
     let total =
-        infra_postgres::inventory::count_portal_products(&state.app_pool, auth.tenant_id, category)
+        infra_postgres::inventory::count_portal_products(&state.app_pool, tenant_id, category)
             .await
             .map_err(|_| ApiError::internal())? as u64;
 
     let product_ids: Vec<uuid::Uuid> = rows.iter().map(|row| row.id).collect();
     let images = infra_postgres::inventory::product_images::find_primary_images_for_products(
         &state.app_pool,
-        auth.tenant_id,
+        tenant_id,
         &product_ids,
     )
     .await

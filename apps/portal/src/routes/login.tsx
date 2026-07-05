@@ -7,9 +7,17 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { PortalLoginError } from '@/lib/auth/authErrors';
+import { resolvePostLoginRedirect } from '@/lib/auth/postLoginRedirect';
 import { useI18n } from '@/lib/i18n/context';
 
+type LoginSearch = {
+  redirect?: string;
+};
+
 export const Route = createFileRoute('/login')({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+  }),
   beforeLoad: async ({ context }) => {
     const user = await context.auth.ensureSession();
     if (user) {
@@ -24,6 +32,7 @@ function LoginPage() {
   const { login, enterDevShell } = usePortalAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const { redirect: redirectTo } = Route.useSearch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +45,7 @@ function LoginPage() {
 
     try {
       await login({ email, password });
-      void navigate({ to: '/' });
+      void navigate({ to: resolvePostLoginRedirect(redirectTo) });
     } catch (err) {
       setError(
         err instanceof PortalLoginError ? err.message : 'Unable to sign in. Please try again.',
@@ -48,7 +57,7 @@ function LoginPage() {
 
   function handleDevEnter() {
     enterDevShell();
-    void navigate({ to: '/' });
+    void navigate({ to: resolvePostLoginRedirect(redirectTo) });
   }
 
   return (
