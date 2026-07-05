@@ -98,6 +98,8 @@ Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct` in `src/l
 
 Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `useCatalogRealtime.test.ts`.
 
+Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart).
+
 ---
 
 ## Known gaps
@@ -106,7 +108,7 @@ See `.local/phases/46-portal-catalog-page/ROUTE-GAPS.md`:
 
 - No `GET /v1/portal/products/{id}` — product detail uses category-scoped lookup
 - `unitOfMeasure` not on portal product DTO
-- Optional Playwright E2E (GAP-058)
+- Optional Playwright E2E — covered by `e2e/portal-catalog.spec.ts` (GAP-058 resolved)
 
 ---
 

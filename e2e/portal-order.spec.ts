@@ -1,10 +1,16 @@
 import { expect, test } from '@playwright/test';
 
 import { buildPortalAccessToken, loginResponse } from './fixtures/client-auth';
+import {
+  MOCK_CATEGORY,
+  MOCK_PRODUCT,
+  handlePortalCatalogRoutes,
+  fulfillPortalApiNotFound,
+} from './fixtures/portal-catalog-mock';
 
 test.describe('Portal order flow', () => {
   test('given_catalog_when_add_to_cart_and_submit_then_order_detail', async ({ page }) => {
-    const productId = '01900001-0020-7000-8000-000000000001';
+    const productId = MOCK_PRODUCT.id;
     const orderId = '01900001-0030-7000-8000-000000000099';
     const accessToken = buildPortalAccessToken();
 
@@ -22,47 +28,7 @@ test.describe('Portal order flow', () => {
         return;
       }
 
-      if (path === '/portal/products' && method === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            page: 1,
-            pageSize: 50,
-            total: 1,
-            items: [
-              {
-                id: productId,
-                name: 'Seed Widget',
-                sku: 'SKU-001',
-                priceAmount: 1500,
-                priceCurrency: 'BRL',
-              },
-            ],
-          }),
-        });
-        return;
-      }
-
-      if (path === '/public/products' && method === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            page: 1,
-            pageSize: 50,
-            total: 1,
-            items: [
-              {
-                id: productId,
-                name: 'Seed Widget',
-                sku: 'SKU-001',
-                priceAmount: 1500,
-                priceCurrency: 'BRL',
-              },
-            ],
-          }),
-        });
+      if (await handlePortalCatalogRoutes(route)) {
         return;
       }
 
@@ -150,14 +116,11 @@ test.describe('Portal order flow', () => {
         return;
       }
 
-      await route.fulfill({
-        status: 404,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: { code: 'NOT_FOUND', message: `Unmocked ${method} ${path}` } }),
-      });
+      await fulfillPortalApiNotFound(route, method, path);
     });
 
     await page.goto('/');
+    await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
     await page.getByRole('button', { name: 'Adicionar ao carrinho' }).first().click();
     await page.getByRole('link', { name: /Carrinho/ }).click();
     await page.getByRole('button', { name: 'Entrar para enviar', exact: true }).click();

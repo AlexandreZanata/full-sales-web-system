@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { mockPortalApi } from './fixtures/portal-api-mock';
+import { MOCK_CATEGORY } from './fixtures/portal-catalog-mock';
 
 const VIEWPORTS = [
   { label: '390px mobile', width: 390, height: 844, expectMobileNav: true },
@@ -14,7 +15,7 @@ test.describe('Portal responsive shell', () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await mockPortalApi(page);
       await page.goto('/');
-      await expect(page).toHaveURL('/');
+      await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
 
       const mobileNav = page.getByRole('navigation', { name: 'Mobile' });
       const desktopNav = page.getByRole('navigation', { name: 'Main' });

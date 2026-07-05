@@ -1,12 +1,7 @@
 import type { Page, Route } from '@playwright/test';
 
 import { buildPortalAccessToken, loginResponse } from './client-auth';
-
-const EMPTY_PRODUCTS = { page: 1, pageSize: 50, total: 0, items: [] };
-
-function isProductsList(path: string, method: string): boolean {
-  return method === 'GET' && (path === '/portal/products' || path === '/public/products');
-}
+import { handlePortalCatalogRoutes, fulfillPortalApiNotFound } from './portal-catalog-mock';
 
 export async function mockPortalApi(page: Page): Promise<void> {
   const accessToken = buildPortalAccessToken();
@@ -25,12 +20,7 @@ export async function mockPortalApi(page: Page): Promise<void> {
       return;
     }
 
-    if (isProductsList(path, method)) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(EMPTY_PRODUCTS),
-      });
+    if (await handlePortalCatalogRoutes(route)) {
       return;
     }
 
@@ -43,11 +33,7 @@ export async function mockPortalApi(page: Page): Promise<void> {
       return;
     }
 
-    await route.fulfill({
-      status: 404,
-      contentType: 'application/json',
-      body: JSON.stringify({ error: { code: 'NOT_FOUND', message: `Unmocked ${method} ${path}` } }),
-    });
+    await fulfillPortalApiNotFound(route, method, path);
   });
 }
 
