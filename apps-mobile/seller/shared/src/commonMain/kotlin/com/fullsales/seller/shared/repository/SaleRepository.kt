@@ -1,0 +1,14 @@
+package com.fullsales.seller.shared.repository
+
+import com.fullsales.seller.shared.model.CreateSaleRequest
+import com.fullsales.seller.shared.model.LocalSale
+import com.fullsales.seller.shared.model.LocalSaleStatus
+import kotlinx.coroutines.flow.Flow
+
+interface SaleRepository {
+    fun observeSales(): Flow<List<LocalSale>>
+    suspend fun getSale(localId: String): LocalSale?
+    suspend fun createLocalSale(request: CreateSaleRequest, totalAmount: Double): LocalSale
+    suspend fun updateStatus(localId: String, status: LocalSaleStatus)
+    suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus)
+}

@@ -45,6 +45,16 @@ kotlin {
             api(libs.kotlinx.serialization.json)
             api(libs.ktor.client.core)
         }
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.ext.junit)
+                implementation(libs.room.runtime)
+                implementation(libs.robolectric)
+            }
+        }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
@@ -66,6 +76,7 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/v1\"")
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -80,5 +91,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }

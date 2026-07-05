@@ -61,4 +61,14 @@ Placeholder screen: app name, platform greeting, and configured API base URL.
 
 All Seller routes from `SELLER-ROUTE-MATRIX` have client methods. Unit tests use Ktor `MockEngine`.
 
+### Offline persistence (Phase 55)
+
+| Package | Contents |
+|---------|----------|
+| `shared/repository/` | `CatalogRepository`, `SaleRepository`, `SyncOutboxRepository` (interfaces) |
+| `shared/sync/` | `OfflineSaleWriter` — local sale + outbox enqueue |
+| `shared/db/` (androidMain) | Room `SellerDatabase`, entities, DAOs, `Room*Repository` |
+
+Local sales use UUID v7 idempotency keys. Catalog sync uses atomic replace-all writes.
+
 **Updated:** 2026-07-05
