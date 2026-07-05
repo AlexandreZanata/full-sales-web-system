@@ -54,4 +54,8 @@ class RoomSaleRepository(private val dao: SaleDao) : SaleRepository {
     override suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus) {
         dao.setRemoteId(localId, remoteId, status.name)
     }
+
+    override suspend fun markSyncFailed(localId: String, reason: String) {
+        dao.markSyncFailed(localId, LocalSaleStatus.SyncFailed.name, reason)
+    }
 }

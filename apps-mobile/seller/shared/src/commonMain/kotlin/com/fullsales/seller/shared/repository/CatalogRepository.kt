@@ -9,4 +9,6 @@ interface CatalogRepository {
     fun observeProducts(): Flow<List<Product>>
     suspend fun replaceCommerces(commerces: List<Commerce>)
     suspend fun replaceProducts(products: List<Product>)
+    suspend fun getLastCatalogSyncEpochMs(): Long?
+    suspend fun setLastCatalogSyncEpochMs(epochMs: Long)
 }

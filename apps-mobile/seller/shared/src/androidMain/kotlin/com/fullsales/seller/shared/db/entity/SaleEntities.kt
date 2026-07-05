@@ -19,6 +19,7 @@ data class SaleEntity(
     val totalAmount: Double,
     val totalCurrency: String,
     val createdAtEpochMs: Long,
+    val syncFailureReason: String? = null,
 )
 
 @Entity(

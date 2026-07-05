@@ -20,4 +20,5 @@ data class LocalSale(
     val totalCurrency: String = "BRL",
     val items: List<SaleItem> = emptyList(),
     val createdAtEpochMs: Long,
+    val syncFailureReason: String? = null,
 )

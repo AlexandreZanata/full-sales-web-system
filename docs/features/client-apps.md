@@ -67,7 +67,7 @@ Emulator API: `http://10.0.2.2:8080`
 
 ## KMP seller app (Phase 52+)
 
-Path: `apps-mobile/seller/` · Compose shell; Phase 54 adds `SellerApiClient`; Phase 55 adds Room catalog cache + offline sale outbox.
+Path: `apps-mobile/seller/` · Compose shell; Phase 54 `SellerApiClient`; Phase 55 Room cache; Phase 56 WorkManager sync.
 
 ```bash
 cd apps-mobile/seller

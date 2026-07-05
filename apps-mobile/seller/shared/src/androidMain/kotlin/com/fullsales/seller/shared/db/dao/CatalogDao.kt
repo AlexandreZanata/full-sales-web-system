@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.fullsales.seller.shared.db.entity.CommerceEntity
 import com.fullsales.seller.shared.db.entity.ProductEntity
+import com.fullsales.seller.shared.db.entity.SyncMetadataEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -40,4 +41,10 @@ interface CatalogDao {
         clearProducts()
         if (items.isNotEmpty()) upsertProducts(items)
     }
+
+    @Query("SELECT value FROM sync_metadata WHERE `key` = :key LIMIT 1")
+    suspend fun getMetadata(key: String): String?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertMetadata(item: SyncMetadataEntity)
 }

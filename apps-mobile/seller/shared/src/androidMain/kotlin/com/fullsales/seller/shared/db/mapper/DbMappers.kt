@@ -34,6 +34,7 @@ fun SaleWithLines.toModel(): LocalSale = LocalSale(
     totalCurrency = sale.totalCurrency,
     items = lines.map { SaleItem(it.productId, it.quantity) },
     createdAtEpochMs = sale.createdAtEpochMs,
+    syncFailureReason = sale.syncFailureReason,
 )
 
 fun SyncOutboxEntity.toModel() = SyncOutboxEntry(

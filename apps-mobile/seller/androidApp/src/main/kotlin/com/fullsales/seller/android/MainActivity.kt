@@ -37,4 +37,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        val container = (application as SellerApplication).container
+        container.requestSync()
+    }
 }

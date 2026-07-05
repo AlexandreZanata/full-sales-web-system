@@ -12,7 +12,8 @@ fun generateUuidV7(clockMs: Long = currentEpochMs()): String {
     return formatUuid(bytes)
 }
 
-internal expect fun currentEpochMs(): Long
+/** Wall-clock epoch ms for sync timestamps and UUID v7. */
+expect fun currentEpochMs(): Long
 
 private fun writeTimestamp(clockMs: Long, bytes: ByteArray) {
     var value = clockMs

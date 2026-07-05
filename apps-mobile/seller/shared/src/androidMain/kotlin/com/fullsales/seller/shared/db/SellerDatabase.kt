@@ -12,6 +12,7 @@ import com.fullsales.seller.shared.db.entity.ProductEntity
 import com.fullsales.seller.shared.db.entity.SaleEntity
 import com.fullsales.seller.shared.db.entity.SaleLineEntity
 import com.fullsales.seller.shared.db.entity.SyncOutboxEntity
+import com.fullsales.seller.shared.db.entity.SyncMetadataEntity
 
 @Database(
     entities = [
@@ -20,8 +21,9 @@ import com.fullsales.seller.shared.db.entity.SyncOutboxEntity
         SaleEntity::class,
         SaleLineEntity::class,
         SyncOutboxEntity::class,
+        SyncMetadataEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class SellerDatabase : RoomDatabase() {
@@ -31,7 +33,9 @@ abstract class SellerDatabase : RoomDatabase() {
 
     companion object {
         fun build(context: Context, name: String = "seller.db"): SellerDatabase =
-            Room.databaseBuilder(context, SellerDatabase::class.java, name).build()
+            Room.databaseBuilder(context, SellerDatabase::class.java, name)
+                .fallbackToDestructiveMigration()
+                .build()
 
         fun inMemory(context: Context): SellerDatabase =
             Room.inMemoryDatabaseBuilder(context, SellerDatabase::class.java).build()

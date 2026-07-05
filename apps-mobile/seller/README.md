@@ -1,6 +1,6 @@
 # Full Sales Seller — Kotlin Multiplatform (Phase 52+)
 
-Android shell + `shared` KMP module. Phase 54 adds typed HTTP client; auth UI and offline sync arrive in later phases.
+Android shell + `shared` KMP module. Phases 54–56 add HTTP client, Room offline storage, and WorkManager sync.
 
 ## Prerequisites
 
@@ -48,8 +48,8 @@ Placeholder screen: app name, platform greeting, and configured API base URL.
 
 | Module | Purpose |
 |--------|---------|
-| `shared` | KMP common code — `SellerApiClient`, DTOs, `HttpClientFactory` |
-| `androidApp` | Jetpack Compose Activity |
+| `shared` | KMP common code — API client, sync engine, repositories |
+| `androidApp` | Jetpack Compose Activity + WorkManager sync |
 | `iosApp/` | Stub — see `iosApp/README.md` |
 
 ### Shared API layer (Phase 54)
@@ -70,5 +70,15 @@ All Seller routes from `SELLER-ROUTE-MATRIX` have client methods. Unit tests use
 | `shared/db/` (androidMain) | Room `SellerDatabase`, entities, DAOs, `Room*Repository` |
 
 Local sales use UUID v7 idempotency keys. Catalog sync uses atomic replace-all writes.
+
+### Sync engine (Phase 56)
+
+| Package | Contents |
+|---------|----------|
+| `shared/sync/` | `CatalogPullSync`, `SyncEngine`, `SellerSyncCoordinator`, `OfflineSaleWriter` |
+| `shared/api/SellerSyncTransport.kt` | Outbox transport + catalog pull via `SellerApiClient` |
+| `androidApp/sync/SyncWorker.kt` | Periodic + one-time WorkManager jobs (network required) |
+
+Foreground sync runs on `MainActivity.onResume`. After login (Phase 53), offline sales replay with the stored idempotency key.
 
 **Updated:** 2026-07-05

@@ -11,4 +11,5 @@ interface SaleRepository {
     suspend fun createLocalSale(request: CreateSaleRequest, totalAmount: Double): LocalSale
     suspend fun updateStatus(localId: String, status: LocalSaleStatus)
     suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus)
+    suspend fun markSyncFailed(localId: String, reason: String)
 }

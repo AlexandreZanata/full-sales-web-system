@@ -33,4 +33,9 @@ interface SaleDao {
         "UPDATE sales SET remoteId = :remoteId, status = :status WHERE localId = :localId",
     )
     suspend fun setRemoteId(localId: String, remoteId: String, status: String)
+
+    @Query(
+        "UPDATE sales SET status = :status, syncFailureReason = :reason WHERE localId = :localId",
+    )
+    suspend fun markSyncFailed(localId: String, status: String, reason: String)
 }

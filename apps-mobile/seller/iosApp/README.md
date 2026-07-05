@@ -26,5 +26,6 @@ When iOS shipping is planned:
 2. Point the iOS target at `:shared` (package `com.fullsales.seller`).
 3. Add `iosApp/` Xcode project with a `ContentView` hosting shared Compose UI (when CMP iOS is adopted) or a SwiftUI placeholder.
 4. Set API base URL via build configuration (simulator: `http://127.0.0.1:8080/v1`).
+5. Wire `IosForegroundSync` on app resume (Phase 56 stub; full BGTask in Phase 66).
 
 **Updated:** 2026-07-05
