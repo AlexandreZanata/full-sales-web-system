@@ -138,6 +138,17 @@ Catalog preload runs on login via `container.requestSync()`.
 
 Merge logic lives in `shared/sales/SalesListMerger.kt` — remote status wins when deduped by remote id; pending sync rows sort to top.
 
+### Create sale (Phase 61)
+
+| Component | Purpose |
+|-----------|---------|
+| `CreateSaleScreen` | M3 form — commerce picker, payment chips, multi-line items, sticky total bar |
+| `CreateSaleViewModel` | Catalog flows, stock lookup, validation, online/offline submit |
+| `CreateSaleSubmitter` | `POST /v1/sales` with idempotency key, or `OfflineSaleWriter` + outbox |
+| `shared/sales/CreateSaleForm.kt` | Total calculation (minor units), validation, ADR-006 payment methods |
+
+Parity with field PWA `/sales/new`. Errors: `INSUFFICIENT_STOCK`, `VALIDATION_ERROR`, `COMMERCE_NOT_FOUND` via Snackbar.
+
 Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
 
 **Updated:** 2026-07-05

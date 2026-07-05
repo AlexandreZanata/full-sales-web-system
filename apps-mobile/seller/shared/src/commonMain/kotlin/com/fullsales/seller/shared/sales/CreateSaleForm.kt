@@ -1,0 +1,91 @@
+package com.fullsales.seller.shared.sales
+
+import com.fullsales.seller.shared.model.Product
+
+val PAYMENT_METHODS = listOf("cash", "pix", "credit", "debit")
+
+fun paymentMethodLabel(method: String): String = when (method) {
+    "cash" -> "Cash"
+    "pix" -> "Pix"
+    "credit" -> "Credit card"
+    "debit" -> "Debit card"
+    else -> method
+}
+
+/** Sum line totals in minor units — matches field PWA `/sales/new`. */
+fun calculateCreateSaleTotalMinor(
+    products: List<Product>,
+    lines: List<CreateSaleLineInput>,
+): Long = lines.sumOf { line ->
+    val product = products.firstOrNull { it.id == line.productId } ?: return@sumOf 0L
+    val qty = line.quantityText.toIntOrNull() ?: return@sumOf 0L
+    if (qty <= 0) return@sumOf 0L
+    (product.priceAmount * qty).toLong()
+}
+
+data class CreateSaleLineInput(
+    val productId: String = "",
+    val quantityText: String = "1",
+)
+
+data class CreateSaleLineErrors(
+    val productError: String? = null,
+    val quantityError: String? = null,
+)
+
+data class CreateSaleFormErrors(
+    val commerceError: String? = null,
+    val paymentError: String? = null,
+    val linesError: String? = null,
+    val lineErrors: List<CreateSaleLineErrors> = emptyList(),
+) {
+    val isValid: Boolean
+        get() = commerceError == null && paymentError == null && linesError == null &&
+            lineErrors.all { it.productError == null && it.quantityError == null }
+}
+
+fun validateCreateSaleForm(
+    commerceId: String,
+    paymentMethod: String,
+    lines: List<CreateSaleLineInput>,
+    stockByProductId: Map<String, Int>,
+): CreateSaleFormErrors {
+    val commerceError = if (commerceId.isBlank()) "Select a commerce" else null
+    val paymentError = if (paymentMethod.isBlank()) "Select a payment method" else null
+    val validLineCount = lines.count { line ->
+        line.productId.isNotBlank() && (line.quantityText.toIntOrNull() ?: 0) > 0
+    }
+    val linesError = if (validLineCount == 0) "Add at least one product with quantity" else null
+    val lineErrors = lines.map { line ->
+        val qty = line.quantityText.toIntOrNull()
+        val quantityError = when {
+            line.productId.isBlank() -> null
+            qty == null || qty <= 0 -> "Enter a quantity greater than 0"
+            else -> {
+                val stock = stockByProductId[line.productId]
+                if (stock != null && qty > stock) "Only $stock available" else null
+            }
+        }
+        CreateSaleLineErrors(quantityError = quantityError)
+    }
+    return CreateSaleFormErrors(commerceError, paymentError, linesError, lineErrors)
+}
+
+fun buildCreateSaleRequest(
+    commerceId: String,
+    paymentMethod: String,
+    lines: List<CreateSaleLineInput>,
+): com.fullsales.seller.shared.model.CreateSaleRequest {
+    val items = lines
+        .filter { it.productId.isNotBlank() }
+        .mapNotNull { line ->
+            val qty = line.quantityText.toIntOrNull() ?: return@mapNotNull null
+            if (qty <= 0) return@mapNotNull null
+            com.fullsales.seller.shared.model.CreateSaleItem(line.productId, qty)
+        }
+    return com.fullsales.seller.shared.model.CreateSaleRequest(
+        commerceId = commerceId,
+        paymentMethod = paymentMethod,
+        items = items,
+    )
+}

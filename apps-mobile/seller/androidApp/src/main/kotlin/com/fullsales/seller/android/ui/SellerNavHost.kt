@@ -53,7 +53,7 @@ fun SellerNavHost(container: AppContainer) {
             )
         }
         shellRoute(SellerRoutes.SALES_NEW, navController, settings, syncBadge, authViewModel, settingsViewModel) {
-            NewSaleWithCommercePicker(navController, commerceViewModel, productViewModel)
+            NewSaleWithCommercePicker(navController, factory)
         }
         detailRoute(SellerRoutes.SALE_DETAIL, "saleId", navController, settings, syncBadge, authViewModel) { id ->
             PlaceholderScreen("Sale $id", "Sale detail — Phase 61")
