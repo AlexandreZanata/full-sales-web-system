@@ -32,6 +32,10 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.mock)
         }
         androidMain.dependencies {
             api(libs.ktor.client.android)
@@ -40,6 +44,9 @@ kotlin {
             api(libs.kotlinx.coroutines.android)
             api(libs.kotlinx.serialization.json)
             api(libs.ktor.client.core)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
     }
 }

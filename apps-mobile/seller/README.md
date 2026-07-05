@@ -1,6 +1,6 @@
-# Full Sales Seller — Kotlin Multiplatform (Phase 52)
+# Full Sales Seller — Kotlin Multiplatform (Phase 52+)
 
-Android shell + `shared` KMP module. Field sales UI and offline sync arrive in later phases.
+Android shell + `shared` KMP module. Phase 54 adds typed HTTP client; auth UI and offline sync arrive in later phases.
 
 ## Prerequisites
 
@@ -48,8 +48,17 @@ Placeholder screen: app name, platform greeting, and configured API base URL.
 
 | Module | Purpose |
 |--------|---------|
-| `shared` | KMP common code (`Greeting`, `expect/actual` platform + API config) |
+| `shared` | KMP common code — `SellerApiClient`, DTOs, `HttpClientFactory` |
 | `androidApp` | Jetpack Compose Activity |
 | `iosApp/` | Stub — see `iosApp/README.md` |
+
+### Shared API layer (Phase 54)
+
+| Package | Contents |
+|---------|----------|
+| `shared/api/` | `SellerApiClient`, `HttpClientFactory`, `ApiError`, auth interceptor |
+| `shared/model/` | DTOs mirroring `apps/field/src/lib/api/types.ts` (camelCase JSON) |
+
+All Seller routes from `SELLER-ROUTE-MATRIX` have client methods. Unit tests use Ktor `MockEngine`.
 
 **Updated:** 2026-07-05

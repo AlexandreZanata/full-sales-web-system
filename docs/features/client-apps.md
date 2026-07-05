@@ -1,6 +1,6 @@
 # Client apps — Phase 39
 
-> Commerce portal PWA (`apps/portal`), field PWA (`apps/field`), and KMP Android app (`apps-mobile/field`).
+> Commerce portal PWA (`apps/portal`), field PWA (`apps/field`), KMP field app (`apps-mobile/field`), and KMP seller app (`apps-mobile/seller`).
 
 ## Packages
 
@@ -9,6 +9,7 @@
 | `@full-sales/portal` | 5175 | CommerceContact | `portal@seed-store.com` / `secret123` |
 | `@full-sales/field` | 5176 | Driver, Seller | `seller@test.com` / `driver-a@test.com` / `secret123` |
 | `apps-mobile/field` | — | Driver, Seller | KMP offline (39F) |
+| `apps-mobile/seller` | — | Seller | KMP seller shell (Phase 52+); `SellerApiClient` (Phase 54) |
 
 ## Stack
 
@@ -64,8 +65,19 @@ cd apps-mobile/field
 
 Emulator API: `http://10.0.2.2:8080`
 
+## KMP seller app (Phase 52+)
+
+Path: `apps-mobile/seller/` · Compose shell; Phase 54 adds `SellerApiClient` for all Seller HTTP routes (auth, settings, catalog, sales, media).
+
+```bash
+cd apps-mobile/seller
+./gradlew :shared:check :androidApp:assembleDebug
+```
+
+See `apps-mobile/seller/README.md` for module layout and validation gate.
+
 ## Known gaps
 
 See `.local/phases/39-field-client-apps/FOLLOW-UP-TASKS.md`.
 
-**Updated:** 2026-07-04
+**Updated:** 2026-07-05
