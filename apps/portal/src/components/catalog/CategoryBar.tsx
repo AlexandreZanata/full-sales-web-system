@@ -1,3 +1,5 @@
+import { useCallback, useMemo, useRef, type KeyboardEvent } from 'react';
+
 import type { PortalCategory } from '@/lib/api/types';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +12,15 @@ type CategoryBarProps = {
   variant?: CategoryBarVariant;
   allLabel?: string;
   onSelectAll?: () => void;
+  ariaLabel?: string;
+};
+
+type CategoryTab = {
+  key: string;
+  label: string;
+  isActive: boolean;
+  category?: PortalCategory;
+  onClick: () => void;
 };
 
 function CategoryThumb({
@@ -50,54 +61,92 @@ export function CategoryBar({
   variant = 'menu',
   allLabel,
   onSelectAll,
+  ariaLabel = 'Categories',
 }: CategoryBarProps) {
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const tabs = useMemo<CategoryTab[]>(() => {
+    const items: CategoryTab[] = [];
+    if (allLabel && onSelectAll) {
+      items.push({
+        key: '__all__',
+        label: allLabel,
+        isActive: !activeSlug,
+        onClick: onSelectAll,
+      });
+    }
+    for (const category of categories) {
+      items.push({
+        key: category.id,
+        label: category.name,
+        isActive: category.slug === activeSlug,
+        category,
+        onClick: () => {
+          onSelect(category.slug);
+        },
+      });
+    }
+    return items;
+  }, [activeSlug, allLabel, categories, onSelect, onSelectAll]);
+
+  const focusTab = useCallback((index: number) => {
+    tabRefs.current[index]?.focus();
+  }, []);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const buttons = tabRefs.current.filter((tab): tab is HTMLButtonElement => tab !== null);
+    if (buttons.length === 0) {
+      return;
+    }
+
+    const currentIndex = buttons.findIndex((tab) => tab === document.activeElement);
+    if (currentIndex === -1) {
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      focusTab((currentIndex + 1) % buttons.length);
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      focusTab((currentIndex - 1 + buttons.length) % buttons.length);
+    }
+  };
+
   return (
     <div
       className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       role="tablist"
-      aria-label="Categories"
+      aria-label={ariaLabel}
+      onKeyDown={handleKeyDown}
     >
-      {allLabel && onSelectAll ? (
+      {tabs.map((tab, index) => (
         <button
+          key={tab.key}
+          ref={(element) => {
+            tabRefs.current[index] = element;
+          }}
           type="button"
           role="tab"
-          aria-selected={!activeSlug}
-          aria-current={!activeSlug ? 'true' : undefined}
+          tabIndex={tab.isActive ? 0 : -1}
+          aria-selected={tab.isActive}
+          aria-current={tab.isActive ? 'true' : undefined}
           className={cn(
             'catalog-category-chip',
             variant === 'home' ? 'catalog-category-chip--home' : 'catalog-category-chip--menu',
-            !activeSlug && 'catalog-category-chip--active',
+            tab.isActive && 'catalog-category-chip--active',
           )}
-          onClick={onSelectAll}
+          onClick={tab.onClick}
         >
-          <span className="text-xs font-medium text-foreground">{allLabel}</span>
+          {tab.category ? <CategoryThumb category={tab.category} variant={variant} /> : null}
+          <span className="max-w-[5rem] truncate text-xs font-medium text-foreground">
+            {tab.label}
+          </span>
         </button>
-      ) : null}
-      {categories.map((category) => {
-        const isActive = category.slug === activeSlug;
-        return (
-          <button
-            key={category.id}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            aria-current={isActive ? 'true' : undefined}
-            className={cn(
-              'catalog-category-chip',
-              variant === 'home' ? 'catalog-category-chip--home' : 'catalog-category-chip--menu',
-              isActive && 'catalog-category-chip--active',
-            )}
-            onClick={() => {
-              onSelect(category.slug);
-            }}
-          >
-            <CategoryThumb category={category} variant={variant} />
-            <span className="max-w-[5rem] truncate text-xs font-medium text-foreground">
-              {category.name}
-            </span>
-          </button>
-        );
-      })}
+      ))}
     </div>
   );
 }

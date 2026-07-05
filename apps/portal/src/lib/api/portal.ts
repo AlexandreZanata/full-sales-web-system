@@ -59,6 +59,30 @@ export async function fetchPortalCategoryBySlug(
   return apiFetch<PortalCategoryWithProducts>(path, init);
 }
 
+export async function fetchPortalProductById(
+  id: string,
+  categorySlug?: string,
+): Promise<PortalProduct | null> {
+  if (categorySlug) {
+    const category = await fetchPortalCategoryBySlug(categorySlug);
+    return category.products.find((product) => product.id === id) ?? null;
+  }
+
+  const categories = await fetchPortalCategories();
+  for (const category of categories) {
+    if (!category.active) {
+      continue;
+    }
+    const data = await fetchPortalCategoryBySlug(category.slug);
+    const product = data.products.find((item) => item.id === id);
+    if (product) {
+      return product;
+    }
+  }
+
+  return null;
+}
+
 export async function fetchPortalProducts(
   params: PortalProductsParams = {},
 ): Promise<PaginatedResponse<PortalProduct>> {

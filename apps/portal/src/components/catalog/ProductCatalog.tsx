@@ -7,7 +7,11 @@ import { CategoryBar, type CategoryBarVariant } from '@/components/catalog/Categ
 import { ProductCardGrid } from '@/components/catalog/ProductCardGrid';
 import { ProductCardList } from '@/components/catalog/ProductCardList';
 import type { PortalCategory, PortalProduct } from '@/lib/api/types';
-import { DEFAULT_CATALOG_VIEW_MODE, type CatalogViewMode } from '@/lib/catalog/viewMode';
+import {
+  readCatalogViewMode,
+  writeCatalogViewMode,
+  type CatalogViewMode,
+} from '@/lib/catalog/viewMode';
 
 type ProductCatalogProps = {
   categories?: PortalCategory[];
@@ -28,6 +32,7 @@ type ProductCatalogProps = {
   allCategoriesLabel?: string;
   listViewLabel: string;
   gridViewLabel: string;
+  categoriesAriaLabel?: string;
   categoryBarVariant?: CategoryBarVariant;
   initialViewMode?: CatalogViewMode;
 };
@@ -51,10 +56,16 @@ export function ProductCatalog({
   allCategoriesLabel,
   listViewLabel,
   gridViewLabel,
+  categoriesAriaLabel,
   categoryBarVariant = 'menu',
-  initialViewMode = DEFAULT_CATALOG_VIEW_MODE,
+  initialViewMode = readCatalogViewMode(),
 }: ProductCatalogProps) {
   const [viewMode, setViewMode] = useState<CatalogViewMode>(initialViewMode);
+
+  const handleViewModeChange = (mode: CatalogViewMode) => {
+    setViewMode(mode);
+    writeCatalogViewMode(mode);
+  };
 
   const toolbarTitle = useMemo(() => {
     if (categoryTitle) {
@@ -77,6 +88,7 @@ export function ProductCatalog({
           categories={categories}
           activeSlug={activeCategorySlug}
           variant={categoryBarVariant}
+          ariaLabel={categoriesAriaLabel}
           allLabel={allCategoriesLabel}
           onSelectAll={onCategoryClear}
           onSelect={(slug) => {
@@ -88,7 +100,7 @@ export function ProductCatalog({
       <CatalogToolbar
         title={toolbarTitle}
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleViewModeChange}
         listViewLabel={listViewLabel}
         gridViewLabel={gridViewLabel}
         searchSlot={searchSlot}

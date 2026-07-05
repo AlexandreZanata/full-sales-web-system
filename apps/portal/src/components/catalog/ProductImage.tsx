@@ -15,7 +15,7 @@ export function ProductImage({ product, className, imageClassName }: ProductImag
       <div className={cn('overflow-hidden bg-surface-muted', className)}>
         <img
           src={product.primaryImageUrl}
-          alt=""
+          alt={product.name}
           className={cn('size-full object-cover', imageClassName)}
           loading="lazy"
         />

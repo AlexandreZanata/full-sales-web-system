@@ -44,8 +44,11 @@ export type Messages = {
     unitPrice: string;
     productDetail: string;
     allCategories: string;
+    categories: string;
     viewList: string;
     viewGrid: string;
+    selectCategory: string;
+    emptyCategory: string;
     emptyDescription: string;
   };
   cart: {
@@ -115,8 +118,11 @@ export type MessageKey =
   | 'catalog.unitPrice'
   | 'catalog.productDetail'
   | 'catalog.allCategories'
+  | 'catalog.categories'
   | 'catalog.viewList'
   | 'catalog.viewGrid'
+  | 'catalog.selectCategory'
+  | 'catalog.emptyCategory'
   | 'catalog.emptyDescription'
   | 'cart.title'
   | 'cart.checkout'

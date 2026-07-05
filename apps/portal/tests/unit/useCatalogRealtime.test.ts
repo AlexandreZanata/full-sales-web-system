@@ -18,5 +18,13 @@ describe('invalidatePortalCatalogQueries', () => {
       queryKey: ['portal', 'categories'],
       refetchType: 'active',
     });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['portal', 'category'],
+      refetchType: 'active',
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['portal', 'product'],
+      refetchType: 'active',
+    });
   });
 });

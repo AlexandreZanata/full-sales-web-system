@@ -50,8 +50,11 @@ export const ptBR: Messages = {
     unitPrice: 'Preço unitário',
     productDetail: 'Detalhe do produto',
     allCategories: 'Todos',
+    categories: 'Categorias',
     viewList: 'Visualização em lista',
     viewGrid: 'Visualização em grade',
+    selectCategory: 'Escolha uma categoria',
+    emptyCategory: 'Esta categoria não foi encontrada.',
     emptyDescription: 'Tente outra categoria ou termo de busca.',
   },
   cart: {

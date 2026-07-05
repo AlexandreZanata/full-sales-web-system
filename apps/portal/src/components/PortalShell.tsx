@@ -6,6 +6,8 @@ import { usePortalAuth } from '@/auth/usePortalAuth';
 import { useCart } from '@/cart/CartProvider';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Button } from '@/components/ui/Button';
+import { resolveDefaultCategorySlug } from '@/lib/catalog/catalogSearch';
+import { useCatalogCategories } from '@/lib/catalog/useCatalogCategories';
 import { useI18n } from '@/lib/i18n/context';
 import { useSiteSettings } from '@/lib/settings/useSiteSettings';
 import { cn } from '@/lib/utils';
@@ -14,11 +16,12 @@ type PortalShellProps = {
   children: ReactNode;
 };
 
-const NAV_ITEMS = [
-  { to: '/', labelKey: 'nav.catalog' as const, icon: LayoutGrid },
-  { to: '/cart', labelKey: 'nav.cart' as const, icon: ShoppingCart },
-  { to: '/orders', labelKey: 'nav.orders' as const, icon: Package },
-];
+type NavItem = {
+  to: '/' | '/cart' | '/orders';
+  labelKey: 'nav.catalog' | 'nav.cart' | 'nav.orders';
+  icon: typeof LayoutGrid;
+  search?: { category: string };
+};
 
 export function PortalShell({ children }: PortalShellProps) {
   const { t } = useI18n();
@@ -26,8 +29,21 @@ export function PortalShell({ children }: PortalShellProps) {
   const { itemCount } = useCart();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const settings = useSiteSettings(Boolean(user));
+  const categoriesQuery = useCatalogCategories();
+  const defaultCategorySlug = resolveDefaultCategorySlug(categoriesQuery.data ?? []);
   const headerTitle = settings.data?.displayName ?? t('auth.portalLabel');
   const headerLogoUrl = settings.data?.logoUrl;
+
+  const navItems: NavItem[] = [
+    {
+      to: '/',
+      labelKey: 'nav.catalog',
+      icon: LayoutGrid,
+      search: defaultCategorySlug ? { category: defaultCategorySlug } : undefined,
+    },
+    { to: '/cart', labelKey: 'nav.cart', icon: ShoppingCart },
+    { to: '/orders', labelKey: 'nav.orders', icon: Package },
+  ];
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
@@ -45,10 +61,11 @@ export function PortalShell({ children }: PortalShellProps) {
               {headerTitle}
             </span>
             <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
-              {NAV_ITEMS.map(({ to, labelKey, icon: Icon }) => (
+              {navItems.map(({ to, labelKey, icon: Icon, search }) => (
                 <Link
                   key={to}
                   to={to}
+                  search={search}
                   className={cn(
                     'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                     pathname === to || (to !== '/' && pathname.startsWith(to))
@@ -96,10 +113,11 @@ export function PortalShell({ children }: PortalShellProps) {
         aria-label="Mobile"
       >
         <div className="mx-auto grid max-w-6xl grid-cols-3">
-          {NAV_ITEMS.map(({ to, labelKey, icon: Icon }) => (
+          {navItems.map(({ to, labelKey, icon: Icon, search }) => (
             <Link
               key={to}
               to={to}
+              search={search}
               className={cn(
                 'flex flex-col items-center gap-1 py-2 text-xs font-medium',
                 pathname === to || (to !== '/' && pathname.startsWith(to))

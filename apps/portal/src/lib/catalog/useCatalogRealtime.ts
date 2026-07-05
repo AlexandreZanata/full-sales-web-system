@@ -12,6 +12,14 @@ export function invalidatePortalCatalogQueries(queryClient: QueryClient): void {
     queryKey: ['portal', 'categories'],
     refetchType: 'active',
   });
+  void queryClient.invalidateQueries({
+    queryKey: ['portal', 'category'],
+    refetchType: 'active',
+  });
+  void queryClient.invalidateQueries({
+    queryKey: ['portal', 'product'],
+    refetchType: 'active',
+  });
 }
 
 export function useCatalogRealtime(queryClient: QueryClient): void {

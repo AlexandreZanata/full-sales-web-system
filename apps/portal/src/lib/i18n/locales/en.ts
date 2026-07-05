@@ -50,8 +50,11 @@ export const en: Messages = {
     unitPrice: 'Unit price',
     productDetail: 'Product detail',
     allCategories: 'All',
+    categories: 'Categories',
     viewList: 'List view',
     viewGrid: 'Grid view',
+    selectCategory: 'Choose a category',
+    emptyCategory: 'This category was not found.',
     emptyDescription: 'Try another category or search term.',
   },
   cart: {
