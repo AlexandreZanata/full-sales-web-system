@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.fullsales.seller.android.AppContainer
 import com.fullsales.seller.android.ui.auth.AuthViewModel
+import com.fullsales.seller.android.ui.commerces.CommerceDetailViewModel
+import com.fullsales.seller.android.ui.commerces.CommerceViewModel
 import com.fullsales.seller.android.ui.sales.SalesViewModel
 import com.fullsales.seller.android.ui.settings.SettingsViewModel
 import com.fullsales.seller.android.ui.sync.SyncStatusViewModel
@@ -19,6 +21,10 @@ class SellerViewModelFactory(
             SettingsViewModel(container.apiClient) as T
         modelClass.isAssignableFrom(SalesViewModel::class.java) ->
             SalesViewModel(container.saleRepository) as T
+        modelClass.isAssignableFrom(CommerceViewModel::class.java) ->
+            CommerceViewModel(container.catalogRepository, container.syncCoordinator) as T
+        modelClass.isAssignableFrom(CommerceDetailViewModel::class.java) ->
+            CommerceDetailViewModel(container.apiClient) as T
         modelClass.isAssignableFrom(SyncStatusViewModel::class.java) ->
             SyncStatusViewModel(
                 container,

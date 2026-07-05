@@ -6,6 +6,7 @@ object SellerRoutes {
     const val SALES_NEW = "sales/new"
     const val SALE_DETAIL = "sales/{saleId}"
     const val COMMERCES = "commerces"
+    const val COMMERCE_PICK = "commerces/pick"
     const val COMMERCE_DETAIL = "commerces/{commerceId}"
     const val PRODUCTS = "products"
     const val PRODUCT_DETAIL = "products/{productId}"

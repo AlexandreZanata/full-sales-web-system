@@ -1,5 +1,6 @@
 package com.fullsales.seller.shared.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -8,12 +9,13 @@ data class Commerce(
     val legalName: String,
     val tradeName: String? = null,
     val active: Boolean,
+    val cnpj: String? = null,
 )
 
 @Serializable
 data class CommerceAddress(
     val id: String,
-    val type: String,
+    @SerialName("addressType") val type: String,
     val street: String,
     val number: String,
     val city: String,

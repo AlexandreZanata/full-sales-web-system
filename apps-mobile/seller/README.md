@@ -92,4 +92,15 @@ Foreground sync runs on `MainActivity.onResume`. After login (Phase 53), offline
 
 No delivery routes — Seller nav matches field PWA (Sales + New sale only).
 
+### Commerces UI (Phase 58)
+
+| Component | Purpose |
+|-----------|---------|
+| `CommerceListScreen` | Cached list + pull-to-refresh sync; client-side search; active filter |
+| `CommerceDetailScreen` | `GET /commerces/{id}` + addresses; masked CNPJ |
+| `CommerceViewModel` | Room `observeCommerces()` + `SellerSyncCoordinator` refresh |
+| `CreateSaleScreen` | Commerce picker reuses list (`commerces/pick` route) |
+
+Catalog preload runs on login via `container.requestSync()`.
+
 **Updated:** 2026-07-05

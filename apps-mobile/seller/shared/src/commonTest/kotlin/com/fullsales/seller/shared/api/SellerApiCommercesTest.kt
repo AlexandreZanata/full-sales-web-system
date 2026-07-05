@@ -38,6 +38,20 @@ class SellerApiCommercesTest {
     }
 
     @Test
+    fun listCommerceAddresses_parsesAddressTypeField() = runTest {
+        val recorder = RecordedMockEngine { request ->
+            assertEquals("/v1/commerces/c1/addresses", request.url.encodedPath)
+            HttpStatusCode.OK to """
+                [{"id":"a1","addressType":"Delivery","street":"Rua A","number":"1","city":"SP","state":"SP","postalCode":"01000","isPrimary":true}]
+            """.trimIndent()
+        }
+        val client = testClient(engine = recorder.engine())
+        val addresses = client.listCommerceAddresses("c1")
+        assertEquals("Delivery", addresses.single().type)
+        assertTrue(addresses.single().isPrimary)
+    }
+
+    @Test
     fun listCommerceAddresses_requiresAuthHeader() = runTest {
         val recorder = RecordedMockEngine { request ->
             assertEquals("Bearer seller-token", request.authHeader())
