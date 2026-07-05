@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.formatProductPrice
 
@@ -30,8 +31,9 @@ import com.fullsales.seller.shared.model.formatProductPrice
 fun ProductListScreen(
     viewModel: ProductViewModel,
     onProductClick: (String) -> Unit,
-    title: String = "Products",
+    title: String? = null,
 ) {
+    val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     PullToRefreshBox(
         isRefreshing = state.refreshing,
@@ -44,17 +46,17 @@ fun ProductListScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(title, style = MaterialTheme.typography.headlineSmall)
+            Text(title ?: s.products.title, style = MaterialTheme.typography.headlineSmall)
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = viewModel::setSearchQuery,
-                label = { Text("Search by name or SKU") },
+                label = { Text(s.products.searchByNameOrSku) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             when {
-                state.isEmpty -> Text("No products found", style = MaterialTheme.typography.bodyLarge)
+                state.isEmpty -> Text(s.products.empty, style = MaterialTheme.typography.bodyLarge)
                 else -> LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
                     items(state.filtered, key = { it.id }) { product ->
                         ProductRow(product = product, onClick = { onProductClick(product.id) })

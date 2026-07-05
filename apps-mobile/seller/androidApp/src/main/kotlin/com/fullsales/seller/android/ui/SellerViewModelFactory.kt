@@ -3,6 +3,8 @@ package com.fullsales.seller.android.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.fullsales.seller.android.AppContainer
+import com.fullsales.seller.android.i18n.LocaleStore
+import com.fullsales.seller.android.i18n.LocaleViewModel
 import com.fullsales.seller.android.ui.auth.AuthViewModel
 import com.fullsales.seller.android.ui.commerces.CommerceDetailViewModel
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
@@ -67,6 +69,8 @@ class SellerViewModelFactory(
                 container.outboxRepository,
                 container.appContext,
             ) as T
+        modelClass.isAssignableFrom(LocaleViewModel::class.java) ->
+            LocaleViewModel(LocaleStore(container.appContext)) as T
         else -> error("Unknown ViewModel: ${modelClass.name}")
     }
 }

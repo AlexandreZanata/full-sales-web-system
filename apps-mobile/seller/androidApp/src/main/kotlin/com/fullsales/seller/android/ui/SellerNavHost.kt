@@ -8,9 +8,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.fullsales.seller.android.AppContainer
+import com.fullsales.seller.android.i18n.LocaleViewModel
 import com.fullsales.seller.android.ui.auth.AuthViewModel
 import com.fullsales.seller.android.ui.auth.LoginScreen
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
+import com.fullsales.seller.android.ui.i18n.SellerStringsProvider
 import com.fullsales.seller.android.ui.products.ProductViewModel
 import com.fullsales.seller.android.ui.sales.SaleDetailScreen
 import com.fullsales.seller.android.ui.sales.SaleDetailViewModel
@@ -22,6 +24,18 @@ import com.fullsales.seller.android.ui.sync.SyncStatusViewModel
 @Composable
 fun SellerNavHost(container: AppContainer) {
     val factory = SellerViewModelFactory(container)
+    val localeViewModel: LocaleViewModel = viewModel(factory = factory)
+    SellerStringsProvider(localeViewModel) {
+        SellerNavHostContent(container, factory, localeViewModel)
+    }
+}
+
+@Composable
+private fun SellerNavHostContent(
+    container: AppContainer,
+    factory: SellerViewModelFactory,
+    localeViewModel: LocaleViewModel,
+) {
     val authViewModel: AuthViewModel = viewModel(factory = factory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
     val salesListViewModel: SalesListViewModel = viewModel(factory = factory)
@@ -38,6 +52,7 @@ fun SellerNavHost(container: AppContainer) {
         composable(SellerRoutes.LOGIN) {
             LoginScreen(
                 viewModel = authViewModel,
+                localeViewModel = localeViewModel,
                 onLoggedIn = {
                     settingsViewModel.loadIfStale(force = true)
                     container.requestSync()
@@ -47,21 +62,61 @@ fun SellerNavHost(container: AppContainer) {
                 },
             )
         }
-        shellRoute(SellerRoutes.SALES, navController, settings, syncBadge, authViewModel, settingsViewModel) {
+        shellRoute(
+            SellerRoutes.SALES,
+            navController,
+            settings,
+            syncBadge,
+            authViewModel,
+            settingsViewModel,
+            localeViewModel,
+        ) {
             SalesListScreen(
                 viewModel = salesListViewModel,
                 onSaleClick = { id -> navController.navigate(SellerRoutes.saleDetail(id)) },
                 onNewSale = { navController.navigate(SellerRoutes.SALES_NEW) },
             )
         }
-        shellRoute(SellerRoutes.SALES_NEW, navController, settings, syncBadge, authViewModel, settingsViewModel) {
+        shellRoute(
+            SellerRoutes.SALES_NEW,
+            navController,
+            settings,
+            syncBadge,
+            authViewModel,
+            settingsViewModel,
+            localeViewModel,
+        ) {
             NewSaleWithCommercePicker(navController, factory)
         }
-        detailRoute(SellerRoutes.SALE_DETAIL, "saleId", navController, settings, syncBadge, authViewModel) { id ->
+        detailRoute(
+            SellerRoutes.SALE_DETAIL,
+            "saleId",
+            navController,
+            settings,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+        ) { id ->
             val viewModel: SaleDetailViewModel = viewModel(factory = factory)
             SaleDetailScreen(saleId = id, viewModel = viewModel)
         }
-        commerceRoutes(navController, factory, commerceViewModel, settings, syncBadge, authViewModel)
-        productRoutes(navController, factory, productViewModel, settings, syncBadge, authViewModel)
+        commerceRoutes(
+            navController,
+            factory,
+            commerceViewModel,
+            settings,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+        )
+        productRoutes(
+            navController,
+            factory,
+            productViewModel,
+            settings,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+        )
     }
 }

@@ -160,6 +160,18 @@ Parity with field PWA `/sales/new`. Errors: `INSUFFICIENT_STOCK`, `VALIDATION_ER
 
 Confirm/cancel only when status is `Pending` and sale has a remote id. Maps `INSUFFICIENT_STOCK`, `INVALID_SALE_TRANSITION`, `SALE_NOT_FOUND`.
 
+### i18n (Phase 63)
+
+| Component | Purpose |
+|-----------|---------|
+| `shared/i18n/SellerMessages.kt` | Typed message catalog (en + pt-BR), aligned with field PWA |
+| `shared/i18n/SellerStrings.kt` | Locale resolver, status/payment/error formatters |
+| `LocaleStore` | Android `SharedPreferences` persistence; default `pt-BR` |
+| `LocaleViewModel` + `LocalSellerStrings` | Live locale without app restart |
+| `LocaleSwitcher` | M3 `SegmentedButton` (EN / PT) in shell top bar + login screen |
+
+Validation errors and API error codes resolve to localized strings in Compose. Shared submitters return stable error codes only.
+
 Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
 
 **Updated:** 2026-07-05

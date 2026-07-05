@@ -4,6 +4,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.fullsales.seller.android.i18n.LocaleViewModel
 import com.fullsales.seller.android.ui.auth.AuthViewModel
 import com.fullsales.seller.android.ui.products.ProductDetailScreen
 import com.fullsales.seller.android.ui.products.ProductDetailViewModel
@@ -21,16 +22,25 @@ internal fun NavGraphBuilder.productRoutes(
     settings: SettingsUiState,
     syncBadge: SyncBadge,
     authViewModel: AuthViewModel,
+    localeViewModel: LocaleViewModel,
 ) {
     composable(SellerRoutes.PRODUCTS) {
-        DetailShell(navController, settings, syncBadge, authViewModel) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel) {
             ProductListScreen(
                 viewModel = productViewModel,
                 onProductClick = { id -> navController.navigate(SellerRoutes.productDetail(id)) },
             )
         }
     }
-    detailRoute(SellerRoutes.PRODUCT_DETAIL, "productId", navController, settings, syncBadge, authViewModel) { id ->
+    detailRoute(
+        SellerRoutes.PRODUCT_DETAIL,
+        "productId",
+        navController,
+        settings,
+        syncBadge,
+        authViewModel,
+        localeViewModel,
+    ) { id ->
         val detailViewModel: ProductDetailViewModel = viewModel(factory = factory)
         ProductDetailScreen(
             productId = id,

@@ -1,6 +1,7 @@
 package com.fullsales.seller.shared.sales
 
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.model.CreateSaleItem
 import com.fullsales.seller.shared.model.CreateSaleRequest
 import com.fullsales.seller.shared.model.LocalSaleStatus
@@ -48,6 +49,9 @@ class CreateSaleSubmitterTest {
             stockByProductId = mapOf("p1" to 2),
         )
         assertTrue(!errors.isValid)
-        assertEquals("Only 2 available", errors.lineErrors.first().quantityError)
+        assertEquals(
+            CreateSaleValidationError.QuantityExceedsStock(2),
+            errors.lineErrors.first().quantityError,
+        )
     }
 }

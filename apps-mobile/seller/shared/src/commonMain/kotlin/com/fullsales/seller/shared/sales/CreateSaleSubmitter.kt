@@ -39,25 +39,16 @@ class CreateSaleSubmitter(
         val sale = offlineWriter.createSale(request, totalAmountMinor)
         CreateSaleSubmitResult.Success(sale.localId, isRemote = false)
     }.getOrElse {
-        CreateSaleSubmitResult.Failure("LOCAL_ERROR", it.message ?: "Could not save sale offline")
+        CreateSaleSubmitResult.Failure("LOCAL_ERROR", "LOCAL_ERROR")
     }
-}
-
-fun mapCreateSaleErrorCode(code: String): String = when (code) {
-    "INSUFFICIENT_STOCK" -> "Insufficient stock for one or more items"
-    "VALIDATION_ERROR" -> "Check commerce, payment method, and line items"
-    "COMMERCE_NOT_FOUND" -> "Selected commerce was not found"
-    else -> "Could not create sale"
 }
 
 private fun mapSubmitError(error: Throwable): CreateSaleSubmitResult.Failure {
     if (error is ApiException) {
         return CreateSaleSubmitResult.Failure(
             code = error.detail.code,
-            message = mapCreateSaleErrorCode(error.detail.code).let { mapped ->
-                if (mapped == "Could not create sale") error.detail.message else mapped
-            },
+            message = error.detail.code,
         )
     }
-    return CreateSaleSubmitResult.Failure("NETWORK_ERROR", error.message ?: "Network error")
+    return CreateSaleSubmitResult.Failure("NETWORK_ERROR", "NETWORK_ERROR")
 }

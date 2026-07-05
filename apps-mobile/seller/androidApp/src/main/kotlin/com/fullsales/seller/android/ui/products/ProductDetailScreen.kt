@@ -15,6 +15,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
 
 @Composable
 fun ProductDetailScreen(
@@ -22,13 +24,14 @@ fun ProductDetailScreen(
     viewModel: ProductDetailViewModel,
     onAddToSale: (String) -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     LaunchedEffect(productId) { viewModel.load(productId) }
 
     when {
         state.loading -> CircularProgressIndicator(modifier = Modifier.padding(24.dp))
-        state.error != null -> Text(
-            state.error!!,
+        state.errorCode != null -> Text(
+            SellerStrings.productError(s, state.errorCode!!),
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.padding(16.dp),
         )
@@ -40,7 +43,7 @@ fun ProductDetailScreen(
             unitOfMeasure = state.product!!.unitOfMeasure,
             description = state.product!!.description,
             active = state.product!!.active,
-            stockLabel = state.stockLabel,
+            stockAvailable = state.stockAvailable,
             stockUnavailable = state.stockUnavailable,
             imageUrl = state.imageUrl,
             onAddToSale = { onAddToSale(productId) },
@@ -57,11 +60,12 @@ private fun ProductDetailContent(
     unitOfMeasure: String?,
     description: String?,
     active: Boolean,
-    stockLabel: String,
+    stockAvailable: Int?,
     stockUnavailable: Boolean,
     imageUrl: String?,
     onAddToSale: () -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,12 +74,25 @@ private fun ProductDetailContent(
     ) {
         ProductHeroImage(imageUrl = imageUrl, contentDescription = name)
         Text(name, style = MaterialTheme.typography.headlineSmall)
-        Text("SKU: $sku", style = MaterialTheme.typography.bodyMedium)
-        Text(priceLabel, style = MaterialTheme.typography.titleLarge)
-        categoryName?.let { Text("Category: $it", style = MaterialTheme.typography.bodyMedium) }
-        unitOfMeasure?.let { Text("Unit: $it", style = MaterialTheme.typography.bodyMedium) }
         Text(
-            stockLabel,
+            SellerStrings.format(s.products.skuLabel, "value" to sku),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(priceLabel, style = MaterialTheme.typography.titleLarge)
+        categoryName?.let {
+            Text(
+                SellerStrings.format(s.products.categoryLabel, "value" to it),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        unitOfMeasure?.let {
+            Text(
+                SellerStrings.format(s.products.unitLabel, "value" to it),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        Text(
+            SellerStrings.stockBadge(s, stockAvailable),
             style = MaterialTheme.typography.labelLarge,
             color = if (stockUnavailable) {
                 MaterialTheme.colorScheme.error
@@ -84,7 +101,7 @@ private fun ProductDetailContent(
             },
         )
         Text(
-            if (active) "Active" else "Inactive",
+            if (active) s.common.active else s.common.inactive,
             style = MaterialTheme.typography.labelMedium,
         )
         description?.takeIf { it.isNotBlank() }?.let {
@@ -95,7 +112,7 @@ private fun ProductDetailContent(
             enabled = !stockUnavailable,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Add to sale")
+            Text(s.products.addToSale)
         }
     }
 }

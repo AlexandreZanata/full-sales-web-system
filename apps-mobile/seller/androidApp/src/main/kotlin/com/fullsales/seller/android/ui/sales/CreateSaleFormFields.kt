@@ -19,25 +19,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.CreateSaleValidationError
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.displayName
 import com.fullsales.seller.shared.sales.CreateSaleLineInput
 import com.fullsales.seller.shared.sales.PAYMENT_METHODS
-import com.fullsales.seller.shared.sales.paymentMethodLabel
 
 @Composable
 internal fun CommercePickerField(
     commerces: List<Commerce>,
     commerceId: String,
-    error: String?,
+    error: CreateSaleValidationError?,
     onOpenPicker: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Commerce", style = MaterialTheme.typography.titleMedium)
+        Text(s.sales.commerce, style = MaterialTheme.typography.titleMedium)
         androidx.compose.material3.Button(onClick = onOpenPicker, modifier = Modifier.fillMaxWidth()) {
-            Text("Browse commerces")
+            Text(s.sales.browseCommerces)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             commerces.take(5).forEach { commerce ->
@@ -49,7 +52,11 @@ internal fun CommercePickerField(
             }
         }
         error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            Text(
+                SellerStrings.formatValidation(s, it),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }
@@ -57,22 +64,27 @@ internal fun CommercePickerField(
 @Composable
 internal fun PaymentMethodChips(
     selected: String,
-    error: String?,
+    error: CreateSaleValidationError?,
     onSelect: (String) -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Payment method", style = MaterialTheme.typography.titleMedium)
+        Text(s.sales.paymentMethod, style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PAYMENT_METHODS.forEach { method ->
                 FilterChip(
                     selected = selected == method,
                     onClick = { onSelect(method) },
-                    label = { Text(paymentMethodLabel(method)) },
+                    label = { Text(SellerStrings.paymentMethod(s, method)) },
                 )
             }
         }
         error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            Text(
+                SellerStrings.formatValidation(s, it),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }
@@ -83,18 +95,19 @@ internal fun SaleLineCard(
     line: CreateSaleLineInput,
     products: List<Product>,
     stock: Int?,
-    quantityError: String?,
+    quantityError: CreateSaleValidationError?,
     onChange: (CreateSaleLineInput) -> Unit,
     onRemove: () -> Unit,
     canRemove: Boolean,
 ) {
+    val s = LocalSellerStrings.current
     Card(shape = MaterialTheme.shapes.medium) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Line item", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                Text(s.sales.lineItem, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                 if (canRemove) {
                     IconButton(onClick = onRemove) {
-                        Icon(Icons.Default.Delete, contentDescription = "Remove line")
+                        Icon(Icons.Default.Delete, contentDescription = s.a11y.removeLine)
                     }
                 }
             }
@@ -106,15 +119,17 @@ internal fun SaleLineCard(
             OutlinedTextField(
                 value = line.quantityText,
                 onValueChange = { onChange(line.copy(quantityText = it)) },
-                label = { Text("Quantity") },
+                label = { Text(s.common.quantity) },
                 isError = quantityError != null,
-                supportingText = quantityError?.let { { Text(it) } },
+                supportingText = quantityError?.let { err ->
+                    { Text(SellerStrings.formatValidation(s, err)) }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
             stock?.let {
                 Text(
-                    "Available: $it",
+                    SellerStrings.stockBadge(s, it),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -129,8 +144,9 @@ private fun ProductPickerChips(
     productId: String,
     onSelect: (String) -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Product", style = MaterialTheme.typography.labelLarge)
+        Text(s.sales.product, style = MaterialTheme.typography.labelLarge)
         products.take(8).forEach { product ->
             FilterChip(
                 selected = product.id == productId,

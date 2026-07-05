@@ -13,7 +13,6 @@ import com.fullsales.seller.shared.sales.SaleActionResult
 import com.fullsales.seller.shared.sales.SaleActionSubmitter
 import com.fullsales.seller.shared.sales.SaleDetailLoader
 import com.fullsales.seller.shared.sales.SaleDetailModel
-import com.fullsales.seller.shared.sales.mapSaleActionError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,8 +23,8 @@ data class SaleDetailUiState(
     val loading: Boolean = true,
     val acting: Boolean = false,
     val detail: SaleDetailModel? = null,
-    val error: String? = null,
-    val snackbarMessage: String? = null,
+    val errorCode: String? = null,
+    val snackbarCode: String? = null,
 )
 
 class SaleDetailViewModel(
@@ -53,7 +52,7 @@ class SaleDetailViewModel(
     fun load(id: String) {
         saleId = id
         viewModelScope.launch {
-            _state.update { it.copy(loading = true, error = null) }
+            _state.update { it.copy(loading = true, errorCode = null) }
             loader.load(id, commerces, products, isOnline())
                 .onSuccess { detail -> _state.update { it.copy(loading = false, detail = detail) } }
                 .onFailure { error -> _state.update { mapLoadError(error) } }
@@ -65,7 +64,7 @@ class SaleDetailViewModel(
     fun cancel() = runAction { detail -> actionSubmitter.cancel(detail, isOnline()) }
 
     fun clearSnackbar() {
-        _state.update { it.copy(snackbarMessage = null) }
+        _state.update { it.copy(snackbarCode = null) }
     }
 
     private fun runAction(block: suspend (SaleDetailModel) -> SaleActionResult) {
@@ -79,7 +78,7 @@ class SaleDetailViewModel(
                 }
                 is SaleActionResult.Failure -> {
                     _state.update {
-                        it.copy(acting = false, snackbarMessage = result.message)
+                        it.copy(acting = false, snackbarCode = result.code)
                     }
                 }
             }
@@ -87,11 +86,12 @@ class SaleDetailViewModel(
     }
 
     private fun mapLoadError(error: Throwable): SaleDetailUiState {
-        val message = when (error) {
-            is ApiException -> mapSaleActionError(error.detail.code)
-            else -> error.message ?: "Could not load sale"
+        val code = when (error) {
+            is ApiException -> error.detail.code
+            is IllegalStateException -> "OFFLINE_UNAVAILABLE"
+            else -> "LOAD_FAILED"
         }
-        return SaleDetailUiState(loading = false, error = message)
+        return SaleDetailUiState(loading = false, errorCode = code)
     }
 
     private fun isOnline(): Boolean {

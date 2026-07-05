@@ -33,7 +33,7 @@ class SaleActionSubmitter(
         call: suspend (String) -> Unit,
     ): SaleActionResult {
         val remoteId = detail.remoteId
-            ?: return SaleActionResult.Failure("NO_REMOTE_ID", "Sync sale before changing status")
+            ?: return SaleActionResult.Failure("NO_REMOTE_ID", "NO_REMOTE_ID")
         val localId = detail.localId
         return if (online) {
             runCatching {
@@ -74,9 +74,9 @@ class SaleActionSubmitter(
         if (error is ApiException) {
             return SaleActionResult.Failure(
                 code = error.detail.code,
-                message = mapSaleActionError(error.detail.code),
+                message = error.detail.code,
             )
         }
-        return SaleActionResult.Failure("NETWORK_ERROR", mapSaleActionError("NETWORK_ERROR"))
+        return SaleActionResult.Failure("NETWORK_ERROR", "NETWORK_ERROR")
     }
 }

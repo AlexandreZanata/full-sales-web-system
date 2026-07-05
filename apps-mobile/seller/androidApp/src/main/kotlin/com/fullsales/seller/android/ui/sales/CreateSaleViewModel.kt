@@ -33,7 +33,7 @@ data class CreateSaleUiState(
     val loading: Boolean = true,
     val submitting: Boolean = false,
     val errors: CreateSaleFormErrors = CreateSaleFormErrors(),
-    val snackbarMessage: String? = null,
+    val snackbarCode: String? = null,
 ) {
     val totalMinor: Long
         get() = calculateCreateSaleTotalMinor(products, lines)
@@ -99,7 +99,7 @@ class CreateSaleViewModel(
     }
 
     fun clearSnackbar() {
-        _state.update { it.copy(snackbarMessage = null) }
+        _state.update { it.copy(snackbarCode = null) }
     }
 
     fun submit(onSuccess: (String) -> Unit) {
@@ -134,7 +134,7 @@ class CreateSaleViewModel(
                 }
                 is CreateSaleSubmitResult.Failure -> {
                     _state.update {
-                        it.copy(submitting = false, snackbarMessage = result.message)
+                        it.copy(submitting = false, snackbarCode = result.code)
                     }
                 }
             }

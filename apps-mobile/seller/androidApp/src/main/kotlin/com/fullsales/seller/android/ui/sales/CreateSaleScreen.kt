@@ -28,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.formatMoneyMinorUnits
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,11 +40,12 @@ fun CreateSaleScreen(
     onCreated: (String) -> Unit,
     onOpenCommercePicker: () -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(state.snackbarMessage) {
-        state.snackbarMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
+    LaunchedEffect(state.snackbarCode) {
+        state.snackbarCode?.let { code ->
+            snackbarHostState.showSnackbar(SellerStrings.createSaleError(s, code))
             viewModel.clearSnackbar()
         }
     }
@@ -65,7 +68,7 @@ fun CreateSaleScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("New sale", style = MaterialTheme.typography.headlineSmall)
+            Text(s.sales.new, style = MaterialTheme.typography.headlineSmall)
             CommercePickerField(
                 commerces = state.commerces,
                 commerceId = state.commerceId,
@@ -79,7 +82,11 @@ fun CreateSaleScreen(
                 onSelect = viewModel::setPaymentMethod,
             )
             state.errors.linesError?.let {
-                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    SellerStrings.formatValidation(s, it),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
             }
             state.lines.forEachIndexed { index, line ->
                 SaleLineCard(
@@ -94,7 +101,7 @@ fun CreateSaleScreen(
             }
             TextButton(onClick = viewModel::addLine) {
                 Icon(Icons.Default.Add, contentDescription = null)
-                Text("Add line")
+                Text(s.sales.addLine)
             }
         }
     }
@@ -107,6 +114,7 @@ private fun CreateSaleBottomBar(
     onBack: () -> Unit,
     onSubmit: () -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     Surface(shadowElevation = 8.dp) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
@@ -114,17 +122,17 @@ private fun CreateSaleBottomBar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Total", style = MaterialTheme.typography.titleMedium)
+                Text(s.common.total, style = MaterialTheme.typography.titleMedium)
                 Text(formatMoneyMinorUnits(totalMinor), style = MaterialTheme.typography.headlineSmall)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Back") }
+                TextButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text(s.common.back) }
                 Button(
                     onClick = onSubmit,
                     enabled = !submitting,
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text(if (submitting) "Saving…" else "Confirm sale")
+                    Text(if (submitting) s.common.saving else s.sales.confirm)
                 }
             }
         }

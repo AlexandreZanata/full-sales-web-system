@@ -8,7 +8,6 @@ import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.model.ProductDetail
 import com.fullsales.seller.shared.model.formatProductPrice
 import com.fullsales.seller.shared.model.isStockUnavailable
-import com.fullsales.seller.shared.model.stockBadgeLabel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,10 +15,10 @@ import kotlinx.coroutines.launch
 
 data class ProductDetailUiState(
     val loading: Boolean = true,
-    val error: String? = null,
+    val errorCode: String? = null,
     val product: ProductDetail? = null,
     val priceLabel: String? = null,
-    val stockLabel: String = "Stock unknown",
+    val stockAvailable: Int? = null,
     val stockUnavailable: Boolean = false,
     val imageUrl: String? = null,
 )
@@ -44,7 +43,7 @@ class ProductDetailViewModel(
                 ProductDetailUiState(
                     product = product,
                     priceLabel = formatProductPrice(product.priceAmount, product.priceCurrency),
-                    stockLabel = stockBadgeLabel(balance?.available),
+                    stockAvailable = balance?.available,
                     stockUnavailable = isStockUnavailable(balance?.available),
                     imageUrl = imageUrl,
                     loading = false,
@@ -53,18 +52,14 @@ class ProductDetailViewModel(
                 .onFailure { error ->
                     _state.value = ProductDetailUiState(
                         loading = false,
-                        error = mapError(error),
+                        errorCode = mapErrorCode(error),
                     )
                 }
         }
     }
 
-    private fun mapError(error: Throwable): String = when (error) {
-        is ApiException -> when (error.detail.code) {
-            "PRODUCT_NOT_FOUND" -> "Product not found"
-            "UNAUTHORIZED" -> "Session expired"
-            else -> error.detail.message
-        }
-        else -> error.message ?: "Failed to load product"
+    private fun mapErrorCode(error: Throwable): String = when (error) {
+        is ApiException -> error.detail.code
+        else -> "LOAD_FAILED"
     }
 }

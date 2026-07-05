@@ -1,6 +1,8 @@
 package com.fullsales.seller.shared.sales
 
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.i18n.SellerLocale
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.LocalSaleStatus
 import com.fullsales.seller.shared.sync.FakeOutboxRepository
 import com.fullsales.seller.shared.sync.FakeSaleRepository
@@ -40,10 +42,11 @@ class SaleActionSubmitterTest {
     }
 
     @Test
-    fun mapInvalidTransitionMessage() {
+    fun invalidTransitionMessage_en() {
+        val messages = SellerStrings.forLocale(SellerLocale.En)
         assertEquals(
             "This sale can no longer be changed",
-            mapSaleActionError("INVALID_SALE_TRANSITION"),
+            SellerStrings.saleActionError(messages, "INVALID_SALE_TRANSITION"),
         )
     }
 

@@ -2,6 +2,7 @@ package com.fullsales.seller.android.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,13 +23,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.android.BuildConfig
+import com.fullsales.seller.android.i18n.LocaleViewModel
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.android.ui.i18n.LocaleSwitcher
+import com.fullsales.seller.shared.i18n.SellerStrings
 
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
+    localeViewModel: LocaleViewModel,
     onLoggedIn: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+    val locale by localeViewModel.locale.collectAsState()
+    val s = LocalSellerStrings.current
     var email by rememberSaveable {
         mutableStateOf(if (BuildConfig.DEBUG) "seller@test.com" else "")
     }
@@ -43,11 +51,19 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Full Sales Seller", style = MaterialTheme.typography.headlineSmall)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            LocaleSwitcher(locale = locale, onLocaleChange = localeViewModel::setLocale)
+        }
+        Text(s.auth.signInTitle, style = MaterialTheme.typography.headlineSmall)
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(s.auth.email) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
@@ -56,13 +72,13 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text(s.auth.password) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp),
             singleLine = true,
         )
-        state.error?.let { message ->
+        state.error?.let { code ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -72,7 +88,7 @@ fun LoginScreen(
                 ),
             ) {
                 Text(
-                    text = message,
+                    text = SellerStrings.authError(s, code, state.errorDetail),
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(12.dp),
@@ -89,7 +105,7 @@ fun LoginScreen(
             if (state.loading) {
                 CircularProgressIndicator(modifier = Modifier.padding(4.dp))
             } else {
-                Text("Sign in")
+                Text(s.auth.signIn)
             }
         }
     }

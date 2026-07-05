@@ -1,16 +1,9 @@
 package com.fullsales.seller.shared.sales
 
+import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.model.Product
 
 val PAYMENT_METHODS = listOf("cash", "pix", "credit", "debit")
-
-fun paymentMethodLabel(method: String): String = when (method) {
-    "cash" -> "Cash"
-    "pix" -> "Pix"
-    "credit" -> "Credit card"
-    "debit" -> "Debit card"
-    else -> method
-}
 
 /** Sum line totals in minor units — matches field PWA `/sales/new`. */
 fun calculateCreateSaleTotalMinor(
@@ -29,19 +22,18 @@ data class CreateSaleLineInput(
 )
 
 data class CreateSaleLineErrors(
-    val productError: String? = null,
-    val quantityError: String? = null,
+    val quantityError: CreateSaleValidationError? = null,
 )
 
 data class CreateSaleFormErrors(
-    val commerceError: String? = null,
-    val paymentError: String? = null,
-    val linesError: String? = null,
+    val commerceError: CreateSaleValidationError? = null,
+    val paymentError: CreateSaleValidationError? = null,
+    val linesError: CreateSaleValidationError? = null,
     val lineErrors: List<CreateSaleLineErrors> = emptyList(),
 ) {
     val isValid: Boolean
         get() = commerceError == null && paymentError == null && linesError == null &&
-            lineErrors.all { it.productError == null && it.quantityError == null }
+            lineErrors.all { it.quantityError == null }
 }
 
 fun validateCreateSaleForm(
@@ -50,20 +42,24 @@ fun validateCreateSaleForm(
     lines: List<CreateSaleLineInput>,
     stockByProductId: Map<String, Int>,
 ): CreateSaleFormErrors {
-    val commerceError = if (commerceId.isBlank()) "Select a commerce" else null
-    val paymentError = if (paymentMethod.isBlank()) "Select a payment method" else null
+    val commerceError = if (commerceId.isBlank()) CreateSaleValidationError.SelectCommerce else null
+    val paymentError = if (paymentMethod.isBlank()) CreateSaleValidationError.SelectPayment else null
     val validLineCount = lines.count { line ->
         line.productId.isNotBlank() && (line.quantityText.toIntOrNull() ?: 0) > 0
     }
-    val linesError = if (validLineCount == 0) "Add at least one product with quantity" else null
+    val linesError = if (validLineCount == 0) CreateSaleValidationError.AddProductLine else null
     val lineErrors = lines.map { line ->
         val qty = line.quantityText.toIntOrNull()
         val quantityError = when {
             line.productId.isBlank() -> null
-            qty == null || qty <= 0 -> "Enter a quantity greater than 0"
+            qty == null || qty <= 0 -> CreateSaleValidationError.QuantityRequired
             else -> {
                 val stock = stockByProductId[line.productId]
-                if (stock != null && qty > stock) "Only $stock available" else null
+                if (stock != null && qty > stock) {
+                    CreateSaleValidationError.QuantityExceedsStock(stock)
+                } else {
+                    null
+                }
             }
         }
         CreateSaleLineErrors(quantityError = quantityError)

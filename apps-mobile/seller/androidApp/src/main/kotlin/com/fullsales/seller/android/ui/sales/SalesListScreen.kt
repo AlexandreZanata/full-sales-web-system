@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.android.ui.components.SellerEmptyState
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.model.SalesListItem
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -40,11 +41,12 @@ fun SalesListScreen(
     onSaleClick: (String) -> Unit,
     onNewSale: () -> Unit,
 ) {
+    val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = onNewSale) {
-                Icon(Icons.Default.Add, contentDescription = "New sale")
+                Icon(Icons.Default.Add, contentDescription = s.a11y.newSale)
             }
         },
     ) { padding ->
@@ -58,15 +60,15 @@ fun SalesListScreen(
             when {
                 state.items.isEmpty() && state.isOffline && !state.remoteLoaded ->
                     SellerEmptyState(
-                        title = "Offline",
-                        message = "Connect to the network and pull to refresh to load sales.",
+                        title = s.sales.offlineTitle,
+                        message = s.sales.offlineMessage,
                         modifier = Modifier.fillMaxSize(),
                     )
                 state.items.isEmpty() ->
                     SellerEmptyState(
-                        title = "No sales yet",
-                        message = "Create your first sale to get started.",
-                        actionLabel = "Create sale",
+                        title = s.sales.emptyTitle,
+                        message = s.sales.emptyMessage,
+                        actionLabel = s.sales.emptyAction,
                         onAction = onNewSale,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -85,7 +87,8 @@ fun SalesListScreen(
 
 @Composable
 private fun SaleRow(sale: SalesListItem, onClick: () -> Unit) {
-    val money = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(sale.totalAmount)
+    val moneyLocale = if (sale.totalCurrency == "BRL") Locale("pt", "BR") else Locale.getDefault()
+    val money = NumberFormat.getCurrencyInstance(moneyLocale).format(sale.totalAmount)
     val dateLabel = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         .format(Date(sale.createdAtEpochMs))
     Card(

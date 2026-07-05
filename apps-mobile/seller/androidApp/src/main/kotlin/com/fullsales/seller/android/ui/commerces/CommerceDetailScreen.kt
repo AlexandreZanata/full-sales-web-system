@@ -16,9 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.CommerceAddressUi
 import com.fullsales.seller.shared.model.maskCnpj
 
@@ -55,6 +56,7 @@ private fun CommerceDetailContent(
     active: Boolean,
     addresses: List<CommerceAddressUi>,
 ) {
+    val s = LocalSellerStrings.current
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -67,17 +69,22 @@ private fun CommerceDetailContent(
                 tradeName?.takeIf { it.isNotBlank() }?.let {
                     Text(it, style = MaterialTheme.typography.titleMedium)
                 }
-                cnpj?.let { Text("CNPJ: ${maskCnpj(it)}", style = MaterialTheme.typography.bodyMedium) }
+                cnpj?.let {
+                    Text(
+                        SellerStrings.format(s.commerces.cnpjLabel, "value" to maskCnpj(it)),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
                 Text(
-                    if (active) "Active" else "Inactive",
+                    if (active) s.common.active else s.common.inactive,
                     style = MaterialTheme.typography.labelLarge,
                     color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 )
             }
         }
-        item { Text("Addresses", style = MaterialTheme.typography.titleMedium) }
+        item { Text(s.commerces.addresses, style = MaterialTheme.typography.titleMedium) }
         if (addresses.isEmpty()) {
-            item { Text("No addresses", style = MaterialTheme.typography.bodyMedium) }
+            item { Text(s.commerces.noAddresses, style = MaterialTheme.typography.bodyMedium) }
         } else {
             items(addresses, key = { it.id }) { address ->
                 AddressRow(address)
@@ -88,6 +95,7 @@ private fun CommerceDetailContent(
 
 @Composable
 private fun AddressRow(address: CommerceAddressUi) {
+    val s = LocalSellerStrings.current
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
@@ -96,7 +104,7 @@ private fun AddressRow(address: CommerceAddressUi) {
             ) {
                 Text(address.typeLabel, style = MaterialTheme.typography.titleSmall)
                 if (address.isPrimary) {
-                    Text("Primary", style = MaterialTheme.typography.labelSmall)
+                    Text(s.common.primary, style = MaterialTheme.typography.labelSmall)
                 }
             }
             Text(address.streetLine, style = MaterialTheme.typography.bodyMedium)

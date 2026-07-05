@@ -30,6 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.android.ui.components.SellerEmptyState
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
+import com.fullsales.seller.shared.i18n.SyncChipStatus
 import com.fullsales.seller.shared.model.formatMoneyMinorUnits
 import com.fullsales.seller.shared.sales.SaleDetailModel
 
@@ -39,12 +42,13 @@ fun SaleDetailScreen(
     saleId: String,
     viewModel: SaleDetailViewModel,
 ) {
+    val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(saleId) { viewModel.load(saleId) }
-    LaunchedEffect(state.snackbarMessage) {
-        state.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
+    LaunchedEffect(state.snackbarCode) {
+        state.snackbarCode?.let { code ->
+            snackbarHostState.showSnackbar(SellerStrings.saleActionError(s, code))
             viewModel.clearSnackbar()
         }
     }
@@ -56,9 +60,9 @@ fun SaleDetailScreen(
                     .padding(padding)
                     .padding(24.dp),
             )
-            state.error != null -> SellerEmptyState(
-                title = "Could not load sale",
-                message = state.error!!,
+            state.errorCode != null -> SellerEmptyState(
+                title = s.sales.loadErrorTitle,
+                message = SellerStrings.saleActionError(s, state.errorCode!!),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
@@ -82,6 +86,7 @@ private fun SaleDetailContent(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val s = LocalSellerStrings.current
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -94,16 +99,19 @@ private fun SaleDetailContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Sale detail", style = MaterialTheme.typography.headlineSmall)
+            Text(s.sales.detail, style = MaterialTheme.typography.headlineSmall)
             SaleStatusChip(status = detail.status)
         }
-        detail.syncStatusLabel?.let { SyncStatusChip(it) }
+        detail.syncChip?.let { SyncStatusChip(it) }
         Text(
             detail.commerceName ?: detail.commerceId.take(8),
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
-            "Payment: ${detail.paymentMethod}",
+            SellerStrings.format(
+                s.sales.paymentLabel,
+                "method" to SellerStrings.paymentMethod(s, detail.paymentMethod),
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -132,7 +140,7 @@ private fun SaleDetailContent(
                     modifier = Modifier.weight(1f),
                 ) {
                     if (acting) CircularProgressIndicator(modifier = Modifier.padding(4.dp))
-                    else Text("Confirm")
+                    else Text(s.sales.confirmShort)
                 }
                 OutlinedButton(
                     onClick = onCancel,
@@ -142,7 +150,7 @@ private fun SaleDetailContent(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),
                 ) {
-                    Text("Cancel")
+                    Text(s.sales.cancelShort)
                 }
             }
         }
@@ -150,7 +158,12 @@ private fun SaleDetailContent(
 }
 
 @Composable
-private fun SyncStatusChip(label: String) {
+private fun SyncStatusChip(status: SyncChipStatus) {
+    val s = LocalSellerStrings.current
+    val label = when (status) {
+        SyncChipStatus.PendingSync -> s.syncStatus.pendingSync
+        SyncChipStatus.SyncFailed -> s.syncStatus.syncFailed
+    }
     AssistChip(
         onClick = {},
         enabled = false,

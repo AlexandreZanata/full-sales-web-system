@@ -6,17 +6,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.SaleDisplayStatus
 
 @Composable
 fun SaleStatusChip(status: SaleDisplayStatus, modifier: Modifier = Modifier) {
-    val label = when (status) {
-        SaleDisplayStatus.Pending -> "Pending"
-        SaleDisplayStatus.Confirmed -> "Confirmed"
-        SaleDisplayStatus.Cancelled -> "Cancelled"
-        SaleDisplayStatus.PendingSync -> "Pending sync"
-        SaleDisplayStatus.SyncFailed -> "Sync failed"
-    }
+    val s = LocalSellerStrings.current
+    val label = SellerStrings.saleStatus(s, status)
     val colors = when (status) {
         SaleDisplayStatus.PendingSync -> AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,

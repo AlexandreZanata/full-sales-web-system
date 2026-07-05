@@ -11,11 +11,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.fullsales.seller.android.i18n.LocaleViewModel
 import com.fullsales.seller.android.ui.auth.AuthViewModel
 import com.fullsales.seller.android.ui.commerces.CommerceDetailScreen
 import com.fullsales.seller.android.ui.commerces.CommerceDetailViewModel
 import com.fullsales.seller.android.ui.commerces.CommerceListScreen
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.android.ui.sales.CreateSaleScreen
 import com.fullsales.seller.android.ui.sales.CreateSaleViewModel
 import com.fullsales.seller.android.ui.settings.SettingsUiState
@@ -30,9 +32,10 @@ internal fun NavGraphBuilder.commerceRoutes(
     settings: SettingsUiState,
     syncBadge: SyncBadge,
     authViewModel: AuthViewModel,
+    localeViewModel: LocaleViewModel,
 ) {
     composable(SellerRoutes.COMMERCES) {
-        DetailShell(navController, settings, syncBadge, authViewModel) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel) {
             CommerceListScreen(
                 viewModel = commerceViewModel,
                 onCommerceClick = { id -> navController.navigate(SellerRoutes.commerceDetail(id)) },
@@ -40,7 +43,8 @@ internal fun NavGraphBuilder.commerceRoutes(
         }
     }
     composable(SellerRoutes.COMMERCE_PICK) {
-        DetailShell(navController, settings, syncBadge, authViewModel) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel) {
+            val s = LocalSellerStrings.current
             CommerceListScreen(
                 viewModel = commerceViewModel,
                 onCommerceClick = {},
@@ -50,11 +54,19 @@ internal fun NavGraphBuilder.commerceRoutes(
                         ?.set(SELECTED_COMMERCE_ID, id)
                     navController.popBackStack()
                 },
-                title = "Select commerce",
+                title = s.commerces.selectTitle,
             )
         }
     }
-    detailRoute(SellerRoutes.COMMERCE_DETAIL, "commerceId", navController, settings, syncBadge, authViewModel) { id ->
+    detailRoute(
+        SellerRoutes.COMMERCE_DETAIL,
+        "commerceId",
+        navController,
+        settings,
+        syncBadge,
+        authViewModel,
+        localeViewModel,
+    ) { id ->
         val detailViewModel: CommerceDetailViewModel = viewModel(factory = factory)
         CommerceDetailScreen(commerceId = id, viewModel = detailViewModel)
     }

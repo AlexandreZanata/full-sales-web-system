@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.fullsales.seller.android.i18n.LocaleViewModel
 import com.fullsales.seller.android.ui.SellerRoutes
+import com.fullsales.seller.android.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.android.ui.i18n.LocaleSwitcher
 import com.fullsales.seller.android.ui.sync.SyncBadge
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,11 +47,14 @@ fun SellerShellScaffold(
     displayName: String?,
     logoUrl: String?,
     syncBadge: SyncBadge,
+    localeViewModel: LocaleViewModel,
     onNavigateSales: () -> Unit,
     onNavigateNewSale: () -> Unit,
     onLogout: () -> Unit,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val s = LocalSellerStrings.current
+    val locale by localeViewModel.locale.collectAsState()
     val showBottomBar = SellerRoutes.showsBottomBar(currentRoute)
     var menuExpanded by remember { mutableStateOf(false) }
     Scaffold(
@@ -65,17 +72,22 @@ fun SellerShellScaffold(
                                 contentScale = ContentScale.Fit,
                             )
                         }
-                        Text(displayName ?: "Seller")
+                        Text(displayName ?: s.nav.sellerFallback)
                     }
                 },
                 actions = {
+                    LocaleSwitcher(
+                        locale = locale,
+                        onLocaleChange = localeViewModel::setLocale,
+                        modifier = Modifier.padding(end = 8.dp),
+                    )
                     SyncBadgeChip(syncBadge)
                     IconButton(onClick = { menuExpanded = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                        Icon(Icons.Default.MoreVert, contentDescription = s.a11y.menu)
                     }
                     DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                         DropdownMenuItem(
-                            text = { Text("Logout") },
+                            text = { Text(s.nav.logout) },
                             onClick = {
                                 menuExpanded = false
                                 onLogout()
@@ -91,14 +103,14 @@ fun SellerShellScaffold(
                     NavigationBarItem(
                         selected = currentRoute == SellerRoutes.SALES,
                         onClick = onNavigateSales,
-                        icon = { Icon(Icons.Default.Receipt, contentDescription = "Sales") },
-                        label = { Text("Sales") },
+                        icon = { Icon(Icons.Default.Receipt, contentDescription = s.a11y.sales) },
+                        label = { Text(s.nav.sales) },
                     )
                     NavigationBarItem(
                         selected = currentRoute == SellerRoutes.SALES_NEW,
                         onClick = onNavigateNewSale,
-                        icon = { Icon(Icons.Default.Add, contentDescription = "New sale") },
-                        label = { Text("New sale") },
+                        icon = { Icon(Icons.Default.Add, contentDescription = s.a11y.newSale) },
+                        label = { Text(s.nav.newSale) },
                     )
                 }
             }
@@ -109,16 +121,17 @@ fun SellerShellScaffold(
 
 @Composable
 private fun SyncBadgeChip(badge: SyncBadge) {
+    val s = LocalSellerStrings.current
     val (label, colors) = when (badge) {
-        SyncBadge.Offline -> "Offline" to AssistChipDefaults.assistChipColors(
+        SyncBadge.Offline -> s.common.offline to AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        SyncBadge.Syncing -> "Syncing" to AssistChipDefaults.assistChipColors(
+        SyncBadge.Syncing -> s.common.syncing to AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
         )
-        SyncBadge.SyncFailed -> "Sync failed" to AssistChipDefaults.assistChipColors(
+        SyncBadge.SyncFailed -> s.common.syncFailed to AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
             labelColor = MaterialTheme.colorScheme.onErrorContainer,
         )

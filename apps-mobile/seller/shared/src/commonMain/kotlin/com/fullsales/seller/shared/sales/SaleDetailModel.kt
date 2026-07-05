@@ -1,5 +1,6 @@
 package com.fullsales.seller.shared.sales
 
+import com.fullsales.seller.shared.i18n.SyncChipStatus
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.LocalSale
 import com.fullsales.seller.shared.model.LocalSaleStatus
@@ -25,7 +26,7 @@ data class SaleDetailModel(
     val commerceName: String?,
     val paymentMethod: String,
     val status: SaleDisplayStatus,
-    val syncStatusLabel: String?,
+    val syncChip: SyncChipStatus?,
     val totalAmountMinor: Double,
     val totalCurrency: String,
     val items: List<SaleDetailLine>,
@@ -36,16 +37,9 @@ data class SaleDetailModel(
 fun showSaleDetailActions(status: SaleDisplayStatus, remoteId: String?): Boolean =
     status == SaleDisplayStatus.Pending && remoteId != null
 
-fun mapSaleActionError(code: String): String = when (code) {
-    "INSUFFICIENT_STOCK" -> "Insufficient stock to confirm this sale"
-    "INVALID_SALE_TRANSITION" -> "This sale can no longer be changed"
-    "SALE_NOT_FOUND" -> "Sale not found"
-    else -> "Could not complete the action"
-}
-
-fun localSyncStatusLabel(status: LocalSaleStatus): String? = when (status) {
-    LocalSaleStatus.PendingSync -> "Pending sync"
-    LocalSaleStatus.SyncFailed -> "Sync failed"
+fun syncChipStatus(status: LocalSaleStatus): SyncChipStatus? = when (status) {
+    LocalSaleStatus.PendingSync -> SyncChipStatus.PendingSync
+    LocalSaleStatus.SyncFailed -> SyncChipStatus.SyncFailed
     else -> null
 }
 
@@ -62,7 +56,7 @@ fun buildSaleDetailFromRemote(
     commerceName = commerces.firstOrNull { it.id == sale.commerceId }?.displayName(),
     paymentMethod = sale.paymentMethod,
     status = remoteSaleStatusToDisplay(sale.status),
-    syncStatusLabel = local?.let { localSyncStatusLabel(it.status) },
+    syncChip = local?.let { syncChipStatus(it.status) },
     totalAmountMinor = sale.totalAmount,
     totalCurrency = sale.totalCurrency,
     items = sale.items.map { it.toDetailLine(products) },
@@ -88,7 +82,7 @@ fun buildSaleDetailFromLocal(
         commerceName = commerces.firstOrNull { it.id == local.commerceId }?.displayName(),
         paymentMethod = local.paymentMethod,
         status = displayStatus,
-        syncStatusLabel = localSyncStatusLabel(local.status),
+        syncChip = syncChipStatus(local.status),
         totalAmountMinor = local.totalAmount,
         totalCurrency = local.totalCurrency,
         items = local.items.map { it.toDetailLine(products) },
