@@ -573,10 +573,19 @@ export type Messages = {
     };
     validation: {
       displayNameTooLong: string;
+      salesContactPhoneInvalid: string;
+    };
+    contact: {
+      title: string;
+      description: string;
+      salesPhone: string;
+      save: string;
+      saving: string;
     };
     toast: {
       identitySaved: string;
       logoSaved: string;
+      contactSaved: string;
     };
   };
   inventory: {

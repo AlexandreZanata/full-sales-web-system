@@ -170,8 +170,9 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 
 | Method | Path | Auth | Status | Migrations | Rules | Task |
 |--------|------|------|--------|------------|-------|------|
-| GET | `/v1/settings` | Any authenticated tenant role | ✅ | `236` | presigned logo URL | 41 |
-| PATCH | `/v1/settings` | Admin | ✅ | `236` | display name | 41 |
+| GET | `/v1/settings` | Any authenticated tenant role | ✅ | `236`, `sales_contact_phone` | presigned logo URL + sales phone | 41, 50 |
+| GET | `/v1/public/settings` | Public | ✅ | `sales_contact_phone` | guest portal branding subset | 50 |
+| PATCH | `/v1/settings` | Admin | ✅ | `236`, `sales_contact_phone` | display name + sales phone | 41, 50 |
 | PUT | `/v1/settings/logo` | Admin | ✅ | `236` | `logo_file_id` → media | 41 |
 
 ---

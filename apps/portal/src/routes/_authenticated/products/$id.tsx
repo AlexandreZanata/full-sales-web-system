@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 
-import { useCart } from '@/cart/CartProvider';
+import { ProductDetailActions } from '@/components/catalog/ProductDetailActions';
 import { ProductDetailInfo } from '@/components/catalog/ProductDetailInfo';
 import { ProductDetailSkeleton } from '@/components/catalog/ProductDetailSkeleton';
 import { ProductMediaPanel } from '@/components/catalog/ProductMediaPanel';
-import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchPortalProductById } from '@/lib/api/portal';
 import { useI18n } from '@/lib/i18n/context';
+import { useSiteSettings } from '@/lib/settings/useSiteSettings';
 import { cn } from '@/lib/utils';
 
 type ProductDetailSearch = {
@@ -30,7 +30,7 @@ function ProductDetailPage() {
   const { id } = Route.useParams();
   const { category: categorySlug } = Route.useSearch();
   const { t } = useI18n();
-  const { addProduct } = useCart();
+  const settingsQuery = useSiteSettings(true);
 
   const productQuery = useQuery({
     queryKey: ['portal', 'product', id],
@@ -48,6 +48,10 @@ function ProductDetailPage() {
   }
 
   const catalogSearch = product.categorySlug ?? categorySlug;
+  const productUrl =
+    typeof window !== 'undefined' ?
+      `${window.location.origin}/products/${product.id}${catalogSearch ? `?category=${encodeURIComponent(catalogSearch)}` : ''}`
+    : `/products/${product.id}`;
 
   return (
     <div className="space-y-6 pb-24 md:pb-0">
@@ -91,14 +95,11 @@ function ProductDetailPage() {
           'fixed inset-x-0 bottom-16 z-10 border-t border-hairline bg-surface/95 p-4 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none',
         )}
       >
-        <Button
-          className="w-full md:max-w-sm"
-          onClick={() => {
-            addProduct(product);
-          }}
-        >
-          {t('common.addToCart')}
-        </Button>
+        <ProductDetailActions
+          product={product}
+          salesContactPhone={settingsQuery.data?.salesContactPhone}
+          productUrl={productUrl}
+        />
       </div>
     </div>
   );

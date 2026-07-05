@@ -4,16 +4,24 @@ export type SiteSettings = {
   displayName: string;
   logoFileId?: string;
   logoUrl?: string;
+  salesContactPhone?: string;
 };
 
 export async function fetchSettings(): Promise<SiteSettings> {
   return apiFetch<SiteSettings>('/settings');
 }
 
-export async function updateSettings(body: { displayName: string }): Promise<SiteSettings> {
+export async function updateSettings(body: {
+  displayName?: string;
+  salesContactPhone?: string;
+}): Promise<SiteSettings> {
   return apiPatch<SiteSettings>('/settings', {
     body: JSON.stringify(body),
   });
+}
+
+export async function updateSalesContactPhone(salesContactPhone: string): Promise<SiteSettings> {
+  return updateSettings({ salesContactPhone });
 }
 
 export async function updateSiteLogo(fileId: string): Promise<SiteSettings> {

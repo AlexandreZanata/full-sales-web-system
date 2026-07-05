@@ -18,6 +18,8 @@ pub async fn seed_tenant_site_settings(app_pool: &PgPool, tenant: TenantId) -> D
     infra_postgres::shared::update_tenant_display_name(app_pool, tenant, "Dev Sales Platform")
         .await?;
     infra_postgres::shared::update_tenant_logo(app_pool, tenant, Some(logo_file_id)).await?;
+    infra_postgres::shared::update_tenant_sales_contact_phone(app_pool, tenant, Some("5511987654321"))
+        .await?;
 
     Ok(())
 }

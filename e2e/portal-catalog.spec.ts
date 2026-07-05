@@ -42,5 +42,9 @@ test.describe('Portal catalog flow', () => {
     await expect(page.getByRole('button', { name: 'Próxima imagem' })).toBeVisible();
     await expect(page.getByText('Unidade de medida')).toBeVisible();
     await expect(page.getByText('UN', { exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Falar com vendedor' })).toHaveAttribute(
+      'href',
+      /wa\.me\/5511987654321/,
+    );
   });
 });

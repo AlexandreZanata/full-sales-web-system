@@ -508,12 +508,17 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/settings`
 
 - **Auth:** Any authenticated role in tenant
-- **Response 200:** `{ "displayName", "logoFileId?", "logoUrl?" }` — `logoUrl` is S3 presigned or `/v1/media/{fileId}/content` in local dev
+- **Response 200:** `{ "displayName", "logoFileId?", "logoUrl?", "salesContactPhone?" }` — `logoUrl` is S3 presigned or `/v1/media/{fileId}/content` in local dev
+
+### `GET /v1/public/settings`
+
+- **Auth:** none (public catalog tenant)
+- **Response 200:** `{ "displayName", "salesContactPhone?" }` — branding subset for guest portal
 
 ### `PATCH /v1/settings`
 
 - **Auth:** Admin
-- **Body:** `{ "displayName?" }`
+- **Body:** `{ "displayName?", "salesContactPhone?" }` — phone: digits only after normalize, 10–15 chars; empty string clears
 - **Response 200:** Updated settings
 
 ### `PUT /v1/settings/logo`

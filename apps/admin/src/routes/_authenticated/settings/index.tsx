@@ -2,11 +2,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { SiteIdentityForm } from '@/components/settings/SiteIdentityForm';
+import { SalesContactForm } from '@/components/settings/SalesContactForm';
 import { SiteLogoSection } from '@/components/settings/SiteLogoSection';
 import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { updateSettings } from '@/lib/api/settings';
+import { updateSalesContactPhone, updateSettings } from '@/lib/api/settings';
 import { useI18n } from '@/lib/i18n/context';
 import { siteSettingsQueryKey, useSiteSettings } from '@/lib/settings/useSiteSettings';
 
@@ -44,6 +45,20 @@ function SettingsPage() {
         <SiteIdentityForm
           settings={data}
           onSave={(displayName) => updateSettings({ displayName })}
+          onSaved={() => {
+            void queryClient.invalidateQueries({ queryKey: siteSettingsQueryKey() });
+          }}
+        />
+      </Card>
+
+      <Card className="space-y-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {t('settings.contact.title')}
+        </p>
+        <p className="text-sm text-muted-foreground">{t('settings.contact.description')}</p>
+        <SalesContactForm
+          settings={data}
+          onSave={(salesContactPhone) => updateSalesContactPhone(salesContactPhone)}
           onSaved={() => {
             void queryClient.invalidateQueries({ queryKey: siteSettingsQueryKey() });
           }}

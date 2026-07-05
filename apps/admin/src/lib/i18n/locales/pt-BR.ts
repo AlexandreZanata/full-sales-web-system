@@ -571,10 +571,19 @@ export const ptBR: Messages = {
     },
     validation: {
       displayNameTooLong: 'O nome de exibição deve ter no máximo 200 caracteres',
+      salesContactPhoneInvalid: 'O telefone deve ter 10–15 dígitos (E.164 ou celular BR)',
+    },
+    contact: {
+      title: 'Contato comercial',
+      description: 'Número do WhatsApp exibido no detalhe do produto no portal (“Falar com vendedor”).',
+      salesPhone: 'Telefone comercial',
+      save: 'Salvar contato',
+      saving: 'Salvando…',
     },
     toast: {
       identitySaved: 'Configurações do site salvas',
       logoSaved: 'Logo do site atualizado',
+      contactSaved: 'Telefone comercial salvo',
     },
   },
   inventory: {

@@ -570,10 +570,19 @@ export const en: Messages = {
     },
     validation: {
       displayNameTooLong: 'Display name must be 200 characters or fewer',
+      salesContactPhoneInvalid: 'Phone must be 10–15 digits (E.164 or BR mobile)',
+    },
+    contact: {
+      title: 'Sales contact',
+      description: 'WhatsApp number shown on portal product detail “Contact seller”.',
+      salesPhone: 'Sales contact phone',
+      save: 'Save contact',
+      saving: 'Saving…',
     },
     toast: {
       identitySaved: 'Site settings saved',
       logoSaved: 'Site logo updated',
+      contactSaved: 'Sales contact phone saved',
     },
   },
   inventory: {

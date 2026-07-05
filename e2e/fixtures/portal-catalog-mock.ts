@@ -96,6 +96,21 @@ export async function fulfillCatalogEvents(route: Route): Promise<void> {
   await route.fulfill({ status: 200, contentType: 'text/event-stream', body: '' });
 }
 
+export async function fulfillPublicSettings(route: Route): Promise<void> {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      displayName: 'Dev Sales Platform',
+      salesContactPhone: '5511987654321',
+    }),
+  });
+}
+
+export function isPublicSettings(path: string, method: string): boolean {
+  return method === 'GET' && path === '/public/settings';
+}
+
 export async function fulfillPortalApiNotFound(route: Route, method: string, path: string): Promise<void> {
   await route.fulfill({
     status: 404,
@@ -131,6 +146,11 @@ export async function handlePortalCatalogRoutes(route: Route): Promise<boolean> 
 
   if (isCatalogEvents(path, method)) {
     await fulfillCatalogEvents(route);
+    return true;
+  }
+
+  if (isPublicSettings(path, method)) {
+    await fulfillPublicSettings(route);
     return true;
   }
 

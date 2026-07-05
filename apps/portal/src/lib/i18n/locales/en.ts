@@ -105,5 +105,9 @@ export const en: Messages = {
     prevImage: 'Previous image',
     nextImage: 'Next image',
     goToSlide: 'Go to image',
+    addToCart: 'Add to cart',
+    placeOrder: 'Place order',
+    contactSeller: 'Contact seller',
+    contactUnavailable: 'Sales contact phone is not configured',
   },
 };

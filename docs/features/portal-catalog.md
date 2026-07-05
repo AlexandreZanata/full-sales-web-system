@@ -65,6 +65,7 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 | `ProductMediaPanel` | Sticky gallery wrapper for product detail |
 | `ProductDetailInfo` | Title, price, description, specs table |
 | `ProductDetailSkeleton` | Product detail loading state |
+| `ProductDetailActions` | Sticky CTAs: cart, place order, contact seller |
 
 ---
 
@@ -77,9 +78,12 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 | 3 | `ProductMediaPanel` builds gallery from `primaryImageUrl` + `imageUrls[]` |
 | 4 | Single image: no carousel chrome; 2+ images: arrows + dots |
 | 5 | Specs show SKU, unit of measure, category, status |
-| 6 | Sticky add-to-cart bar (mobile bottom; desktop inline) |
+| 6 | `ProductDetailActions` sticky bar: add to cart, place order (→ cart), contact seller (WhatsApp) |
+| 7 | Contact seller uses `salesContactPhone` from `GET /v1/public/settings` (guest) or `/v1/settings` (logged in) |
 
 **Route file:** `routes/_authenticated/products/$id.tsx`
+
+**Components:** `ProductDetailActions`, `lib/contact/sellerWhatsAppLink.ts`
 
 ---
 
@@ -103,6 +107,7 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 | `fetchPortalCategories` | `GET /v1/public/categories` or `/v1/portal/categories` |
 | `fetchPortalCategoryBySlug` | `GET /v1/public/categories/{slug}` or `/v1/portal/categories/{slug}` |
 | `fetchPortalProductById` | `GET /v1/public/products/{id}` or `/v1/portal/products/{id}` |
+| `fetchSettings` | `GET /v1/public/settings` or `/v1/settings` |
 | `fetchPortalProducts` | `GET /v1/public/products?category=` (fallback) |
 
 Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalProductDetail` in `src/lib/api/types.ts`.

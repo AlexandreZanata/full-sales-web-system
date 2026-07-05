@@ -8,6 +8,7 @@ use uuid::Uuid;
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::media;
+use crate::portal::resolve_public_catalog_tenant;
 use crate::state::AppState;
 
 #[derive(Serialize)]
@@ -18,12 +19,16 @@ pub struct SettingsResponse {
     pub logo_file_id: Option<Uuid>,
     #[serde(rename = "logoUrl", skip_serializing_if = "Option::is_none")]
     pub logo_url: Option<String>,
+    #[serde(rename = "salesContactPhone", skip_serializing_if = "Option::is_none")]
+    pub sales_contact_phone: Option<String>,
 }
 
 #[derive(Deserialize, Default)]
 pub struct UpdateSettingsRequest {
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
+    #[serde(rename = "salesContactPhone")]
+    pub sales_contact_phone: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -39,32 +44,57 @@ pub async fn get_settings(
     settings_response(&state, auth.tenant_id).await
 }
 
+pub async fn get_public_settings(
+    State(state): State<AppState>,
+) -> Result<Json<SettingsResponse>, ApiError> {
+    let tenant_id = resolve_public_catalog_tenant()?;
+    settings_response(&state, tenant_id).await
+}
+
 pub async fn patch_settings(
     State(state): State<AppState>,
     auth: AuthUser,
     Json(body): Json<UpdateSettingsRequest>,
 ) -> Result<Json<SettingsResponse>, ApiError> {
     require_admin(&auth)?;
-    let Some(display_name) = body.display_name else {
+
+    if body.display_name.is_none() && body.sales_contact_phone.is_none() {
         return settings_response(&state, auth.tenant_id).await;
-    };
-    let trimmed = display_name.trim();
-    if trimmed.is_empty() || trimmed.len() > 200 {
-        return Err(ApiError::bad_request(
-            "VALIDATION_ERROR",
-            "displayName must be 1–200 characters",
-        ));
     }
 
-    let updated = infra_postgres::shared::update_tenant_display_name(
-        &state.app_pool,
-        auth.tenant_id,
-        trimmed,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?;
-    if !updated {
-        return Err(ApiError::not_found());
+    if let Some(display_name) = body.display_name {
+        let trimmed = display_name.trim();
+        if trimmed.is_empty() || trimmed.len() > 200 {
+            return Err(ApiError::bad_request(
+                "VALIDATION_ERROR",
+                "displayName must be 1–200 characters",
+            ));
+        }
+
+        let updated = infra_postgres::shared::update_tenant_display_name(
+            &state.app_pool,
+            auth.tenant_id,
+            trimmed,
+        )
+        .await
+        .map_err(|_| ApiError::internal())?;
+        if !updated {
+            return Err(ApiError::not_found());
+        }
+    }
+
+    if let Some(phone) = body.sales_contact_phone {
+        let normalized = normalize_sales_contact_phone(&phone)?;
+        let updated = infra_postgres::shared::update_tenant_sales_contact_phone(
+            &state.app_pool,
+            auth.tenant_id,
+            normalized.as_deref(),
+        )
+        .await
+        .map_err(|_| ApiError::internal())?;
+        if !updated {
+            return Err(ApiError::not_found());
+        }
     }
 
     settings_response(&state, auth.tenant_id).await
@@ -99,6 +129,23 @@ pub async fn update_site_logo(
     settings_response(&state, auth.tenant_id).await
 }
 
+fn normalize_sales_contact_phone(raw: &str) -> Result<Option<String>, ApiError> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(None);
+    }
+
+    let digits: String = trimmed.chars().filter(|ch| ch.is_ascii_digit()).collect();
+    if digits.len() < 10 || digits.len() > 15 {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "salesContactPhone must be 10–15 digits (E.164 or BR mobile)",
+        ));
+    }
+
+    Ok(Some(digits))
+}
+
 async fn settings_response(
     state: &AppState,
     tenant_id: domain_shared::TenantId,
@@ -127,5 +174,6 @@ async fn settings_response(
         display_name: row.display_name,
         logo_file_id: row.logo_file_id,
         logo_url,
+        sales_contact_phone: row.sales_contact_phone,
     }))
 }

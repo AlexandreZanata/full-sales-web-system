@@ -88,6 +88,10 @@ export type Messages = {
     prevImage: string;
     nextImage: string;
     goToSlide: string;
+    addToCart: string;
+    placeOrder: string;
+    contactSeller: string;
+    contactUnavailable: string;
   };
 };
 
@@ -167,4 +171,8 @@ export type MessageKey =
   | 'productDetail.imageCarousel'
   | 'productDetail.prevImage'
   | 'productDetail.nextImage'
-  | 'productDetail.goToSlide';
+  | 'productDetail.goToSlide'
+  | 'productDetail.addToCart'
+  | 'productDetail.placeOrder'
+  | 'productDetail.contactSeller'
+  | 'productDetail.contactUnavailable';

@@ -793,6 +793,19 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /public/settings:
+    get:
+      summary: Get public tenant site settings (guest portal)
+      operationId: getPublicSettings
+      tags: [Settings]
+      responses:
+        '200':
+          description: Public site settings subset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteSettings'
+
   /settings/logo:
     put:
       summary: Set tenant site logo (Admin)
@@ -2023,6 +2036,11 @@ components:
         logoUrl:
           type: string
           format: uri
+        salesContactPhone:
+          type: string
+          minLength: 10
+          maxLength: 15
+          pattern: '^[0-9]+$'
 
     UpdateSiteSettingsRequest:
       type: object
@@ -2030,6 +2048,9 @@ components:
         displayName:
           type: string
           maxLength: 200
+        salesContactPhone:
+          type: string
+          maxLength: 20
 
     PaginatedCommerces:
       allOf:

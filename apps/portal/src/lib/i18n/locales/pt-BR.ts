@@ -105,5 +105,9 @@ export const ptBR: Messages = {
     prevImage: 'Imagem anterior',
     nextImage: 'Próxima imagem',
     goToSlide: 'Ir para imagem',
+    addToCart: 'Adicionar ao carrinho',
+    placeOrder: 'Fazer pedido',
+    contactSeller: 'Falar com vendedor',
+    contactUnavailable: 'Telefone comercial não configurado',
   },
 };

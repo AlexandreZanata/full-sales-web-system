@@ -37,9 +37,9 @@
 
 ## SiteSettings
 
-**Definition:** Tenant-level branding configuration — public display name and logo shown in admin, portal, and field app shells.
+**Definition:** Tenant-level branding configuration — public display name, logo, and optional sales contact phone (WhatsApp) shown in admin, portal, and field app shells.
 **Not the same as:** Commerce logo (`logo_file_id` on a Commerce row — per-store branding)
-**Storage:** `shared.tenants.display_name`, `shared.tenants.logo_file_id` → `media.files`
+**Storage:** `shared.tenants.display_name`, `shared.tenants.logo_file_id`, `shared.tenants.sales_contact_phone` → `media.files`
 **Code name:** `SiteSettings`
 
 ---
