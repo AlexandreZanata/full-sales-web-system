@@ -56,6 +56,14 @@ pub fn product_ids() -> [Uuid; 4] {
     ]
 }
 
+pub fn category_ids() -> [Uuid; 3] {
+    [
+        parse("01900001-0015-7000-8000-000000000001"),
+        parse("01900001-0015-7000-8000-000000000002"),
+        parse("01900001-0015-7000-8000-000000000003"),
+    ]
+}
+
 pub fn order_ids() -> OrderIds {
     OrderIds {
         pending_portal: parse("01900001-0030-7000-8000-000000000001"),

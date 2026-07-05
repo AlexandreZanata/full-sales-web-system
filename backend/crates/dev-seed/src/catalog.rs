@@ -1,5 +1,6 @@
 use domain_shared::TenantId;
 use infra_postgres::PgPool;
+use infra_postgres::inventory::product_categories::{self, CategoryInsert};
 use infra_postgres::inventory::product_images::{self, ProductImageInsert};
 use infra_postgres::inventory::{self, ProductInsert, StockMovementInsert};
 use infra_postgres::media::{self, FileInsert};
@@ -8,7 +9,7 @@ use uuid::Uuid;
 
 use crate::commerces::CommercesSeed;
 use crate::error::DevSeedResult;
-use crate::ids::{admin_user_id, product_ids};
+use crate::ids::{admin_user_id, category_ids, product_ids};
 use crate::media_bytes::{DEV_MEDIA_BUCKET, minimal_webp_bytes};
 use crate::users::UsersSeed;
 
@@ -22,15 +23,18 @@ pub async fn seed_catalog(
     users: &UsersSeed,
     _commerces: &CommercesSeed,
 ) -> DevSeedResult<CatalogSeed> {
+    let categories = category_ids();
+    seed_categories(app_pool, tenant, &categories).await?;
+
     let specs = [
-        ("SEED-001", "Premium Widget", 2_500_00, true),
-        ("SEED-002", "Standard Gadget", 1_200_00, true),
-        ("SEED-003", "Economy Pack", 450_00, true),
-        ("SEED-004", "Legacy Item", 900_00, false),
+        ("SEED-001", "Premium Widget", 2_500_00, true, categories[1]),
+        ("SEED-002", "Standard Gadget", 1_200_00, true, categories[0]),
+        ("SEED-003", "Economy Pack", 450_00, true, categories[2]),
+        ("SEED-004", "Legacy Item", 900_00, false, categories[0]),
     ];
     let ids = product_ids();
-    for (idx, (sku, name, price, active)) in specs.iter().enumerate() {
-        seed_product_if_missing(app_pool, tenant, ids[idx], sku, name, *price).await?;
+    for (idx, (sku, name, price, active, category_id)) in specs.iter().enumerate() {
+        seed_product_if_missing(app_pool, tenant, ids[idx], sku, name, *price, *category_id).await?;
         if !active {
             inventory::update_product(
                 app_pool,
@@ -41,7 +45,7 @@ pub async fn seed_catalog(
                     price_amount: None,
                     price_currency: None,
                     active: Some(false),
-                    category: None,
+                    category_id: None,
                     unit_of_measure: None,
                 },
             )
@@ -58,6 +62,41 @@ pub async fn seed_catalog(
     })
 }
 
+async fn seed_categories(
+    app_pool: &PgPool,
+    tenant: TenantId,
+    ids: &[Uuid; 3],
+) -> DevSeedResult<()> {
+    let specs = [
+        (ids[0], "General", "general", 0),
+        (ids[1], "Premium", "premium", 1),
+        (ids[2], "Economy", "economy", 2),
+    ];
+    for (id, name, slug, sort_order) in specs {
+        if product_categories::find_category_by_id(app_pool, tenant, id)
+            .await?
+            .is_some()
+        {
+            continue;
+        }
+        product_categories::insert_category(
+            app_pool,
+            tenant,
+            CategoryInsert {
+                id,
+                name: name.into(),
+                slug: slug.into(),
+                description: None,
+                sort_order,
+                active: true,
+                image_file_id: None,
+            },
+        )
+        .await?;
+    }
+    Ok(())
+}
+
 async fn seed_product_if_missing(
     app_pool: &PgPool,
     tenant: TenantId,
@@ -65,11 +104,26 @@ async fn seed_product_if_missing(
     sku: &str,
     name: &str,
     price: i64,
+    category_id: Uuid,
 ) -> DevSeedResult<()> {
     if inventory::find_product_by_id(app_pool, tenant, id)
         .await?
         .is_some()
     {
+        inventory::update_product(
+            app_pool,
+            tenant,
+            id,
+            &inventory::ProductUpdate {
+                name: None,
+                price_amount: None,
+                price_currency: None,
+                active: None,
+                category_id: Some(Some(category_id)),
+                unit_of_measure: None,
+            },
+        )
+        .await?;
         return Ok(());
     }
     inventory::insert_product_with_catalog(
@@ -81,7 +135,7 @@ async fn seed_product_if_missing(
             name: name.into(),
             price_amount: price,
             price_currency: "BRL".into(),
-            category: Some("General".into()),
+            category_id: Some(category_id),
             unit_of_measure: "Unit".into(),
         },
     )

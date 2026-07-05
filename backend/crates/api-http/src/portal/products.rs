@@ -42,7 +42,12 @@ pub struct PortalProductResponse {
     pub price_amount: i64,
     #[serde(rename = "priceCurrency")]
     pub price_currency: String,
-    pub category: Option<String>,
+    #[serde(rename = "categoryId", skip_serializing_if = "Option::is_none")]
+    pub category_id: Option<uuid::Uuid>,
+    #[serde(rename = "categoryName", skip_serializing_if = "Option::is_none")]
+    pub category_name: Option<String>,
+    #[serde(rename = "categorySlug", skip_serializing_if = "Option::is_none")]
+    pub category_slug: Option<String>,
     #[serde(rename = "primaryImageUrl")]
     pub primary_image_url: Option<String>,
 }
@@ -62,7 +67,8 @@ pub async fn list_portal_products(
     Query(query): Query<PortalProductsQuery>,
 ) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
     let _commerce_id = require_commerce_contact(&auth)?;
-    list_products_for_tenant(&state, auth.tenant_id, &query).await
+    let response = list_products_for_tenant(&state, auth.tenant_id, &query).await?;
+    Ok(Json(response))
 }
 
 pub async fn list_public_products(
@@ -70,7 +76,8 @@ pub async fn list_public_products(
     Query(query): Query<PortalProductsQuery>,
 ) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
     let tenant_id = resolve_public_catalog_tenant()?;
-    list_products_for_tenant(&state, tenant_id, &query).await
+    let response = list_products_for_tenant(&state, tenant_id, &query).await?;
+    Ok(Json(response))
 }
 
 pub(crate) fn resolve_public_catalog_tenant() -> Result<TenantId, ApiError> {
@@ -80,31 +87,49 @@ pub(crate) fn resolve_public_catalog_tenant() -> Result<TenantId, ApiError> {
     TenantId::parse(DEV_SEED_TENANT_ID).map_err(|_| ApiError::internal())
 }
 
-async fn list_products_for_tenant(
+pub(crate) async fn list_products_for_tenant(
     state: &AppState,
     tenant_id: TenantId,
     query: &PortalProductsQuery,
-) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
+) -> Result<PaginatedPortalProductsResponse, ApiError> {
     let page_size = query.page_size.clamp(1, 50);
     let page = query.page.max(1);
     let offset = ((page - 1) as i64) * (page_size as i64);
-    let category = query.category.as_deref();
+    let category_slug = query.category.as_deref();
 
     let rows = infra_postgres::inventory::list_portal_products(
         &state.app_pool,
         tenant_id,
-        category,
+        category_slug,
         page_size as i64,
         offset,
     )
     .await
     .map_err(|_| ApiError::internal())?;
 
-    let total =
-        infra_postgres::inventory::count_portal_products(&state.app_pool, tenant_id, category)
-            .await
-            .map_err(|_| ApiError::internal())? as u64;
+    let total = infra_postgres::inventory::count_portal_products(
+        &state.app_pool,
+        tenant_id,
+        category_slug,
+    )
+    .await
+    .map_err(|_| ApiError::internal())? as u64;
 
+    let items = build_portal_product_responses(state, tenant_id, &rows).await?;
+
+    Ok(PaginatedPortalProductsResponse {
+        items,
+        page,
+        page_size,
+        total,
+    })
+}
+
+pub(crate) async fn build_portal_product_responses(
+    state: &AppState,
+    tenant_id: TenantId,
+    rows: &[infra_postgres::inventory::ProductRow],
+) -> Result<Vec<PortalProductResponse>, ApiError> {
     let product_ids: Vec<uuid::Uuid> = rows.iter().map(|row| row.id).collect();
     let images = infra_postgres::inventory::product_images::find_primary_images_for_products(
         &state.app_pool,
@@ -136,21 +161,17 @@ async fn list_products_for_tenant(
         };
         items.push(PortalProductResponse {
             id: row.id,
-            name: row.name,
-            sku: row.sku,
+            name: row.name.clone(),
+            sku: row.sku.clone(),
             price_amount: row.price_amount,
-            price_currency: row.price_currency,
-            category: row.category,
+            price_currency: row.price_currency.clone(),
+            category_id: row.category_id,
+            category_name: row.category_name.clone(),
+            category_slug: row.category_slug.clone(),
             primary_image_url,
         });
     }
-
-    Ok(Json(PaginatedPortalProductsResponse {
-        items,
-        page,
-        page_size,
-        total,
-    }))
+    Ok(items)
 }
 
 pub(super) fn require_commerce_contact(auth: &AuthUser) -> Result<uuid::Uuid, ApiError> {

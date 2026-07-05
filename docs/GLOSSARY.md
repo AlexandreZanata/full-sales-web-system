@@ -92,8 +92,16 @@
 
 ## Product
 
-**Definition:** Sellable SKU with name, identifier, unit price, optional category, and unit of measure.
+**Definition:** Sellable SKU with name, identifier, unit price, optional category assignment (`categoryId`), and unit of measure.
 **Code name:** `Product`
+
+---
+
+## ProductCategory
+
+**Definition:** Tenant-scoped catalog grouping for products — name, URL slug, sort order, optional image, active flag.
+**Code name:** `ProductCategory`  
+**Table:** `inventory.product_categories`
 
 ---
 

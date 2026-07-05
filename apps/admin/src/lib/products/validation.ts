@@ -12,7 +12,6 @@ export type EditProductFormValues = {
   name: string;
   price: string;
   priceCurrency: string;
-  category: string;
   unitOfMeasure: string;
 };
 
@@ -82,7 +81,6 @@ export function toUpdateProductPayload(values: EditProductFormValues) {
     name: values.name.trim(),
     priceAmount,
     priceCurrency: values.priceCurrency.trim() || 'BRL',
-    category: values.category.trim() || undefined,
     unitOfMeasure: values.unitOfMeasure.trim(),
   };
 }

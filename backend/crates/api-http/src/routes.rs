@@ -16,12 +16,17 @@ use crate::commerces::{
 use crate::deliveries::{
     confirm_delivery, create_order_delivery, get_delivery, list_deliveries, start_delivery_transit,
 };
-use crate::inventory::{get_stock_balance, list_movements, record_movement};
+use crate::inventory::{get_stock_balance, list_movements, list_stock_balances, record_movement};
 use crate::media::{get_media_content, get_media_url, get_public_product_media_content, upload_media};
 use crate::catalog_events::stream_catalog_events;
+use crate::categories::{
+    create_category, delete_category, get_category, list_categories, reorder_categories,
+    update_category, update_category_image,
+};
 use crate::portal::{
-    cancel_portal_order, create_portal_order, get_portal_order, list_portal_orders,
-    list_portal_products, list_public_products, submit_portal_order, update_portal_order,
+    cancel_portal_order, create_portal_order, get_portal_category_by_slug, get_portal_order,
+    get_public_category_by_slug, list_portal_categories, list_portal_orders, list_portal_products,
+    list_public_categories, list_public_products, submit_portal_order, update_portal_order,
 };
 use crate::products::{
     attach_product_image, create_product, delete_product_image, get_product, list_product_images,
@@ -73,6 +78,11 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/auth/login", post(login))
         .route("/v1/auth/refresh", post(refresh))
         .route("/v1/public/products", get(list_public_products))
+        .route("/v1/public/categories", get(list_public_categories))
+        .route(
+            "/v1/public/categories/{slug}",
+            get(get_public_category_by_slug),
+        )
         .route("/v1/public/media/{id}/content", get(get_public_product_media_content))
         .route("/v1/public/catalog/events", get(stream_catalog_events))
         .route("/v1/reports/{id}/verify", get(verify_report))
@@ -98,6 +108,18 @@ pub fn v1_router(state: AppState) -> Router {
         )
         .route("/v1/commerces/{id}/logo", put(update_logo))
         .route("/v1/products", get(list_products).post(create_product))
+        .route("/v1/categories", get(list_categories).post(create_category))
+        .route(
+            "/v1/categories/reorder",
+            post(reorder_categories),
+        )
+        .route(
+            "/v1/categories/{id}",
+            get(get_category)
+                .patch(update_category)
+                .delete(delete_category),
+        )
+        .route("/v1/categories/{id}/image", put(update_category_image))
         .route("/v1/products/{id}", get(get_product).patch(update_product))
         .route(
             "/v1/products/{id}/images",
@@ -111,6 +133,7 @@ pub fn v1_router(state: AppState) -> Router {
             "/v1/inventory/products/{productId}/balance",
             get(get_stock_balance),
         )
+        .route("/v1/inventory/balances", get(list_stock_balances))
         .route("/v1/inventory/movements", post(record_movement))
         .route(
             "/v1/inventory/products/{productId}/movements",
@@ -122,6 +145,11 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/sales/{id}/cancel", post(cancel_sale))
         .route("/v1/sales/{id}/declare-payment", post(declare_sale_payment))
         .route("/v1/portal/products", get(list_portal_products))
+        .route("/v1/portal/categories", get(list_portal_categories))
+        .route(
+            "/v1/portal/categories/{slug}",
+            get(get_portal_category_by_slug),
+        )
         .route(
             "/v1/portal/orders",
             get(list_portal_orders).post(create_portal_order),

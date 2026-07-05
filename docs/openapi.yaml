@@ -403,6 +403,191 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductDetail'
 
+  /categories:
+    get:
+      summary: List product categories (Admin)
+      operationId: listCategories
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCategories'
+    post:
+      summary: Create product category (Admin)
+      operationId: createCategory
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                sortOrder:
+                  type: integer
+                active:
+                  type: boolean
+                slug:
+                  type: string
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+
+  /categories/reorder:
+    post:
+      summary: Reorder categories (Admin)
+      operationId: reorderCategories
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderedIds]
+              properties:
+                orderedIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '204':
+          description: Order updated
+
+  /categories/{id}:
+    get:
+      summary: Get category by id (Admin)
+      operationId: getCategory
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Category found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    patch:
+      summary: Update category (Admin)
+      operationId: updateCategory
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                sortOrder:
+                  type: integer
+                active:
+                  type: boolean
+                slug:
+                  type: string
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    delete:
+      summary: Deactivate category (Admin)
+      operationId: deleteCategory
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Category deactivated
+
+  /categories/{id}/image:
+    put:
+      summary: Set category image (Admin)
+      operationId: updateCategoryImage
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileId]
+              properties:
+                fileId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Category with image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+
   /products/{id}:
     get:
       summary: Get product by id
@@ -818,6 +1003,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /portal/categories:
+    get:
+      summary: List portal categories (CommerceContact)
+      operationId: listPortalCategories
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Active categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /portal/categories/{slug}:
+    get:
+      summary: Portal category with products
+      operationId: getPortalCategoryBySlug
+      tags: [Portal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Category and products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryWithProducts'
 
   /portal/products:
     get:
@@ -1875,8 +2100,9 @@ components:
         priceCurrency:
           type: string
           default: BRL
-        category:
+        categoryId:
           type: string
+          format: uuid
         unitOfMeasure:
           type: string
           default: Unit
@@ -1892,8 +2118,10 @@ components:
           type: string
         active:
           type: boolean
-        category:
+        categoryId:
           type: string
+          format: uuid
+          nullable: true
         unitOfMeasure:
           type: string
 
@@ -1920,10 +2148,97 @@ components:
         - $ref: '#/components/schemas/Product'
         - type: object
           properties:
-            category:
+            categoryId:
+              type: string
+              format: uuid
+            categoryName:
+              type: string
+            categorySlug:
               type: string
             unitOfMeasure:
               type: string
+
+    Category:
+      type: object
+      required: [id, name, slug, sortOrder, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        sortOrder:
+          type: integer
+        active:
+          type: boolean
+        imageFileId:
+          type: string
+          format: uuid
+        thumbUrl:
+          type: string
+        productCount:
+          type: integer
+
+    PaginatedCategories:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+
+    CategoryWithProducts:
+      allOf:
+        - $ref: '#/components/schemas/Category'
+        - type: object
+          required: [products, page, pageSize, total]
+          properties:
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/PortalProduct'
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            total:
+              type: integer
+
+    PortalProduct:
+      type: object
+      required: [id, name, sku, priceAmount, priceCurrency]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        priceAmount:
+          type: integer
+        priceCurrency:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        categorySlug:
+          type: string
+        primaryImageUrl:
+          type: string
 
     ProductImage:
       type: object

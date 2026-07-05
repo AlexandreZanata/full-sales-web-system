@@ -158,7 +158,7 @@ async fn seed_in_transit_delivery(pools: &TestPools) -> DeliveryFixture {
             name: "Delivery Product".into(),
             price_amount: 1500,
             price_currency: "BRL".into(),
-            category: None,
+            category_id: None,
             unit_of_measure: "Unit".into(),
         },
     )

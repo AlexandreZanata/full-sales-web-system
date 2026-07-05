@@ -34,6 +34,14 @@ impl ApiError {
         }
     }
 
+    pub fn not_found_with_code(code: &'static str, message: &'static str) -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code,
+            message,
+        }
+    }
+
     pub fn unauthorized() -> Self {
         Self {
             status: StatusCode::UNAUTHORIZED,

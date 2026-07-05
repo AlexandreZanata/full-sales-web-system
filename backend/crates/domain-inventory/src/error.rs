@@ -25,6 +25,15 @@ pub enum InventoryError {
     #[error("invalid unit of measure")]
     InvalidUnitOfMeasure,
 
+    #[error("invalid category name")]
+    InvalidCategoryName,
+
+    #[error("invalid category slug")]
+    InvalidCategorySlug,
+
+    #[error("category not found")]
+    CategoryNotFound,
+
     #[error("invalid product image id")]
     InvalidProductImageId,
 

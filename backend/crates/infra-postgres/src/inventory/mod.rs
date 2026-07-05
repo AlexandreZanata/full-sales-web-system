@@ -5,8 +5,16 @@ use uuid::Uuid;
 use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
+pub mod product_categories;
 pub mod product_images;
 pub mod reservations;
+pub mod stock_overview;
+
+const PRODUCT_SELECT: &str = "SELECT p.id, p.sku, p.name, p.price_amount, p.price_currency, p.active,
+         p.unit_of_measure, p.category_id, c.name AS category_name, c.slug AS category_slug
+         FROM inventory.products p
+         LEFT JOIN inventory.product_categories c
+           ON c.id = p.category_id AND c.tenant_id = p.tenant_id";
 
 pub struct ProductInsert {
     pub id: Uuid,
@@ -14,7 +22,7 @@ pub struct ProductInsert {
     pub name: String,
     pub price_amount: i64,
     pub price_currency: String,
-    pub category: Option<String>,
+    pub category_id: Option<Uuid>,
     pub unit_of_measure: String,
 }
 
@@ -36,7 +44,7 @@ pub async fn insert_product(
             name: name.to_owned(),
             price_amount,
             price_currency: price_currency.to_owned(),
-            category: None,
+            category_id: None,
             unit_of_measure: "Unit".to_owned(),
         },
     )
@@ -52,7 +60,7 @@ pub async fn insert_product_with_catalog(
     apply_tenant_context(&mut tx, tenant_id).await?;
     sqlx::query(
         "INSERT INTO inventory.products
-         (id, tenant_id, sku, name, price_amount, price_currency, category, unit_of_measure)
+         (id, tenant_id, sku, name, price_amount, price_currency, category_id, unit_of_measure)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
     )
     .bind(product.id)
@@ -61,7 +69,7 @@ pub async fn insert_product_with_catalog(
     .bind(product.name)
     .bind(product.price_amount)
     .bind(product.price_currency)
-    .bind(product.category)
+    .bind(product.category_id)
     .bind(product.unit_of_measure)
     .execute(&mut *tx)
     .await?;
@@ -89,8 +97,51 @@ pub struct ProductRow {
     pub price_amount: i64,
     pub price_currency: String,
     pub active: bool,
-    pub category: Option<String>,
     pub unit_of_measure: String,
+    pub category_id: Option<Uuid>,
+    pub category_name: Option<String>,
+    pub category_slug: Option<String>,
+}
+
+type ProductDbRow = (
+    Uuid,
+    String,
+    String,
+    i64,
+    String,
+    bool,
+    String,
+    Option<Uuid>,
+    Option<String>,
+    Option<String>,
+);
+
+fn map_product_row(
+    (
+        id,
+        sku,
+        name,
+        price_amount,
+        price_currency,
+        active,
+        unit_of_measure,
+        category_id,
+        category_name,
+        category_slug,
+    ): ProductDbRow,
+) -> ProductRow {
+    ProductRow {
+        id,
+        sku,
+        name,
+        price_amount,
+        price_currency,
+        active,
+        unit_of_measure,
+        category_id,
+        category_name,
+        category_slug,
+    }
 }
 
 pub async fn list_products(
@@ -102,114 +153,60 @@ pub async fn list_products(
 ) -> Result<Vec<ProductRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<
-        _,
-        (
-            Uuid,
-            String,
-            String,
-            i64,
-            String,
-            bool,
-            Option<String>,
-            String,
-        ),
-    >(
-        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
-         FROM inventory.products
-         WHERE ($1::bool IS NULL OR active = $1)
-         ORDER BY sku LIMIT $2 OFFSET $3",
-    )
+    let rows = sqlx::query_as::<_, ProductDbRow>(&format!(
+        "{PRODUCT_SELECT}
+         WHERE ($1::bool IS NULL OR p.active = $1)
+         ORDER BY p.sku LIMIT $2 OFFSET $3"
+    ))
     .bind(active)
     .bind(limit)
     .bind(offset)
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(rows
-        .into_iter()
-        .map(
-            |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
-                ProductRow {
-                    id,
-                    sku,
-                    name,
-                    price_amount,
-                    price_currency,
-                    active,
-                    category,
-                    unit_of_measure,
-                }
-            },
-        )
-        .collect())
+    Ok(rows.into_iter().map(map_product_row).collect())
 }
 
 pub async fn list_portal_products(
     pool: &PgPool,
     tenant_id: TenantId,
-    category: Option<&str>,
+    category_slug: Option<&str>,
     limit: i64,
     offset: i64,
 ) -> Result<Vec<ProductRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<
-        _,
-        (
-            Uuid,
-            String,
-            String,
-            i64,
-            String,
-            bool,
-            Option<String>,
-            String,
-        ),
-    >(
-        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
-         FROM inventory.products
-         WHERE active = true
-           AND ($1::text IS NULL OR category = $1)
-         ORDER BY sku LIMIT $2 OFFSET $3",
-    )
-    .bind(category)
+    let rows = sqlx::query_as::<_, ProductDbRow>(&format!(
+        "{PRODUCT_SELECT}
+         WHERE p.active = true
+           AND ($1::text IS NULL OR c.slug = $1)
+         ORDER BY p.sku LIMIT $2 OFFSET $3"
+    ))
+    .bind(category_slug)
     .bind(limit)
     .bind(offset)
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(rows
-        .into_iter()
-        .map(
-            |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
-                ProductRow {
-                    id,
-                    sku,
-                    name,
-                    price_amount,
-                    price_currency,
-                    active,
-                    category,
-                    unit_of_measure,
-                }
-            },
-        )
-        .collect())
+    Ok(rows.into_iter().map(map_product_row).collect())
 }
 
 pub async fn count_portal_products(
     pool: &PgPool,
     tenant_id: TenantId,
-    category: Option<&str>,
+    category_slug: Option<&str>,
 ) -> Result<i64, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let count = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM inventory.products
-         WHERE active = true AND ($1::text IS NULL OR category = $1)",
+        "SELECT COUNT(*)
+         FROM inventory.products p
+         LEFT JOIN inventory.product_categories c
+           ON c.id = p.category_id AND c.tenant_id = p.tenant_id
+         WHERE p.active = true
+           AND ($1::text IS NULL OR c.slug = $1)",
     )
-    .bind(category)
+    .bind(category_slug)
     .fetch_one(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -243,43 +240,14 @@ pub async fn find_products_by_ids(
     }
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<
-        _,
-        (
-            Uuid,
-            String,
-            String,
-            i64,
-            String,
-            bool,
-            Option<String>,
-            String,
-        ),
-    >(
-        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
-         FROM inventory.products WHERE id = ANY($1)",
-    )
+    let rows = sqlx::query_as::<_, ProductDbRow>(&format!(
+        "{PRODUCT_SELECT} WHERE p.id = ANY($1)"
+    ))
     .bind(ids)
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(rows
-        .into_iter()
-        .map(
-            |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
-                ProductRow {
-                    id,
-                    sku,
-                    name,
-                    price_amount,
-                    price_currency,
-                    active,
-                    category,
-                    unit_of_measure,
-                }
-            },
-        )
-        .collect())
+    Ok(rows.into_iter().map(map_product_row).collect())
 }
 
 pub async fn find_product_by_id(
@@ -289,40 +257,12 @@ pub async fn find_product_by_id(
 ) -> Result<Option<ProductRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<
-        _,
-        (
-            Uuid,
-            String,
-            String,
-            i64,
-            String,
-            bool,
-            Option<String>,
-            String,
-        ),
-    >(
-        "SELECT id, sku, name, price_amount, price_currency, active, category, unit_of_measure
-         FROM inventory.products WHERE id = $1",
-    )
+    let row = sqlx::query_as::<_, ProductDbRow>(&format!("{PRODUCT_SELECT} WHERE p.id = $1"))
     .bind(id)
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(
-        |(id, sku, name, price_amount, price_currency, active, category, unit_of_measure)| {
-            ProductRow {
-                id,
-                sku,
-                name,
-                price_amount,
-                price_currency,
-                active,
-                category,
-                unit_of_measure,
-            }
-        },
-    ))
+    Ok(row.map(map_product_row))
 }
 
 pub struct ProductUpdate {
@@ -330,7 +270,7 @@ pub struct ProductUpdate {
     pub price_amount: Option<i64>,
     pub price_currency: Option<String>,
     pub active: Option<bool>,
-    pub category: Option<String>,
+    pub category_id: Option<Option<Uuid>>,
     pub unit_of_measure: Option<String>,
 }
 
@@ -348,8 +288,9 @@ pub async fn update_product(
            price_amount = COALESCE($3, price_amount),
            price_currency = COALESCE($4, price_currency),
            active = COALESCE($5, active),
-           category = COALESCE($6, category),
-           unit_of_measure = COALESCE($7, unit_of_measure)
+           category_id = CASE WHEN $6::bool THEN $7 ELSE category_id END,
+           unit_of_measure = COALESCE($8, unit_of_measure),
+           updated_at = now()
          WHERE id = $1",
     )
     .bind(id)
@@ -357,7 +298,8 @@ pub async fn update_product(
     .bind(update.price_amount)
     .bind(update.price_currency.as_deref())
     .bind(update.active)
-    .bind(update.category.as_deref())
+    .bind(update.category_id.is_some())
+    .bind(update.category_id.as_ref().and_then(|value| *value))
     .bind(update.unit_of_measure.as_deref())
     .execute(&mut *tx)
     .await?;

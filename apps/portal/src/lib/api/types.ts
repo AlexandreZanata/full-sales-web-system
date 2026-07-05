@@ -14,7 +14,9 @@ export type PortalProduct = {
   sku: string;
   priceAmount: number;
   priceCurrency: string;
-  category?: string;
+  categoryId?: string;
+  categoryName?: string;
+  categorySlug?: string;
   primaryImageUrl?: string;
 };
 

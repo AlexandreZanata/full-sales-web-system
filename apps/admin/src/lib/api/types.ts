@@ -217,7 +217,9 @@ export type Product = {
   priceAmount: number;
   priceCurrency: string;
   active: boolean;
-  category?: string;
+  categoryId?: string;
+  categoryName?: string;
+  categorySlug?: string;
   unitOfMeasure?: string;
 };
 
@@ -231,7 +233,7 @@ export type CreateProductRequest = {
   sku: string;
   priceAmount: number;
   priceCurrency?: string;
-  category?: string;
+  categoryId?: string;
   unitOfMeasure?: string;
 };
 
@@ -240,7 +242,7 @@ export type UpdateProductRequest = {
   priceAmount?: number;
   priceCurrency?: string;
   active?: boolean;
-  category?: string;
+  categoryId?: string | null;
   unitOfMeasure?: string;
 };
 
@@ -259,6 +261,17 @@ export type AttachProductImageRequest = {
 
 export type StockBalance = {
   productId: string;
+  available: number;
+};
+
+export type ProductStockOverview = {
+  productId: string;
+  sku: string;
+  name: string;
+  unitOfMeasure: string;
+  active: boolean;
+  balanceTotal: number;
+  reserved: number;
   available: number;
 };
 

@@ -149,7 +149,7 @@ async fn setup() -> PortalEnv {
             name: "Portal Widget".into(),
             price_amount: 2_500,
             price_currency: "BRL".into(),
-            category: Some("Widgets".into()),
+            category_id: None,
             unit_of_measure: "Unit".into(),
         },
     )

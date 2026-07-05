@@ -63,7 +63,7 @@ async fn seed_product_with_stock(app: &PgPool, tenant: TenantId, qty: i32) -> Uu
             name: "Catalog Product".into(),
             price_amount: 1500,
             price_currency: "BRL".into(),
-            category: Some("Beverages".into()),
+            category_id: None,
             unit_of_measure: "Box".into(),
         },
     )
@@ -88,7 +88,7 @@ async fn given_catalog_columns_when_insert_product_then_persisted() {
         .await
         .expect("find");
     let row = rows.first().expect("product");
-    assert_eq!(row.category.as_deref(), Some("Beverages"));
+    assert_eq!(row.category_name.as_deref(), None);
     assert_eq!(row.unit_of_measure, "Box");
 }
 

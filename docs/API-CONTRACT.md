@@ -159,8 +159,9 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `POST /v1/products`
 
 - **Auth:** Admin
-- **Body:** `{ "name", "sku", "priceAmount", "priceCurrency" }`
-- **Response 201:** Product
+- **Body:** `{ "name", "sku", "priceAmount", "priceCurrency", "categoryId?", "unitOfMeasure?" }`
+- **Response 201:** Product detail (`categoryId`, `categoryName`, `categorySlug`, `unitOfMeasure`)
+- **400:** `VALIDATION_ERROR` when legacy `category` string is sent — use `categoryId`
 
 ### `GET /v1/products`
 
@@ -171,13 +172,62 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/products/{id}`
 
 - **Auth:** Admin, Driver, Seller
-- **Response 200 / 404:** `PRODUCT_NOT_FOUND`
+- **Response 200 / 404:** `PRODUCT_NOT_FOUND` — includes `categoryId`, `categoryName`, `categorySlug`
 
 ### `PATCH /v1/products/{id}`
 
 - **Auth:** Admin
-- **Body:** `{ "name?", "priceAmount?", "priceCurrency?", "active?", "category?", "unitOfMeasure?" }`
+- **Body:** `{ "name?", "priceAmount?", "priceCurrency?", "active?", "categoryId?", "unitOfMeasure?" }` — `categoryId: null` clears assignment
 - **Response 200:** Product detail
+
+---
+
+## Product categories (Phase 43)
+
+### `GET /v1/categories`
+
+- **Auth:** Admin
+- **Query:** pagination, `active?`
+- **Response 200:** Paginated categories (`id`, `name`, `slug`, `description?`, `sortOrder`, `active`, `imageFileId?`, `thumbUrl?`, `productCount?`)
+
+### `POST /v1/categories`
+
+- **Auth:** Admin
+- **Body:** `{ "name", "description?", "sortOrder?", "active?", "slug?" }`
+- **Response 201:** Category
+
+### `GET /v1/categories/{id}`
+
+- **Auth:** Admin
+- **Response 200 / 404:** `CATEGORY_NOT_FOUND`
+
+### `PATCH /v1/categories/{id}`
+
+- **Auth:** Admin
+- **Body:** `{ "name?", "description?", "sortOrder?", "active?", "slug?" }`
+- **Response 200:** Category
+
+### `DELETE /v1/categories/{id}`
+
+- **Auth:** Admin
+- **Effect:** Soft-deactivate (`active = false`); products keep assignment
+- **Response 204**
+
+### `POST /v1/categories/reorder`
+
+- **Auth:** Admin
+- **Body:** `{ "orderedIds": uuid[] }`
+- **Response 204**
+
+### `PUT /v1/categories/{id}/image`
+
+- **Auth:** Admin
+- **Body:** `{ "fileId" }` — media entity type `ProductCategory`
+- **Response 200:** Category with `thumbUrl`
+
+---
+
+## Product images
 
 ### `GET /v1/products/{id}/images`
 
@@ -199,6 +249,12 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ---
 
 ## Inventory
+
+### `GET /v1/inventory/balances`
+
+- **Auth:** Admin
+- **Query:** pagination, optional `search` (SKU or name)
+- **Response 200:** Paginated products with `balanceTotal`, `reserved`, and `available` (tenant pool minus active reservations)
 
 ### `GET /v1/inventory/products/{productId}/balance`
 
@@ -266,8 +322,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 - **Auth:** none (public catalog)
 - **Tenant:** `PUBLIC_CATALOG_TENANT_ID` env, or dev seed tenant in local environments
-- **Query:** pagination, `category?`
-- **Response 200:** Active products with optional `primaryImageUrl` — S3 presigned (~15 min) or `/v1/public/media/{fileId}/content` in local dev
+- **Query:** pagination, `category?` (category **slug**)
+- **Response 200:** Active products with `categoryId`, `categoryName`, `categorySlug`, optional `primaryImageUrl`
 
 ### `GET /v1/public/media/{id}/content`
 
@@ -279,14 +335,35 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 - **Auth:** none
 - **Content-Type:** `text/event-stream`
-- **Event:** `catalog.changed` — emitted when admin mutates products or product images
+- **Event:** `catalog.changed` — emitted when admin mutates products, categories, or product images
 - **Heartbeat:** `: ping` every 25s
 
 ### `GET /v1/portal/products`
 
 - **Auth:** CommerceContact only
-- **Query:** pagination, `category?`
-- **Response 200:** Active products with optional `primaryImageUrl` — same URL rules as public catalog
+- **Query:** pagination, `category?` (category **slug**)
+- **Response 200:** Active products with `categoryId`, `categoryName`, `categorySlug`, optional `primaryImageUrl`
+
+### `GET /v1/public/categories`
+
+- **Auth:** none
+- **Response 200:** Active categories ordered by `sortOrder`
+
+### `GET /v1/public/categories/{slug}`
+
+- **Auth:** none
+- **Query:** pagination on nested products
+- **Response 200:** Category fields + paginated `products[]`
+
+### `GET /v1/portal/categories`
+
+- **Auth:** CommerceContact
+- **Response 200:** Same as public categories for tenant
+
+### `GET /v1/portal/categories/{slug}`
+
+- **Auth:** CommerceContact
+- **Response 200:** Category + paginated products
 
 ---
 

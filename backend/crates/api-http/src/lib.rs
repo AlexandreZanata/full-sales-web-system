@@ -2,6 +2,7 @@ mod admin_orders;
 mod audit;
 mod auth;
 pub mod catalog_events;
+mod categories;
 mod client_ip;
 mod commerces;
 mod deliveries;

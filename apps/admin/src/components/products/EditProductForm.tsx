@@ -28,7 +28,6 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
     name: product.name,
     price: formatPriceInput(product.priceAmount),
     priceCurrency: product.priceCurrency,
-    category: product.category ?? '',
     unitOfMeasure: product.unitOfMeasure ?? 'Unit',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EditProductFormValues, string>>>({});
@@ -84,10 +83,8 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
           <Input
             label={t('forms.fields.category')}
             name="category"
-            value={values.category}
-            onChange={(event) => {
-              setValues((current) => ({ ...current, category: event.target.value }));
-            }}
+            value={product.categoryName ?? '—'}
+            disabled
           />
           <Input
             label={t('forms.fields.unitOfMeasure')}

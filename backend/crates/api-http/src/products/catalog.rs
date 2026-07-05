@@ -22,9 +22,12 @@ pub struct CreateProductRequest {
     pub price_amount: i64,
     #[serde(rename = "priceCurrency", default = "default_currency")]
     pub price_currency: String,
-    pub category: Option<String>,
+    #[serde(rename = "categoryId")]
+    pub category_id: Option<Uuid>,
     #[serde(rename = "unitOfMeasure", default = "default_uom")]
     pub unit_of_measure: String,
+    #[serde(rename = "category")]
+    pub legacy_category: Option<String>,
 }
 
 #[derive(Deserialize, Default)]
@@ -35,16 +38,24 @@ pub struct UpdateProductRequest {
     #[serde(rename = "priceCurrency")]
     pub price_currency: Option<String>,
     pub active: Option<bool>,
-    pub category: Option<String>,
+    #[serde(rename = "categoryId")]
+    pub category_id: Option<Option<Uuid>>,
     #[serde(rename = "unitOfMeasure")]
     pub unit_of_measure: Option<String>,
+    #[serde(rename = "category")]
+    pub legacy_category: Option<String>,
 }
 
 #[derive(Serialize)]
 pub struct ProductDetailResponse {
     #[serde(flatten)]
     pub product: ProductResponse,
-    pub category: Option<String>,
+    #[serde(rename = "categoryId", skip_serializing_if = "Option::is_none")]
+    pub category_id: Option<Uuid>,
+    #[serde(rename = "categoryName", skip_serializing_if = "Option::is_none")]
+    pub category_name: Option<String>,
+    #[serde(rename = "categorySlug", skip_serializing_if = "Option::is_none")]
+    pub category_slug: Option<String>,
     #[serde(rename = "unitOfMeasure")]
     pub unit_of_measure: String,
 }
@@ -63,6 +74,16 @@ pub async fn create_product(
     Json(body): Json<CreateProductRequest>,
 ) -> Result<(StatusCode, Json<ProductDetailResponse>), ApiError> {
     require_can_write_products(&auth)?;
+    if body.legacy_category.is_some() {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Use categoryId instead of category",
+        ));
+    }
+    if let Some(category_id) = body.category_id {
+        ensure_category(&state, auth.tenant_id, category_id).await?;
+    }
+
     let product_id = Uuid::now_v7();
     let _ = application::products::restore_product(
         product_id,
@@ -72,7 +93,7 @@ pub async fn create_product(
         &body.price_currency,
         auth.tenant_id,
         true,
-        body.category.as_deref(),
+        None,
         &body.unit_of_measure,
     )
     .map_err(map_products_error)?;
@@ -86,7 +107,7 @@ pub async fn create_product(
             name: body.name,
             price_amount: body.price_amount,
             price_currency: body.price_currency.clone(),
-            category: body.category.clone(),
+            category_id: body.category_id,
             unit_of_measure: body.unit_of_measure.clone(),
         },
     )
@@ -125,6 +146,16 @@ pub async fn update_product(
     Json(body): Json<UpdateProductRequest>,
 ) -> Result<Json<ProductDetailResponse>, ApiError> {
     require_can_write_products(&auth)?;
+    if body.legacy_category.is_some() {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Use categoryId instead of category",
+        ));
+    }
+    if let Some(Some(category_id)) = body.category_id {
+        ensure_category(&state, auth.tenant_id, category_id).await?;
+    }
+
     let updated = infra_postgres::inventory::update_product(
         &state.app_pool,
         auth.tenant_id,
@@ -134,7 +165,7 @@ pub async fn update_product(
             price_amount: body.price_amount,
             price_currency: body.price_currency,
             active: body.active,
-            category: body.category,
+            category_id: body.category_id,
             unit_of_measure: body.unit_of_measure,
         },
     )
@@ -173,10 +204,35 @@ pub(crate) async fn ensure_product(
     }
 }
 
+async fn ensure_category(
+    state: &AppState,
+    tenant_id: domain_shared::TenantId,
+    category_id: Uuid,
+) -> Result<(), ApiError> {
+    let exists = infra_postgres::inventory::product_categories::find_category_by_id(
+        &state.app_pool,
+        tenant_id,
+        category_id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?
+    .is_some();
+    if exists {
+        Ok(())
+    } else {
+        Err(ApiError::not_found_with_code(
+            "CATEGORY_NOT_FOUND",
+            "Category not found",
+        ))
+    }
+}
+
 fn product_detail_from_row(row: &infra_postgres::inventory::ProductRow) -> ProductDetailResponse {
     ProductDetailResponse {
         product: product_response_from_row(row),
-        category: row.category.clone(),
+        category_id: row.category_id,
+        category_name: row.category_name.clone(),
+        category_slug: row.category_slug.clone(),
         unit_of_measure: row.unit_of_measure.clone(),
     }
 }

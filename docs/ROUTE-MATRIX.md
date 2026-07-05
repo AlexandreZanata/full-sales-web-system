@@ -79,6 +79,26 @@ Admin UI coverage: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 
 ---
 
+## Product categories (`inventory.product_categories`) — Phase 43
+
+| Method | Path | Auth | Status | Migrations | Rules | Task |
+|--------|------|------|--------|------------|-------|------|
+| GET | `/v1/categories` | Admin | ✅ | `product_categories` | pagination + `active?` | 43 |
+| POST | `/v1/categories` | Admin | ✅ | `product_categories` | slug unique per tenant | 43 |
+| GET | `/v1/categories/{id}` | Admin | ✅ | `product_categories` | — | 43 |
+| PATCH | `/v1/categories/{id}` | Admin | ✅ | `product_categories` | — | 43 |
+| DELETE | `/v1/categories/{id}` | Admin | ✅ | `product_categories` | soft deactivate | 43 |
+| POST | `/v1/categories/reorder` | Admin | ✅ | `product_categories` | sort order | 43 |
+| PUT | `/v1/categories/{id}/image` | Admin | ✅ | `product_categories`, media | ProductCategory entity | 43 |
+| GET | `/v1/public/categories` | Public | ✅ | `product_categories` | active only | 43 |
+| GET | `/v1/public/categories/{slug}` | Public | ✅ | `product_categories` | + products | 43 |
+| GET | `/v1/portal/categories` | CommerceContact | ✅ | `product_categories` | — | 43 |
+| GET | `/v1/portal/categories/{slug}` | CommerceContact | ✅ | `product_categories` | + products | 43 |
+
+Products `POST/PATCH` accept `categoryId` (uuid); legacy `category` string rejected with 400.
+
+---
+
 ## Inventory (`stock_balances`, `stock_movements`, `stock_reservations`)
 
 | Method | Path | Auth | Status | Migrations | Rules | Task |

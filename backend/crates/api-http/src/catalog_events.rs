@@ -56,6 +56,18 @@ impl CatalogEventHub {
         self.publish(event);
     }
 
+    pub fn publish_category(&self, action: &'static str, category_id: Uuid) {
+        let event = CatalogChangedEvent {
+            event_type: CATALOG_SSE_EVENT,
+            resource: "category",
+            action,
+            at: Utc::now().to_rfc3339(),
+            id: Some(category_id),
+            sku: None,
+        };
+        self.publish(event);
+    }
+
     fn publish(&self, event: CatalogChangedEvent) {
         let Ok(payload) = serde_json::to_string(&event) else {
             return;
@@ -71,6 +83,14 @@ pub fn notify_product_changed(
     sku: &str,
 ) {
     hub.publish_product(action, product_id, sku);
+}
+
+pub fn notify_category_changed(
+    hub: &CatalogEventHub,
+    action: &'static str,
+    category_id: Uuid,
+) {
+    hub.publish_category(action, category_id);
 }
 
 pub async fn stream_catalog_events(
