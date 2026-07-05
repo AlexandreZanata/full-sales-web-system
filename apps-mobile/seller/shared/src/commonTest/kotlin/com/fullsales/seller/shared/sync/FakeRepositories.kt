@@ -57,6 +57,10 @@ class FakeSaleRepository : SaleRepository {
 
     override suspend fun getSale(localId: String): LocalSale? = mutex.withLock { sales[localId] }
 
+    override suspend fun getSaleByRemoteId(remoteId: String): LocalSale? = mutex.withLock {
+        sales.values.firstOrNull { it.remoteId == remoteId }
+    }
+
     override suspend fun createLocalSale(
         request: CreateSaleRequest,
         totalAmount: Double,

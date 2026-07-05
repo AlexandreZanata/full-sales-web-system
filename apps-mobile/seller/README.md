@@ -149,6 +149,17 @@ Merge logic lives in `shared/sales/SalesListMerger.kt` — remote status wins wh
 
 Parity with field PWA `/sales/new`. Errors: `INSUFFICIENT_STOCK`, `VALIDATION_ERROR`, `COMMERCE_NOT_FOUND` via Snackbar.
 
+### Sale detail (Phase 62)
+
+| Component | Purpose |
+|-----------|---------|
+| `SaleDetailScreen` | Status chip, total, line items, commerce name, sync badge |
+| `SaleDetailViewModel` | Load from API or Room; confirm/cancel with Snackbar errors |
+| `SaleActionSubmitter` | Online `POST …/confirm|cancel`; offline outbox enqueue |
+| `SaleDetailLoader` | Resolve local/remote id; prefer API when online |
+
+Confirm/cancel only when status is `Pending` and sale has a remote id. Maps `INSUFFICIENT_STOCK`, `INVALID_SALE_TRANSITION`, `SALE_NOT_FOUND`.
+
 Spec: `.local/phases/_reference/MATERIAL-3-UI.md`.
 
 **Updated:** 2026-07-05

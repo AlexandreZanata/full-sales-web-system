@@ -12,6 +12,8 @@ import com.fullsales.seller.android.ui.auth.AuthViewModel
 import com.fullsales.seller.android.ui.auth.LoginScreen
 import com.fullsales.seller.android.ui.commerces.CommerceViewModel
 import com.fullsales.seller.android.ui.products.ProductViewModel
+import com.fullsales.seller.android.ui.sales.SaleDetailScreen
+import com.fullsales.seller.android.ui.sales.SaleDetailViewModel
 import com.fullsales.seller.android.ui.sales.SalesListScreen
 import com.fullsales.seller.android.ui.sales.SalesListViewModel
 import com.fullsales.seller.android.ui.settings.SettingsViewModel
@@ -56,7 +58,8 @@ fun SellerNavHost(container: AppContainer) {
             NewSaleWithCommercePicker(navController, factory)
         }
         detailRoute(SellerRoutes.SALE_DETAIL, "saleId", navController, settings, syncBadge, authViewModel) { id ->
-            PlaceholderScreen("Sale $id", "Sale detail — Phase 61")
+            val viewModel: SaleDetailViewModel = viewModel(factory = factory)
+            SaleDetailScreen(saleId = id, viewModel = viewModel)
         }
         commerceRoutes(navController, factory, commerceViewModel, settings, syncBadge, authViewModel)
         productRoutes(navController, factory, productViewModel, settings, syncBadge, authViewModel)

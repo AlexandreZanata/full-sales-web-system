@@ -20,6 +20,9 @@ class RoomSaleRepository(private val dao: SaleDao) : SaleRepository {
     override suspend fun getSale(localId: String): LocalSale? =
         dao.getSaleWithLines(localId)?.toModel()
 
+    override suspend fun getSaleByRemoteId(remoteId: String): LocalSale? =
+        dao.getSaleWithLinesByRemoteId(remoteId)?.toModel()
+
     override suspend fun createLocalSale(
         request: CreateSaleRequest,
         totalAmount: Double,

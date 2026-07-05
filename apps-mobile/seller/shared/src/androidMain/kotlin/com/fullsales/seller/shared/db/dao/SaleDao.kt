@@ -20,6 +20,10 @@ interface SaleDao {
     @Query("SELECT * FROM sales WHERE localId = :localId LIMIT 1")
     suspend fun getSaleWithLines(localId: String): SaleWithLines?
 
+    @Transaction
+    @Query("SELECT * FROM sales WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getSaleWithLinesByRemoteId(remoteId: String): SaleWithLines?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSale(sale: SaleEntity)
 

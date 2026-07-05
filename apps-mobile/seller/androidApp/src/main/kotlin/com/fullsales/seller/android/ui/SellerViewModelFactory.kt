@@ -9,10 +9,13 @@ import com.fullsales.seller.android.ui.commerces.CommerceViewModel
 import com.fullsales.seller.android.ui.products.ProductDetailViewModel
 import com.fullsales.seller.android.ui.products.ProductViewModel
 import com.fullsales.seller.android.ui.sales.CreateSaleViewModel
+import com.fullsales.seller.android.ui.sales.SaleDetailViewModel
 import com.fullsales.seller.android.ui.sales.SalesListViewModel
 import com.fullsales.seller.android.ui.settings.SettingsViewModel
 import com.fullsales.seller.android.ui.sync.SyncStatusViewModel
 import com.fullsales.seller.shared.sales.CreateSaleSubmitter
+import com.fullsales.seller.shared.sales.SaleActionSubmitter
+import com.fullsales.seller.shared.sales.SaleDetailLoader
 
 class SellerViewModelFactory(
     private val container: AppContainer,
@@ -43,6 +46,18 @@ class SellerViewModelFactory(
                 container.apiClient,
                 container.catalogRepository,
                 CreateSaleSubmitter(container.apiClient, container.offlineSaleWriter),
+                container.appContext,
+            ) as T
+        modelClass.isAssignableFrom(SaleDetailViewModel::class.java) ->
+            SaleDetailViewModel(
+                SaleDetailLoader(container.apiClient, container.saleRepository),
+                SaleActionSubmitter(
+                    container.apiClient,
+                    container.saleRepository,
+                    container.outboxRepository,
+                    container.syncCoordinator,
+                ),
+                container.catalogRepository,
                 container.appContext,
             ) as T
         modelClass.isAssignableFrom(SyncStatusViewModel::class.java) ->
