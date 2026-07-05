@@ -2,10 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { ProductImageSlot } from '@/components/products/ProductImageSlot';
-import {
-  imagesBySlot,
-  slotCount,
-} from '@/components/products/productImageSlots';
+import { imagesBySlot, slotCount } from '@/components/products/productImageSlots';
 import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/hooks/useToast';
@@ -40,11 +37,7 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
     await queryClient.invalidateQueries({ queryKey: productImagesQueryKey(productId) });
   }
 
-  async function handleSlotUpload(
-    fileId: string,
-    slotIndex: number,
-    existingImage?: ProductImage,
-  ) {
+  async function handleSlotUpload(fileId: string, slotIndex: number, existingImage?: ProductImage) {
     try {
       if (existingImage) {
         const wasPrimary = existingImage.isPrimary;

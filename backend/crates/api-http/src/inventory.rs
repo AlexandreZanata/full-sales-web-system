@@ -56,6 +56,89 @@ pub struct PaginatedMovementsResponse {
     pub total: u64,
 }
 
+#[derive(Deserialize)]
+pub struct StockOverviewQuery {
+    #[serde(default = "crate::pagination::default_page")]
+    pub page: u32,
+    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
+    pub page_size: u32,
+    pub search: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct ProductStockOverviewResponse {
+    #[serde(rename = "productId")]
+    pub product_id: Uuid,
+    pub sku: String,
+    pub name: String,
+    #[serde(rename = "unitOfMeasure")]
+    pub unit_of_measure: String,
+    pub active: bool,
+    #[serde(rename = "balanceTotal")]
+    pub balance_total: i32,
+    pub reserved: i32,
+    pub available: i32,
+}
+
+#[derive(Serialize)]
+pub struct PaginatedStockOverviewResponse {
+    pub items: Vec<ProductStockOverviewResponse>,
+    pub page: u32,
+    #[serde(rename = "pageSize")]
+    pub page_size: u32,
+    pub total: u64,
+}
+
+pub async fn list_stock_balances(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Query(query): Query<StockOverviewQuery>,
+) -> Result<Json<PaginatedStockOverviewResponse>, ApiError> {
+    require_admin(&auth)?;
+    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
+    let search = query.search.as_deref().map(str::trim).filter(|value| !value.is_empty());
+
+    let rows = infra_postgres::inventory::stock_overview::list_product_stock_overview(
+        &state.app_pool,
+        auth.tenant_id,
+        search,
+        page_size as i64,
+        offset,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
+
+    let total = infra_postgres::inventory::stock_overview::count_product_stock_overview(
+        &state.app_pool,
+        auth.tenant_id,
+        search,
+    )
+    .await
+    .map_err(|_| ApiError::internal())? as u64;
+
+    Ok(Json(PaginatedStockOverviewResponse {
+        items: rows.iter().map(stock_overview_response).collect(),
+        page,
+        page_size,
+        total,
+    }))
+}
+
+fn stock_overview_response(
+    row: &infra_postgres::inventory::stock_overview::ProductStockOverviewRow,
+) -> ProductStockOverviewResponse {
+    ProductStockOverviewResponse {
+        product_id: row.product_id,
+        sku: row.sku.clone(),
+        name: row.name.clone(),
+        unit_of_measure: row.unit_of_measure.clone(),
+        active: row.active,
+        balance_total: row.balance_total,
+        reserved: row.reserved,
+        available: row.available,
+    }
+}
+
 pub async fn get_stock_balance(
     State(state): State<AppState>,
     auth: AuthUser,

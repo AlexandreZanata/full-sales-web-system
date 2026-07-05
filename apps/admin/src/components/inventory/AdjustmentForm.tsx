@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type SubmitEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -28,6 +28,7 @@ const emptyForm: AdjustmentFormValues = {
 export function AdjustmentForm() {
   const { t } = useI18n();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const [values, setValues] = useState<AdjustmentFormValues>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof AdjustmentFormValues, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -49,6 +50,7 @@ export function AdjustmentForm() {
     try {
       await recordMovement(toAdjustmentPayload(values));
       toast.success(t('inventory.toast.adjustmentRecorded'));
+      void queryClient.invalidateQueries({ queryKey: ['inventory', 'balances'] });
       setValues(emptyForm);
     } catch (error) {
       if (error instanceof ApiError && error.code === 'INSUFFICIENT_BALANCE') {

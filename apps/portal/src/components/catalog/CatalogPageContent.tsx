@@ -6,9 +6,9 @@ import { useCart } from '@/cart/CartProvider';
 import { CartFab } from '@/components/CartFab';
 import { CatalogEmptyState } from '@/components/catalog/CatalogEmptyState';
 import { CatalogSkeleton } from '@/components/catalog/CatalogSkeleton';
+import { CatalogSearchField } from '@/components/catalog/CatalogSearchField';
 import { ProductCatalog } from '@/components/catalog/ProductCatalog';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { fetchPortalCategoryBySlug } from '@/lib/api/portal';
 import {
   filterProductsBySearch,
@@ -111,14 +111,13 @@ export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
           });
         }}
         searchSlot={
-          <Input
+          <CatalogSearchField
             label={t('common.search')}
             placeholder={t('catalog.searchPlaceholder')}
             value={searchInput}
             onChange={(event) => {
               setSearchInput(event.target.value);
             }}
-            className="sm:max-w-xs"
           />
         }
         emptyTitle={t('common.empty.products')}

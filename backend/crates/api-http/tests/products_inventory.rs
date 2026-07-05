@@ -374,3 +374,29 @@ async fn contract_list_products_when_deactivated_then_visible_with_inactive_filt
     assert_eq!(reactivate_status, StatusCode::OK);
     assert_eq!(reactivated["active"], true);
 }
+
+#[tokio::test]
+async fn contract_list_stock_balances_when_products_seeded_then_returns_available() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+    let product_id = support::seed_product(&env, "BAL-SKU", "Balance Widget", 1_000).await;
+    let driver_id = support::seed_user(&env, "driver-bal@test.com", "secret123", "Driver", true).await;
+    support::seed_driver_stock(&env, driver_id, product_id, 25).await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/inventory/balances?page=1&pageSize=20&search=BAL-SKU",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let item = body["items"]
+        .as_array()
+        .and_then(|items| items.first())
+        .expect("item");
+    assert_eq!(item["sku"], "BAL-SKU");
+    assert_eq!(item["balanceTotal"].as_i64(), Some(25));
+    assert_eq!(item["available"].as_i64(), Some(25));
+}

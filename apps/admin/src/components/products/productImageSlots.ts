@@ -10,7 +10,10 @@ export function slotCount(images: ProductImage[]): number {
   return Math.min(MAX_PRODUCT_IMAGES, Math.max(maxSort + 2, 1));
 }
 
-export function imagesBySlot(images: ProductImage[], slots: number): Array<ProductImage | undefined> {
+export function imagesBySlot(
+  images: ProductImage[],
+  slots: number,
+): Array<ProductImage | undefined> {
   const bySlot: Array<ProductImage | undefined> = Array.from({ length: slots }, () => undefined);
   const unplaced: ProductImage[] = [];
 
