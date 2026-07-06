@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
+import com.fullsales.seller.app.platform.CreateSaleDraftStore
+import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.app.ui.auth.AuthViewModel
 import com.fullsales.seller.app.ui.commerces.CommerceDetailViewModel
@@ -22,6 +24,7 @@ import com.fullsales.seller.shared.sales.SaleDetailLoader
 class SellerViewModelFactory(
     private val container: SellerAppContainer,
 ) : ViewModelProvider.Factory {
+    val mediaUrlResolver: MediaUrlResolver get() = container.mediaUrlResolver
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(AuthViewModel::class.java) ->
@@ -53,6 +56,7 @@ class SellerViewModelFactory(
                 container.catalogRepository,
                 CreateSaleSubmitter(container.apiClient, container.offlineSaleWriter),
                 container.networkMonitor,
+                CreateSaleDraftStore(),
             ) as T
         modelClass.isAssignableFrom(SaleDetailViewModel::class.java) ->
             SaleDetailViewModel(

@@ -19,6 +19,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -37,6 +39,7 @@ import com.fullsales.seller.shared.model.formatMoneyMinorUnits
 @Composable
 fun CreateSaleScreen(
     viewModel: CreateSaleViewModel,
+    mediaUrlResolver: MediaUrlResolver,
     onBack: () -> Unit,
     onCreated: (String) -> Unit,
     onOpenCommercePicker: () -> Unit,
@@ -70,11 +73,26 @@ fun CreateSaleScreen(
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                s.sales.new,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.screenTitle(),
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    s.sales.new,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .screenTitle(),
+                )
+                TextButton(
+                    onClick = viewModel::clearForm,
+                    enabled = state.hasPersistedContent && !state.submitting,
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+                ) {
+                    Text(s.sales.clearForm)
+                }
+            }
             CommercePickerField(
                 commerces = state.commerces,
                 commerceId = state.commerceId,
@@ -94,6 +112,7 @@ fun CreateSaleScreen(
                 stockByProductId = state.stockByProductId,
                 lineErrors = state.errors.lineErrors,
                 linesError = state.errors.linesError,
+                mediaUrlResolver = mediaUrlResolver,
                 onUpdateLine = viewModel::updateLine,
                 onRemoveLine = viewModel::removeLine,
                 onAddLine = viewModel::addLine,

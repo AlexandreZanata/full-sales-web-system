@@ -60,6 +60,7 @@ val messagesPtBr = SellerMessages(
         product = "Produto",
         productList = "Lista de produtos",
         selectProduct = "Selecionar produto",
+        clearForm = "Limpar",
         selectCommerce = "Selecione o comércio",
         selectPayment = "Selecione a forma de pagamento",
         addProductLine = "Adicione ao menos um produto com quantidade",

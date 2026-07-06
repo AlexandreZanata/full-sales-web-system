@@ -60,6 +60,7 @@ val messagesEn = SellerMessages(
         product = "Product",
         productList = "Product list",
         selectProduct = "Select a product",
+        clearForm = "Clear",
         selectCommerce = "Select a commerce",
         selectPayment = "Select a payment method",
         addProductLine = "Add at least one product with quantity",

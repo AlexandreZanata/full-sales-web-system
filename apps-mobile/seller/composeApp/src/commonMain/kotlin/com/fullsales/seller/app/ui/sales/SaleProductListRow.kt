@@ -1,7 +1,6 @@
 package com.fullsales.seller.app.ui.sales
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,14 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -40,14 +36,15 @@ internal fun SaleProductListRow(
     topSellingProducts: List<TopSellingProduct>,
     stock: Int?,
     quantityError: CreateSaleValidationError?,
+    mediaUrlResolver: MediaUrlResolver,
     onChange: (CreateSaleLineInput) -> Unit,
     onRemove: () -> Unit,
     canRemove: Boolean,
 ) {
     val s = LocalSellerStrings.current
     val product = products.firstOrNull { it.id == line.productId }
-    var editing by remember(line.productId) { mutableStateOf(line.productId.isBlank()) }
-    val showPicker = editing || line.productId.isBlank()
+    val hasProduct = product != null
+    val showRemove = hasProduct || canRemove
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -62,16 +59,21 @@ internal fun SaleProductListRow(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.Top,
             ) {
+                if (hasProduct) {
+                    SaleLineProductImage(
+                        product = product,
+                        mediaUrlResolver = mediaUrlResolver,
+                        contentDescription = product.name,
+                    )
+                }
                 Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(enabled = product != null) { editing = true },
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    if (product != null && !showPicker) {
+                    if (hasProduct) {
                         Text(
                             text = product.name,
                             style = MaterialTheme.typography.titleLarge,
@@ -94,7 +96,7 @@ internal fun SaleProductListRow(
                         )
                     }
                 }
-                if (canRemove) {
+                if (showRemove) {
                     FilledTonalIconButton(
                         onClick = onRemove,
                         modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
@@ -103,23 +105,25 @@ internal fun SaleProductListRow(
                     }
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = s.common.quantity,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                QuantityStepper(
-                    value = line.quantityText,
-                    onValueChange = { onChange(line.copy(quantityText = it)) },
-                    isError = quantityError != null,
-                )
+            if (hasProduct) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = s.common.quantity,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    QuantityStepper(
+                        value = line.quantityText,
+                        onValueChange = { onChange(line.copy(quantityText = it)) },
+                        isError = quantityError != null,
+                    )
+                }
             }
             quantityError?.let { err ->
                 Text(
@@ -128,17 +132,14 @@ internal fun SaleProductListRow(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            if (showPicker) {
+            if (!hasProduct) {
                 ProductSearchPicker(
                     products = products,
                     topSellingProducts = topSellingProducts,
                     productId = line.productId,
                     searchQuery = line.productSearchQuery,
                     onSearchChange = { onChange(line.copy(productSearchQuery = it)) },
-                    onSelect = {
-                        onChange(line.copy(productId = it, productSearchQuery = ""))
-                        editing = false
-                    },
+                    onSelect = { onChange(line.copy(productId = it, productSearchQuery = "")) },
                     showSelectedLabel = false,
                 )
             }

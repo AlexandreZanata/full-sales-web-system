@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -36,6 +37,7 @@ internal fun SaleProductListSection(
     stockByProductId: Map<String, Int>,
     lineErrors: List<CreateSaleLineErrors>,
     linesError: CreateSaleValidationError?,
+    mediaUrlResolver: MediaUrlResolver,
     onUpdateLine: (Int, CreateSaleLineInput) -> Unit,
     onRemoveLine: (Int) -> Unit,
     onAddLine: () -> Unit,
@@ -71,8 +73,9 @@ internal fun SaleProductListSection(
                         products = products,
                         topSellingProducts = topSellingProducts,
                         stock = stockByProductId[line.productId],
-                        quantityError = lineErrors.getOrNull(index)?.quantityError,
-                        onChange = { onUpdateLine(index, it) },
+                    quantityError = lineErrors.getOrNull(index)?.quantityError,
+                    mediaUrlResolver = mediaUrlResolver,
+                    onChange = { onUpdateLine(index, it) },
                         onRemove = { onRemoveLine(index) },
                         canRemove = lines.size > 1,
                     )

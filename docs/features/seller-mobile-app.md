@@ -135,6 +135,12 @@ Also required:
 
 **Checklist after theme edits:** toggle system light/dark → status-bar icons readable; Compose background matches `SellerDarkColors` / `SellerLightColors`.
 
+### Create-sale form — product list and draft
+
+- **Product lines:** thumbnail (remote URL or inventory icon placeholder), name, SKU badge, quantity stepper; picker hidden after selection — remove line/product with **×** only.
+- **Draft persistence:** commerce, payment method, and line items auto-save to platform storage (`CreateSaleDraftStore`); restored on return. **Limpar / Clear** resets the form; draft cleared on successful submit.
+- **Manual check:** fill form → force-stop app → reopen **New sale** → fields restored; **Clear** empties all fields.
+
 ### Create-sale bottom bar — button conventions
 
 | Action | Component | Label key |

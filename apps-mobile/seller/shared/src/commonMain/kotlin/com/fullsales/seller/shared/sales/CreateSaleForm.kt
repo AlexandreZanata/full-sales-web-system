@@ -2,6 +2,7 @@ package com.fullsales.seller.shared.sales
 
 import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.model.Product
+import kotlinx.serialization.Serializable
 
 val PAYMENT_METHODS = listOf("cash", "pix", "credit", "debit")
 
@@ -16,6 +17,7 @@ fun calculateCreateSaleTotalMinor(
     (product.priceAmount * qty).toLong()
 }
 
+@Serializable
 data class CreateSaleLineInput(
     val productId: String = "",
     val quantityText: String = "1",

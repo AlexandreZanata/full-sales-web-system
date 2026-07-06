@@ -96,6 +96,7 @@ internal fun NewSaleWithCommercePicker(
     }
     CreateSaleScreen(
         viewModel = createSaleViewModel,
+        mediaUrlResolver = factory.mediaUrlResolver,
         onBack = { navController.popBackStack() },
         onCreated = { id -> navController.navigate(SellerRoutes.saleDetail(id)) },
         onOpenCommercePicker = { navController.navigate(SellerRoutes.COMMERCE_PICK) },

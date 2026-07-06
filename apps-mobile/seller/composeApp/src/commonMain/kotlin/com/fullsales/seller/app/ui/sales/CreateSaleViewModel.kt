@@ -2,6 +2,7 @@ package com.fullsales.seller.app.ui.sales
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fullsales.seller.app.platform.CreateSaleDraftStore
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.model.Commerce
@@ -14,11 +15,14 @@ import com.fullsales.seller.shared.sales.CreateSaleSubmitter
 import com.fullsales.seller.shared.sales.CreateSaleSubmitResult
 import com.fullsales.seller.shared.sales.buildCreateSaleRequest
 import com.fullsales.seller.shared.sales.calculateCreateSaleTotalMinor
+import com.fullsales.seller.shared.sales.createSaleDraftFrom
 import com.fullsales.seller.shared.sales.validateCreateSaleForm
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -37,6 +41,9 @@ data class CreateSaleUiState(
 ) {
     val totalMinor: Long
         get() = calculateCreateSaleTotalMinor(products, lines)
+
+    val hasPersistedContent: Boolean
+        get() = !createSaleDraftFrom(commerceId, paymentMethod, lines).isEffectivelyEmpty()
 }
 
 class CreateSaleViewModel(
@@ -44,11 +51,31 @@ class CreateSaleViewModel(
     private val catalogRepository: CatalogRepository,
     private val submitter: CreateSaleSubmitter,
     private val networkMonitor: NetworkMonitor,
+    private val draftStore: CreateSaleDraftStore,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateSaleUiState())
     val state: StateFlow<CreateSaleUiState> = _state.asStateFlow()
 
     init {
+        restoreDraft()
+        observeCatalog()
+        observeDraftPersistence()
+        loadTopSellingProducts()
+    }
+
+    private fun restoreDraft() {
+        val draft = draftStore.read() ?: return
+        _state.update { current ->
+            current.copy(
+                commerceId = draft.commerceId,
+                paymentMethod = draft.paymentMethod,
+                lines = draft.lines.ifEmpty { listOf(CreateSaleLineInput()) },
+            )
+        }
+        draft.lines.map { it.productId }.filter { it.isNotBlank() }.forEach { loadStock(it) }
+    }
+
+    private fun observeCatalog() {
         viewModelScope.launch {
             combine(
                 catalogRepository.observeCommerces(),
@@ -59,7 +86,21 @@ class CreateSaleViewModel(
                 _state.update { it.copy(commerces = commerces, products = products, loading = false) }
             }
         }
-        loadTopSellingProducts()
+    }
+
+    private fun observeDraftPersistence() {
+        viewModelScope.launch {
+            _state
+                .map { createSaleDraftFrom(it.commerceId, it.paymentMethod, it.lines) }
+                .distinctUntilChanged()
+                .collect { draft ->
+                    if (draft.isEffectivelyEmpty()) {
+                        draftStore.clear()
+                    } else {
+                        draftStore.write(draft)
+                    }
+                }
+        }
     }
 
     private fun loadTopSellingProducts() {
@@ -95,8 +136,25 @@ class CreateSaleViewModel(
 
     fun removeLine(index: Int) {
         _state.update { current ->
-            if (current.lines.size <= 1) return@update current
+            if (index !in current.lines.indices) return@update current
+            if (current.lines.size <= 1) {
+                return@update current.copy(lines = listOf(CreateSaleLineInput()))
+            }
             current.copy(lines = current.lines.filterIndexed { i, _ -> i != index })
+        }
+    }
+
+    fun clearForm() {
+        draftStore.clear()
+        _state.update { current ->
+            current.copy(
+                commerceId = "",
+                paymentMethod = "",
+                lines = listOf(CreateSaleLineInput()),
+                stockByProductId = emptyMap(),
+                errors = CreateSaleFormErrors(),
+                snackbarCode = null,
+            )
         }
     }
 
@@ -139,6 +197,7 @@ class CreateSaleViewModel(
                 )
             ) {
                 is CreateSaleSubmitResult.Success -> {
+                    draftStore.clear()
                     _state.update { it.copy(submitting = false) }
                     onSuccess(result.navigationId)
                 }
