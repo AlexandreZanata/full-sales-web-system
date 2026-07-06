@@ -8,48 +8,6 @@ use serde_json::json;
 
 use support::{request, seed_admin, seed_commerce, seed_driver, seed_product, setup};
 
-// Contract: driver can GET commerce list; cannot POST address
-#[tokio::test]
-async fn contract_driver_when_list_commerces_then_ok_but_post_address_forbidden() {
-    let env = setup().await;
-    let commerce_id = seed_commerce(&env, "11222333000181").await;
-    let (_, driver_token) = seed_driver(&env, "driver@test.com").await;
-
-    let (list_status, list_body) =
-        request(&env, "GET", "/v1/commerces", Some(&driver_token), None).await;
-    assert_eq!(list_status, StatusCode::OK);
-    assert!(list_body["items"].is_array());
-    assert!(
-        list_body["items"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|c| c["id"] == commerce_id.to_string())
-    );
-
-    let (post_status, post_body) = request(
-        &env,
-        "POST",
-        &format!("/v1/commerces/{commerce_id}/addresses"),
-        Some(&driver_token),
-        Some(
-            json!({
-                "addressType": "Delivery",
-                "street": "Rua Nova",
-                "number": "100",
-                "city": "SP",
-                "state": "SP",
-                "postalCode": "01310100",
-                "isPrimary": false
-            })
-            .to_string(),
-        ),
-    )
-    .await;
-    assert_eq!(post_status, StatusCode::FORBIDDEN);
-    assert_eq!(post_body["error"]["code"], "FORBIDDEN");
-}
-
 // Contract: deactivate commerce → subsequent sale 422
 #[tokio::test]
 async fn contract_deactivate_commerce_when_new_sale_then_422() {

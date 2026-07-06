@@ -1,65 +1,45 @@
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, RawQuery, State},
+    response::{IntoResponse, Response},
 };
 use domain_identity::Role;
-use serde::Deserialize;
 
 use crate::auth::{AuthUser, require_admin, require_roles};
 use crate::commerces::{CommerceResponse, commerce_response_from_row};
 use crate::error::ApiError;
-use crate::pagination::paginate_offset;
+use crate::list_query::{
+    COMMERCES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_bool, parse_list_query,
+};
 use crate::state::AppState;
-
-#[derive(Deserialize)]
-pub struct ListCommercesQuery {
-    #[serde(default = "crate::pagination::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
-    pub page_size: u32,
-    pub active: Option<bool>,
-}
-
-#[derive(serde::Serialize)]
-pub struct PaginatedCommercesResponse {
-    pub items: Vec<CommerceResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
 
 pub async fn list_commerces(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<ListCommercesQuery>,
-) -> Result<Json<PaginatedCommercesResponse>, ApiError> {
-    require_roles(&auth, &[Role::Admin, Role::Driver, Role::Seller])?;
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
-
-    let rows = infra_postgres::commerces::list_commerces(
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<CommerceResponse>>, Response> {
+    require_roles(&auth, &[Role::Admin, Role::Driver, Role::Seller])
+        .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &COMMERCES_LIST_CONFIG)
+        .map_err(IntoResponse::into_response)?;
+    let active = filter_eq_bool(&parsed.filters, "active");
+    let rows = infra_postgres::commerces::list_commerces_cursor(
         &state.app_pool,
         auth.tenant_id,
-        query.active,
-        page_size as i64,
-        offset,
+        active,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
     let items: Vec<CommerceResponse> = rows.iter().map(commerce_response_from_row).collect();
-
-    let total =
-        infra_postgres::commerces::count_commerces(&state.app_pool, auth.tenant_id, query.active)
-            .await
-            .map_err(|_| ApiError::internal())? as u64;
-
-    Ok(Json(PaginatedCommercesResponse {
+    Ok(Json(build_cursor_page(
         items,
-        page,
-        page_size,
-        total,
-    }))
+        parsed.pagination.limit,
+        |commerce| commerce.id,
+    )))
 }
 
 pub async fn get_commerce(

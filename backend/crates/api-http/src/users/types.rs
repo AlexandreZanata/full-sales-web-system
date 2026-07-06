@@ -24,15 +24,6 @@ pub struct UserResponse {
     pub commerce_id: Option<Uuid>,
 }
 
-#[derive(Serialize)]
-pub struct PaginatedUsersResponse {
-    pub items: Vec<UserResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
 #[derive(Deserialize)]
 pub struct DriverProfileRequest {
     #[serde(rename = "cnhNumber")]

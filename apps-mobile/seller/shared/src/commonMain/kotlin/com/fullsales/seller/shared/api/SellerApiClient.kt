@@ -7,8 +7,9 @@ import com.fullsales.seller.shared.model.LoginRequest
 import com.fullsales.seller.shared.model.LoginResponse
 import com.fullsales.seller.shared.model.MediaUploadResponse
 import com.fullsales.seller.shared.model.MediaUrlResponse
+import com.fullsales.seller.shared.model.CursorListCommerceAddresses
+import com.fullsales.seller.shared.model.CursorListCommerces
 import com.fullsales.seller.shared.model.CursorListProducts
-import com.fullsales.seller.shared.model.PaginatedCommerces
 import com.fullsales.seller.shared.model.PaginatedSales
 import com.fullsales.seller.shared.model.ProductDetail
 import com.fullsales.seller.shared.model.RefreshRequest
@@ -52,22 +53,40 @@ class SellerApiClient(
         http.apiGet("$baseUrl/settings", json)
 
     suspend fun listCommerces(
-        page: Int = 1,
-        pageSize: Int = 50,
+        limit: Int = 50,
+        cursor: String? = null,
         active: Boolean? = null,
-    ): PaginatedCommerces {
-        val params = buildMap {
-            active?.let { put("active", it.toString()) }
+    ): CursorListCommerces {
+        val params = buildList {
+            add("limit=$limit")
+            active?.let { add("filter[active]=$it") }
+            cursor?.let { add("cursor=$it") }
         }
-        val query = paginationQuery(page, pageSize, params)
-        return http.apiGet("$baseUrl/commerces?$query", json)
+        return http.apiGet("$baseUrl/commerces?${params.joinToString("&")}", json)
     }
 
     suspend fun getCommerce(id: String): Commerce =
         http.apiGet("$baseUrl/commerces/$id", json)
 
-    suspend fun listCommerceAddresses(id: String): List<CommerceAddress> =
-        http.apiGet("$baseUrl/commerces/$id/addresses", json)
+    suspend fun listCommerceAddresses(id: String): List<CommerceAddress> {
+        val all = mutableListOf<CommerceAddress>()
+        var cursor: String? = null
+        while (true) {
+            val params = buildList {
+                add("limit=100")
+                cursor?.let { add("cursor=$it") }
+            }
+            val page = http.apiGet<CursorListCommerceAddresses>(
+                "$baseUrl/commerces/$id/addresses?${params.joinToString("&")}",
+                json,
+            )
+            all += page.data
+            if (!page.pagination.hasMore || page.pagination.nextCursor == null) break
+            cursor = page.pagination.nextCursor
+            if (page.data.size < 100) break
+        }
+        return all
+    }
 
     suspend fun listProducts(
         limit: Int = 50,

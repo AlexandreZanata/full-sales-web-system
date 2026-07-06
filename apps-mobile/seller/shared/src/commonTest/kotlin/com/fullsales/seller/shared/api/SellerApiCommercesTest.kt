@@ -10,17 +10,19 @@ import kotlinx.coroutines.test.runTest
 
 class SellerApiCommercesTest {
     @Test
-    fun listCommerces_sendsAuthAndPagination() = runTest {
+    fun listCommerces_sendsAuthAndCursorQuery() = runTest {
         val recorder = RecordedMockEngine { request ->
             assertEquals("Bearer seller-token", request.authHeader())
             assertEquals("/v1/commerces", request.url.encodedPath)
-            assertTrue(request.url.encodedQuery.contains("page=1"))
-            assertTrue(request.url.encodedQuery.contains("pageSize=20"))
-            assertTrue(request.url.encodedQuery.contains("active=true"))
-            HttpStatusCode.OK to """{"page":1,"pageSize":20,"total":1,"items":[]}"""
+            assertTrue(request.url.encodedQuery.contains("limit=20"))
+            assertTrue(
+                request.url.encodedQuery.contains("filter[active]=true") ||
+                    request.url.encodedQuery.contains("filter%5Bactive%5D=true"),
+            )
+            HttpStatusCode.OK to """{"data":[],"pagination":{"next_cursor":null,"has_more":false,"limit":20}}"""
         }
         val client = testClient(engine = recorder.engine())
-        client.listCommerces(page = 1, pageSize = 20, active = true)
+        client.listCommerces(limit = 20, active = true)
         assertEquals(1, recorder.requests.size)
     }
 
@@ -41,8 +43,9 @@ class SellerApiCommercesTest {
     fun listCommerceAddresses_parsesAddressTypeField() = runTest {
         val recorder = RecordedMockEngine { request ->
             assertEquals("/v1/commerces/c1/addresses", request.url.encodedPath)
+            assertTrue(request.url.encodedQuery.contains("limit=100"))
             HttpStatusCode.OK to """
-                [{"id":"a1","addressType":"Delivery","street":"Rua A","number":"1","city":"SP","state":"SP","postalCode":"01000","isPrimary":true}]
+                {"data":[{"id":"a1","addressType":"Delivery","street":"Rua A","number":"1","city":"SP","state":"SP","postalCode":"01000","isPrimary":true}],"pagination":{"next_cursor":null,"has_more":false,"limit":100}}
             """.trimIndent()
         }
         val client = testClient(engine = recorder.engine())
@@ -56,7 +59,7 @@ class SellerApiCommercesTest {
         val recorder = RecordedMockEngine { request ->
             assertEquals("Bearer seller-token", request.authHeader())
             assertEquals("/v1/commerces/c1/addresses", request.url.encodedPath)
-            HttpStatusCode.OK to "[]"
+            HttpStatusCode.OK to """{"data":[],"pagination":{"next_cursor":null,"has_more":false,"limit":100}}"""
         }
         val client = testClient(engine = recorder.engine())
         client.listCommerceAddresses("c1")

@@ -1,5 +1,12 @@
 use application::list_query::{ListFilter, ListFilterOp};
 
+pub fn filter_eq_string(filters: &[ListFilter], field: &str) -> Option<String> {
+    filters
+        .iter()
+        .find(|f| f.field == field && f.op == ListFilterOp::Eq)
+        .map(|f| f.value.clone())
+}
+
 pub fn filter_eq_bool(filters: &[ListFilter], field: &str) -> Option<bool> {
     filters
         .iter()

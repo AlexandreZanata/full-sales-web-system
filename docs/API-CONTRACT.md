@@ -91,7 +91,9 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/users`
 
 - **Auth:** Admin
-- **Response 200:** Paginated user list
+- **Query (cursor):** `limit` (default 20, max 100), `cursor`, `filter[active]`, `filter[role]` (whitelist: `Admin`, `Driver`, `Seller`, `CommerceContact`)
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }`
+- **Errors 400:** `invalid_pagination`, `invalid_filter_field`
 
 ### `GET /v1/users/{id}`
 
@@ -131,8 +133,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/commerces`
 
 - **Auth:** Admin, Driver, Seller (read)
-- **Query:** `active?` (boolean), pagination — filtered in SQL
-- **Response 200:** Paginated list
+- **Query (cursor):** `limit`, `cursor`, `filter[active]` — filtered in SQL
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }`
 
 ### `GET /v1/commerces/{id}`
 
@@ -148,7 +150,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/commerces/{id}/addresses`
 
 - **Auth:** Admin, Driver, Seller
-- **Response 200:** Address list (Billing and Delivery types)
+- **Query (cursor):** `limit`, `cursor`
+- **Response 200:** `{ "data": [ ... addresses ... ], "pagination": { "next_cursor", "has_more", "limit" } }`
 
 ### `POST /v1/commerces/{id}/addresses`
 

@@ -16,11 +16,14 @@ data class CursorListProducts(
     val pagination: CursorPaginationMeta,
 )
 
-/** Legacy offset shape — commerces migrate in phase 68C */
 @Serializable
-data class PaginatedProducts(
-    val page: Int,
-    val pageSize: Int,
-    val total: Int,
-    val items: List<Product>,
+data class CursorListCommerces(
+    val data: List<Commerce>,
+    val pagination: CursorPaginationMeta,
+)
+
+@Serializable
+data class CursorListCommerceAddresses(
+    val data: List<CommerceAddress>,
+    val pagination: CursorPaginationMeta,
 )

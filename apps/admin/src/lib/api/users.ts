@@ -1,39 +1,41 @@
 import { apiFetch, apiPatch, apiPost, apiPut } from '@/lib/api/client';
+import {
+  type CursorListParams,
+  type CursorListResponse,
+  fetchAllCursorPages,
+} from '@/lib/cursorPagination';
 import type {
   CreateUserRequest,
   DriverProfile,
   DriverProfileRequest,
-  PaginatedResponse,
   SellerProfile,
   SellerProfileRequest,
   User,
   UserRole,
 } from '@/lib/api/types';
 
-export type UsersListParams = {
-  page: number;
-  pageSize: number;
+export type UsersListParams = CursorListParams & {
   role?: UserRole | '';
+  active?: 'true' | 'false' | '';
 };
 
-export async function fetchUsers(params: UsersListParams): Promise<PaginatedResponse<User>> {
-  if (!params.role) {
-    const query = new URLSearchParams({
-      page: String(params.page),
-      pageSize: String(params.pageSize),
-    });
-    return apiFetch<PaginatedResponse<User>>(`/users?${query}`);
+function buildUsersQuery(params: UsersListParams): string {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 20));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
   }
+  if (params.role) {
+    query.set('filter[role]', params.role);
+  }
+  if (params.active === 'true' || params.active === 'false') {
+    query.set('filter[active]', params.active);
+  }
+  return query.toString();
+}
 
-  const batch = await apiFetch<PaginatedResponse<User>>('/users?page=1&pageSize=50');
-  const filtered = batch.items.filter((user) => user.role === params.role);
-  const start = (params.page - 1) * params.pageSize;
-  return {
-    page: params.page,
-    pageSize: params.pageSize,
-    total: filtered.length,
-    items: filtered.slice(start, start + params.pageSize),
-  };
+export async function fetchUsers(params: UsersListParams): Promise<CursorListResponse<User>> {
+  return apiFetch<CursorListResponse<User>>(`/users?${buildUsersQuery(params)}`);
 }
 
 export async function fetchUser(id: string): Promise<User> {
@@ -63,6 +65,8 @@ export async function upsertSellerProfile(
 }
 
 export async function fetchDriversForPicker(): Promise<User[]> {
-  const data = await fetchUsers({ page: 1, pageSize: 50, role: 'Driver' });
-  return data.items.filter((user) => user.active);
+  const data = await fetchAllCursorPages(async (cursor) =>
+    fetchUsers({ limit: 100, cursor, role: 'Driver', active: 'true' }),
+  );
+  return data;
 }

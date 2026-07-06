@@ -1,4 +1,4 @@
-//! Phase 17 — Users API contract tests.
+//! Phase 68C — Users cursor list contract tests.
 
 #[path = "support/mod.rs"]
 mod support;
@@ -7,6 +7,81 @@ use http::StatusCode;
 use serde_json::json;
 
 use support::{request, seed_admin, seed_driver, setup};
+
+// Contract: list pagination shape
+#[tokio::test]
+async fn contract_list_users_when_admin_then_cursor_envelope() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+    seed_driver(&env, "driver1@test.com").await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/users?limit=10",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert!(body["data"].is_array());
+    assert_eq!(body["pagination"]["limit"], 10);
+}
+
+#[tokio::test]
+async fn contract_list_users_when_filter_role_then_only_matching() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+    seed_driver(&env, "driver1@test.com").await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/users?limit=50&filter[role]=Driver",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    let data = body["data"].as_array().expect("data array");
+    assert!(data.iter().all(|user| user["role"] == "Driver"));
+}
+
+#[tokio::test]
+async fn contract_list_users_when_invalid_filter_then_400() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/users?filter[unknown]=x",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "invalid_filter_field");
+}
+
+#[tokio::test]
+async fn contract_list_users_when_invalid_role_filter_then_400() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/users?filter[role]=NotARole",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "invalid_filter_field");
+}
 
 // Contract: admin creates driver → 201
 #[tokio::test]
@@ -62,29 +137,6 @@ async fn contract_driver_when_post_users_then_forbidden() {
 
     assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(body["error"]["code"], "FORBIDDEN");
-}
-
-// Contract: list pagination shape
-#[tokio::test]
-async fn contract_list_users_when_admin_then_pagination_shape() {
-    let env = setup().await;
-    let (_, admin_token) = seed_admin(&env).await;
-    seed_driver(&env, "driver1@test.com").await;
-
-    let (status, body) = request(
-        &env,
-        "GET",
-        "/v1/users?page=1&pageSize=10",
-        Some(&admin_token),
-        None,
-    )
-    .await;
-
-    assert_eq!(status, StatusCode::OK);
-    assert!(body["items"].is_array());
-    assert_eq!(body["page"], 1);
-    assert_eq!(body["pageSize"], 10);
-    assert!(body["total"].as_u64().is_some());
 }
 
 // Contract: deactivate → login fails

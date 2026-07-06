@@ -11,6 +11,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { formatPaginationSummary } from '@/lib/i18n/labels';
 import { fetchAuditEvents } from '@/lib/api/audit';
 import { fetchUsers } from '@/lib/api/users';
+import { fetchAllCursorPages } from '@/lib/cursorPagination';
 import type { AuditEvent } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/formatDateTime';
 import { paginatedResponseToTable } from '@/lib/tablePagination';
@@ -33,12 +34,12 @@ function AuditPage() {
 
   const actors = useQuery({
     queryKey: ['users', 'audit-actors'],
-    queryFn: () => fetchUsers({ page: 1, pageSize: 50 }),
+    queryFn: () => fetchAllCursorPages((cursor) => fetchUsers({ limit: 100, cursor })),
   });
 
   const actorNames = useMemo(() => {
     const map = new Map<string, string>();
-    for (const user of actors.data?.items ?? []) {
+    for (const user of actors.data ?? []) {
       map.set(user.id, user.name);
     }
     return map;

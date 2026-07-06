@@ -151,8 +151,18 @@ class FakeCatalogPullClient : CatalogPullClient {
     var commerces = listOf<Commerce>()
     var products = listOf<Product>()
 
-    override suspend fun fetchCommerces(page: Int, pageSize: Int): List<Commerce> =
-        if (page == 1) commerces else emptyList()
+    override suspend fun fetchCommerces(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListCommerces =
+        if (cursor == null) {
+            com.fullsales.seller.shared.model.CursorListCommerces(
+                commerces,
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        } else {
+            com.fullsales.seller.shared.model.CursorListCommerces(
+                emptyList(),
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        }
 
     override suspend fun fetchProducts(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListProducts =
         if (cursor == null) {

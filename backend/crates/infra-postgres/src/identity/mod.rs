@@ -239,6 +239,44 @@ pub async fn list_users(
         .collect())
 }
 
+pub async fn list_users_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    active: Option<bool>,
+    role: Option<&str>,
+    after_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<UserListRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool)>(
+        "SELECT id, email, name, role, active
+         FROM identity.users
+         WHERE ($1::bool IS NULL OR active = $1)
+           AND ($2::text IS NULL OR role = $2)
+           AND ($3::uuid IS NULL OR id > $3)
+         ORDER BY id ASC
+         LIMIT $4",
+    )
+    .bind(active)
+    .bind(role)
+    .bind(after_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, email, name, role, active)| UserListRow {
+            id,
+            email,
+            name,
+            role,
+            active,
+        })
+        .collect())
+}
+
 pub async fn count_users(pool: &PgPool, tenant_id: TenantId) -> Result<i64, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;

@@ -1,6 +1,5 @@
 package com.fullsales.seller.shared.api
 
-import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.CreateSaleRequest
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.SyncOutboxEntry
@@ -14,10 +13,10 @@ class SellerSyncTransport(
     private val client: SellerApiClient,
     private val json: Json = defaultSellerJson(),
 ) : SyncTransport, CatalogPullClient {
-    override suspend fun fetchCommerces(page: Int, pageSize: Int): List<Commerce> =
-        client.listCommerces(page, pageSize).items
+    override suspend fun fetchCommerces(limit: Int, cursor: String?) =
+        client.listCommerces(limit, cursor)
 
-    override suspend fun fetchProducts(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListProducts =
+    override suspend fun fetchProducts(limit: Int, cursor: String?) =
         client.listProducts(limit, cursor)
 
     override suspend fun execute(entry: SyncOutboxEntry): SyncHttpResult = try {

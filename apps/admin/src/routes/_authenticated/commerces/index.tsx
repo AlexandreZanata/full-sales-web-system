@@ -13,9 +13,9 @@ import { fetchCommerces } from '@/lib/api/commerces';
 import type { CommerceSummary } from '@/lib/api/types';
 import { ACTIVE_FILTERS, type ActiveFilter } from '@/lib/commerces/constants';
 import { formatCnpj } from '@/lib/commerces/cnpj';
+import { cursorToTableState } from '@/lib/cursorPagination';
 import { useI18n } from '@/lib/i18n/context';
 import { activeFilterLabel } from '@/lib/i18n/labels';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
 
 export const Route = createFileRoute('/_authenticated/commerces/')({
   component: CommercesListPage,
@@ -24,15 +24,39 @@ export const Route = createFileRoute('/_authenticated/commerces/')({
 function CommercesListPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('');
   const pageSize = 20;
 
   const commerces = useQuery({
     queryKey: ['commerces', page, pageSize, activeFilter],
-    queryFn: () => fetchCommerces({ page, pageSize, active: activeFilter }),
+    queryFn: () =>
+      fetchCommerces({
+        limit: pageSize,
+        cursor: cursors[page - 1],
+        active: activeFilter,
+      }),
   });
 
-  const pagination = commerces.data ? paginatedResponseToTable(commerces.data) : null;
+  const pagination = commerces.data
+    ? cursorToTableState(page, commerces.data.pagination.has_more)
+    : null;
+
+  function handlePageChange(nextPage: number) {
+    if (nextPage > page && commerces.data?.pagination.next_cursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = commerces.data?.pagination.next_cursor ?? undefined;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
+
+  function resetPagination() {
+    setPage(1);
+    setCursors([undefined]);
+  }
 
   const columns: DataTableColumn<CommerceSummary>[] = useMemo(
     () => [
@@ -64,6 +88,8 @@ function CommercesListPage() {
     [t],
   );
 
+  const items = commerces.data?.data ?? [];
+
   return (
     <div>
       <PageHeader
@@ -82,7 +108,7 @@ function CommercesListPage() {
           value={activeFilter}
           onChange={(event) => {
             setActiveFilter(event.target.value as ActiveFilter);
-            setPage(1);
+            resetPagination();
           }}
         >
           {ACTIVE_FILTERS.map((value) => (
@@ -97,14 +123,14 @@ function CommercesListPage() {
         <div className="flex justify-center py-16">
           <LoadingSpinner />
         </div>
-      ) : commerces.data && commerces.data.items.length > 0 ? (
+      ) : items.length > 0 ? (
         <DataTable
           caption={t('commerces.list.caption')}
           columns={columns}
-          rows={commerces.data.items}
+          rows={items}
           getRowKey={(row) => row.id}
           pagination={pagination}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       ) : (
         <EmptyState

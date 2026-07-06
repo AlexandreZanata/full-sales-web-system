@@ -11,10 +11,10 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
 import { fetchUsers } from '@/lib/api/users';
 import type { User, UserRole } from '@/lib/api/types';
+import { cursorToTableState } from '@/lib/cursorPagination';
 import { useI18n } from '@/lib/i18n/context';
 import { translateRole } from '@/lib/i18n/labels';
 import { USER_ROLES } from '@/lib/users/constants';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
 
 export const Route = createFileRoute('/_authenticated/users/')({
   component: UsersListPage,
@@ -23,15 +23,37 @@ export const Route = createFileRoute('/_authenticated/users/')({
 function UsersListPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [roleFilter, setRoleFilter] = useState<UserRole | ''>('');
   const pageSize = 20;
 
   const users = useQuery({
     queryKey: ['users', page, pageSize, roleFilter],
-    queryFn: () => fetchUsers({ page, pageSize, role: roleFilter }),
+    queryFn: () =>
+      fetchUsers({
+        limit: pageSize,
+        cursor: cursors[page - 1],
+        role: roleFilter,
+      }),
   });
 
-  const pagination = users.data ? paginatedResponseToTable(users.data) : null;
+  const pagination = users.data ? cursorToTableState(page, users.data.pagination.has_more) : null;
+
+  function handlePageChange(nextPage: number) {
+    if (nextPage > page && users.data?.pagination.next_cursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = users.data?.pagination.next_cursor ?? undefined;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
+
+  function resetPagination() {
+    setPage(1);
+    setCursors([undefined]);
+  }
 
   const columns: DataTableColumn<User>[] = useMemo(
     () => [
@@ -63,6 +85,8 @@ function UsersListPage() {
     [t],
   );
 
+  const items = users.data?.data ?? [];
+
   return (
     <div>
       <PageHeader
@@ -81,7 +105,7 @@ function UsersListPage() {
           value={roleFilter}
           onChange={(event) => {
             setRoleFilter(event.target.value as UserRole | '');
-            setPage(1);
+            resetPagination();
           }}
         >
           <option value="">{t('common.filter.allRoles')}</option>
@@ -97,14 +121,14 @@ function UsersListPage() {
         <div className="flex justify-center py-16">
           <LoadingSpinner />
         </div>
-      ) : users.data && users.data.items.length > 0 ? (
+      ) : items.length > 0 ? (
         <DataTable
           caption={t('users.list.caption')}
           columns={columns}
-          rows={users.data.items}
+          rows={items}
           getRowKey={(row) => row.id}
           pagination={pagination}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       ) : (
         <EmptyState

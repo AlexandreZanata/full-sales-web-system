@@ -1,7 +1,7 @@
 package com.fullsales.field.shared.api
 
 import com.fullsales.field.shared.model.CreateSaleRequest
-import com.fullsales.field.shared.model.PaginatedCommerces
+import com.fullsales.field.shared.model.CursorListCommerces
 import com.fullsales.field.shared.model.PaginatedProducts
 import com.fullsales.field.shared.model.SaleDto
 import com.fullsales.field.shared.model.StockBalance
@@ -27,8 +27,10 @@ class FieldApiClient(
     private val tokenProvider: AuthTokenProvider,
     private val json: Json = Json { ignoreUnknownKeys = true },
 ) : CatalogPullClient, SyncTransport {
-    override suspend fun fetchCommerces(page: Int, pageSize: Int) =
-        getPaginated<PaginatedCommerces>("/commerces?page=$page&pageSize=$pageSize").items
+    override suspend fun fetchCommerces(limit: Int, cursor: String?): CursorListCommerces {
+        val cursorParam = cursor?.let { "&cursor=$it" } ?: ""
+        return authorizedGet("/commerces?limit=$limit$cursorParam")
+    }
 
     override suspend fun fetchProducts(page: Int, pageSize: Int) =
         getPaginated<PaginatedProducts>("/products?page=$page&pageSize=$pageSize").items

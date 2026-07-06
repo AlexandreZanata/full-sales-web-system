@@ -1,45 +1,45 @@
 import { apiFetch, apiPatch, apiPost, apiPut } from '@/lib/api/client';
+import {
+  type CursorListParams,
+  type CursorListResponse,
+  fetchAllCursorPages,
+} from '@/lib/cursorPagination';
 import type {
   Commerce,
   CommerceAddress,
   CommerceAddressRequest,
   CommerceSummary,
   CreateCommerceRequest,
-  PaginatedResponse,
   UpdateCommerceAddressRequest,
 } from '@/lib/api/types';
 import type { ActiveFilter } from '@/lib/commerces/constants';
 
-export type CommercesListParams = {
-  page: number;
-  pageSize: number;
+export type CommercesListParams = CursorListParams & {
   active?: ActiveFilter;
 };
 
-function buildActiveQuery(active?: ActiveFilter): string {
-  if (active === 'true' || active === 'false') {
-    return active;
+function buildCommercesQuery(params: CommercesListParams): string {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 20));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
   }
-  return '';
+  if (params.active === 'true' || params.active === 'false') {
+    query.set('filter[active]', params.active);
+  }
+  return query.toString();
 }
 
 export async function fetchCommerces(
   params: CommercesListParams,
-): Promise<PaginatedResponse<CommerceSummary>> {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
-  });
-  const active = buildActiveQuery(params.active);
-  if (active) {
-    query.set('active', active);
-  }
-  return apiFetch<PaginatedResponse<CommerceSummary>>(`/commerces?${query}`);
+): Promise<CursorListResponse<CommerceSummary>> {
+  return apiFetch<CursorListResponse<CommerceSummary>>(`/commerces?${buildCommercesQuery(params)}`);
 }
 
 export async function fetchCommercesForPicker(): Promise<CommerceSummary[]> {
-  const data = await fetchCommerces({ page: 1, pageSize: 50, active: 'true' });
-  return data.items;
+  return fetchAllCursorPages(async (cursor) =>
+    fetchCommerces({ limit: 100, cursor, active: 'true' }),
+  );
 }
 
 export async function fetchCommerce(id: string): Promise<Commerce> {
@@ -55,7 +55,11 @@ export async function deactivateCommerce(id: string): Promise<Commerce> {
 }
 
 export async function fetchCommerceAddresses(commerceId: string): Promise<CommerceAddress[]> {
-  return apiFetch<CommerceAddress[]>(`/commerces/${commerceId}/addresses`);
+  return fetchAllCursorPages(async (cursor) =>
+    apiFetch<CursorListResponse<CommerceAddress>>(
+      `/commerces/${commerceId}/addresses?limit=100${cursor ? `&cursor=${cursor}` : ''}`,
+    ),
+  );
 }
 
 export async function createCommerceAddress(

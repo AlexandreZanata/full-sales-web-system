@@ -117,6 +117,42 @@ pub async fn list_commerces(
         .collect())
 }
 
+pub async fn list_commerces_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    active: Option<bool>,
+    after_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<CommerceRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool, Option<Uuid>)>(
+        "SELECT id, cnpj, legal_name, trade_name, active, logo_file_id
+         FROM commerces.commerces
+         WHERE ($1::bool IS NULL OR active = $1)
+           AND ($2::uuid IS NULL OR id > $2)
+         ORDER BY id ASC
+         LIMIT $3",
+    )
+    .bind(active)
+    .bind(after_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
+            id,
+            cnpj,
+            legal_name,
+            trade_name,
+            active,
+            logo_file_id,
+        })
+        .collect())
+}
+
 pub async fn count_commerces(
     pool: &PgPool,
     tenant_id: TenantId,

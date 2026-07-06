@@ -1,9 +1,9 @@
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, RawQuery, State},
     http::StatusCode,
+    response::{IntoResponse, Response},
 };
-use domain_commerces::{AddressType, CommerceAddressId, CreateCommerceAddressInput};
 use domain_identity::Role;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -14,6 +14,10 @@ use crate::commerces::addresses_support::{
     load_existing_addresses, map_address_error,
 };
 use crate::error::ApiError;
+use crate::list_query::{
+    COMMERCE_ADDRESSES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    parse_list_query,
+};
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -37,17 +41,31 @@ pub async fn list_addresses(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(commerce_id): Path<Uuid>,
-) -> Result<Json<Vec<AddressResponse>>, ApiError> {
-    require_roles(&auth, &[Role::Admin, Role::Driver, Role::Seller])?;
-    ensure_commerce(&state, auth.tenant_id, commerce_id).await?;
-    let rows = infra_postgres::commerces::addresses::list_addresses_by_commerce(
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<AddressResponse>>, Response> {
+    require_roles(&auth, &[Role::Admin, Role::Driver, Role::Seller])
+        .map_err(IntoResponse::into_response)?;
+    ensure_commerce(&state, auth.tenant_id, commerce_id)
+        .await
+        .map_err(IntoResponse::into_response)?;
+    let parsed =
+        parse_list_query(&decode_query_pairs(query.as_deref()), &COMMERCE_ADDRESSES_LIST_CONFIG)
+            .map_err(IntoResponse::into_response)?;
+    let rows = infra_postgres::commerces::addresses::list_addresses_by_commerce_cursor(
         &state.app_pool,
         auth.tenant_id,
         commerce_id,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
-    Ok(Json(rows.iter().map(address_response_from_row).collect()))
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+
+    Ok(Json(build_cursor_page(
+        rows.iter().map(address_response_from_row).collect(),
+        parsed.pagination.limit,
+        |address| address.id,
+    )))
 }
 
 pub async fn create_address(
@@ -59,15 +77,15 @@ pub async fn create_address(
     require_admin(&auth)?;
     let commerce = load_commerce(&state, auth.tenant_id, commerce_id).await?;
     let existing = load_existing_addresses(&state, auth.tenant_id, commerce_id).await?;
-    let address_id = CommerceAddressId::generate();
-    let address_type: AddressType = body
+    let address_id = domain_commerces::CommerceAddressId::generate();
+    let address_type: domain_commerces::AddressType = body
         .address_type
         .parse()
         .map_err(|_| ApiError::bad_request("INVALID_ADDRESS_TYPE", "Invalid address type"))?;
 
     let created = domain_commerces::CommerceAddress::create(
         &commerce,
-        CreateCommerceAddressInput {
+        domain_commerces::CreateCommerceAddressInput {
             id: address_id,
             tenant_id: auth.tenant_id,
             commerce_id: commerce.id(),

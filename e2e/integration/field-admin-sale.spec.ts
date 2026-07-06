@@ -13,24 +13,24 @@ test.describe('Integration: field sale visible in admin', () => {
     const sellerToken = await login('driver-a@test.com', 'secret123');
     const adminToken = await login('admin@test.com', 'secret123');
 
-    const commercesResponse = await request.get(`${API_BASE}/v1/commerces?pageSize=1`, {
+    const commercesResponse = await request.get(`${API_BASE}/v1/commerces?limit=1`, {
       headers: { Authorization: `Bearer ${sellerToken}` },
     });
     expect(commercesResponse.ok()).toBeTruthy();
     const commerces = (await commercesResponse.json()) as {
-      items: Array<{ id: string }>;
+      data: Array<{ id: string }>;
     };
-    const commerceId = commerces.items[0]?.id;
+    const commerceId = commerces.data[0]?.id;
     expect(commerceId).toBeTruthy();
 
-    const productsResponse = await request.get(`${API_BASE}/v1/products?pageSize=1`, {
+    const productsResponse = await request.get(`${API_BASE}/v1/products?limit=1`, {
       headers: { Authorization: `Bearer ${sellerToken}` },
     });
     expect(productsResponse.ok()).toBeTruthy();
     const products = (await productsResponse.json()) as {
-      items: Array<{ id: string }>;
+      data: Array<{ id: string }>;
     };
-    const productId = products.items[0]?.id;
+    const productId = products.data[0]?.id;
     expect(productId).toBeTruthy();
 
     const idempotencyKey = `integration-${Date.now()}`;

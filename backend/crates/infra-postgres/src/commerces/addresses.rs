@@ -130,6 +130,80 @@ pub async fn find_address_by_id(
     ))
 }
 
+pub async fn list_addresses_by_commerce_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    commerce_id: Uuid,
+    after_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<AddressRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            String,
+            String,
+            String,
+            Option<String>,
+            String,
+            String,
+            String,
+            Option<f64>,
+            Option<f64>,
+            bool,
+        ),
+    >(
+        "SELECT id, commerce_id, address_type, street, number, district, city, state,
+                postal_code, latitude, longitude, is_primary
+         FROM commerces.commerce_addresses
+         WHERE commerce_id = $1
+           AND ($2::uuid IS NULL OR id > $2)
+         ORDER BY id ASC
+         LIMIT $3",
+    )
+    .bind(commerce_id)
+    .bind(after_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(
+                id,
+                commerce_id,
+                address_type,
+                street,
+                number,
+                district,
+                city,
+                state,
+                postal_code,
+                latitude,
+                longitude,
+                is_primary,
+            )| AddressRow {
+                id,
+                commerce_id,
+                address_type,
+                street,
+                number,
+                district,
+                city,
+                state,
+                postal_code,
+                latitude,
+                longitude,
+                is_primary,
+            },
+        )
+        .collect())
+}
+
 pub async fn list_addresses_by_commerce(
     pool: &PgPool,
     tenant_id: TenantId,

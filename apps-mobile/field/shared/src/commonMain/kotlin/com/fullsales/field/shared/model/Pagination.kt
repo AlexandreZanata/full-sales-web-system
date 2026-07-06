@@ -1,7 +1,22 @@
 package com.fullsales.field.shared.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable
+data class CursorPaginationMeta(
+    @SerialName("next_cursor") val nextCursor: String? = null,
+    @SerialName("has_more") val hasMore: Boolean,
+    val limit: Int,
+)
+
+@Serializable
+data class CursorListCommerces(
+    val data: List<Commerce>,
+    val pagination: CursorPaginationMeta,
+)
+
+/** Legacy offset shape — products/sales migrate in later phases */
 @Serializable
 data class PaginatedCommerces(
     val page: Int,

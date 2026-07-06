@@ -48,7 +48,7 @@ class CreateSaleInstrumentedTest {
         assumeTrue("Dev API not reachable on emulator host", isDevApiReachable())
         val login = container.apiClient.login("seller@test.com", "secret123")
         container.tokenStore.saveTokens(login.accessToken, login.refreshToken)
-        val commerces = container.apiClient.listCommerces(pageSize = 5).items
+        val commerces = container.apiClient.listCommerces(limit = 5).data
         val products = container.apiClient.listProducts(limit = 5).data
         assumeTrue(commerces.isNotEmpty() && products.isNotEmpty())
         val submitter = CreateSaleSubmitter(container.apiClient, container.offlineSaleWriter)
