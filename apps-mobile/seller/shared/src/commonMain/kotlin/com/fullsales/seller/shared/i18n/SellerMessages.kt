@@ -75,6 +75,8 @@ data class SellerMessages(
         val selectCommerce: String = "",
         val selectPayment: String = "",
         val addProductLine: String = "",
+        val topSelling: String = "",
+        val noProductResults: String = "",
         val quantityRequired: String = "",
         val created: String = "",
         val confirmed: String = "",

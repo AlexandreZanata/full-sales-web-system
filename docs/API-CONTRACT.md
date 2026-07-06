@@ -174,6 +174,13 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 - **Auth:** Admin, Driver, Seller
 - **Response 200 / 404:** `PRODUCT_NOT_FOUND` — includes `categoryId`, `categoryName`, `categorySlug`
 
+### `GET /v1/products/top-selling`
+
+- **Auth:** Admin, Driver, Seller
+- **Query:** `limit?` (default `5`, max `20`)
+- **Response 200:** `{ "items": [{ "productId", "name", "sku", "unitsSold" }] }` — active products ranked by confirmed-sale units (see BR-SA-001)
+- **Note:** Empty until at least one sale is **Confirmed**; `Pending` create does not increment totals
+
 ### `PATCH /v1/products/{id}`
 
 - **Auth:** Admin

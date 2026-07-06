@@ -19,6 +19,7 @@ fun calculateCreateSaleTotalMinor(
 data class CreateSaleLineInput(
     val productId: String = "",
     val quantityText: String = "1",
+    val productSearchQuery: String = "",
 )
 
 data class CreateSaleLineErrors(

@@ -26,6 +26,7 @@ import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.Product
+import com.fullsales.seller.shared.model.TopSellingProduct
 import com.fullsales.seller.shared.model.displayName
 import com.fullsales.seller.shared.sales.CreateSaleLineInput
 import com.fullsales.seller.shared.sales.PAYMENT_METHODS
@@ -111,6 +112,7 @@ internal fun PaymentMethodChips(
 internal fun SaleLineCard(
     line: CreateSaleLineInput,
     products: List<Product>,
+    topSellingProducts: List<TopSellingProduct>,
     stock: Int?,
     quantityError: CreateSaleValidationError?,
     onChange: (CreateSaleLineInput) -> Unit,
@@ -128,10 +130,13 @@ internal fun SaleLineCard(
                     }
                 }
             }
-            ProductPickerChips(
+            ProductSearchPicker(
                 products = products,
+                topSellingProducts = topSellingProducts,
                 productId = line.productId,
-                onSelect = { onChange(line.copy(productId = it)) },
+                searchQuery = line.productSearchQuery,
+                onSearchChange = { onChange(line.copy(productSearchQuery = it)) },
+                onSelect = { onChange(line.copy(productId = it, productSearchQuery = "")) },
             )
             OutlinedTextField(
                 value = line.quantityText,
@@ -151,30 +156,6 @@ internal fun SaleLineCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ProductPickerChips(
-    products: List<Product>,
-    productId: String,
-    onSelect: (String) -> Unit,
-) {
-    val s = LocalSellerStrings.current
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(s.sales.product, style = MaterialTheme.typography.labelLarge)
-        products.take(8).forEach { product ->
-            FilterChip(
-                selected = product.id == productId,
-                onClick = { onSelect(product.id) },
-                label = { Text("${product.name} (${product.sku})", maxLines = 1) },
-                modifier = Modifier.selectableChipA11y(
-                    "${product.name} (${product.sku})",
-                    product.id == productId,
-                    s.a11y.selected,
-                ),
-            )
         }
     }
 }

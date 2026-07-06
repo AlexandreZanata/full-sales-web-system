@@ -22,6 +22,7 @@
 | BR-SA-001 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-002 | `packages/domain/src/value-objects/money.test.ts`, `packages/domain/src/sales/sale-item.test.ts`, `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-003 | `packages/domain/src/sales/sale.test.ts` |
+| BR-SA-004 | `backend/crates/api-http/tests/sales.rs` (`contract_top_selling_products_after_confirm_then_lists_product`) |
 
 ---
 
@@ -229,6 +230,17 @@ AND client-supplied total is ignored
 GIVEN a Sale in status Confirmed
 WHEN cancel is called
 THEN the operation fails with InvalidSaleTransition
+```
+
+### BR-SA-004 — Confirmed sales increment product sales totals
+
+```
+GIVEN a Pending sale with line items
+WHEN the sale is Confirmed (POST /v1/sales/{id}/confirm or delivery confirm path)
+THEN sales.product_sales_totals.units_sold increases by each line quantity per product
+AND GET /v1/products/top-selling returns products ordered by units_sold DESC
+WHEN the sale remains Pending or is Cancelled before confirm
+THEN product sales totals are unchanged
 ```
 
 ---

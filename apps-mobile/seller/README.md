@@ -144,7 +144,8 @@ Merge logic lives in `shared/sales/SalesListMerger.kt` — remote status wins wh
 | Component | Purpose |
 |-----------|---------|
 | `CreateSaleScreen` | M3 form — commerce picker, payment chips, multi-line items, sticky total bar |
-| `CreateSaleViewModel` | Catalog flows, stock lookup, validation, online/offline submit |
+| `ProductSearchPicker` | Search by name/SKU; top 5 sellers from `GET /v1/products/top-selling` when search empty |
+| `CreateSaleViewModel` | Catalog flows, stock lookup, top-selling fetch, validation, online/offline submit |
 | `CreateSaleSubmitter` | `POST /v1/sales` with idempotency key, or `OfflineSaleWriter` + outbox |
 | `shared/sales/CreateSaleForm.kt` | Total calculation (minor units), validation, ADR-006 payment methods |
 

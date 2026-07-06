@@ -255,6 +255,14 @@ pub async fn confirm_delivery_transaction(
         .await?;
     }
 
+    let metrics: Vec<(Uuid, i32)> = input
+        .sale_items
+        .iter()
+        .map(|item| (item.product_id, item.quantity))
+        .collect();
+    crate::sales::record_product_sales_in_tx(&mut tx, tenant_uuid, &metrics)
+        .await?;
+
     for line in &input.stock_lines {
         let result = sqlx::query(
             "UPDATE inventory.stock_balances

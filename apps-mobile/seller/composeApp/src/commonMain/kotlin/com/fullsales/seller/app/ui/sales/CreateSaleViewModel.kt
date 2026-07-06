@@ -6,6 +6,7 @@ import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.Product
+import com.fullsales.seller.shared.model.TopSellingProduct
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.sales.CreateSaleFormErrors
 import com.fullsales.seller.shared.sales.CreateSaleLineInput
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 data class CreateSaleUiState(
     val commerces: List<Commerce> = emptyList(),
     val products: List<Product> = emptyList(),
+    val topSellingProducts: List<TopSellingProduct> = emptyList(),
     val commerceId: String = "",
     val paymentMethod: String = "",
     val lines: List<CreateSaleLineInput> = listOf(CreateSaleLineInput()),
@@ -56,6 +58,17 @@ class CreateSaleViewModel(
             }.collect { (commerces, products) ->
                 _state.update { it.copy(commerces = commerces, products = products, loading = false) }
             }
+        }
+        loadTopSellingProducts()
+    }
+
+    private fun loadTopSellingProducts() {
+        viewModelScope.launch {
+            if (!networkMonitor.isOnline()) return@launch
+            runCatching { apiClient.listTopSellingProducts(limit = 5) }
+                .onSuccess { response ->
+                    _state.update { it.copy(topSellingProducts = response.items) }
+                }
         }
     }
 

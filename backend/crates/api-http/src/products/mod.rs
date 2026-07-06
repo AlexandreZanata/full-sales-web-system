@@ -12,6 +12,7 @@ use crate::state::AppState;
 
 pub mod catalog;
 pub mod catalog_images;
+pub mod top_selling;
 
 #[derive(Serialize)]
 pub struct ProductResponse {
@@ -111,3 +112,4 @@ pub use catalog::{create_product, get_product, update_product};
 pub use catalog_images::{
     attach_product_image, delete_product_image, list_product_images,
 };
+pub use top_selling::list_top_selling_products;

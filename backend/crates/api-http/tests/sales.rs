@@ -500,3 +500,67 @@ async fn contract_confirm_sale_when_sufficient_stock_then_200_confirmed() {
     let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
     assert_eq!(json["status"], "Confirmed");
 }
+
+// Contract: BR-SA-004 — confirmed sale increments top-selling metrics
+#[tokio::test]
+async fn contract_top_selling_products_after_confirm_then_lists_product() {
+    let env = setup().await;
+    let body = json!({
+        "commerceId": env.commerce_id,
+        "items": [{ "productId": env.product_id, "quantity": 3 }],
+        "paymentMethod": "cash"
+    });
+
+    let create = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/sales")
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+    assert_eq!(create.status(), StatusCode::CREATED);
+    let bytes = axum::body::to_bytes(create.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let created: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+    let sale_id = created["id"].as_str().expect("id");
+
+    let confirm = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/v1/sales/{sale_id}/confirm"))
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+    assert_eq!(confirm.status(), StatusCode::OK);
+
+    let top = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/v1/products/top-selling?limit=5")
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+    assert_eq!(top.status(), StatusCode::OK);
+    let bytes = axum::body::to_bytes(top.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+    let items = json["items"].as_array().expect("items");
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["productId"], env.product_id.to_string());
+    assert_eq!(items[0]["unitsSold"], 3);
+}

@@ -15,6 +15,7 @@ import com.fullsales.seller.shared.model.RefreshRequest
 import com.fullsales.seller.shared.model.Sale
 import com.fullsales.seller.shared.model.SiteSettings
 import com.fullsales.seller.shared.model.StockBalance
+import com.fullsales.seller.shared.model.TopSellingProductsResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
@@ -79,6 +80,9 @@ class SellerApiClient(
 
     suspend fun getProduct(id: String): ProductDetail =
         http.apiGet("$baseUrl/products/$id", json)
+
+    suspend fun listTopSellingProducts(limit: Int = 5): TopSellingProductsResponse =
+        http.apiGet("$baseUrl/products/top-selling?limit=$limit", json)
 
     suspend fun getStockBalance(productId: String): StockBalance =
         http.apiGet("$baseUrl/inventory/products/$productId/balance", json)

@@ -2,6 +2,7 @@ package com.fullsales.seller.app.ui.products
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fullsales.seller.shared.catalog.filterProductsBySearch
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
@@ -17,20 +18,9 @@ data class ProductListUiState(
     val refreshing: Boolean = false,
     val error: String? = null,
 ) {
-    val filtered: List<Product> = items
-        .asSequence()
-        .filter { productMatchesSearch(it, searchQuery) }
-        .sortedBy { it.name.lowercase() }
-        .toList()
+    val filtered: List<Product> = filterProductsBySearch(items, searchQuery)
 
     val isEmpty: Boolean get() = !refreshing && error == null && filtered.isEmpty()
-}
-
-private fun productMatchesSearch(product: Product, query: String): Boolean {
-    val term = query.trim().lowercase()
-    if (term.isEmpty()) return true
-    return product.name.lowercase().contains(term) ||
-        product.sku.lowercase().contains(term)
 }
 
 class ProductViewModel(

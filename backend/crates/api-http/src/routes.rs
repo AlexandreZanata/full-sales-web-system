@@ -31,7 +31,7 @@ use crate::portal::{
 };
 use crate::products::{
     attach_product_image, create_product, delete_product_image, get_product, list_product_images,
-    list_products, update_product,
+    list_products, list_top_selling_products, update_product,
 };
 use crate::reports::{export_report, generate_report, get_report, list_reports, verify_report};
 use crate::sales::{
@@ -111,6 +111,7 @@ pub fn v1_router(state: AppState) -> Router {
         )
         .route("/v1/commerces/{id}/logo", put(update_logo))
         .route("/v1/products", get(list_products).post(create_product))
+        .route("/v1/products/top-selling", get(list_top_selling_products))
         .route("/v1/categories", get(list_categories).post(create_category))
         .route(
             "/v1/categories/reorder",

@@ -101,6 +101,7 @@ fun CreateSaleScreen(
                 SaleLineCard(
                     line = line,
                     products = state.products,
+                    topSellingProducts = state.topSellingProducts,
                     stock = state.stockByProductId[line.productId],
                     quantityError = state.errors.lineErrors.getOrNull(index)?.quantityError,
                     onChange = { viewModel.updateLine(index, it) },

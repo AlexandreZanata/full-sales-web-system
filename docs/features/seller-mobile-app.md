@@ -57,6 +57,7 @@ Open `apps-mobile/seller` in Android Studio → run **androidApp**. iOS: see [io
 | `sales` | Sales list (merged remote + local) | `GET /v1/sales` |
 | `sales/new` | Create sale form | `POST /v1/sales` or offline outbox |
 | `sales/{saleId}` | Sale detail, confirm/cancel | `GET /v1/sales/{id}`, `POST …/confirm`, `POST …/cancel` |
+| — | Top sellers (create-sale picker) | `GET /v1/products/top-selling?limit=5` |
 | `commerces` | Commerce catalog | Cached + `GET /v1/commerces` |
 | `commerces/pick` | Commerce picker (create sale) | Same as commerces |
 | `commerces/{commerceId}` | Commerce detail + addresses | `GET /v1/commerces/{id}`, `GET …/addresses` |
