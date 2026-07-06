@@ -84,6 +84,7 @@ export type SaleDetail = {
 
 export type CreateSaleRequest = {
   commerceId: string;
+  driverId?: string;
   items: Array<{ productId: string; quantity: number }>;
   paymentMethod: string;
 };

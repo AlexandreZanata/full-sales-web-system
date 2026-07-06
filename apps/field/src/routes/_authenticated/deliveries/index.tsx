@@ -27,7 +27,7 @@ function DeliveriesPage() {
     return <EmptyState title={t('common.loadFailed')} />;
   }
 
-  const items = deliveriesQuery.data?.items ?? [];
+  const items = deliveriesQuery.data?.data ?? [];
 
   if (items.length === 0) {
     return <EmptyState title={t('deliveries.empty')} />;

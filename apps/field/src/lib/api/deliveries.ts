@@ -1,24 +1,25 @@
 import { apiFetch, apiPost } from '@/lib/api/client';
-import type { DeliveryDetail, PaginatedResponse } from '@/lib/api/types';
+import { type CursorListParams, type CursorListResponse } from '@/lib/cursorPagination';
+import type { DeliveryDetail } from '@/lib/api/types';
 import type { DeliveryStatusFilter } from '@/lib/deliveries/constants';
 
-export type DeliveriesListParams = {
-  page?: number;
-  pageSize?: number;
+export type DeliveriesListParams = CursorListParams & {
   status?: DeliveryStatusFilter;
 };
 
 export async function fetchDeliveries(
   params: DeliveriesListParams = {},
-): Promise<PaginatedResponse<DeliveryDetail>> {
+): Promise<CursorListResponse<DeliveryDetail>> {
   const query = new URLSearchParams({
-    page: String(params.page ?? 1),
-    pageSize: String(params.pageSize ?? 20),
+    limit: String(params.limit ?? 20),
   });
-  if (params.status) {
-    query.set('status', params.status);
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
   }
-  return apiFetch<PaginatedResponse<DeliveryDetail>>(`/deliveries?${query}`);
+  if (params.status) {
+    query.set('filter[status]', params.status);
+  }
+  return apiFetch<CursorListResponse<DeliveryDetail>>(`/deliveries?${query}`);
 }
 
 export async function fetchDelivery(id: string): Promise<DeliveryDetail> {

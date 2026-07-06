@@ -1,10 +1,19 @@
 import { apiFetch } from '@/lib/api/client';
-import type { PaginatedResponse, ProductSummary, StockBalance } from '@/lib/api/types';
+import { fetchAllCursorPages, type CursorListResponse } from '@/lib/cursorPagination';
+import type { ProductSummary, StockBalance } from '@/lib/api/types';
 
 export async function fetchProducts(): Promise<ProductSummary[]> {
-  const query = new URLSearchParams({ page: '1', pageSize: '50' });
-  const response = await apiFetch<PaginatedResponse<ProductSummary>>(`/products?${query}`);
-  return response.items.filter((product) => product.active);
+  const products = await fetchAllCursorPages<ProductSummary>(async (cursor) => {
+    const query = new URLSearchParams({
+      limit: '100',
+      'filter[active]': 'true',
+    });
+    if (cursor) {
+      query.set('cursor', cursor);
+    }
+    return apiFetch<CursorListResponse<ProductSummary>>(`/products?${query}`);
+  });
+  return products.filter((product) => product.active);
 }
 
 export async function fetchStockBalance(productId: string): Promise<StockBalance> {

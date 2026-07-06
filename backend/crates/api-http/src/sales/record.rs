@@ -12,6 +12,7 @@ use uuid::Uuid;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
+use crate::sales::driver::resolve_sale_driver_id;
 use crate::sales::types::{
     CreateSaleRequest, map_products_app_error, map_sales_app_error, require_can_record_sale,
     sale_response_from_dto,
@@ -90,10 +91,12 @@ pub async fn create_sale(
         .collect::<Result<Vec<_>, _>>()
         .map_err(map_products_app_error)?;
 
+    let driver_id = resolve_sale_driver_id(&state, &auth, body.driver_id).await?;
+
     let sale_id = SaleId::generate();
     let command = CreateSaleCommand {
         sale_id,
-        driver_id: UserId::from_uuid(auth.user_id),
+        driver_id: UserId::from_uuid(driver_id),
         commerce_id: body.commerce_id,
         payment_method,
         tenant_id: auth.tenant_id,
@@ -131,7 +134,7 @@ pub async fn create_sale(
         auth.tenant_id,
         infra_postgres::sales::SaleInsert {
             sale_id: sale.id().as_uuid(),
-            driver_id: auth.user_id,
+            driver_id,
             commerce_id: body.commerce_id,
             payment_method: payment_method_db,
             total_amount: dto.total.amount_minor(),

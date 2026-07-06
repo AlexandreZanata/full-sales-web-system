@@ -2513,6 +2513,10 @@ components:
         commerceId:
           type: string
           format: uuid
+        driverId:
+          type: string
+          format: uuid
+          description: Required for Admin; omitted for Driver/Seller (JWT user used)
         items:
           type: array
           minItems: 1

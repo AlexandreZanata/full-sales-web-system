@@ -19,6 +19,8 @@ pub struct CreateSaleItemRequest {
 pub struct CreateSaleRequest {
     #[serde(rename = "commerceId")]
     pub commerce_id: Uuid,
+    #[serde(rename = "driverId")]
+    pub driver_id: Option<Uuid>,
     pub items: Vec<CreateSaleItemRequest>,
     #[serde(rename = "paymentMethod")]
     pub payment_method: String,

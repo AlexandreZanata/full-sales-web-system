@@ -1,4 +1,5 @@
 mod declare;
+mod driver;
 mod idempotency;
 mod list;
 mod query;

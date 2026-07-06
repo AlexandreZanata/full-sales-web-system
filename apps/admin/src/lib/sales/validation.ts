@@ -8,12 +8,13 @@ export type SaleLineFormValues = {
 
 export type CreateSaleFormValues = {
   commerceId: string;
+  driverId: string;
   paymentMethod: (typeof PAYMENT_METHODS)[number] | '';
   items: SaleLineFormValues[];
 };
 
 export type CreateSaleFormErrors = Partial<
-  Record<'commerceId' | 'paymentMethod' | 'itemsRoot', string> & {
+  Record<'commerceId' | 'driverId' | 'paymentMethod' | 'itemsRoot', string> & {
     items: Partial<Record<keyof SaleLineFormValues, string>>[];
   }
 >;
@@ -31,6 +32,10 @@ export function validateCreateSaleForm(values: CreateSaleFormValues): CreateSale
 
   if (!values.commerceId) {
     errors.commerceId = 'forms.validation.selectCommerce';
+  }
+
+  if (!values.driverId) {
+    errors.driverId = 'forms.validation.selectDriver';
   }
 
   if (!values.paymentMethod || !PAYMENT_METHODS.includes(values.paymentMethod)) {
@@ -67,7 +72,7 @@ export function validateCreateSaleForm(values: CreateSaleFormValues): CreateSale
 }
 
 export function hasFormErrors(errors: CreateSaleFormErrors): boolean {
-  if (errors.commerceId || errors.paymentMethod || errors.itemsRoot) {
+  if (errors.commerceId || errors.driverId || errors.paymentMethod || errors.itemsRoot) {
     return true;
   }
   return Boolean(errors.items?.some((line) => Object.keys(line).length > 0));
@@ -80,6 +85,7 @@ export function toCreateSalePayload(values: CreateSaleFormValues): CreateSaleReq
   }
   return {
     commerceId: values.commerceId,
+    driverId: values.driverId,
     paymentMethod,
     items: values.items
       .filter((line) => line.productId && parseQuantity(line.quantity) !== null)

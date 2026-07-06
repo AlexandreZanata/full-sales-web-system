@@ -17,7 +17,7 @@ function SalesListPage() {
   const { t } = useI18n();
   const salesQuery = useQuery({
     queryKey: ['sales'],
-    queryFn: () => fetchSales({ pageSize: 20 }),
+    queryFn: () => fetchSales({ limit: 20 }),
   });
 
   if (salesQuery.isLoading) return <LoadingSpinner className="py-16" />;
@@ -30,7 +30,7 @@ function SalesListPage() {
     );
   }
 
-  const sales = salesQuery.data?.items ?? [];
+  const sales = salesQuery.data?.data ?? [];
 
   return (
     <div className="space-y-4">

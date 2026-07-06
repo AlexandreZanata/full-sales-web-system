@@ -18,7 +18,9 @@ use uuid::Uuid;
 
 struct TestEnv {
     state: AppState,
+    driver_id: Uuid,
     driver_token: String,
+    admin_token: String,
     commerce_id: Uuid,
     product_id: Uuid,
     _container: testcontainers::ContainerAsync<Postgres>,
@@ -66,6 +68,8 @@ async fn setup() -> TestEnv {
 
     let driver_id = seed_user(&app_pool, tenant_id, "driver@test.com", "Driver").await;
     let driver_token = login(&state, "driver@test.com", "password").await;
+    let _admin_id = seed_user(&app_pool, tenant_id, "admin@test.com", "Admin").await;
+    let admin_token = login(&state, "admin@test.com", "password").await;
 
     let commerce_id = Uuid::now_v7();
     infra_postgres::commerces::insert_commerce(
@@ -95,7 +99,9 @@ async fn setup() -> TestEnv {
 
     TestEnv {
         state,
+        driver_id,
         driver_token,
+        admin_token,
         commerce_id,
         product_id,
         _container: container,
@@ -249,6 +255,91 @@ async fn contract_create_sale_when_invalid_quantity_then_400() {
         .expect("bytes");
     let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
     assert_eq!(json["error"]["code"], "VALIDATION_ERROR");
+}
+
+// Contract: POST /v1/sales Admin with driverId → 201 + driverId in response
+#[tokio::test]
+async fn contract_create_sale_when_admin_with_driver_id_then_201() {
+    let env = setup().await;
+    let body = json!({
+        "commerceId": env.commerce_id,
+        "driverId": env.driver_id,
+        "items": [{ "productId": env.product_id, "quantity": 1 }],
+        "paymentMethod": "cash"
+    });
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/sales")
+                .header("authorization", format!("Bearer {}", env.admin_token))
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::CREATED);
+    let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("bytes");
+    let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
+    assert_eq!(json["driverId"], env.driver_id.to_string());
+}
+
+// Contract: POST /v1/sales Admin without driverId → 400
+#[tokio::test]
+async fn contract_create_sale_when_admin_without_driver_id_then_400() {
+    let env = setup().await;
+    let body = json!({
+        "commerceId": env.commerce_id,
+        "items": [{ "productId": env.product_id, "quantity": 1 }],
+        "paymentMethod": "cash"
+    });
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/sales")
+                .header("authorization", format!("Bearer {}", env.admin_token))
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+}
+
+// Contract: POST /v1/sales Driver with mismatched driverId → 400
+#[tokio::test]
+async fn contract_create_sale_when_driver_with_mismatched_driver_id_then_400() {
+    let env = setup().await;
+    let body = json!({
+        "commerceId": env.commerce_id,
+        "driverId": Uuid::now_v7(),
+        "items": [{ "productId": env.product_id, "quantity": 1 }],
+        "paymentMethod": "cash"
+    });
+
+    let response = full_app(env.state.clone())
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/sales")
+                .header("authorization", format!("Bearer {}", env.driver_token))
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_string()))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 }
 
 // Contract: GET /v1/sales/{id} unknown → 404 SALE_NOT_FOUND

@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
 import { fetchCommercesForPicker } from '@/lib/api/commerces';
 import { fetchProductsForPicker } from '@/lib/api/products';
+import { fetchDriversForPicker } from '@/lib/api/users';
 import type { SaleDetail } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
 import {
@@ -30,6 +31,7 @@ const emptyLine = (): SaleLineFormValues => ({ productId: '', quantity: '' });
 
 const emptyForm: CreateSaleFormValues = {
   commerceId: '',
+  driverId: '',
   paymentMethod: '',
   items: [emptyLine()],
 };
@@ -57,6 +59,11 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
   const products = useQuery({
     queryKey: ['products', 'picker'],
     queryFn: fetchProductsForPicker,
+  });
+
+  const drivers = useQuery({
+    queryKey: ['drivers', 'picker'],
+    queryFn: fetchDriversForPicker,
   });
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
@@ -104,6 +111,23 @@ export function CreateSaleForm({ onSubmit, onSuccess }: CreateSaleFormProps) {
           {(commerces.data ?? []).map((commerce) => (
             <option key={commerce.id} value={commerce.id}>
               {commerce.tradeName || commerce.legalName}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          label={t('forms.fields.driver')}
+          value={values.driverId}
+          error={translateFormError(t, errors.driverId)}
+          disabled={drivers.isLoading}
+          onChange={(event) => {
+            setValues((current) => ({ ...current, driverId: event.target.value }));
+          }}
+        >
+          <option value="">{t('forms.placeholders.selectDriver')}</option>
+          {(drivers.data ?? []).map((driver) => (
+            <option key={driver.id} value={driver.id}>
+              {driver.name}
             </option>
           ))}
         </Select>

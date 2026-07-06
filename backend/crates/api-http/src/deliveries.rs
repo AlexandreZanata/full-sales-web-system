@@ -1,4 +1,4 @@
-mod support;
+pub(crate) mod support;
 
 use application::deliveries::{
     ConfirmDeliveryAndCreateSaleCommand, confirm_delivery_and_create_sale,

@@ -12,6 +12,7 @@ import {
 
 const validForm: CreateSaleFormValues = {
   commerceId: '550e8400-e29b-41d4-a716-446655440000',
+  driverId: '770e8400-e29b-41d4-a716-446655440002',
   paymentMethod: 'cash',
   items: [{ productId: '660e8400-e29b-41d4-a716-446655440001', quantity: '2' }],
 };
@@ -24,6 +25,11 @@ describe('validateCreateSaleForm — Phase 34 contract', () => {
   it('given_missing_commerce_when_validate_then_commerce_error', () => {
     const errors = validateCreateSaleForm({ ...validForm, commerceId: '' });
     expect(errors.commerceId).toBe('forms.validation.selectCommerce');
+  });
+
+  it('given_missing_driver_when_validate_then_driver_error', () => {
+    const errors = validateCreateSaleForm({ ...validForm, driverId: '' });
+    expect(errors.driverId).toBe('forms.validation.selectDriver');
   });
 
   it('given_invalid_payment_when_validate_then_payment_error', () => {
@@ -45,6 +51,7 @@ describe('toCreateSalePayload — API contract', () => {
   it('given_valid_form_when_to_payload_then_lowercase_payment_method', () => {
     const payload = toCreateSalePayload(validForm);
     expect(payload.paymentMethod).toBe('cash');
+    expect(payload.driverId).toBe(validForm.driverId);
     expect(payload.items).toHaveLength(1);
     expect(payload.items[0]?.quantity).toBe(2);
   });
