@@ -1620,6 +1620,22 @@ components:
         minimum: 1
         maximum: 50
         default: 20
+    PaginationCursor:
+      name: cursor
+      in: query
+      description: UUIDv7 of the last item on the previous page (cursor pagination)
+      schema:
+        type: string
+        format: uuid
+    PaginationLimit:
+      name: limit
+      in: query
+      description: Page size for cursor-based listing routes
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
     UserId:
       name: id
       in: path
@@ -1782,6 +1798,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+    ListQueryValidationError:
+      description: Invalid list pagination, filter, or sort query params
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ListQueryError'
 
   schemas:
     ErrorCode:
@@ -1820,6 +1842,34 @@ components:
         - REASON_REQUIRED
         - INVALID_MOVEMENT_TYPE
         - DELIVERY_EXISTS
+        - invalid_pagination
+        - invalid_filter_field
+        - invalid_sort_field
+
+    ListQueryError:
+      type: object
+      required: [error]
+      additionalProperties: false
+      properties:
+        error:
+          type: object
+          required: [code, message, field, correlationId]
+          additionalProperties: false
+          properties:
+            code:
+              type: string
+              enum:
+                - invalid_pagination
+                - invalid_filter_field
+                - invalid_sort_field
+            message:
+              type: string
+            field:
+              type: string
+              description: Query parameter or filter field that failed validation
+            correlationId:
+              type: string
+              format: uuid
 
     ErrorResponse:
       type: object
@@ -1853,6 +1903,31 @@ components:
           type: integer
         total:
           type: integer
+
+    CursorPaginationMeta:
+      type: object
+      required: [has_more, limit]
+      properties:
+        next_cursor:
+          type: string
+          format: uuid
+          nullable: true
+        has_more:
+          type: boolean
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+
+    CursorListEnvelope:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          $ref: '#/components/schemas/CursorPaginationMeta'
 
     LoginRequest:
       type: object

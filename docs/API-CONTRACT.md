@@ -35,10 +35,26 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ## Pagination (list endpoints)
 
+> **Migration in progress (Phase 68).** New listing routes MUST use cursor pagination — see [Listing routes (migration)](#listing-routes-migration). Legacy offset params below remain until route migration completes.
+
 | Param | Default | Max |
 |-------|---------|-----|
 | `page` | 1 | — |
 | `pageSize` | 20 | 50 |
+
+### Listing routes (migration)
+
+**Target spec:** `.local/phases/_reference/API-LIST-PAGINATION-FILTERS-SORT.md` (also summarized here).
+
+| Concern | Standard (new) | Legacy (deprecated) |
+|---------|----------------|---------------------|
+| Request pagination | `limit` (default 20, max 100), `cursor` (UUIDv7 of last item) | `page`, `pageSize` |
+| Response envelope | `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` | `{ "items": [...], "page", "pageSize", "total" }` |
+| Filters | `filter[field]` or `filter[field][op]=value` (whitelist per route) | Ad-hoc query params (`active?`, `search`, etc.) |
+| Sort | `sort=-field,other` (whitelist per route) | Not standardized |
+| Validation errors | `invalid_pagination`, `invalid_filter_field`, `invalid_sort_field` (+ `field`) | `VALIDATION_ERROR` |
+
+**Rust helpers (68A):** `application::list_query` (VOs), `api_http::list_query` (parser + `build_cursor_page`). Routes migrate one group per sub-phase (68B–68F); do not change production list shapes until that route's sub-phase lands.
 
 ---
 

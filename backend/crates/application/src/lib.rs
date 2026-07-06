@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 pub mod auth;
 pub mod categories;
+pub mod list_query;
 pub mod commerces;
 pub mod deliveries;
 pub mod orders;
