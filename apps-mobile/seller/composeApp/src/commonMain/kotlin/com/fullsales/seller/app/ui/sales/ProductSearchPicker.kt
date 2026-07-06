@@ -28,17 +28,20 @@ internal fun ProductSearchPicker(
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     onSelect: (String) -> Unit,
+    showSelectedLabel: Boolean = true,
 ) {
     val s = LocalSellerStrings.current
     val selected = products.firstOrNull { it.id == productId }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(s.sales.product, style = MaterialTheme.typography.labelLarge)
-        selected?.let {
-            Text(
-                "${it.name} (${it.sku})",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
+        if (showSelectedLabel) {
+            Text(s.sales.product, style = MaterialTheme.typography.labelLarge)
+            selected?.let {
+                Text(
+                    "${it.name} (${it.sku})",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
         OutlinedTextField(
             value = searchQuery,

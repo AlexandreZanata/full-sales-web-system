@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -21,7 +19,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,7 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
@@ -90,36 +87,17 @@ fun CreateSaleScreen(
                 error = state.errors.paymentError,
                 onSelect = viewModel::setPaymentMethod,
             )
-            state.errors.linesError?.let {
-                Text(
-                    SellerStrings.formatValidation(s, it),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            state.lines.forEachIndexed { index, line ->
-                SaleLineCard(
-                    line = line,
-                    products = state.products,
-                    topSellingProducts = state.topSellingProducts,
-                    stock = state.stockByProductId[line.productId],
-                    quantityError = state.errors.lineErrors.getOrNull(index)?.quantityError,
-                    onChange = { viewModel.updateLine(index, it) },
-                    onRemove = { viewModel.removeLine(index) },
-                    canRemove = state.lines.size > 1,
-                )
-            }
-            TextButton(
-                onClick = viewModel::addLine,
-                modifier = Modifier.defaultMinSize(minHeight = 48.dp),
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.clearAndSetSemantics { },
-                )
-                Text(s.sales.addLine)
-            }
+            SaleProductListSection(
+                lines = state.lines,
+                products = state.products,
+                topSellingProducts = state.topSellingProducts,
+                stockByProductId = state.stockByProductId,
+                lineErrors = state.errors.lineErrors,
+                linesError = state.errors.linesError,
+                onUpdateLine = viewModel::updateLine,
+                onRemoveLine = viewModel::removeLine,
+                onAddLine = viewModel::addLine,
+            )
         }
     }
 }
@@ -132,17 +110,34 @@ private fun CreateSaleBottomBar(
     onSubmit: () -> Unit,
 ) {
     val s = LocalSellerStrings.current
-    Surface(shadowElevation = 8.dp) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Surface(
+        shadowElevation = 8.dp,
+        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(s.common.total, style = MaterialTheme.typography.titleMedium)
-                Text(formatMoneyMinorUnits(totalMinor), style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    s.common.total,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    formatMoneyMinorUnits(totalMinor),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
                     onClick = onBack,
                     modifier = Modifier
