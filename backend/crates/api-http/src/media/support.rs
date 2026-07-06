@@ -115,6 +115,7 @@ pub async fn ensure_can_access_entity(
             Ok(())
         }
         FileEntityType::Product if matches!(auth.role, Role::Seller | Role::Driver) => Ok(()),
+        FileEntityType::ProductCategory if auth.role == Role::Admin => Ok(()),
         FileEntityType::Tenant if entity_id == auth.tenant_id.as_uuid() => Ok(()),
         FileEntityType::Delivery if auth.role == Role::Driver => {
             let delivery = infra_postgres::deliveries::find_delivery_by_id(

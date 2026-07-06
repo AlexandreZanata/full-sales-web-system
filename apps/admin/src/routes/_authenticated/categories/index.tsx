@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { CategoryDialog } from '@/components/categories/CategoryDialog';
+import { CategoryThumb } from '@/components/categories/CategoryThumb';
 import { ActiveBadge } from '@/components/users/ActiveBadge';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -102,7 +103,12 @@ function CategoriesListPage() {
       {
         id: 'name',
         header: t('common.table.name'),
-        cell: (row) => <span className="font-medium">{row.name}</span>,
+        cell: (row) => (
+          <div className="flex items-center gap-3">
+            <CategoryThumb name={row.name} imageFileId={row.imageFileId} />
+            <span className="font-medium">{row.name}</span>
+          </div>
+        ),
       },
       {
         id: 'slug',

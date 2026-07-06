@@ -44,6 +44,7 @@ export function CategoryImageSection({
         onChange={(fileId) => void handleImageChange(fileId)}
         entityType="ProductCategory"
         entityId={categoryId}
+        previewMode="public"
       />
       {saving ? (
         <p className="text-xs text-muted-foreground">{t('categories.form.imageSaving')}</p>

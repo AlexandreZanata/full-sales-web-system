@@ -128,23 +128,42 @@ pub async fn get_public_product_media_content(
     Path(id): Path<Uuid>,
 ) -> Result<Response, ApiError> {
     let tenant_id = crate::portal::resolve_public_catalog_tenant()?;
-    let row = infra_postgres::inventory::product_images::find_active_product_media(
+    let row = match infra_postgres::inventory::product_images::find_active_product_media(
         &state.app_pool,
         tenant_id,
         id,
     )
     .await
     .map_err(|_| ApiError::internal())?
-    .ok_or_else(ApiError::media_not_found)?;
+    {
+        Some(row) => row,
+        None => infra_postgres::inventory::product_categories::find_active_category_media(
+            &state.app_pool,
+            tenant_id,
+            id,
+        )
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::media_not_found)?,
+    };
 
+    stream_public_media(&state, row.bucket, row.object_key, row.mime_type).await
+}
+
+async fn stream_public_media(
+    state: &AppState,
+    bucket: String,
+    object_key: String,
+    mime_type: String,
+) -> Result<Response, ApiError> {
     let (bytes, content_type) = state
         .storage
-        .get_object(&row.bucket, &row.object_key)
+        .get_object(&bucket, &object_key)
         .await
         .map_err(support::map_storage_error)?;
 
     let resolved_type = if content_type.is_empty() {
-        row.mime_type
+        mime_type
     } else {
         content_type
     };

@@ -6,6 +6,7 @@ use crate::error::MediaError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FileEntityType {
     Product,
+    ProductCategory,
     User,
     Commerce,
     Delivery,
@@ -16,6 +17,7 @@ impl FileEntityType {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Product => "Product",
+            Self::ProductCategory => "ProductCategory",
             Self::User => "User",
             Self::Commerce => "Commerce",
             Self::Delivery => "Delivery",
@@ -36,6 +38,7 @@ impl FromStr for FileEntityType {
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
             "Product" => Ok(Self::Product),
+            "ProductCategory" => Ok(Self::ProductCategory),
             "User" => Ok(Self::User),
             "Commerce" => Ok(Self::Commerce),
             "Delivery" => Ok(Self::Delivery),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveMediaContentUrl, resolveProductImagePreviewUrl } from '@/lib/api/uploads';
+import { resolveMediaContentUrl, resolveCatalogImagePreviewUrl, resolveProductImagePreviewUrl } from '@/lib/api/uploads';
 
 describe('resolveMediaContentUrl', () => {
   it('maps memory presigned URLs to authenticated content route', () => {
@@ -23,5 +23,13 @@ describe('resolveProductImagePreviewUrl', () => {
     expect(resolveProductImagePreviewUrl('01900001-0021-7000-8000-000000000001')).toBe(
       '/v1/public/media/01900001-0021-7000-8000-000000000001/content',
     );
+  });
+});
+
+describe('resolveCatalogImagePreviewUrl', () => {
+  it('uses public catalog media route for category img tags', () => {
+    expect(
+      resolveCatalogImagePreviewUrl('01900001-0016-7000-8000-000000000001'),
+    ).toBe('/v1/public/media/01900001-0016-7000-8000-000000000001/content');
   });
 });

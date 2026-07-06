@@ -275,3 +275,29 @@ impl From<CategoryDbRow> for CategoryRow {
         }
     }
 }
+
+pub async fn find_active_category_media(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    file_id: Uuid,
+) -> Result<Option<super::product_images::PublicProductMediaRow>, PostgresError> {
+    use super::product_images::PublicProductMediaRow;
+
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (String, String, String)>(
+        "SELECT mf.bucket, mf.object_key, mf.mime_type
+         FROM media.files mf
+         JOIN inventory.product_categories pc ON pc.image_file_id = mf.id
+         WHERE mf.id = $1 AND mf.entity_type = 'ProductCategory' AND pc.active = true",
+    )
+    .bind(file_id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
+        bucket,
+        object_key,
+        mime_type,
+    }))
+}

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
-import { resolveMediaPreviewUrl, uploadMediaFile, type MediaEntityType } from '@/lib/api/uploads';
+import { resolveMediaPreviewUrl, resolveCatalogImagePreviewUrl, uploadMediaFile, type MediaEntityType } from '@/lib/api/uploads';
 import { useI18n } from '@/lib/i18n/context';
 import { translateFormError } from '@/lib/i18n/labels';
 import { IMAGE_UPLOAD_ACCEPT, IMAGE_UPLOAD_HINT } from '@/lib/uploadAccept';
@@ -16,6 +16,8 @@ type FileUploadFieldProps = {
   entityType: MediaEntityType;
   entityId: string;
   error?: string;
+  /** Public catalog route — same as product images (no auth blob fetch). */
+  previewMode?: 'authenticated' | 'public';
 };
 
 export function FileUploadField({
@@ -25,6 +27,7 @@ export function FileUploadField({
   entityType,
   entityId,
   error,
+  previewMode = 'authenticated',
 }: FileUploadFieldProps) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,6 +41,13 @@ export function FileUploadField({
   useEffect(() => {
     if (!fileId) {
       setRemotePreviewUrl('');
+      setRemotePreviewFailed(false);
+      return;
+    }
+
+    if (previewMode === 'public') {
+      setRemotePreviewUrl(resolveCatalogImagePreviewUrl(fileId));
+      setRemotePreviewFailed(false);
       return;
     }
 
@@ -71,7 +81,7 @@ export function FileUploadField({
         URL.revokeObjectURL(blobUrl);
       }
     };
-  }, [fileId]);
+  }, [fileId, previewMode]);
 
   useEffect(() => {
     return () => {

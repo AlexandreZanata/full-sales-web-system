@@ -5,6 +5,17 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+val sellerApiBaseUrl: String = localProperties.getProperty("seller.api.base.url")
+    ?: "http://10.0.2.2:8080/v1"
+
 kotlin {
     androidTarget {
         compilations.all {
@@ -75,13 +86,13 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/v1\"")
+        buildConfigField("String", "API_BASE_URL", "\"$sellerApiBaseUrl\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/v1\"")
+            buildConfigField("String", "API_BASE_URL", "\"$sellerApiBaseUrl\"")
         }
         release {
             buildConfigField("String", "API_BASE_URL", "\"https://api.fullsales.example/v1\"")

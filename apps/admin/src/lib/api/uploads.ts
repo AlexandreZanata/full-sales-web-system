@@ -84,6 +84,11 @@ export function resolveProductImagePreviewUrl(fileId: string): string {
   return resolvePublicProductMediaUrl(fileId);
 }
 
+/** Category catalog images — same public route as product gallery (Phase 43). */
+export function resolveCatalogImagePreviewUrl(fileId: string): string {
+  return resolvePublicProductMediaUrl(fileId);
+}
+
 export async function resolveMediaPreviewUrl(fileId: string): Promise<string> {
   const { url } = await fetchMediaUrl(fileId);
   const contentUrl = resolveMediaContentUrl(fileId, url);
