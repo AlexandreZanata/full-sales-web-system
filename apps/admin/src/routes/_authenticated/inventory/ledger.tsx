@@ -46,10 +46,11 @@ function InventoryLedgerPage() {
     : null;
 
   function handlePageChange(nextPage: number) {
-    if (nextPage > page && movements.data?.pagination.next_cursor) {
+    const nextCursor = movements.data?.pagination.next_cursor;
+    if (nextPage > page && nextCursor) {
       setCursors((prev) => {
         const copy = [...prev];
-        copy[page] = movements.data?.pagination.next_cursor ?? undefined;
+        copy[page] = nextCursor;
         return copy;
       });
     }

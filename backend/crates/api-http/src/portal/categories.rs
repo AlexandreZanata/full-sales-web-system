@@ -11,8 +11,8 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::list_query::{
-    PORTAL_CATEGORIES_LIST_CONFIG, CursorListResponse,
-    build_cursor_page, decode_query_pairs, parse_list_query,
+    CursorListResponse, PORTAL_CATEGORIES_LIST_CONFIG, build_cursor_page, decode_query_pairs,
+    parse_list_query,
 };
 use crate::portal::products::{
     PortalProductResponse, build_portal_product_responses, resolve_public_catalog_tenant,
@@ -98,11 +98,8 @@ async fn list_categories_cursor(
     tenant_id: TenantId,
     query: Option<&str>,
 ) -> Result<CursorListResponse<CategoryResponse>, ApiError> {
-    let parsed = parse_list_query(
-        &decode_query_pairs(query),
-        &PORTAL_CATEGORIES_LIST_CONFIG,
-    )
-    .map_err(|err| ApiError::bad_request(&err.code, &err.message))?;
+    let parsed = parse_list_query(&decode_query_pairs(query), &PORTAL_CATEGORIES_LIST_CONFIG)
+        .map_err(|err| ApiError::bad_request(err.code, err.message))?;
     let rows = infra_postgres::inventory::product_categories::list_categories_cursor(
         &state.app_pool,
         tenant_id,
@@ -140,11 +137,8 @@ async fn category_with_products(
     .filter(|category| category.active)
     .ok_or_else(|| ApiError::not_found_with_code("CATEGORY_NOT_FOUND", "Category not found"))?;
 
-    let parsed = parse_list_query(
-        &decode_query_pairs(query),
-        &PORTAL_CATEGORIES_LIST_CONFIG,
-    )
-    .map_err(|err| ApiError::bad_request(&err.code, &err.message))?;
+    let parsed = parse_list_query(&decode_query_pairs(query), &PORTAL_CATEGORIES_LIST_CONFIG)
+        .map_err(|err| ApiError::bad_request(err.code, err.message))?;
 
     let product_rows = infra_postgres::inventory::list_portal_products_cursor(
         &state.app_pool,
@@ -156,11 +150,7 @@ async fn category_with_products(
     .await
     .map_err(|_| ApiError::internal())?;
     let products = build_portal_product_responses(state, tenant_id, &product_rows).await?;
-    let page = build_cursor_page(
-        products,
-        parsed.pagination.limit,
-        |product| product.id,
-    );
+    let page = build_cursor_page(products, parsed.pagination.limit, |product| product.id);
 
     Ok(CategoryWithProductsResponse {
         category: category_response(state, tenant_id, &row, true).await?,
@@ -215,7 +205,8 @@ pub(crate) async fn category_thumb_url(
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::internal)?;
-    let ttl = std::time::Duration::from_secs(infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS);
+    let ttl =
+        std::time::Duration::from_secs(infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS);
     let presigned = state
         .storage
         .presigned_get(&file.bucket, &file.object_key, ttl)

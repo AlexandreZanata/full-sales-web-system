@@ -14,7 +14,7 @@ use serde::Serialize;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::list_query::{
-    PORTAL_PRODUCTS_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    CursorListResponse, PORTAL_PRODUCTS_LIST_CONFIG, build_cursor_page, decode_query_pairs,
     filter_eq_string, parse_list_query,
 };
 use crate::state::AppState;
@@ -75,11 +75,8 @@ pub(crate) async fn list_products_cursor(
     tenant_id: TenantId,
     query: Option<&str>,
 ) -> Result<CursorListResponse<PortalProductResponse>, ApiError> {
-    let parsed = parse_list_query(
-        &decode_query_pairs(query),
-        &PORTAL_PRODUCTS_LIST_CONFIG,
-    )
-    .map_err(|err| ApiError::bad_request(&err.code, &err.message))?;
+    let parsed = parse_list_query(&decode_query_pairs(query), &PORTAL_PRODUCTS_LIST_CONFIG)
+        .map_err(|err| ApiError::bad_request(err.code, err.message))?;
     let category_slug = filter_eq_string(&parsed.filters, "category_slug");
     let rows = infra_postgres::inventory::list_portal_products_cursor(
         &state.app_pool,

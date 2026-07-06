@@ -21,7 +21,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { saleStatusFilterLabel } from '@/lib/i18n/labels';
 import { formatMoney } from '@/lib/products/formatPrice';
 import { SALE_STATUS_FILTERS, type SaleStatusFilter } from '@/lib/sales/constants';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
+import { cursorToTableState } from '@/lib/cursorPagination';
 
 export const Route = createFileRoute('/_authenticated/sales/')({
   component: SalesListPage,
@@ -31,6 +31,7 @@ function SalesListPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [statusFilter, setStatusFilter] = useState<SaleStatusFilter>('');
   const [commerceFilter, setCommerceFilter] = useState('');
   const [driverFilter, setDriverFilter] = useState('');
@@ -77,8 +78,8 @@ function SalesListPage() {
     ],
     queryFn: () =>
       fetchSales({
-        page,
-        pageSize,
+        limit: pageSize,
+        cursor: cursors[page - 1],
         status: statusFilter,
         commerceId: commerceFilter || undefined,
         driverId: driverFilter || undefined,
@@ -87,7 +88,24 @@ function SalesListPage() {
       }),
   });
 
-  const pagination = sales.data ? paginatedResponseToTable(sales.data) : null;
+  const pagination = sales.data ? cursorToTableState(page, sales.data.pagination.has_more) : null;
+
+  function handlePageChange(nextPage: number) {
+    const nextCursor = sales.data?.pagination.next_cursor;
+    if (nextPage > page && nextCursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = nextCursor;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
+
+  function resetPagination() {
+    setPage(1);
+    setCursors([undefined]);
+  }
 
   const columns: DataTableColumn<SaleSummary>[] = useMemo(
     () => [
@@ -152,7 +170,7 @@ function SalesListPage() {
           value={statusFilter}
           onChange={(event) => {
             setStatusFilter(event.target.value as SaleStatusFilter);
-            setPage(1);
+            resetPagination();
           }}
         >
           {SALE_STATUS_FILTERS.map((value) => (
@@ -167,7 +185,7 @@ function SalesListPage() {
           value={commerceFilter}
           onChange={(event) => {
             setCommerceFilter(event.target.value);
-            setPage(1);
+            resetPagination();
           }}
         >
           <option value="">{t('common.filter.allCommerces')}</option>
@@ -183,7 +201,7 @@ function SalesListPage() {
           value={driverFilter}
           onChange={(event) => {
             setDriverFilter(event.target.value);
-            setPage(1);
+            resetPagination();
           }}
         >
           <option value="">{t('common.filter.allDrivers')}</option>
@@ -200,7 +218,7 @@ function SalesListPage() {
           value={fromDate}
           onChange={(event) => {
             setFromDate(event.target.value);
-            setPage(1);
+            resetPagination();
           }}
         />
 
@@ -210,7 +228,7 @@ function SalesListPage() {
           value={toDate}
           onChange={(event) => {
             setToDate(event.target.value);
-            setPage(1);
+            resetPagination();
           }}
         />
       </div>
@@ -219,14 +237,14 @@ function SalesListPage() {
         <div className="flex justify-center py-16">
           <LoadingSpinner />
         </div>
-      ) : sales.data && sales.data.items.length > 0 ? (
+      ) : sales.data && sales.data.data.length > 0 ? (
         <DataTable
           caption={t('sales.list.caption')}
           columns={columns}
-          rows={sales.data.items}
+          rows={sales.data.data}
           getRowKey={(row) => row.id}
           pagination={pagination}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
           onRowClick={(row) => {
             void navigate({ to: '/sales/$id', params: { id: row.id } });
           }}

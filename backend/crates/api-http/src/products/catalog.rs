@@ -195,12 +195,7 @@ pub async fn update_product(
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::product_not_found)?;
-    crate::catalog_events::notify_product_changed(
-        &state.catalog_events,
-        "updated",
-        id,
-        &row.sku,
-    );
+    crate::catalog_events::notify_product_changed(&state.catalog_events, "updated", id, &row.sku);
     get_product(State(state), auth, Path(id)).await
 }
 

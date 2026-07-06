@@ -95,11 +95,7 @@ impl ObjectStorage for S3ObjectStorage {
         })
     }
 
-    async fn get_object(
-        &self,
-        bucket: &str,
-        key: &str,
-    ) -> Result<(Vec<u8>, String), StorageError> {
+    async fn get_object(&self, bucket: &str, key: &str) -> Result<(Vec<u8>, String), StorageError> {
         let response = self
             .client
             .get_object()

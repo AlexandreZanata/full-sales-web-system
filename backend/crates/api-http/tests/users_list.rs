@@ -15,14 +15,7 @@ async fn contract_list_users_when_admin_then_cursor_envelope() {
     let (_, admin_token) = seed_admin(&env).await;
     seed_driver(&env, "driver1@test.com").await;
 
-    let (status, body) = request(
-        &env,
-        "GET",
-        "/v1/users?limit=10",
-        Some(&admin_token),
-        None,
-    )
-    .await;
+    let (status, body) = request(&env, "GET", "/v1/users?limit=10", Some(&admin_token), None).await;
 
     assert_eq!(status, StatusCode::OK);
     assert!(body["data"].is_array());

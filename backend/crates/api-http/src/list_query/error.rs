@@ -1,9 +1,9 @@
+use application::list_query::ListQueryError;
 use axum::{
     Json,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use application::list_query::ListQueryError;
 use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize)]
@@ -92,11 +92,9 @@ mod tests {
 
     #[test]
     fn given_invalid_filter_field_when_serialized_then_contract_shape() {
-        let api = ListQueryApiError::from_list_query_error(
-            ListQueryError::InvalidFilterField {
-                field: "unknown".into(),
-            },
-        );
+        let api = ListQueryApiError::from_list_query_error(ListQueryError::InvalidFilterField {
+            field: "unknown".into(),
+        });
         let body = ListQueryErrorBody {
             error: ListQueryErrorDetail {
                 code: api.code.to_owned(),

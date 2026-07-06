@@ -86,11 +86,7 @@ impl ObjectStorage for LocalFsObjectStorage {
         })
     }
 
-    async fn get_object(
-        &self,
-        bucket: &str,
-        key: &str,
-    ) -> Result<(Vec<u8>, String), StorageError> {
+    async fn get_object(&self, bucket: &str, key: &str) -> Result<(Vec<u8>, String), StorageError> {
         let data_path = self.data_path(bucket, key);
         let meta_path = self.meta_path(bucket, key);
         let bytes = fs::read(&data_path)

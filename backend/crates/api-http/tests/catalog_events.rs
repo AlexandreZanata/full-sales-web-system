@@ -3,7 +3,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use api_http::catalog_events::{CatalogEventHub, notify_product_changed, CATALOG_SSE_EVENT};
+use api_http::catalog_events::{CATALOG_SSE_EVENT, CatalogEventHub, notify_product_changed};
 use api_http::{AppState, full_app};
 use axum::body::Body;
 use http::{Request, StatusCode};

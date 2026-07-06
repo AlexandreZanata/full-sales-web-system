@@ -11,9 +11,9 @@ pub fn parse_export_view(
 ) -> Result<ReportExportView, ReportExportError> {
     match report_type {
         "DailyDriver" => parse_daily_driver(canonical_json),
-        "CommercePeriod" | "Consolidated" => {
-            Err(ReportExportError::UnsupportedReportType(report_type.to_owned()))
-        }
+        "CommercePeriod" | "Consolidated" => Err(ReportExportError::UnsupportedReportType(
+            report_type.to_owned(),
+        )),
         other => Err(ReportExportError::UnsupportedReportType(other.to_owned())),
     }
 }
@@ -40,7 +40,11 @@ fn parse_daily_driver(canonical_json: &str) -> Result<ReportExportView, ReportEx
     )?;
 
     let driver_id = required_uuid(&value, "driverId")?;
-    let sales = parse_sales(value.get("sales").ok_or(ReportExportError::MissingField("sales"))?)?;
+    let sales = parse_sales(
+        value
+            .get("sales")
+            .ok_or(ReportExportError::MissingField("sales"))?,
+    )?;
     let settlement = parse_settlement(
         value
             .get("declaredSettlement")
@@ -84,11 +88,9 @@ fn parse_settlement(value: &Value) -> Result<ExportSettlement, ReportExportError
     let total_declared_cents = required_i64(value, "totalDeclaredCents")?;
     let currency = required_str(value, "currency")?.to_owned();
     let disclaimer = required_str(value, "disclaimer")?.to_owned();
-    let by_payment_method = parse_payment_totals(
-        value
-            .get("byPaymentMethod")
-            .ok_or(ReportExportError::MissingField("declaredSettlement.byPaymentMethod"))?,
-    )?;
+    let by_payment_method = parse_payment_totals(value.get("byPaymentMethod").ok_or(
+        ReportExportError::MissingField("declaredSettlement.byPaymentMethod"),
+    )?)?;
 
     Ok(ExportSettlement {
         total_declared_cents,
@@ -150,9 +152,7 @@ fn optional_uuid(value: &Value, field: &'static str) -> Result<Option<Uuid>, Rep
     match value.get(field) {
         None | Some(Value::Null) => Ok(None),
         Some(raw) => {
-            let text = raw
-                .as_str()
-                .ok_or(ReportExportError::MissingField(field))?;
+            let text = raw.as_str().ok_or(ReportExportError::MissingField(field))?;
             Uuid::parse_str(text)
                 .map(Some)
                 .map_err(|_| ReportExportError::MissingField(field))

@@ -35,26 +35,43 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 ## Pagination (list endpoints)
 
-> **Migration in progress (Phase 68).** New listing routes MUST use cursor pagination — see [Listing routes (migration)](#listing-routes-migration). Legacy offset params below remain until route migration completes.
+All `GET` collection routes use **cursor pagination** unless noted below.
+
+| Param | Default | Max | Notes |
+|-------|---------|-----|-------|
+| `limit` | 20 | 100 | Page size |
+| `cursor` | — | — | UUIDv7 of last item from previous page |
+
+**Response envelope (cursor):**
+
+```json
+{
+  "data": [ ... ],
+  "pagination": {
+    "next_cursor": "550e8400-e29b-41d4-a716-446655440000",
+    "has_more": true,
+    "limit": 20
+  }
+}
+```
+
+**Filters:** `filter[field]` or `filter[field][op]=value` — whitelist per route.  
+**Sort:** `sort=-field,other` — whitelist per route (where supported).
+
+**Validation errors:** `invalid_pagination`, `invalid_filter_field`, `invalid_sort_field` (+ `field`).
+
+**Rust helpers:** `application::list_query` (VOs), `api_http::list_query` (parser + `build_cursor_page`).
+
+### Offset exception — `GET /v1/reports` only
+
+Admin report history supports arbitrary page jumps. Uses legacy offset params:
 
 | Param | Default | Max |
 |-------|---------|-----|
 | `page` | 1 | — |
 | `pageSize` | 20 | 50 |
 
-### Listing routes (migration)
-
-**Target spec:** `.local/phases/_reference/API-LIST-PAGINATION-FILTERS-SORT.md` (also summarized here).
-
-| Concern | Standard (new) | Legacy (deprecated) |
-|---------|----------------|---------------------|
-| Request pagination | `limit` (default 20, max 100), `cursor` (UUIDv7 of last item) | `page`, `pageSize` |
-| Response envelope | `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` | `{ "items": [...], "page", "pageSize", "total" }` |
-| Filters | `filter[field]` or `filter[field][op]=value` (whitelist per route) | Ad-hoc query params (`active?`, `search`, etc.) |
-| Sort | `sort=-field,other` (whitelist per route) | Not standardized |
-| Validation errors | `invalid_pagination`, `invalid_filter_field`, `invalid_sort_field` (+ `field`) | `VALIDATION_ERROR` |
-
-**Rust helpers (68A):** `application::list_query` (VOs), `api_http::list_query` (parser + `build_cursor_page`). Routes migrate one group per sub-phase (68B–68F); do not change production list shapes until that route's sub-phase lands.
+**Response:** `{ "items": [...], "page", "pageSize", "total" }`
 
 ---
 
@@ -589,8 +606,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/reports`
 
 - **Auth:** Admin
-- **Query:** pagination
-- **Response 200:** Paginated report list
+- **Query (offset — see [Offset exception](#offset-exception--get-v1reports-only)):** `page`, `pageSize`
+- **Response 200:** `{ "items": Report[], "page", "pageSize", "total" }`
 
 ### `GET /v1/reports/{id}`
 
@@ -621,8 +638,8 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `GET /v1/audit/events`
 
 - **Auth:** Admin
-- **Query:** pagination
-- **Response 200:** Paginated append-only audit events (`audit.events`)
+- **Query (cursor):** `limit`, `cursor`, `filter[actor_id]`, `filter[action]`, `filter[created_at][gte]`, `filter[created_at][lte]`
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` — append-only audit events (`audit.events`), newest first
 - **Response 403:** Non-admin roles
 
 ---

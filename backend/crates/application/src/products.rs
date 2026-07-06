@@ -39,6 +39,7 @@ pub fn product_to_dto(product: &Product) -> ProductDto {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn restore_product(
     id: Uuid,
     name: &str,

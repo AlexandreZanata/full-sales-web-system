@@ -458,6 +458,7 @@ pub async fn insert_order_with_items(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn replace_draft_order(
     pool: &PgPool,
     session: &SessionContext,

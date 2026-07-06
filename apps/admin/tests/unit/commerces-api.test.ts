@@ -34,7 +34,18 @@ describe('commerces API — docs/API-CONTRACT.md', () => {
       ok: true,
       status: 200,
       json: async () => ({
-        data: [{ id: 'addr-1', addressType: 'Billing', street: 'Rua A', number: '1', city: 'SP', state: 'SP', postalCode: '01310100', isPrimary: true }],
+        data: [
+          {
+            id: 'addr-1',
+            addressType: 'Billing',
+            street: 'Rua A',
+            number: '1',
+            city: 'SP',
+            state: 'SP',
+            postalCode: '01310100',
+            isPrimary: true,
+          },
+        ],
         pagination: { next_cursor: null, has_more: false, limit: 100 },
       }),
     });

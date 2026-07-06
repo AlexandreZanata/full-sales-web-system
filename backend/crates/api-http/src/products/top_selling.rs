@@ -1,8 +1,8 @@
+use application::list_query::ListPagination;
 use axum::{
     Json,
     extract::{Query, State},
 };
-use application::list_query::ListPagination;
 use serde::{Deserialize, Serialize};
 
 use crate::auth::AuthUser;

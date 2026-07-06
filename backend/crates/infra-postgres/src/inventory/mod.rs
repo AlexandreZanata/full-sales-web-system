@@ -10,7 +10,8 @@ pub mod product_images;
 pub mod reservations;
 pub mod stock_overview;
 
-const PRODUCT_SELECT: &str = "SELECT p.id, p.sku, p.name, p.price_amount, p.price_currency, p.active,
+const PRODUCT_SELECT: &str =
+    "SELECT p.id, p.sku, p.name, p.price_amount, p.price_currency, p.active,
          p.unit_of_measure, p.category_id, c.name AS category_name, c.slug AS category_slug,
          p.description
          FROM inventory.products p
@@ -299,12 +300,10 @@ pub async fn find_products_by_ids(
     }
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, ProductDbRow>(&format!(
-        "{PRODUCT_SELECT} WHERE p.id = ANY($1)"
-    ))
-    .bind(ids)
-    .fetch_all(&mut *tx)
-    .await?;
+    let rows = sqlx::query_as::<_, ProductDbRow>(&format!("{PRODUCT_SELECT} WHERE p.id = ANY($1)"))
+        .bind(ids)
+        .fetch_all(&mut *tx)
+        .await?;
     tx.commit().await?;
     Ok(rows.into_iter().map(map_product_row).collect())
 }
@@ -317,9 +316,9 @@ pub async fn find_product_by_id(
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let row = sqlx::query_as::<_, ProductDbRow>(&format!("{PRODUCT_SELECT} WHERE p.id = $1"))
-    .bind(id)
-    .fetch_optional(&mut *tx)
-    .await?;
+        .bind(id)
+        .fetch_optional(&mut *tx)
+        .await?;
     tx.commit().await?;
     Ok(row.map(map_product_row))
 }
@@ -380,7 +379,12 @@ pub async fn update_product(
     .bind(update.category_id.as_ref().and_then(|value| *value))
     .bind(update.unit_of_measure.as_deref())
     .bind(update.description.is_some())
-    .bind(update.description.as_ref().and_then(|value| value.as_deref()))
+    .bind(
+        update
+            .description
+            .as_ref()
+            .and_then(|value| value.as_deref()),
+    )
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -462,6 +466,7 @@ pub async fn list_stock_movements_by_product_cursor(
     Ok(map_movement_rows(rows))
 }
 
+#[allow(clippy::type_complexity)]
 fn map_movement_rows(
     rows: Vec<(
         Uuid,

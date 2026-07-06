@@ -4,8 +4,7 @@ use super::parse::RouteListConfig;
 
 const EQ: &[ListFilterOp] = &[ListFilterOp::Eq];
 
-static PORTAL_PRODUCT_FILTERS: [FilterFieldSpec; 1] =
-    [FilterFieldSpec::new("category_slug", EQ)];
+static PORTAL_PRODUCT_FILTERS: [FilterFieldSpec; 1] = [FilterFieldSpec::new("category_slug", EQ)];
 
 pub static PORTAL_PRODUCTS_LIST_CONFIG: RouteListConfig<'static> = RouteListConfig {
     filter_whitelist: &PORTAL_PRODUCT_FILTERS,

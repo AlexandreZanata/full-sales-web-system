@@ -17,13 +17,11 @@ pub struct TenantRow {
 
 /// Inserts a tenant (admin/migration path — no RLS on `shared.tenants`).
 pub async fn insert_tenant(pool: &PgPool, id: TenantId, name: &str) -> Result<(), PostgresError> {
-    sqlx::query(
-        "INSERT INTO shared.tenants (id, name, display_name) VALUES ($1, $2, $2)",
-    )
-    .bind(id.as_uuid())
-    .bind(name)
-    .execute(pool)
-    .await?;
+    sqlx::query("INSERT INTO shared.tenants (id, name, display_name) VALUES ($1, $2, $2)")
+        .bind(id.as_uuid())
+        .bind(name)
+        .execute(pool)
+        .await?;
     Ok(())
 }
 
@@ -54,13 +52,11 @@ pub async fn update_tenant_display_name(
     tenant_id: TenantId,
     display_name: &str,
 ) -> Result<bool, PostgresError> {
-    let result = sqlx::query(
-        "UPDATE shared.tenants SET display_name = $1 WHERE id = $2",
-    )
-    .bind(display_name)
-    .bind(tenant_id.as_uuid())
-    .execute(pool)
-    .await?;
+    let result = sqlx::query("UPDATE shared.tenants SET display_name = $1 WHERE id = $2")
+        .bind(display_name)
+        .bind(tenant_id.as_uuid())
+        .execute(pool)
+        .await?;
     Ok(result.rows_affected() == 1)
 }
 
@@ -82,13 +78,11 @@ pub async fn update_tenant_sales_contact_phone(
     tenant_id: TenantId,
     sales_contact_phone: Option<&str>,
 ) -> Result<bool, PostgresError> {
-    let result = sqlx::query(
-        "UPDATE shared.tenants SET sales_contact_phone = $1 WHERE id = $2",
-    )
-    .bind(sales_contact_phone)
-    .bind(tenant_id.as_uuid())
-    .execute(pool)
-    .await?;
+    let result = sqlx::query("UPDATE shared.tenants SET sales_contact_phone = $1 WHERE id = $2")
+        .bind(sales_contact_phone)
+        .bind(tenant_id.as_uuid())
+        .execute(pool)
+        .await?;
     Ok(result.rows_affected() == 1)
 }
 

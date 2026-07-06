@@ -60,15 +60,14 @@ function OrdersListPage() {
       }),
   });
 
-  const pagination = orders.data
-    ? cursorToTableState(page, orders.data.pagination.has_more)
-    : null;
+  const pagination = orders.data ? cursorToTableState(page, orders.data.pagination.has_more) : null;
 
   function handlePageChange(nextPage: number) {
-    if (nextPage > page && orders.data?.pagination.next_cursor) {
+    const nextCursor = orders.data?.pagination.next_cursor;
+    if (nextPage > page && nextCursor) {
       setCursors((prev) => {
         const copy = [...prev];
-        copy[page] = orders.data?.pagination.next_cursor ?? undefined;
+        copy[page] = nextCursor;
         return copy;
       });
     }

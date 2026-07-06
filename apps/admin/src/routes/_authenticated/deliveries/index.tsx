@@ -15,7 +15,7 @@ import { DELIVERY_STATUS_FILTERS, type DeliveryStatusFilter } from '@/lib/delive
 import { getDeliveryStatusToken, type DeliveryStatus } from '@/lib/admin-tokens';
 import { useI18n } from '@/lib/i18n/context';
 import { deliveryStatusFilterLabel, translateDeliveryStatus } from '@/lib/i18n/labels';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
+import { cursorToTableState } from '@/lib/cursorPagination';
 
 export const Route = createFileRoute('/_authenticated/deliveries/')({
   component: DeliveriesListPage,
@@ -25,12 +25,18 @@ function DeliveriesListPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [statusFilter, setStatusFilter] = useState<DeliveryStatusFilter>('');
   const pageSize = 20;
 
   const deliveries = useQuery({
     queryKey: ['deliveries', page, pageSize, statusFilter],
-    queryFn: () => fetchDeliveries({ page, pageSize, status: statusFilter }),
+    queryFn: () =>
+      fetchDeliveries({
+        limit: pageSize,
+        cursor: cursors[page - 1],
+        status: statusFilter,
+      }),
   });
 
   const drivers = useQuery({
@@ -46,7 +52,26 @@ function DeliveriesListPage() {
     return map;
   }, [drivers.data]);
 
-  const pagination = deliveries.data ? paginatedResponseToTable(deliveries.data) : null;
+  const pagination = deliveries.data
+    ? cursorToTableState(page, deliveries.data.pagination.has_more)
+    : null;
+
+  function handlePageChange(nextPage: number) {
+    const nextCursor = deliveries.data?.pagination.next_cursor;
+    if (nextPage > page && nextCursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = nextCursor;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
+
+  function resetPagination() {
+    setPage(1);
+    setCursors([undefined]);
+  }
 
   const columns: DataTableColumn<DeliveryDetail>[] = useMemo(
     () => [
@@ -103,7 +128,7 @@ function DeliveriesListPage() {
           value={statusFilter}
           onChange={(event) => {
             setStatusFilter(event.target.value as DeliveryStatusFilter);
-            setPage(1);
+            resetPagination();
           }}
         >
           {DELIVERY_STATUS_FILTERS.map((value) => (
@@ -118,14 +143,14 @@ function DeliveriesListPage() {
         <div className="flex justify-center py-16">
           <LoadingSpinner />
         </div>
-      ) : deliveries.data && deliveries.data.items.length > 0 ? (
+      ) : deliveries.data && deliveries.data.data.length > 0 ? (
         <DataTable
           caption={t('deliveries.list.caption')}
           columns={columns}
-          rows={deliveries.data.items}
+          rows={deliveries.data.data}
           getRowKey={(row) => row.id}
           pagination={pagination}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
           onRowClick={(row) => {
             void navigate({ to: '/deliveries/$id', params: { id: row.id } });
           }}

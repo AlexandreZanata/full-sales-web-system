@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
+use crate::pagination::paginate_offset;
 use crate::state::AppState;
 use crate::validation::ValidatedJson;
 
@@ -51,9 +52,8 @@ pub async fn list_reports(
     Query(query): Query<ReportsQuery>,
 ) -> Result<Json<PaginatedReportsResponse>, ApiError> {
     require_admin(&auth)?;
-    let page_size = query.page_size.clamp(1, 50);
-    let page = query.page.max(1);
-    let offset = ((page - 1) as i64) * (page_size as i64);
+    // offset-based: admin jumps to arbitrary report page
+    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
     let rows = infra_postgres::reports::list_reports(
         &state.app_pool,
         auth.tenant_id,

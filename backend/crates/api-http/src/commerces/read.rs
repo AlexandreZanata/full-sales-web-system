@@ -21,8 +21,11 @@ pub async fn list_commerces(
 ) -> Result<Json<CursorListResponse<CommerceResponse>>, Response> {
     require_roles(&auth, &[Role::Admin, Role::Driver, Role::Seller])
         .map_err(IntoResponse::into_response)?;
-    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &COMMERCES_LIST_CONFIG)
-        .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &COMMERCES_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
     let active = filter_eq_bool(&parsed.filters, "active");
     let rows = infra_postgres::commerces::list_commerces_cursor(
         &state.app_pool,

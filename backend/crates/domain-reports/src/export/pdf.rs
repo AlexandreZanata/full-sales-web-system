@@ -6,7 +6,7 @@ use crate::export::csv::export_filename;
 use crate::export::error::ReportExportError;
 use crate::export::format::{format_date_pt_br, format_money_brl};
 use crate::export::view::{
-    ExportBranding, ExportMeta, PDF_ROWS_PER_PAGE, ReportExportView, RenderedExport,
+    ExportBranding, ExportMeta, PDF_ROWS_PER_PAGE, RenderedExport, ReportExportView,
 };
 
 const PAGE_WIDTH: f32 = 210.0;
@@ -127,7 +127,10 @@ pub fn render_pdf(
             9.5,
             LEFT,
             y,
-            &format!("{method}: {}", format_money_brl(*amount, &view.settlement.currency)),
+            &format!(
+                "{method}: {}",
+                format_money_brl(*amount, &view.settlement.currency)
+            ),
         );
     }
     write_line(&layer, &font, 8.5, LEFT, y, &view.settlement.disclaimer);
@@ -142,7 +145,14 @@ pub fn render_pdf(
         &format!("Report ID: {}", meta.report_id),
     );
     if let Some(url) = &meta.verify_url {
-        write_line(&layer, &font, 8.0, LEFT, footer_y - LINE, &format!("Verify: {url}"));
+        write_line(
+            &layer,
+            &font,
+            8.0,
+            LEFT,
+            footer_y - LINE,
+            &format!("Verify: {url}"),
+        );
     }
 
     let mut buffer = BufWriter::new(Cursor::new(Vec::new()));

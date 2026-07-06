@@ -14,7 +14,9 @@ use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::state::AppState;
 
-pub use support::{MediaUploadResponse, MediaUrlResponse, authenticated_media_content_url, catalog_image_url};
+pub use support::{
+    MediaUploadResponse, MediaUrlResponse, authenticated_media_content_url, catalog_image_url,
+};
 
 pub async fn upload_media(
     State(state): State<AppState>,

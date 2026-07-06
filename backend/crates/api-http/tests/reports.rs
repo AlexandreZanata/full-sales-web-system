@@ -143,3 +143,44 @@ async fn contract_export_report_when_unknown_format_then_unsupported_format() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert_eq!(body["error"]["code"], "UNSUPPORTED_FORMAT");
 }
+
+#[tokio::test]
+async fn contract_list_reports_when_admin_then_offset_envelope() {
+    let env = setup().await;
+    seed_signing_key(&env).await;
+    let (_, admin_token) = seed_admin(&env).await;
+    let (driver_id, _) = seed_driver(&env, "driver-reports-list@test.com").await;
+
+    let (gen_status, _) = request(
+        &env,
+        "POST",
+        "/v1/reports",
+        Some(&admin_token),
+        Some(
+            json!({
+                "reportType": "DailyDriver",
+                "periodStart": "2026-01-01T00:00:00Z",
+                "periodEnd": "2026-01-31T23:59:59Z",
+                "driverId": driver_id
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(gen_status, StatusCode::CREATED);
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/reports?page=1&pageSize=10",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert!(body["items"].is_array());
+    assert_eq!(body["page"], 1);
+    assert_eq!(body["pageSize"], 10);
+    assert!(body["total"].as_u64().unwrap_or(0) >= 1);
+}

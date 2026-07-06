@@ -59,14 +59,8 @@ async fn contract_list_sales_when_driver_then_cursor_envelope() {
     seed_stock(&env, driver_id, product_id, 10).await;
     create_sale(&env, &driver_token, commerce_id, product_id).await;
 
-    let (status, body) = request(
-        &env,
-        "GET",
-        "/v1/sales?limit=20",
-        Some(&driver_token),
-        None,
-    )
-    .await;
+    let (status, body) =
+        request(&env, "GET", "/v1/sales?limit=20", Some(&driver_token), None).await;
 
     assert_eq!(status, StatusCode::OK);
     assert!(body["data"].is_array());

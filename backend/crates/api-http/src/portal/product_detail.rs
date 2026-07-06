@@ -12,7 +12,9 @@ use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::state::AppState;
 
-use super::products::{portal_product_from_row, require_commerce_contact, resolve_public_catalog_tenant};
+use super::products::{
+    portal_product_from_row, require_commerce_contact, resolve_public_catalog_tenant,
+};
 
 #[derive(Serialize)]
 pub struct PortalProductDetailResponse {
@@ -48,11 +50,10 @@ async fn get_product_detail_for_tenant(
     tenant_id: domain_shared::TenantId,
     id: Uuid,
 ) -> Result<Json<PortalProductDetailResponse>, ApiError> {
-    let row =
-        infra_postgres::inventory::find_portal_product_by_id(&state.app_pool, tenant_id, id)
-            .await
-            .map_err(|_| ApiError::internal())?
-            .ok_or_else(ApiError::product_not_found)?;
+    let row = infra_postgres::inventory::find_portal_product_by_id(&state.app_pool, tenant_id, id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::product_not_found)?;
 
     let gallery = infra_postgres::inventory::product_images::find_gallery_images_for_product(
         &state.app_pool,
@@ -73,8 +74,7 @@ async fn build_portal_product_detail(
     gallery: &[infra_postgres::inventory::product_images::ProductGalleryImageRow],
 ) -> Result<PortalProductDetailResponse, ApiError> {
     let ttl = Duration::from_secs(DEFAULT_PRESIGN_TTL_SECS);
-    let (primary_file_id, primary_image_url) =
-        resolve_primary_image(state, gallery, ttl).await;
+    let (primary_file_id, primary_image_url) = resolve_primary_image(state, gallery, ttl).await;
     let mut image_urls = Vec::new();
 
     for image in gallery {

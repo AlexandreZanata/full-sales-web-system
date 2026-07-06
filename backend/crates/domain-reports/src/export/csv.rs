@@ -1,8 +1,11 @@
 use crate::export::error::ReportExportError;
 use crate::export::format::{escape_csv_field, period_start_filename};
-use crate::export::view::{ExportMeta, ReportExportView, RenderedExport};
+use crate::export::view::{ExportMeta, RenderedExport, ReportExportView};
 
-pub fn render_csv(view: &ReportExportView, meta: &ExportMeta) -> Result<RenderedExport, ReportExportError> {
+pub fn render_csv(
+    view: &ReportExportView,
+    meta: &ExportMeta,
+) -> Result<RenderedExport, ReportExportError> {
     let mut output = String::from("\u{feff}");
     output.push_str("field,value\n");
     output.push_str("driverId,");

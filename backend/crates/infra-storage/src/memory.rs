@@ -79,11 +79,7 @@ impl ObjectStorage for InMemoryObjectStorage {
         })
     }
 
-    async fn get_object(
-        &self,
-        bucket: &str,
-        key: &str,
-    ) -> Result<(Vec<u8>, String), StorageError> {
+    async fn get_object(&self, bucket: &str, key: &str) -> Result<(Vec<u8>, String), StorageError> {
         let guard = self.objects.read().await;
         let obj = guard
             .get(&(bucket.to_owned(), key.to_owned()))

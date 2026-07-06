@@ -1,7 +1,4 @@
-use axum::{
-    Json,
-    extract::State,
-};
+use axum::{Json, extract::State};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -106,10 +103,11 @@ pub async fn update_site_logo(
     Json(body): Json<UpdateLogoRequest>,
 ) -> Result<Json<SettingsResponse>, ApiError> {
     require_admin(&auth)?;
-    let file = infra_postgres::media::find_file_by_id(&state.app_pool, auth.tenant_id, body.file_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::media_not_found)?;
+    let file =
+        infra_postgres::media::find_file_by_id(&state.app_pool, auth.tenant_id, body.file_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::media_not_found)?;
 
     if file.entity_type != "Tenant" || file.entity_id != auth.tenant_id.as_uuid() {
         return Err(ApiError::media_not_found());

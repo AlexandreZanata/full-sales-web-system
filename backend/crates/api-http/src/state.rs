@@ -68,10 +68,10 @@ impl AppState {
     }
 
     pub fn dev_storage() -> Arc<dyn ObjectStorage> {
-        if let Ok(path) = std::env::var("MEDIA_LOCAL_PATH") {
-            if let Ok(storage) = LocalFsObjectStorage::new(path) {
-                return Arc::new(storage);
-            }
+        if let Ok(path) = std::env::var("MEDIA_LOCAL_PATH")
+            && let Ok(storage) = LocalFsObjectStorage::new(path)
+        {
+            return Arc::new(storage);
         }
         if let Ok(storage) = LocalFsObjectStorage::new(".local/object-storage") {
             return Arc::new(storage);

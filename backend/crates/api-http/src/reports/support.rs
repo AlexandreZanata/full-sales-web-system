@@ -32,9 +32,9 @@ pub struct GenerateReportRequest {
 
 #[derive(Deserialize)]
 pub struct ReportsQuery {
-    #[serde(default = "default_page")]
+    #[serde(default = "crate::pagination::default_page")]
     pub page: u32,
-    #[serde(rename = "pageSize", default = "default_page_size")]
+    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
     pub page_size: u32,
 }
 
@@ -70,14 +70,6 @@ pub struct VerifyReportResponse {
     pub valid: bool,
     #[serde(rename = "reportId")]
     pub report_id: Uuid,
-}
-
-fn default_page() -> u32 {
-    1
-}
-
-fn default_page_size() -> u32 {
-    20
 }
 
 pub async fn build_and_persist(

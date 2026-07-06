@@ -1,12 +1,5 @@
-use serde::Deserialize;
-
-#[derive(Debug, Deserialize)]
-pub struct PaginationQuery {
-    #[serde(default = "default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "default_page_size")]
-    pub page_size: u32,
-}
+//! Offset pagination helpers — **reports list only** (`// offset-based:` justification in handler).
+//! All other collection routes use `list_query` cursor envelope.
 
 pub fn default_page() -> u32 {
     1

@@ -48,9 +48,11 @@ pub async fn list_addresses(
     ensure_commerce(&state, auth.tenant_id, commerce_id)
         .await
         .map_err(IntoResponse::into_response)?;
-    let parsed =
-        parse_list_query(&decode_query_pairs(query.as_deref()), &COMMERCE_ADDRESSES_LIST_CONFIG)
-            .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &COMMERCE_ADDRESSES_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
     let rows = infra_postgres::commerces::addresses::list_addresses_by_commerce_cursor(
         &state.app_pool,
         auth.tenant_id,

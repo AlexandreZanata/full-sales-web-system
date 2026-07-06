@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::list_query::{
-    USERS_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs, filter_eq_bool,
+    CursorListResponse, USERS_LIST_CONFIG, build_cursor_page, decode_query_pairs, filter_eq_bool,
     filter_eq_string, parse_list_query,
 };
 use crate::state::AppState;
@@ -20,6 +20,7 @@ use crate::users::types::{
     user_response_from_list,
 };
 
+#[allow(clippy::result_large_err)]
 fn parse_role_filter(
     filters: &[application::list_query::ListFilter],
 ) -> Result<Option<String>, Response> {

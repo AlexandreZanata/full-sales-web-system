@@ -91,7 +91,5 @@ pub(crate) fn require_can_write_products(auth: &AuthUser) -> Result<(), ApiError
 }
 
 pub use catalog::{create_product, get_product, update_product};
-pub use catalog_images::{
-    attach_product_image, delete_product_image, list_product_images,
-};
+pub use catalog_images::{attach_product_image, delete_product_image, list_product_images};
 pub use top_selling::list_top_selling_products;

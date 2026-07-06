@@ -1,16 +1,10 @@
 import { apiFetch, apiPost } from '@/lib/api/client';
 import { dateFilterToIso } from '@/lib/api/orders';
-import type {
-  CreateSaleRequest,
-  PaginatedResponse,
-  SaleDetail,
-  SaleSummary,
-} from '@/lib/api/types';
+import { type CursorListParams, type CursorListResponse } from '@/lib/cursorPagination';
+import type { CreateSaleRequest, SaleDetail, SaleSummary } from '@/lib/api/types';
 import type { SaleStatusFilter } from '@/lib/sales/constants';
 
-export type SalesListParams = {
-  page: number;
-  pageSize: number;
+export type SalesListParams = CursorListParams & {
   status?: SaleStatusFilter;
   commerceId?: string;
   driverId?: string;
@@ -19,31 +13,34 @@ export type SalesListParams = {
 };
 
 function buildSalesQuery(params: SalesListParams): URLSearchParams {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
-  });
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 20));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
   if (params.status) {
-    query.set('status', params.status);
+    query.set('filter[status]', params.status);
   }
   if (params.commerceId) {
-    query.set('commerceId', params.commerceId);
+    query.set('filter[commerce_id]', params.commerceId);
   }
   if (params.driverId) {
-    query.set('driverId', params.driverId);
+    query.set('filter[driver_id]', params.driverId);
   }
   if (params.from) {
-    query.set('from', params.from);
+    query.set('filter[created_at][gte]', params.from);
   }
   if (params.to) {
-    query.set('to', params.to);
+    query.set('filter[created_at][lte]', params.to);
   }
   return query;
 }
 
-export async function fetchSales(params: SalesListParams): Promise<PaginatedResponse<SaleSummary>> {
+export async function fetchSales(
+  params: SalesListParams,
+): Promise<CursorListResponse<SaleSummary>> {
   const query = buildSalesQuery(params);
-  return apiFetch<PaginatedResponse<SaleSummary>>(`/sales?${query}`);
+  return apiFetch<CursorListResponse<SaleSummary>>(`/sales?${query}`);
 }
 
 export async function fetchSale(id: string): Promise<SaleDetail> {

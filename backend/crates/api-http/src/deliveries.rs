@@ -19,7 +19,7 @@ use uuid::Uuid;
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::list_query::{
-    DELIVERIES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    CursorListResponse, DELIVERIES_LIST_CONFIG, build_cursor_page, decode_query_pairs,
     filter_eq_string, filter_gte_datetime, filter_lte_datetime, parse_list_query,
 };
 use crate::portal::load_order;
@@ -27,9 +27,7 @@ use crate::session::session_from_auth;
 use crate::state::AppState;
 use crate::validation::ValidatedJson;
 
-pub use support::{
-    ConfirmDeliveryRequest, CreateDeliveryRequest, DeliveryResponse,
-};
+pub use support::{ConfirmDeliveryRequest, CreateDeliveryRequest, DeliveryResponse};
 
 pub async fn create_order_delivery(
     State(state): State<AppState>,
@@ -81,8 +79,11 @@ pub async fn list_deliveries(
 ) -> Result<Json<CursorListResponse<DeliveryResponse>>, Response> {
     support::require_delivery_reader(&auth).map_err(IntoResponse::into_response)?;
     let session = session_from_auth(&auth);
-    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &DELIVERIES_LIST_CONFIG)
-        .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &DELIVERIES_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
     let filters = DeliveryFilters {
         driver_id: None,
         status: filter_eq_string(&parsed.filters, "status"),
@@ -116,10 +117,9 @@ pub async fn get_delivery(
     let order_id = row.order_id;
     let mut response = support::row_to_response(row);
     let admin_session = support::admin_session(&auth);
-    let items =
-        infra_postgres::orders::list_order_items(&state.app_pool, &admin_session, order_id)
-            .await
-            .map_err(|_| ApiError::internal())?;
+    let items = infra_postgres::orders::list_order_items(&state.app_pool, &admin_session, order_id)
+        .await
+        .map_err(|_| ApiError::internal())?;
     response.order_items = Some(
         items
             .into_iter()

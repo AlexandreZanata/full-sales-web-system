@@ -15,6 +15,7 @@ pub enum CategoriesAppError {
     NotFound,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn create_category(
     id: Uuid,
     tenant_id: TenantId,

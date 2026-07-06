@@ -204,6 +204,7 @@ impl Sale {
         Ok(self)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn restore(
         id: SaleId,
         driver_id: UserId,

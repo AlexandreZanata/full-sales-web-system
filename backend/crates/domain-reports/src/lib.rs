@@ -9,7 +9,7 @@ pub mod signature;
 pub use canonical::to_canonical_json;
 pub use error::ReportError;
 pub use export::{
-    ExportBranding, ExportFormat, ExportMeta, ReportExportError, ReportExportView, RenderedExport,
+    ExportBranding, ExportFormat, ExportMeta, RenderedExport, ReportExportError, ReportExportView,
     parse_export_view, render_export,
 };
 pub use payload::{

@@ -11,9 +11,9 @@ use uuid::Uuid;
 use crate::auth::{AuthUser, require_admin, require_roles};
 use crate::error::ApiError;
 use crate::list_query::{
-    STOCK_BALANCES_LIST_CONFIG, STOCK_MOVEMENTS_LIST_CONFIG, CursorListResponse,
-    build_cursor_page, decode_query_pairs, filter_gte_datetime, filter_like_pattern,
-    filter_lte_datetime, parse_list_query,
+    CursorListResponse, STOCK_BALANCES_LIST_CONFIG, STOCK_MOVEMENTS_LIST_CONFIG, build_cursor_page,
+    decode_query_pairs, filter_gte_datetime, filter_like_pattern, filter_lte_datetime,
+    parse_list_query,
 };
 use crate::state::AppState;
 
@@ -73,9 +73,11 @@ pub async fn list_stock_balances(
     RawQuery(query): RawQuery,
 ) -> Result<Json<CursorListResponse<ProductStockOverviewResponse>>, Response> {
     require_admin(&auth).map_err(IntoResponse::into_response)?;
-    let parsed =
-        parse_list_query(&decode_query_pairs(query.as_deref()), &STOCK_BALANCES_LIST_CONFIG)
-            .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &STOCK_BALANCES_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
     let name_like = filter_like_pattern(&parsed.filters, "name");
     let sku_like = filter_like_pattern(&parsed.filters, "sku");
 
@@ -180,9 +182,11 @@ pub async fn list_movements(
     ensure_product(&state, auth.tenant_id, product_id)
         .await
         .map_err(IntoResponse::into_response)?;
-    let parsed =
-        parse_list_query(&decode_query_pairs(query.as_deref()), &STOCK_MOVEMENTS_LIST_CONFIG)
-            .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &STOCK_MOVEMENTS_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
     let from = filter_gte_datetime(&parsed.filters, "created_at");
     let to = filter_lte_datetime(&parsed.filters, "created_at");
 

@@ -30,14 +30,15 @@ class SellerApiSalesTest {
     }
 
     @Test
-    fun listSales_hitsPaginatedPath() = runTest {
+    fun listSales_hitsCursorPath() = runTest {
         val recorder = RecordedMockEngine { request ->
             assertEquals("/v1/sales", request.url.encodedPath)
-            assertTrue(request.url.encodedQuery.contains("page=2"))
-            HttpStatusCode.OK to """{"page":2,"pageSize":50,"total":0,"items":[]}"""
+            assertTrue(request.url.encodedQuery.contains("limit=50"))
+            assertTrue(request.url.encodedQuery.contains("cursor=abc"))
+            HttpStatusCode.OK to """{"data":[],"pagination":{"has_more":false,"limit":50}}"""
         }
         val client = testClient(engine = recorder.engine())
-        client.listSales(page = 2)
+        client.listSales(cursor = "abc")
     }
 
     @Test

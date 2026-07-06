@@ -1,4 +1,4 @@
-//! Phase 26 — Audit events list contract tests.
+//! Phase 68F — Audit events list cursor contract tests.
 
 #[path = "support/mod.rs"]
 mod support;
@@ -9,9 +9,8 @@ use uuid::Uuid;
 
 use support::{request, seed_admin, setup};
 
-// Contract: admin lists paginated audit events for tenant
 #[tokio::test]
-async fn given_audit_event_when_admin_lists_then_returns_row() {
+async fn given_audit_event_when_admin_lists_then_cursor_envelope() {
     let env = setup().await;
     let (admin_id, admin_token) = seed_admin(&env).await;
     let event_id = Uuid::now_v7();
@@ -36,19 +35,74 @@ async fn given_audit_event_when_admin_lists_then_returns_row() {
     let (status, body) = request(
         &env,
         "GET",
-        "/v1/audit/events?page=1&pageSize=10",
+        "/v1/audit/events?limit=10",
         Some(&admin_token),
         None,
     )
     .await;
 
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["total"], 1);
-    assert_eq!(body["items"][0]["id"], event_id.to_string());
-    assert_eq!(body["items"][0]["action"], "payment.declared");
+    assert!(body["data"].is_array());
+    assert_eq!(body["data"][0]["id"], event_id.to_string());
+    assert_eq!(body["data"][0]["action"], "payment.declared");
+    assert_eq!(body["pagination"]["limit"], 10);
+    assert_eq!(body["pagination"]["has_more"], false);
 }
 
-// Contract: driver cannot read audit events
+#[tokio::test]
+async fn given_audit_event_when_filter_by_actor_then_matches() {
+    let env = setup().await;
+    let (admin_id, admin_token) = seed_admin(&env).await;
+    let event_id = Uuid::now_v7();
+
+    audit::insert_audit_event(
+        &env.app_pool,
+        env.tenant_id,
+        NewAuditEvent {
+            id: event_id,
+            actor_id: admin_id,
+            action: "sale.confirmed".into(),
+            resource_type: "sale".into(),
+            resource_id: Uuid::now_v7(),
+            metadata: None,
+            correlation_id: None,
+        },
+    )
+    .await
+    .expect("insert audit");
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        &format!("/v1/audit/events?limit=10&filter[actor_id]={admin_id}"),
+        Some(&admin_token),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["data"].as_array().map(|a| a.len()), Some(1));
+    assert_eq!(body["data"][0]["actorId"], admin_id.to_string());
+}
+
+#[tokio::test]
+async fn given_invalid_filter_when_list_audit_events_then_400() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/audit/events?filter[unknown]=x",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "invalid_filter_field");
+}
+
 #[tokio::test]
 async fn given_driver_when_list_audit_events_then_forbidden() {
     let env = setup().await;

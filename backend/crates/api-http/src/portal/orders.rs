@@ -22,7 +22,7 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::list_query::{
-    PORTAL_ORDERS_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    CursorListResponse, PORTAL_ORDERS_LIST_CONFIG, build_cursor_page, decode_query_pairs,
     filter_eq_string, parse_list_query,
 };
 use crate::portal::products::require_commerce_contact;
@@ -49,9 +49,11 @@ pub async fn list_portal_orders(
 ) -> Result<Json<CursorListResponse<PortalOrderSummaryResponse>>, Response> {
     let _ = require_commerce_contact(&auth).map_err(IntoResponse::into_response)?;
     let session = session_from_auth(&auth);
-    let parsed =
-        parse_list_query(&decode_query_pairs(query.as_deref()), &PORTAL_ORDERS_LIST_CONFIG)
-            .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &PORTAL_ORDERS_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
 
     let status = filter_eq_string(&parsed.filters, "status");
     let filters = infra_postgres::orders::OrderListFilters {
@@ -187,6 +189,7 @@ pub async fn create_portal_order(
     persist_new_order(&state, &session, &order).await?;
     let response = order_to_response(&order)?;
     let location = format!("/v1/portal/orders/{}", order.id().as_uuid());
+    #[allow(clippy::needless_question_mark)]
     Ok(Response::builder()
         .status(StatusCode::CREATED)
         .header(http::header::CONTENT_TYPE, "application/json")

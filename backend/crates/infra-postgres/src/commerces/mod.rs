@@ -71,16 +71,16 @@ pub async fn find_commerce_by_id(
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(
-        row.map(|(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
+    Ok(row.map(
+        |(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
             id,
             cnpj,
             legal_name,
             trade_name,
             active,
             logo_file_id,
-        }),
-    )
+        },
+    ))
 }
 
 pub async fn list_commerces(
@@ -106,14 +106,16 @@ pub async fn list_commerces(
     tx.commit().await?;
     Ok(rows
         .into_iter()
-        .map(|(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
-            id,
-            cnpj,
-            legal_name,
-            trade_name,
-            active,
-            logo_file_id,
-        })
+        .map(
+            |(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
+                id,
+                cnpj,
+                legal_name,
+                trade_name,
+                active,
+                logo_file_id,
+            },
+        )
         .collect())
 }
 
@@ -142,14 +144,16 @@ pub async fn list_commerces_cursor(
     tx.commit().await?;
     Ok(rows
         .into_iter()
-        .map(|(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
-            id,
-            cnpj,
-            legal_name,
-            trade_name,
-            active,
-            logo_file_id,
-        })
+        .map(
+            |(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
+                id,
+                cnpj,
+                legal_name,
+                trade_name,
+                active,
+                logo_file_id,
+            },
+        )
         .collect())
 }
 

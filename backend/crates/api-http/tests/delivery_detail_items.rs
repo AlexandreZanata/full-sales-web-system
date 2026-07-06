@@ -18,7 +18,8 @@ async fn given_delivery_when_driver_gets_detail_then_order_items_included() {
     let commerce_id = seed_commerce(&env, "11222333000181").await;
     let product_id = seed_product(&env, "DET-ITEM-SKU", "Detail Product", 1_500).await;
     let address_id = seed_delivery_address(&env, commerce_id).await;
-    let (_, contact_token) = seed_commerce_contact(&env, commerce_id, "detail-items@store.com").await;
+    let (_, contact_token) =
+        seed_commerce_contact(&env, commerce_id, "detail-items@store.com").await;
     let (driver_id, driver_token) = seed_driver(&env, "detail-items-driver@test.com").await;
     seed_driver_stock(&env, driver_id, product_id, 10).await;
 

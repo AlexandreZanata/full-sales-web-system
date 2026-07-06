@@ -9,8 +9,8 @@ use domain_sales::PaymentMethod;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::list_query::{
-    SALES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
-    filter_eq_string, filter_eq_uuid, filter_gte_datetime, filter_lte_datetime, parse_list_query,
+    CursorListResponse, SALES_LIST_CONFIG, build_cursor_page, decode_query_pairs, filter_eq_string,
+    filter_eq_uuid, filter_gte_datetime, filter_lte_datetime, parse_list_query,
 };
 use crate::sales::types::{SaleSummaryResponse, parse_sale_status};
 use crate::state::AppState;
@@ -52,10 +52,8 @@ pub async fn list_sales(
     .await
     .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let items: Vec<SaleSummaryResponse> = rows
-        .into_iter()
-        .filter_map(sale_summary_from_row)
-        .collect();
+    let items: Vec<SaleSummaryResponse> =
+        rows.into_iter().filter_map(sale_summary_from_row).collect();
 
     Ok(Json(build_cursor_page(
         items,

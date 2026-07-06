@@ -28,14 +28,39 @@ pub async fn seed_catalog(
     seed_category_images(app_pool, tenant, &categories).await?;
 
     let specs = [
-        ("SEED-001", "Refrigerante Cola 2L", 8_50, true, categories[0]),
-        ("SEED-002", "Batata Chips Original", 12_00, true, categories[1]),
-        ("SEED-003", "Detergente Neutro 500ml", 14_50, true, categories[2]),
-        ("SEED-004", "Pizza Congelada Mussarela", 29_00, false, categories[3]),
+        (
+            "SEED-001",
+            "Refrigerante Cola 2L",
+            8_50,
+            true,
+            categories[0],
+        ),
+        (
+            "SEED-002",
+            "Batata Chips Original",
+            12_00,
+            true,
+            categories[1],
+        ),
+        (
+            "SEED-003",
+            "Detergente Neutro 500ml",
+            14_50,
+            true,
+            categories[2],
+        ),
+        (
+            "SEED-004",
+            "Pizza Congelada Mussarela",
+            29_00,
+            false,
+            categories[3],
+        ),
     ];
     let ids = product_ids();
     for (idx, (sku, name, price, active, category_id)) in specs.iter().enumerate() {
-        seed_product_if_missing(app_pool, tenant, ids[idx], sku, name, *price, *category_id).await?;
+        seed_product_if_missing(app_pool, tenant, ids[idx], sku, name, *price, *category_id)
+            .await?;
         if !active {
             inventory::update_product(
                 app_pool,
@@ -315,12 +340,7 @@ async fn ensure_storage_object(object_key: &str) -> DevSeedResult<()> {
     };
     let bytes = minimal_webp_bytes();
     storage
-        .put_object(
-            DEV_MEDIA_BUCKET,
-            object_key,
-            &bytes,
-            "image/webp",
-        )
+        .put_object(DEV_MEDIA_BUCKET, object_key, &bytes, "image/webp")
         .await
         .map_err(|err| crate::error::DevSeedError::Aborted(format!("storage put: {err}")))?;
     Ok(())

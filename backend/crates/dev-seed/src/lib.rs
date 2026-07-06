@@ -1,5 +1,12 @@
 //! Idempotent dev database seed for the admin panel.
 
+#![allow(
+    clippy::collapsible_if,
+    clippy::expect_used,
+    clippy::inconsistent_digit_grouping,
+    clippy::too_many_arguments
+)]
+
 pub mod media_bytes;
 
 mod audit;

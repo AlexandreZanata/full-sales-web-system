@@ -58,10 +58,11 @@ function InventoryHubPage() {
     : null;
 
   function handlePageChange(nextPage: number) {
-    if (nextPage > page && overviewQuery.data?.pagination.next_cursor) {
+    const nextCursor = overviewQuery.data?.pagination.next_cursor;
+    if (nextPage > page && nextCursor) {
       setCursors((prev) => {
         const copy = [...prev];
-        copy[page] = overviewQuery.data?.pagination.next_cursor ?? undefined;
+        copy[page] = nextCursor;
         return copy;
       });
     }

@@ -18,11 +18,7 @@ pub fn format_money_brl(cents: i64, currency: &str) -> String {
     let reais = abs / 100;
     let centavos = abs % 100;
     let body = format!("R$ {reais},{centavos:02}");
-    if negative {
-        format!("-{body}")
-    } else {
-        body
-    }
+    if negative { format!("-{body}") } else { body }
 }
 
 pub fn period_start_filename(value: DateTime<Utc>) -> String {

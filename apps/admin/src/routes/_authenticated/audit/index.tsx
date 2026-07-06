@@ -11,10 +11,9 @@ import { useI18n } from '@/lib/i18n/context';
 import { formatPaginationSummary } from '@/lib/i18n/labels';
 import { fetchAuditEvents } from '@/lib/api/audit';
 import { fetchUsers } from '@/lib/api/users';
-import { fetchAllCursorPages } from '@/lib/cursorPagination';
+import { cursorToTableState, fetchAllCursorPages } from '@/lib/cursorPagination';
 import type { AuditEvent } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/formatDateTime';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/_authenticated/audit/')({
@@ -24,12 +23,17 @@ export const Route = createFileRoute('/_authenticated/audit/')({
 function AuditPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
   const pageSize = 20;
 
   const events = useQuery({
     queryKey: ['audit', 'events', page, pageSize],
-    queryFn: () => fetchAuditEvents({ page, pageSize }),
+    queryFn: () =>
+      fetchAuditEvents({
+        limit: pageSize,
+        cursor: cursors[page - 1],
+      }),
   });
 
   const actors = useQuery({
@@ -45,7 +49,19 @@ function AuditPage() {
     return map;
   }, [actors.data]);
 
-  const pagination = events.data ? paginatedResponseToTable(events.data) : null;
+  const pagination = events.data ? cursorToTableState(page, events.data.pagination.has_more) : null;
+
+  function handlePageChange(nextPage: number) {
+    const nextCursor = events.data?.pagination.next_cursor;
+    if (nextPage > page && nextCursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = nextCursor;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
 
   function toggleExpanded(id: string) {
     setExpandedIds((current) => {
@@ -67,7 +83,7 @@ function AuditPage() {
         <div className="flex justify-center py-16">
           <LoadingSpinner />
         </div>
-      ) : events.data && events.data.items.length > 0 ? (
+      ) : events.data && events.data.data.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-hairline bg-surface">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -95,7 +111,7 @@ function AuditPage() {
                 </tr>
               </thead>
               <tbody className="bg-surface">
-                {events.data.items.map((event, index) => (
+                {events.data.data.map((event, index) => (
                   <AuditEventRows
                     key={event.id}
                     event={event}
@@ -125,7 +141,7 @@ function AuditPage() {
                   variant="secondary"
                   disabled={pagination.page <= 1}
                   onClick={() => {
-                    setPage(pagination.page - 1);
+                    handlePageChange(pagination.page - 1);
                   }}
                 >
                   {t('common.previous')}
@@ -135,7 +151,7 @@ function AuditPage() {
                   variant="secondary"
                   disabled={pagination.page >= pagination.totalPages}
                   onClick={() => {
-                    setPage(pagination.page + 1);
+                    handlePageChange(pagination.page + 1);
                   }}
                 >
                   {t('common.next')}

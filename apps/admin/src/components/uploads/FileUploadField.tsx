@@ -3,7 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/api/client';
-import { resolveMediaPreviewUrl, resolveCatalogImagePreviewUrl, uploadMediaFile, type MediaEntityType } from '@/lib/api/uploads';
+import {
+  resolveMediaPreviewUrl,
+  resolveCatalogImagePreviewUrl,
+  uploadMediaFile,
+  type MediaEntityType,
+} from '@/lib/api/uploads';
 import { useI18n } from '@/lib/i18n/context';
 import { translateFormError } from '@/lib/i18n/labels';
 import { IMAGE_UPLOAD_ACCEPT, IMAGE_UPLOAD_HINT } from '@/lib/uploadAccept';

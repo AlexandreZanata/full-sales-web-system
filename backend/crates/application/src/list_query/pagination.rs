@@ -44,10 +44,7 @@ mod tests {
         let err = ListPagination::new(Some(101), None).unwrap_err();
         assert!(matches!(
             err,
-            ListQueryError::InvalidPagination {
-                field: "limit",
-                ..
-            }
+            ListQueryError::InvalidPagination { field: "limit", .. }
         ));
     }
 
@@ -56,10 +53,7 @@ mod tests {
         let err = ListPagination::new(Some(0), None).unwrap_err();
         assert!(matches!(
             err,
-            ListQueryError::InvalidPagination {
-                field: "limit",
-                ..
-            }
+            ListQueryError::InvalidPagination { field: "limit", .. }
         ));
     }
 

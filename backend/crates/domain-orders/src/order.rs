@@ -272,6 +272,7 @@ impl Order {
         Ok(self)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn restore(
         id: OrderId,
         tenant_id: TenantId,

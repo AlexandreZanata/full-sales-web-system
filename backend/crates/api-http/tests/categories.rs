@@ -246,16 +246,9 @@ async fn contract_category_image_when_linked_then_public_media_content_ok() {
     .await;
     assert_eq!(image_status, StatusCode::OK);
 
-    let (list_status, list_body) = request(
-        &env,
-        "GET",
-        "/v1/public/categories",
-        None,
-        None,
-    )
-    .await;
+    let (list_status, list_body) = request(&env, "GET", "/v1/public/categories", None, None).await;
     assert_eq!(list_status, StatusCode::OK);
-    let snacks = list_body
+    let snacks = list_body["data"]
         .as_array()
         .expect("array")
         .iter()

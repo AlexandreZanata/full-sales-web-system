@@ -17,10 +17,10 @@ pub struct SellerProfile {
 
 impl SellerProfile {
     pub fn create(input: SellerProfileInput) -> Result<Self, IdentityError> {
-        if let Some(amount) = input.monthly_target_amount {
-            if amount < 0 {
-                return Err(IdentityError::InvalidProfileField);
-            }
+        if let Some(amount) = input.monthly_target_amount
+            && amount < 0
+        {
+            return Err(IdentityError::InvalidProfileField);
         }
         Ok(Self {
             user_id: input.user_id,

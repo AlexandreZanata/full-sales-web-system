@@ -3,14 +3,19 @@ use rust_xlsxwriter::{Format, Workbook};
 use crate::export::csv::export_filename;
 use crate::export::error::ReportExportError;
 use crate::export::format::{format_date_pt_br, format_money_brl};
-use crate::export::view::{ExportMeta, ReportExportView, RenderedExport};
+use crate::export::view::{ExportMeta, RenderedExport, ReportExportView};
 
-pub fn render_xlsx(view: &ReportExportView, meta: &ExportMeta) -> Result<RenderedExport, ReportExportError> {
+pub fn render_xlsx(
+    view: &ReportExportView,
+    meta: &ExportMeta,
+) -> Result<RenderedExport, ReportExportError> {
     let mut workbook = Workbook::new();
     write_sales_sheet(&mut workbook, view).map_err(|_| ReportExportError::RenderFailed)?;
     write_summary_sheet(&mut workbook, view, meta).map_err(|_| ReportExportError::RenderFailed)?;
 
-    let bytes = workbook.save_to_buffer().map_err(|_| ReportExportError::RenderFailed)?;
+    let bytes = workbook
+        .save_to_buffer()
+        .map_err(|_| ReportExportError::RenderFailed)?;
     Ok(RenderedExport {
         bytes,
         content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -18,7 +23,10 @@ pub fn render_xlsx(view: &ReportExportView, meta: &ExportMeta) -> Result<Rendere
     })
 }
 
-fn write_sales_sheet(workbook: &mut Workbook, view: &ReportExportView) -> Result<(), rust_xlsxwriter::XlsxError> {
+fn write_sales_sheet(
+    workbook: &mut Workbook,
+    view: &ReportExportView,
+) -> Result<(), rust_xlsxwriter::XlsxError> {
     let worksheet = workbook.add_worksheet();
     worksheet.set_name("Sales")?;
 

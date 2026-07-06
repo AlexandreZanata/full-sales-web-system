@@ -79,6 +79,8 @@ async fn given_fresh_db_when_seed_twice_then_idempotent_and_populated() {
         &infra_postgres::deliveries::DeliveryFilters {
             driver_id: None,
             status: None,
+            from: None,
+            to: None,
         },
         20,
         0,
@@ -98,11 +100,7 @@ async fn given_fresh_db_when_seed_twice_then_idempotent_and_populated() {
     assert!(audit_count >= 10);
 
     let categories = infra_postgres::inventory::product_categories::list_categories(
-        &pools.app,
-        tenant,
-        None,
-        20,
-        0,
+        &pools.app, tenant, None, 20, 0,
     )
     .await
     .expect("categories");

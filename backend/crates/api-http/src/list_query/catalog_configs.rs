@@ -12,8 +12,7 @@ static BALANCE_FILTERS: [FilterFieldSpec; 2] = [
     FilterFieldSpec::new("name", LIKE),
     FilterFieldSpec::new("sku", LIKE),
 ];
-static MOVEMENT_FILTERS: [FilterFieldSpec; 1] =
-    [FilterFieldSpec::new("created_at", DATE_OPS)];
+static MOVEMENT_FILTERS: [FilterFieldSpec; 1] = [FilterFieldSpec::new("created_at", DATE_OPS)];
 
 pub static PRODUCTS_LIST_CONFIG: RouteListConfig<'static> = RouteListConfig {
     filter_whitelist: &PRODUCT_FILTERS,

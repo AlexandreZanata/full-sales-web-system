@@ -22,10 +22,7 @@ async fn setup_pools() -> (TestPools, TenantId) {
         .expect("start postgres");
 
     let host = container.get_host().await.expect("host");
-    let port = container
-        .get_host_port_ipv4(5432)
-        .await
-        .expect("port");
+    let port = container.get_host_port_ipv4(5432).await.expect("port");
 
     let admin_url = format!("postgres://postgres:postgres@{host}:{port}/postgres");
     let app_url = format!("postgres://app_user:app_password@{host}:{port}/postgres");

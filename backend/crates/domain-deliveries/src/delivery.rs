@@ -123,6 +123,7 @@ impl Delivery {
         Ok(self)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn restore(
         id: DeliveryId,
         tenant_id: TenantId,

@@ -120,8 +120,7 @@ mod tests {
     use super::*;
 
     const ACTIVE_OPS: &[ListFilterOp] = &[ListFilterOp::Eq];
-    static FILTER_WHITELIST: [FilterFieldSpec; 1] =
-        [FilterFieldSpec::new("active", ACTIVE_OPS)];
+    static FILTER_WHITELIST: [FilterFieldSpec; 1] = [FilterFieldSpec::new("active", ACTIVE_OPS)];
     static SORT_WHITELIST: [&str; 1] = ["name"];
     static SAMPLE_CONFIG: RouteListConfig<'static> = RouteListConfig {
         filter_whitelist: &FILTER_WHITELIST,

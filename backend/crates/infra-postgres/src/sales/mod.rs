@@ -8,7 +8,7 @@ use crate::rls::{SessionContext, apply_session_context, apply_tenant_context};
 
 mod product_metrics;
 pub use product_metrics::{
-    list_top_selling_products, record_product_sales_in_tx, TopSellingProductRow,
+    TopSellingProductRow, list_top_selling_products, record_product_sales_in_tx,
 };
 
 pub struct SaleFilters {
@@ -325,8 +325,7 @@ pub async fn confirm_sale_with_stock(
         .iter()
         .map(|item| (item.product_id, item.quantity))
         .collect();
-    product_metrics::record_product_sales_in_tx(&mut tx, tenant_id.as_uuid(), &metrics)
-        .await?;
+    product_metrics::record_product_sales_in_tx(&mut tx, tenant_id.as_uuid(), &metrics).await?;
 
     tx.commit().await?;
     Ok(())

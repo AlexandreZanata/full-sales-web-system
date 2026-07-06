@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::list_query::{
-    PRODUCT_IMAGES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    CursorListResponse, PRODUCT_IMAGES_LIST_CONFIG, build_cursor_page, decode_query_pairs,
     parse_list_query,
 };
 use crate::products::require_can_write_products;
@@ -47,9 +47,11 @@ pub async fn list_product_images(
     super::catalog::ensure_product(&state, auth.tenant_id, product_id)
         .await
         .map_err(IntoResponse::into_response)?;
-    let parsed =
-        parse_list_query(&decode_query_pairs(query.as_deref()), &PRODUCT_IMAGES_LIST_CONFIG)
-            .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &PRODUCT_IMAGES_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
 
     let rows = infra_postgres::inventory::product_images::list_product_images_cursor(
         &state.app_pool,

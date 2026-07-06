@@ -40,10 +40,11 @@ function UsersListPage() {
   const pagination = users.data ? cursorToTableState(page, users.data.pagination.has_more) : null;
 
   function handlePageChange(nextPage: number) {
-    if (nextPage > page && users.data?.pagination.next_cursor) {
+    const nextCursor = users.data?.pagination.next_cursor;
+    if (nextPage > page && nextCursor) {
       setCursors((prev) => {
         const copy = [...prev];
-        copy[page] = users.data?.pagination.next_cursor ?? undefined;
+        copy[page] = nextCursor;
         return copy;
       });
     }

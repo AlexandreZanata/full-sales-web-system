@@ -558,7 +558,10 @@ async fn contract_portal_product_detail_when_gallery_then_primary_and_image_urls
     assert_eq!(json["sku"], "PORT-001");
     assert_eq!(json["unitOfMeasure"], "Unit");
     assert!(json["primaryImageUrl"].as_str().is_some());
-    assert_eq!(json["imageUrls"].as_array().map(|items| items.len()), Some(2));
+    assert_eq!(
+        json["imageUrls"].as_array().map(|items| items.len()),
+        Some(2)
+    );
 }
 
 #[tokio::test]
@@ -599,7 +602,14 @@ async fn contract_portal_product_detail_when_inactive_then_not_found() {
 #[tokio::test]
 async fn contract_driver_portal_product_detail_when_not_commerce_contact_then_forbidden() {
     let env = setup().await;
-    seed_user(&env.app_pool, env.tenant_id, "driver@test.com", "Driver", None).await;
+    seed_user(
+        &env.app_pool,
+        env.tenant_id,
+        "driver@test.com",
+        "Driver",
+        None,
+    )
+    .await;
     let driver_token = login(&env.state, "driver@test.com").await;
 
     let response = full_app(env.state.clone())

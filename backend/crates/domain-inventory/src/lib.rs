@@ -19,9 +19,9 @@ pub mod unit_of_measure;
 pub use available_stock::{
     AvailableStockInput, compute_available, ensure_can_reserve, tenant_available_stock,
 };
+pub use category_slug::{slugify_name, unique_slug};
 pub use error::InventoryError;
 pub use movement::validate_adjustment_reason;
-pub use category_slug::{slugify_name, unique_slug};
 pub use product::{Product, ProductCreateInput};
 pub use product_category::{ProductCategory, ProductCategoryCreateInput};
 pub use product_id::ProductId;

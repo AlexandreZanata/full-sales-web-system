@@ -575,7 +575,8 @@ export const ptBR: Messages = {
     },
     contact: {
       title: 'Contato comercial',
-      description: 'Número do WhatsApp exibido no detalhe do produto no portal (“Falar com vendedor”).',
+      description:
+        'Número do WhatsApp exibido no detalhe do produto no portal (“Falar com vendedor”).',
       salesPhone: 'Telefone comercial',
       save: 'Salvar contato',
       saving: 'Salvando…',

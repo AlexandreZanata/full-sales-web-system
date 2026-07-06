@@ -85,11 +85,7 @@ pub fn notify_product_changed(
     hub.publish_product(action, product_id, sku);
 }
 
-pub fn notify_category_changed(
-    hub: &CatalogEventHub,
-    action: &'static str,
-    category_id: Uuid,
-) {
+pub fn notify_category_changed(hub: &CatalogEventHub, action: &'static str, category_id: Uuid) {
     hub.publish_category(action, category_id);
 }
 

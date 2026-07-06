@@ -95,20 +95,22 @@ fn map_stock_overview_rows(
     rows: Vec<(Uuid, String, String, String, bool, i64, i64)>,
 ) -> Vec<ProductStockOverviewRow> {
     rows.into_iter()
-        .map(|(product_id, sku, name, unit_of_measure, active, balance_total, reserved)| {
-            let balance_total = balance_total as i32;
-            let reserved = reserved as i32;
-            ProductStockOverviewRow {
-                product_id,
-                sku,
-                name,
-                unit_of_measure,
-                active,
-                balance_total,
-                reserved,
-                available: (balance_total - reserved).max(0),
-            }
-        })
+        .map(
+            |(product_id, sku, name, unit_of_measure, active, balance_total, reserved)| {
+                let balance_total = balance_total as i32;
+                let reserved = reserved as i32;
+                ProductStockOverviewRow {
+                    product_id,
+                    sku,
+                    name,
+                    unit_of_measure,
+                    active,
+                    balance_total,
+                    reserved,
+                    available: (balance_total - reserved).max(0),
+                }
+            },
+        )
         .collect()
 }
 

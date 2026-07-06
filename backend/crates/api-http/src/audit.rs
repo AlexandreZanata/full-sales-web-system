@@ -1,23 +1,19 @@
 use axum::{
     Json,
-    extract::{Query, State},
+    extract::{RawQuery, State},
+    response::{IntoResponse, Response},
 };
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use uuid::Uuid;
 
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
-use crate::pagination::paginate_offset;
+use crate::list_query::{
+    AUDIT_EVENTS_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_string, filter_eq_uuid, filter_gte_datetime, filter_lte_datetime, parse_list_query,
+};
 use crate::state::AppState;
-
-#[derive(Deserialize)]
-pub struct ListAuditEventsQuery {
-    #[serde(default = "crate::pagination::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
-    pub page_size: u32,
-}
 
 #[derive(Serialize)]
 pub struct AuditEventResponse {
@@ -37,52 +33,51 @@ pub struct AuditEventResponse {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Serialize)]
-pub struct PaginatedAuditEventsResponse {
-    pub items: Vec<AuditEventResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
 pub async fn list_audit_events(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<ListAuditEventsQuery>,
-) -> Result<Json<PaginatedAuditEventsResponse>, ApiError> {
-    require_admin(&auth)?;
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<AuditEventResponse>>, Response> {
+    require_admin(&auth).map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &AUDIT_EVENTS_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
+    let filters = infra_postgres::audit::AuditEventFilters {
+        actor_id: filter_eq_uuid(&parsed.filters, "actor_id"),
+        action: filter_eq_string(&parsed.filters, "action"),
+        from: filter_gte_datetime(&parsed.filters, "created_at"),
+        to: filter_lte_datetime(&parsed.filters, "created_at"),
+    };
 
-    let rows = infra_postgres::audit::list_audit_events(
+    let rows = infra_postgres::audit::list_audit_events_cursor(
         &state.app_pool,
         auth.tenant_id,
-        page_size as i64,
-        offset,
+        &filters,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let total = infra_postgres::audit::count_audit_events(&state.app_pool, auth.tenant_id)
-        .await
-        .map_err(|_| ApiError::internal())? as u64;
+    let items: Vec<AuditEventResponse> = rows
+        .into_iter()
+        .map(|row| AuditEventResponse {
+            id: row.id,
+            actor_id: row.actor_id,
+            action: row.action,
+            resource_type: row.resource_type,
+            resource_id: row.resource_id,
+            metadata: row.metadata,
+            correlation_id: row.correlation_id,
+            created_at: row.created_at,
+        })
+        .collect();
 
-    Ok(Json(PaginatedAuditEventsResponse {
-        items: rows
-            .into_iter()
-            .map(|row| AuditEventResponse {
-                id: row.id,
-                actor_id: row.actor_id,
-                action: row.action,
-                resource_type: row.resource_type,
-                resource_id: row.resource_id,
-                metadata: row.metadata,
-                correlation_id: row.correlation_id,
-                created_at: row.created_at,
-            })
-            .collect(),
-        page,
-        page_size,
-        total,
-    }))
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |event| event.id,
+    )))
 }

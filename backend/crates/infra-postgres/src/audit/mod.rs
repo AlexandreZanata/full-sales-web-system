@@ -26,6 +26,13 @@ pub struct AuditEventRow {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+pub struct AuditEventFilters {
+    pub actor_id: Option<Uuid>,
+    pub action: Option<String>,
+    pub from: Option<chrono::DateTime<chrono::Utc>>,
+    pub to: Option<chrono::DateTime<chrono::Utc>>,
+}
+
 pub async fn insert_audit_event(
     pool: &PgPool,
     tenant_id: TenantId,
@@ -64,6 +71,70 @@ pub async fn list_audit_event_ids(
             .await?;
     tx.commit().await?;
     Ok(rows)
+}
+
+pub async fn list_audit_events_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    filters: &AuditEventFilters,
+    before_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<AuditEventRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (
+        Uuid,
+        Uuid,
+        String,
+        String,
+        Uuid,
+        Option<serde_json::Value>,
+        Option<Uuid>,
+        chrono::DateTime<chrono::Utc>,
+    )>(
+        "SELECT id, actor_id, action, resource_type, resource_id, metadata, correlation_id, created_at
+         FROM audit.events
+         WHERE ($1::uuid IS NULL OR id < $1)
+           AND ($2::uuid IS NULL OR actor_id = $2)
+           AND ($3::text IS NULL OR action = $3)
+           AND ($4::timestamptz IS NULL OR created_at >= $4)
+           AND ($5::timestamptz IS NULL OR created_at <= $5)
+         ORDER BY id DESC
+         LIMIT $6",
+    )
+    .bind(before_id)
+    .bind(filters.actor_id)
+    .bind(filters.action.as_deref())
+    .bind(filters.from)
+    .bind(filters.to)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(
+                id,
+                actor_id,
+                action,
+                resource_type,
+                resource_id,
+                metadata,
+                correlation_id,
+                created_at,
+            )| AuditEventRow {
+                id,
+                actor_id,
+                action,
+                resource_type,
+                resource_id,
+                metadata,
+                correlation_id,
+                created_at,
+            },
+        )
+        .collect())
 }
 
 pub async fn list_audit_events(

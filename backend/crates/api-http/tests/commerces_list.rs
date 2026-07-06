@@ -67,8 +67,14 @@ async fn contract_driver_when_list_commerces_then_ok_but_post_address_forbidden(
     let commerce_id = seed_commerce(&env, "11222333000181").await;
     let (_, driver_token) = seed_driver(&env, "driver@test.com").await;
 
-    let (list_status, list_body) =
-        request(&env, "GET", "/v1/commerces?limit=50", Some(&driver_token), None).await;
+    let (list_status, list_body) = request(
+        &env,
+        "GET",
+        "/v1/commerces?limit=50",
+        Some(&driver_token),
+        None,
+    )
+    .await;
     assert_eq!(list_status, StatusCode::OK);
     assert!(list_body["data"].is_array());
     assert!(

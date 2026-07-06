@@ -5,7 +5,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use domain_shared::TenantId;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::auth::{AuthUser, require_admin};
@@ -17,7 +17,6 @@ use crate::list_query::{
 };
 use crate::portal::categories::{CategoryResponse, category_response};
 use crate::state::AppState;
-
 
 #[derive(Deserialize)]
 pub struct CreateCategoryRequest {
@@ -57,8 +56,11 @@ pub async fn list_categories(
     RawQuery(query): RawQuery,
 ) -> Result<Json<CursorListResponse<CategoryResponse>>, Response> {
     require_admin(&auth).map_err(IntoResponse::into_response)?;
-    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &CATEGORIES_LIST_CONFIG)
-                .map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query.as_deref()),
+        &CATEGORIES_LIST_CONFIG,
+    )
+    .map_err(IntoResponse::into_response)?;
     let active = filter_eq_bool(&parsed.filters, "active");
     let rows = infra_postgres::inventory::product_categories::list_categories_cursor(
         &state.app_pool,
@@ -99,13 +101,12 @@ pub async fn create_category(
         ));
     }
 
-    let existing =
-        infra_postgres::inventory::product_categories::list_category_slugs(
-            &state.app_pool,
-            auth.tenant_id,
-        )
-        .await
-        .map_err(|_| ApiError::internal())?;
+    let existing = infra_postgres::inventory::product_categories::list_category_slugs(
+        &state.app_pool,
+        auth.tenant_id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
 
     let id = Uuid::now_v7();
     let category = application::categories::create_category(
@@ -198,16 +199,15 @@ pub async fn update_category(
         }
         slug
     } else if body.name.is_some() {
-        let existing =
-            infra_postgres::inventory::product_categories::list_category_slugs(
-                &state.app_pool,
-                auth.tenant_id,
-            )
-            .await
-            .map_err(|_| ApiError::internal())?
-            .into_iter()
-            .filter(|slug| slug != &row.slug)
-            .collect::<Vec<_>>();
+        let existing = infra_postgres::inventory::product_categories::list_category_slugs(
+            &state.app_pool,
+            auth.tenant_id,
+        )
+        .await
+        .map_err(|_| ApiError::internal())?
+        .into_iter()
+        .filter(|slug| slug != &row.slug)
+        .collect::<Vec<_>>();
         let mut category = application::categories::create_category(
             row.id,
             auth.tenant_id,
@@ -329,10 +329,11 @@ pub async fn update_category_image(
 ) -> Result<Json<CategoryResponse>, ApiError> {
     require_admin(&auth)?;
     let _ = load_category(&state, auth.tenant_id, id).await?;
-    let file = infra_postgres::media::find_file_by_id(&state.app_pool, auth.tenant_id, body.file_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::media_not_found)?;
+    let file =
+        infra_postgres::media::find_file_by_id(&state.app_pool, auth.tenant_id, body.file_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::media_not_found)?;
 
     if file.entity_type != "ProductCategory" || file.entity_id != id {
         return Err(ApiError::media_not_found());

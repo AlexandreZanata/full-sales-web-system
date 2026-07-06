@@ -50,8 +50,7 @@ pub async fn list_product_images(
     tenant_id: TenantId,
     product_id: Uuid,
 ) -> Result<Vec<ProductImageRow>, PostgresError> {
-    list_product_images_cursor(pool, tenant_id, product_id, None, i64::MAX / 2)
-        .await
+    list_product_images_cursor(pool, tenant_id, product_id, None, i64::MAX / 2).await
 }
 
 pub async fn list_product_images_cursor(
@@ -222,12 +221,14 @@ pub async fn find_primary_images_for_products(
     tx.commit().await?;
     Ok(rows
         .into_iter()
-        .map(|(product_id, file_id, bucket, object_key)| PrimaryProductImageRow {
-            product_id,
-            file_id,
-            bucket,
-            object_key,
-        })
+        .map(
+            |(product_id, file_id, bucket, object_key)| PrimaryProductImageRow {
+                product_id,
+                file_id,
+                bucket,
+                object_key,
+            },
+        )
         .collect())
 }
 
@@ -249,9 +250,11 @@ pub async fn find_active_product_media(
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
-        bucket,
-        object_key,
-        mime_type,
-    }))
+    Ok(
+        row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
+            bucket,
+            object_key,
+            mime_type,
+        }),
+    )
 }

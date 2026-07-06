@@ -201,7 +201,7 @@ async fn route_smoke_health_and_meta() {
     assert_eq!(v1_body["version"], "1");
 }
 
-/// Audit events route — admin only, paginated.
+/// Audit events route — admin only, cursor envelope.
 #[tokio::test]
 async fn route_smoke_audit_events_admin_only() {
     let env = setup().await;
@@ -212,5 +212,6 @@ async fn route_smoke_audit_events_admin_only() {
 
     let (status, body) = request(&env, "GET", "/v1/audit/events", Some(&admin_token), None).await;
     assert_eq!(status, StatusCode::OK);
-    assert!(body["items"].is_array());
+    assert!(body["data"].is_array());
+    assert!(body["pagination"]["has_more"].is_boolean());
 }

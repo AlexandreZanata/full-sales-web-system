@@ -44,9 +44,7 @@ export async function fetchOrders(
 export async function fetchAllOrders(
   params: Omit<OrdersListParams, 'cursor' | 'limit'> = {},
 ): Promise<OrderSummary[]> {
-  return fetchAllCursorPages(async (cursor) =>
-    fetchOrders({ ...params, limit: 100, cursor }),
-  );
+  return fetchAllCursorPages(async (cursor) => fetchOrders({ ...params, limit: 100, cursor }));
 }
 
 export async function fetchOrder(id: string): Promise<OrderDetail> {

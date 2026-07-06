@@ -426,7 +426,8 @@ async fn contract_list_stock_balances_when_products_seeded_then_returns_data() {
     let env = setup().await;
     let (_, admin_token) = seed_admin(&env).await;
     let product_id = support::seed_product(&env, "BAL-SKU", "Balance Widget", 1_000).await;
-    let driver_id = support::seed_user(&env, "driver-bal@test.com", "secret123", "Driver", true).await;
+    let driver_id =
+        support::seed_user(&env, "driver-bal@test.com", "secret123", "Driver", true).await;
     support::seed_driver_stock(&env, driver_id, product_id, 25).await;
 
     let (status, body) = request(

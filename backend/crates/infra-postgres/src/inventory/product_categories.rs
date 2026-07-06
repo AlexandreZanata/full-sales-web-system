@@ -207,11 +207,21 @@ pub async fn update_category(
     .bind(update.name.as_deref())
     .bind(update.slug.as_deref())
     .bind(update.description.is_some())
-    .bind(update.description.as_ref().and_then(|value| value.as_deref()))
+    .bind(
+        update
+            .description
+            .as_ref()
+            .and_then(|value| value.as_deref()),
+    )
     .bind(update.sort_order)
     .bind(update.active)
     .bind(update.image_file_id.is_some())
-    .bind(update.image_file_id.as_ref().and_then(|value| value.as_ref()))
+    .bind(
+        update
+            .image_file_id
+            .as_ref()
+            .and_then(|value| value.as_ref()),
+    )
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -321,9 +331,11 @@ pub async fn find_active_category_media(
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
-        bucket,
-        object_key,
-        mime_type,
-    }))
+    Ok(
+        row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
+            bucket,
+            object_key,
+            mime_type,
+        }),
+    )
 }

@@ -9,6 +9,11 @@ use crate::admin_orders::{
 };
 use crate::audit::list_audit_events;
 use crate::auth::{auth_middleware, login, logout, refresh};
+use crate::catalog_events::stream_catalog_events;
+use crate::categories::{
+    create_category, delete_category, get_category, list_categories, reorder_categories,
+    update_category, update_category_image,
+};
 use crate::commerces::{
     create_address, create_commerce, deactivate_commerce, get_commerce, list_addresses,
     list_commerces, update_address, update_logo,
@@ -17,17 +22,14 @@ use crate::deliveries::{
     confirm_delivery, create_order_delivery, get_delivery, list_deliveries, start_delivery_transit,
 };
 use crate::inventory::{get_stock_balance, list_movements, list_stock_balances, record_movement};
-use crate::media::{get_media_content, get_media_url, get_public_product_media_content, upload_media};
-use crate::catalog_events::stream_catalog_events;
-use crate::categories::{
-    create_category, delete_category, get_category, list_categories, reorder_categories,
-    update_category, update_category_image,
+use crate::media::{
+    get_media_content, get_media_url, get_public_product_media_content, upload_media,
 };
 use crate::portal::{
     cancel_portal_order, create_portal_order, get_portal_category_by_slug, get_portal_order,
-    get_portal_product_by_id, get_public_category_by_slug, list_portal_categories, list_portal_orders,
-    list_portal_products, list_public_categories, list_public_products, submit_portal_order,
-    update_portal_order, get_public_product_by_id,
+    get_portal_product_by_id, get_public_category_by_slug, get_public_product_by_id,
+    list_portal_categories, list_portal_orders, list_portal_products, list_public_categories,
+    list_public_products, submit_portal_order, update_portal_order,
 };
 use crate::products::{
     attach_product_image, create_product, delete_product_image, get_product, list_product_images,
@@ -85,7 +87,10 @@ pub fn v1_router(state: AppState) -> Router {
             "/v1/public/categories/{slug}",
             get(get_public_category_by_slug),
         )
-        .route("/v1/public/media/{id}/content", get(get_public_product_media_content))
+        .route(
+            "/v1/public/media/{id}/content",
+            get(get_public_product_media_content),
+        )
         .route("/v1/public/catalog/events", get(stream_catalog_events))
         .route("/v1/public/settings", get(get_public_settings))
         .route("/v1/reports/{id}/verify", get(verify_report))
@@ -113,10 +118,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/products", get(list_products).post(create_product))
         .route("/v1/products/top-selling", get(list_top_selling_products))
         .route("/v1/categories", get(list_categories).post(create_category))
-        .route(
-            "/v1/categories/reorder",
-            post(reorder_categories),
-        )
+        .route("/v1/categories/reorder", post(reorder_categories))
         .route(
             "/v1/categories/{id}",
             get(get_category)

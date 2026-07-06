@@ -6,7 +6,9 @@ mod support;
 use http::StatusCode;
 use serde_json::json;
 
-use support::{minimal_webp_bytes, request, seed_admin, setup, setup_with_tenant, upload_multipart};
+use support::{
+    minimal_webp_bytes, request, seed_admin, setup, setup_with_tenant, upload_multipart,
+};
 
 const DEV_SEED_TENANT_ID: &str = "01900001-0000-7000-8000-000000000001";
 
@@ -26,7 +28,8 @@ async fn contract_patch_settings_when_valid_then_display_name_updated() {
     assert_eq!(patch_status, StatusCode::OK);
     assert_eq!(patch_body["displayName"], "Branded Tenant");
 
-    let (get_status, get_body) = request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
+    let (get_status, get_body) =
+        request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
     assert_eq!(get_status, StatusCode::OK);
     assert_eq!(get_body["displayName"], "Branded Tenant");
 }
@@ -47,7 +50,8 @@ async fn contract_patch_settings_when_sales_contact_phone_then_persisted() {
     assert_eq!(patch_status, StatusCode::OK);
     assert_eq!(patch_body["salesContactPhone"], "5511987654321");
 
-    let (get_status, get_body) = request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
+    let (get_status, get_body) =
+        request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
     assert_eq!(get_status, StatusCode::OK);
     assert_eq!(get_body["salesContactPhone"], "5511987654321");
 }
