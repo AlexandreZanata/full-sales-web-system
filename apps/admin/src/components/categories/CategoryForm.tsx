@@ -117,8 +117,8 @@ export function CategoryForm({
         <CategoryImageSection
           categoryId={imageCategory.id}
           imageFileId={imageCategory.imageFileId}
-          onImageUpdated={(fileId) => {
-            setSavedCategory({ ...imageCategory, imageFileId: fileId });
+          onImageUpdated={(category) => {
+            setSavedCategory(category);
           }}
         />
       ) : (

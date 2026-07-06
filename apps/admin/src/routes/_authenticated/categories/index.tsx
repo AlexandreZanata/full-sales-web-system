@@ -21,6 +21,7 @@ import {
 } from '@/lib/api/categories';
 import type { CategorySummary } from '@/lib/api/types';
 import { canMoveCategory, moveCategoryInOrder } from '@/lib/categories/reorder';
+import { useCatalogRevision } from '@/lib/catalog/useCatalogRevision';
 import { ACTIVE_FILTERS, type ActiveFilter } from '@/lib/commerces/constants';
 import { useI18n } from '@/lib/i18n/context';
 import { activeFilterLabel } from '@/lib/i18n/labels';
@@ -34,6 +35,7 @@ function CategoriesListPage() {
   const { t } = useI18n();
   const toast = useToast();
   const queryClient = useQueryClient();
+  const catalogRevision = useCatalogRevision();
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategorySummary | undefined>();
@@ -105,7 +107,12 @@ function CategoriesListPage() {
         header: t('common.table.name'),
         cell: (row) => (
           <div className="flex items-center gap-3">
-            <CategoryThumb name={row.name} imageFileId={row.imageFileId} thumbUrl={row.thumbUrl} />
+            <CategoryThumb
+              name={row.name}
+              imageFileId={row.imageFileId}
+              thumbUrl={row.thumbUrl}
+              cacheRevision={catalogRevision}
+            />
             <span className="font-medium">{row.name}</span>
           </div>
         ),
@@ -189,7 +196,14 @@ function CategoriesListPage() {
         ),
       },
     ],
-    [t, orderedIds, reorderMutation.isPending, reactivateMutation.isPending, handleReorder],
+    [
+      t,
+      orderedIds,
+      reorderMutation.isPending,
+      reactivateMutation.isPending,
+      handleReorder,
+      catalogRevision,
+    ],
   );
 
   function openCreateDialog() {

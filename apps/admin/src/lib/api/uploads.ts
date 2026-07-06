@@ -103,6 +103,13 @@ export function resolveCategoryThumbUrl(
   return undefined;
 }
 
+/** Bust browser cache when catalog media changes but the path stays the same. */
+export function withCatalogImageCacheBust(url: string, cacheKey: string, revision = 0): string {
+  const token = `${cacheKey}:${String(revision)}`;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${encodeURIComponent(token)}`;
+}
+
 export async function resolveMediaPreviewUrl(fileId: string): Promise<string> {
   const { url } = await fetchMediaUrl(fileId);
   const contentUrl = resolveMediaContentUrl(fileId, url);

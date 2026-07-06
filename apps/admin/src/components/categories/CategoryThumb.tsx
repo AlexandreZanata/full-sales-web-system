@@ -1,19 +1,35 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { resolveCategoryThumbUrl } from '@/lib/api/uploads';
+import { resolveCategoryThumbUrl, withCatalogImageCacheBust } from '@/lib/api/uploads';
 import { useI18n } from '@/lib/i18n/context';
 
 type CategoryThumbProps = {
   name: string;
   imageFileId?: string;
   thumbUrl?: string;
+  cacheRevision?: number;
 };
 
-export function CategoryThumb({ name, imageFileId, thumbUrl }: CategoryThumbProps) {
+export function categoryThumbCacheKey(imageFileId?: string, thumbUrl?: string): string {
+  return `${imageFileId ?? ''}|${thumbUrl ?? ''}`;
+}
+
+export function CategoryThumb({
+  name,
+  imageFileId,
+  thumbUrl,
+  cacheRevision = 0,
+}: CategoryThumbProps) {
   const { t } = useI18n();
   const [failed, setFailed] = useState(false);
   const initial = name.trim().charAt(0).toUpperCase();
-  const src = resolveCategoryThumbUrl(imageFileId, thumbUrl);
+  const baseSrc = resolveCategoryThumbUrl(imageFileId, thumbUrl);
+  const cacheKey = categoryThumbCacheKey(imageFileId, thumbUrl);
+  const src = baseSrc ? withCatalogImageCacheBust(baseSrc, cacheKey, cacheRevision) : undefined;
+
+  useEffect(() => {
+    setFailed(false);
+  }, [cacheKey, cacheRevision]);
 
   if (!src || failed) {
     return (

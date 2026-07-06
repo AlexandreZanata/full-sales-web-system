@@ -3,6 +3,21 @@ import { useEffect } from 'react';
 
 const CATALOG_SSE_EVENT = 'catalog.changed';
 
+const revisionListeners = new Set<() => void>();
+
+export function subscribeCatalogRevision(listener: () => void): () => void {
+  revisionListeners.add(listener);
+  return () => {
+    revisionListeners.delete(listener);
+  };
+}
+
+export function bumpCatalogRevision(): void {
+  revisionListeners.forEach((listener) => {
+    listener();
+  });
+}
+
 export function invalidateAdminCatalogQueries(queryClient: QueryClient): void {
   void queryClient.invalidateQueries({ queryKey: ['products'], refetchType: 'active' });
   void queryClient.invalidateQueries({ queryKey: ['categories'], refetchType: 'active' });
@@ -10,6 +25,11 @@ export function invalidateAdminCatalogQueries(queryClient: QueryClient): void {
     queryKey: ['inventory', 'balances'],
     refetchType: 'active',
   });
+}
+
+export function onAdminCatalogChanged(queryClient: QueryClient): void {
+  bumpCatalogRevision();
+  invalidateAdminCatalogQueries(queryClient);
 }
 
 export function useCatalogRealtime(queryClient: QueryClient): void {
@@ -20,7 +40,7 @@ export function useCatalogRealtime(queryClient: QueryClient): void {
 
     const source = new EventSource('/v1/public/catalog/events');
     const onCatalogChanged = () => {
-      invalidateAdminCatalogQueries(queryClient);
+      onAdminCatalogChanged(queryClient);
     };
 
     source.addEventListener(CATALOG_SSE_EVENT, onCatalogChanged);

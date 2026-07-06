@@ -5,6 +5,7 @@ import {
   resolveCatalogImagePreviewUrl,
   resolveCategoryThumbUrl,
   resolveProductImagePreviewUrl,
+  withCatalogImageCacheBust,
 } from '@/lib/api/uploads';
 
 describe('resolveMediaContentUrl', () => {
@@ -54,5 +55,19 @@ describe('resolveCategoryThumbUrl', () => {
 
   it('returns undefined when no image is linked', () => {
     expect(resolveCategoryThumbUrl()).toBeUndefined();
+  });
+});
+
+describe('withCatalogImageCacheBust', () => {
+  it('appends revision token as query param', () => {
+    expect(withCatalogImageCacheBust('/v1/public/media/file-a/content', 'file-a|', 2)).toBe(
+      '/v1/public/media/file-a/content?v=file-a%7C%3A2',
+    );
+  });
+
+  it('uses ampersand when url already has query params', () => {
+    expect(withCatalogImageCacheBust('https://cdn.example.com/a.jpg?sig=1', 'a|', 1)).toBe(
+      'https://cdn.example.com/a.jpg?sig=1&v=a%7C%3A1',
+    );
   });
 });

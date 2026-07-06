@@ -133,7 +133,7 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 
 - **Route:** `/categories` (sidebar, after Products)
 - **API:** `GET/POST /v1/categories`, `PATCH/DELETE /v1/categories/{id}`, `POST /v1/categories/reorder`, `PUT /v1/categories/{id}/image`
-- **Features:** List with sort order, slug, product count, active badge; create/edit modal; up/down reorder; deactivate/reactivate; category image via `ProductCategory` media entity
+- **Features:** List with sort order, slug, product count, active badge; create/edit modal; up/down reorder; deactivate/reactivate; category image via `ProductCategory` media entity; list thumbnails refresh on image upload via optimistic cache patch + catalog SSE (`useCatalogRealtime` / `useCatalogRevision`)
 - **Products:** Create/edit forms use category `Select` from active categories; product list shows category column + client-side category filter
 - **Deactivated categories:** Hidden from product picker; products keep existing assignment (shows inactive category name on edit if assigned)
 
