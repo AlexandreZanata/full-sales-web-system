@@ -3,20 +3,15 @@ package com.fullsales.seller.app.ui.shell
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -26,9 +21,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -38,7 +30,6 @@ import com.fullsales.seller.app.ui.SellerRoutes
 import com.fullsales.seller.app.ui.components.RemoteImage
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.i18n.LocaleSwitcher
-import com.fullsales.seller.app.ui.i18n.TextSizeSwitcher
 import com.fullsales.seller.app.ui.sync.SyncBadge
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +50,6 @@ fun SellerShellScaffold(
     val locale by localeViewModel.locale.collectAsState()
     val textSizePreset by accessibilityViewModel.preset.collectAsState()
     val showBottomBar = SellerRoutes.showsBottomBar(currentRoute)
-    var menuExpanded by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,26 +71,14 @@ fun SellerShellScaffold(
                     LocaleSwitcher(
                         locale = locale,
                         onLocaleChange = localeViewModel::setLocale,
-                        modifier = Modifier.padding(end = 8.dp),
-                    )
-                    TextSizeSwitcher(
-                        preset = textSizePreset,
-                        onPresetChange = accessibilityViewModel::setPreset,
-                        modifier = Modifier.padding(end = 8.dp),
+                        modifier = Modifier.padding(end = 4.dp),
                     )
                     SyncBadgeChip(syncBadge)
-                    IconButton(onClick = { menuExpanded = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = s.a11y.menu)
-                    }
-                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text(s.nav.logout) },
-                            onClick = {
-                                menuExpanded = false
-                                onLogout()
-                            },
-                        )
-                    }
+                    ShellOverflowMenu(
+                        textSizePreset = textSizePreset,
+                        onTextSizeChange = accessibilityViewModel::setPreset,
+                        onLogout = onLogout,
+                    )
                 },
             )
         },

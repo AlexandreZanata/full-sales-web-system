@@ -110,12 +110,42 @@ Default locale: **pt-BR**. Switch EN/PT via M3 `SegmentedButton` on login and sh
 
 | Item | Implementation |
 |------|----------------|
-| Entry | `SellerTheme { … }` in `SellerRoot` |
+| Entry | `SellerTheme { … }` in `SellerNavHost` — root `Surface` uses `colorScheme.background` |
 | Colors | `lightColorScheme` / `darkColorScheme`; dynamic color on Android 12+ |
 | Typography / shapes | `MaterialTheme.typography`, `MaterialTheme.shapes` |
 | Components | `TopAppBar`, `NavigationBar`, `Card`, `AssistChip`, `OutlinedTextField`, `Snackbar`, `PullToRefreshBox`, etc. |
 
 **Do not use** `androidx.compose.material` (Material 2) for screens or theme.
+
+### System UI (status bar) — do not regress
+
+Android status-bar icons (clock, battery, signal) **must** contrast with the app background:
+
+| System mode | Icon color | Configuration |
+|-------------|------------|---------------|
+| Light | **Dark** icons | `values/themes.xml` → `android:windowLightStatusBar=true` |
+| Dark | **Light** icons | `values-night/themes.xml` → `android:windowLightStatusBar=false` |
+
+Also required:
+
+1. **`values-night/themes.xml`** — without it, `isSystemInDarkTheme()` stays false and Compose keeps the light palette in dark mode.
+2. **`MainActivity.enableEdgeToEdge()`** — edge-to-edge with transparent status bar.
+3. **`SellerSystemBarsEffect(darkTheme)`** — runtime sync in `SellerTheme.android.kt` when configuration changes.
+
+**Checklist after theme edits:** toggle system light/dark → status-bar icons readable; Compose background matches `SellerDarkColors` / `SellerLightColors`.
+
+### Create-sale bottom bar — button conventions
+
+| Action | Component | Label key |
+|--------|-----------|-----------|
+| Back | `OutlinedButton` (outline border, 48 dp min height) | `common.back` |
+| Submit | `Button` (filled primary) | `sales.confirmShort` (`Confirmar` / `Confirm`) — **not** `sales.confirm` |
+
+`SaleDetailScreen` already uses `confirmShort` for the same reason (short label fits narrow layouts).
+
+### Shell overflow menu
+
+Accessibility presets (text size + logout) live in `ShellOverflowMenu` — not inline chips in the top bar. Login screen keeps `LoginAccessibilityPanel` with `FilterChip` / `SegmentedButton` for first-run discovery.
 
 iOS hosts the same Compose UI and M3 theme via `MainViewController()`.
 

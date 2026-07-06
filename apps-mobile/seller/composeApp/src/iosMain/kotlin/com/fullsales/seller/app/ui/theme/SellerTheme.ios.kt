@@ -5,3 +5,6 @@ import androidx.compose.runtime.Composable
 
 @Composable
 actual fun sellerDynamicColorScheme(darkTheme: Boolean): ColorScheme? = null
+
+@Composable
+actual fun SellerSystemBarsEffect(darkTheme: Boolean) = Unit

@@ -105,7 +105,11 @@ function CategoriesListPage() {
         header: t('common.table.name'),
         cell: (row) => (
           <div className="flex items-center gap-3">
-            <CategoryThumb name={row.name} imageFileId={row.imageFileId} />
+            <CategoryThumb
+              name={row.name}
+              imageFileId={row.imageFileId}
+              thumbUrl={row.thumbUrl}
+            />
             <span className="font-medium">{row.name}</span>
           </div>
         ),

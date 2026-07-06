@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Seller" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Light status-bar icons on dark backgrounds -->
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

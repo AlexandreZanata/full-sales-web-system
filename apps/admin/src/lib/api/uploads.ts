@@ -89,6 +89,20 @@ export function resolveCatalogImagePreviewUrl(fileId: string): string {
   return resolvePublicProductMediaUrl(fileId);
 }
 
+/** Prefer API thumbUrl; fall back to public content route from file id. */
+export function resolveCategoryThumbUrl(
+  imageFileId?: string,
+  thumbUrl?: string,
+): string | undefined {
+  if (thumbUrl) {
+    return thumbUrl;
+  }
+  if (imageFileId) {
+    return resolveCatalogImagePreviewUrl(imageFileId);
+  }
+  return undefined;
+}
+
 export async function resolveMediaPreviewUrl(fileId: string): Promise<string> {
   const { url } = await fetchMediaUrl(fileId);
   const contentUrl = resolveMediaContentUrl(fileId, url);

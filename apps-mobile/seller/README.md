@@ -131,7 +131,7 @@ Catalog preload runs on login via `container.requestSync()`.
 
 | Component | Purpose |
 |-----------|---------|
-| `ui/theme/SellerTheme.kt` | M3 color scheme (dynamic on Android 12+), typography, shapes |
+| `ui/theme/SellerTheme.kt` | M3 color scheme (dynamic on Android 12+), typography, shapes, `SellerSystemBarsEffect` |
 | `SalesListScreen` | Merged remote + local sales, FAB, pull-to-refresh, empty states |
 | `SalesListViewModel` | `GET /v1/sales` page 1 + Room merge via `mergeSalesList` |
 | `SaleStatusChip` | M3 `AssistChip` for domain + sync statuses |

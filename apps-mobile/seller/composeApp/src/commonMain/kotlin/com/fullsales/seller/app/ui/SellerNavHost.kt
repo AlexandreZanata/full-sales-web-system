@@ -1,8 +1,12 @@
 package com.fullsales.seller.app.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,7 +35,12 @@ fun SellerNavHost(container: SellerAppContainer) {
     val textSizePreset by accessibilityViewModel.preset.collectAsState()
     SellerStringsProvider(localeViewModel) {
         SellerTheme(textSizePreset = textSizePreset) {
-            SellerNavHostContent(container, factory, localeViewModel, accessibilityViewModel)
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background,
+            ) {
+                SellerNavHostContent(container, factory, localeViewModel, accessibilityViewModel)
+            }
         }
     }
 }

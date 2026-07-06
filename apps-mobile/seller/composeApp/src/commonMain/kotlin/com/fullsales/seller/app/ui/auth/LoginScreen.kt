@@ -2,11 +2,14 @@ package com.fullsales.seller.app.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,14 +26,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
 import com.fullsales.seller.app.a11y.AccessibilityViewModel
-import com.fullsales.seller.app.platform.isDebugBuild
 import com.fullsales.seller.app.i18n.LocaleViewModel
+import com.fullsales.seller.app.platform.isDebugBuild
 import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
-import com.fullsales.seller.app.ui.i18n.LocaleSwitcher
-import com.fullsales.seller.app.ui.i18n.TextSizeSwitcher
+import com.fullsales.seller.app.ui.i18n.LoginAccessibilityPanel
 import com.fullsales.seller.shared.i18n.SellerStrings
 
 @Composable
@@ -54,51 +55,44 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+            .navigationBarsPadding()
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            LocaleSwitcher(locale = locale, onLocaleChange = localeViewModel::setLocale)
-            TextSizeSwitcher(
-                preset = textSizePreset,
-                onPresetChange = accessibilityViewModel::setPreset,
-            )
-        }
+        LoginAccessibilityPanel(
+            locale = locale,
+            textSizePreset = textSizePreset,
+            localeViewModel = localeViewModel,
+            accessibilityViewModel = accessibilityViewModel,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
         Text(
             s.auth.signInTitle,
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.screenTitle(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .screenTitle(),
         )
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text(s.auth.email) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text(s.auth.password) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
+            modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
         state.error?.let { code ->
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                 ),
@@ -116,11 +110,13 @@ fun LoginScreen(
             enabled = !state.loading && email.isNotBlank() && password.isNotBlank(),
             modifier = Modifier
                 .fillMaxWidth()
-                .defaultMinSize(minHeight = 48.dp)
-                .padding(top = 16.dp),
+                .defaultMinSize(minHeight = 48.dp),
         ) {
             if (state.loading) {
-                CircularProgressIndicator(modifier = Modifier.padding(4.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(4.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
             } else {
                 Text(s.auth.signIn)
             }

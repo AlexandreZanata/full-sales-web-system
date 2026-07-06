@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -141,7 +142,7 @@ private fun CreateSaleBottomBar(
                 Text(formatMoneyMinorUnits(totalMinor), style = MaterialTheme.typography.headlineSmall)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(
+                OutlinedButton(
                     onClick = onBack,
                     modifier = Modifier
                         .weight(1f)
@@ -156,7 +157,7 @@ private fun CreateSaleBottomBar(
                         .weight(1f)
                         .defaultMinSize(minHeight = 48.dp),
                 ) {
-                    Text(if (submitting) s.common.saving else s.sales.confirm)
+                    Text(if (submitting) s.common.saving else s.sales.confirmShort)
                 }
             }
         }
