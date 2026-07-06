@@ -73,6 +73,12 @@ pub async fn create_commerce(
                 trade_name: commerce.trade_name().to_owned(),
                 active: commerce.is_active(),
                 logo_file_id: None,
+                registration_status: "Active".into(),
+                submitted_by_user_id: None,
+                reviewed_by_user_id: None,
+                rejection_reason: None,
+                lookup_snapshot: None,
+                registration_mode: None,
             },
         )),
     ))
@@ -102,8 +108,15 @@ fn map_commerce_error(err: application::AppError) -> ApiError {
 mod addresses_handlers;
 mod addresses_manage;
 mod addresses_support;
+mod cnpj_lookup_handler;
 mod read;
+mod registrations;
 
 pub use addresses_handlers::{create_address, list_addresses};
 pub use addresses_manage::{update_address, update_logo};
+pub use cnpj_lookup_handler::lookup_cnpj;
 pub use read::{deactivate_commerce, get_commerce, list_commerces};
+pub use registrations::{
+    approve_registration, get_registration, list_registrations, patch_registration,
+    reject_registration, submit_registration,
+};

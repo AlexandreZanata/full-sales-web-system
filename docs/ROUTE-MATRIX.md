@@ -62,6 +62,13 @@ Admin UI coverage: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 | POST | `/v1/commerces/{id}/addresses` | Admin | ✅ | `226` | primary per type | 18 |
 | PATCH | `/v1/commerces/{id}/addresses/{addressId}` | Admin | ✅ | `226` | — | 18 |
 | PUT | `/v1/commerces/{id}/logo` | Admin | ✅ | `227` | `logo_file_id` → media | 18 |
+| GET | `/v1/commerces/cnpj-lookup` | Seller, Admin, reviewer | ✅ | `69` | BR-CO-012 | — |
+| POST | `/v1/commerces/registrations` | Seller | ✅ | `69` | BR-CO-010 | — |
+| GET | `/v1/commerces/registrations` | Seller (own), reviewer | ✅ | `69` | cursor + `filter[status]` | — |
+| GET | `/v1/commerces/registrations/{id}` | Seller (own), reviewer | ✅ | `69` | — | — |
+| PATCH | `/v1/commerces/registrations/{id}` | Seller (own pending), reviewer | ✅ | `69` | — | — |
+| POST | `/v1/commerces/registrations/{id}/approve` | Admin, `can_review_commerce` | ✅ | `69` | BR-CO-011 | — |
+| POST | `/v1/commerces/registrations/{id}/reject` | Admin, `can_review_commerce` | ✅ | `69` | — | — |
 
 ---
 
@@ -212,7 +219,7 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 |------|----------------|
 | **Admin** | users, commerces write, products, inventory adjust, orders approve/reject/cancel, reports generate, delivery assign |
 | **Driver** | sales, deliveries own, commerces/products read, verify report |
-| **Seller** | sales (field + own list), commerces/products read |
+| **Seller** | sales (field + own list), commerces/products read, commerce registration submit |
 | **CommerceContact** | `/v1/portal/*` only (+ scoped media upload) |
 
 ---

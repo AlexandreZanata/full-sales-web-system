@@ -18,6 +18,13 @@ import com.fullsales.seller.app.ui.commerces.CommerceDetailScreen
 import com.fullsales.seller.app.ui.commerces.CommerceDetailViewModel
 import com.fullsales.seller.app.ui.commerces.CommerceListScreen
 import com.fullsales.seller.app.ui.commerces.CommerceViewModel
+import com.fullsales.seller.app.ui.commerces.registrations.CnpjLookupScreen
+import com.fullsales.seller.app.ui.commerces.registrations.CnpjLookupViewModel
+import com.fullsales.seller.app.ui.commerces.registrations.CommerceRegistrationFormScreen
+import com.fullsales.seller.app.ui.commerces.registrations.CommerceRegistrationViewModel
+import com.fullsales.seller.app.ui.commerces.registrations.MyRegistrationsScreen
+import com.fullsales.seller.app.ui.commerces.registrations.MyRegistrationsViewModel
+import com.fullsales.seller.app.ui.commerces.registrations.RegistrationModeScreen
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.sales.CreateSaleScreen
 import com.fullsales.seller.app.ui.sales.CreateSaleViewModel
@@ -42,7 +49,54 @@ internal fun NavGraphBuilder.commerceRoutes(
             CommerceListScreen(
                 viewModel = commerceViewModel,
                 onCommerceClick = { id -> navController.navigate(SellerRoutes.commerceDetail(id)) },
+                onRegisterCommerce = { navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_MODE) },
             )
+        }
+    }
+    composable(SellerRoutes.COMMERCE_REGISTRATION_MODE) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+            val registrationViewModel: CommerceRegistrationViewModel = viewModel(factory = factory)
+            RegistrationModeScreen(
+                onCnpjLookup = { navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_CNPJ) },
+                onManual = {
+                    registrationViewModel.startManual()
+                    navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_FORM)
+                },
+                onMyRegistrations = { navController.navigate(SellerRoutes.COMMERCE_REGISTRATIONS) },
+            )
+        }
+    }
+    composable(SellerRoutes.COMMERCE_REGISTRATION_CNPJ) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+            val lookupViewModel: CnpjLookupViewModel = viewModel(factory = factory)
+            val registrationViewModel: CommerceRegistrationViewModel = viewModel(factory = factory)
+            CnpjLookupScreen(
+                viewModel = lookupViewModel,
+                onContinue = { result ->
+                    registrationViewModel.applyLookupResult(result)
+                    navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_FORM)
+                },
+            )
+        }
+    }
+    composable(SellerRoutes.COMMERCE_REGISTRATION_FORM) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+            val registrationViewModel: CommerceRegistrationViewModel = viewModel(factory = factory)
+            CommerceRegistrationFormScreen(
+                viewModel = registrationViewModel,
+                onSubmitted = {
+                    navController.navigate(SellerRoutes.COMMERCE_REGISTRATIONS) {
+                        popUpTo(SellerRoutes.COMMERCE_REGISTRATION_MODE) { inclusive = false }
+                    }
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
+    }
+    composable(SellerRoutes.COMMERCE_REGISTRATIONS) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+            val registrationsViewModel: MyRegistrationsViewModel = viewModel(factory = factory)
+            MyRegistrationsScreen(viewModel = registrationsViewModel)
         }
     }
     composable(SellerRoutes.COMMERCE_PICK) {

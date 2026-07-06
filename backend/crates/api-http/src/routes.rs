@@ -15,8 +15,9 @@ use crate::categories::{
     update_category, update_category_image,
 };
 use crate::commerces::{
-    create_address, create_commerce, deactivate_commerce, get_commerce, list_addresses,
-    list_commerces, update_address, update_logo,
+    approve_registration, create_address, create_commerce, deactivate_commerce, get_commerce,
+    get_registration, list_addresses, list_commerces, list_registrations, lookup_cnpj,
+    patch_registration, reject_registration, submit_registration, update_address, update_logo,
 };
 use crate::deliveries::{
     confirm_delivery, create_order_delivery, get_delivery, list_deliveries, start_delivery_transit,
@@ -104,6 +105,23 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/users/{id}/driver-profile", put(upsert_driver_profile))
         .route("/v1/users/{id}/seller-profile", put(upsert_seller_profile))
         .route("/v1/commerces", post(create_commerce).get(list_commerces))
+        .route("/v1/commerces/cnpj-lookup", get(lookup_cnpj))
+        .route(
+            "/v1/commerces/registrations",
+            post(submit_registration).get(list_registrations),
+        )
+        .route(
+            "/v1/commerces/registrations/{id}",
+            get(get_registration).patch(patch_registration),
+        )
+        .route(
+            "/v1/commerces/registrations/{id}/approve",
+            post(approve_registration),
+        )
+        .route(
+            "/v1/commerces/registrations/{id}/reject",
+            post(reject_registration),
+        )
         .route("/v1/commerces/{id}", get(get_commerce))
         .route("/v1/commerces/{id}/deactivate", patch(deactivate_commerce))
         .route(

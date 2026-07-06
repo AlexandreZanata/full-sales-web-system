@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 pub mod auth;
 pub mod categories;
+pub mod commerce_registrations;
 pub mod commerces;
 pub mod deliveries;
 pub mod list_query;
@@ -16,7 +17,13 @@ pub mod products;
 pub mod sales;
 pub mod users;
 
-pub use commerces::{AddressRowInput, restore_commerce, restore_commerce_address};
+pub use commerce_registrations::{
+    can_review_commerce, ensure_can_review_commerce, ensure_can_submit_commerce,
+    parse_submit_commerce_registration,
+};
+pub use commerces::{
+    AddressRowInput, restore_commerce, restore_commerce_address, restore_commerce_with_status,
+};
 
 #[derive(Debug, Error)]
 pub enum AppError {

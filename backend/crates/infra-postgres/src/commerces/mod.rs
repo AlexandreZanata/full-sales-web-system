@@ -6,6 +6,46 @@ use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
 pub mod addresses;
+pub mod read;
+pub mod registrations;
+
+pub use read::{
+    count_commerces, find_commerce_by_id, list_commerce_ids, list_commerces, list_commerces_cursor,
+};
+
+pub struct CommerceRow {
+    pub id: Uuid,
+    pub cnpj: String,
+    pub legal_name: String,
+    pub trade_name: String,
+    pub active: bool,
+    pub logo_file_id: Option<Uuid>,
+    pub registration_status: String,
+    pub submitted_by_user_id: Option<Uuid>,
+    pub reviewed_by_user_id: Option<Uuid>,
+    pub rejection_reason: Option<String>,
+    pub lookup_snapshot: Option<serde_json::Value>,
+    pub registration_mode: Option<String>,
+}
+
+pub struct CommerceInsert<'a> {
+    pub id: Uuid,
+    pub cnpj: &'a str,
+    pub legal_name: &'a str,
+    pub trade_name: &'a str,
+    pub address: serde_json::Value,
+    pub active: bool,
+    pub registration_status: &'a str,
+    pub submitted_by_user_id: Option<Uuid>,
+    pub reviewed_by_user_id: Option<Uuid>,
+    pub rejection_reason: Option<&'a str>,
+    pub lookup_snapshot: Option<serde_json::Value>,
+    pub registration_mode: Option<&'a str>,
+}
+
+pub(crate) fn map_commerce_tuple(row: registrations::CommerceRowRecord) -> CommerceRow {
+    registrations::map_commerce_row(row)
+}
 
 pub async fn insert_commerce(
     pool: &PgPool,
@@ -18,163 +58,29 @@ pub async fn insert_commerce(
 ) -> Result<(), PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
-    sqlx::query(
-        "INSERT INTO commerces.commerces (id, tenant_id, cnpj, legal_name, trade_name, address)
-         VALUES ($1, $2, $3, $4, $5, $6)",
+    registrations::insert_commerce_row(
+        &mut tx,
+        tenant_id,
+        &CommerceInsert {
+            id,
+            cnpj,
+            legal_name,
+            trade_name,
+            address,
+            active: true,
+            registration_status: "Active",
+            submitted_by_user_id: None,
+            reviewed_by_user_id: None,
+            rejection_reason: None,
+            lookup_snapshot: None,
+            registration_mode: None,
+        },
     )
-    .bind(id)
-    .bind(tenant_id.as_uuid())
-    .bind(cnpj)
-    .bind(legal_name)
-    .bind(trade_name)
-    .bind(address)
-    .execute(&mut *tx)
     .await?;
     tx.commit().await?;
     Ok(())
 }
 
-pub async fn list_commerce_ids(
-    pool: &PgPool,
-    tenant_id: TenantId,
-) -> Result<Vec<Uuid>, PostgresError> {
-    let mut tx = pool.begin().await?;
-    apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_scalar::<_, Uuid>("SELECT id FROM commerces.commerces ORDER BY cnpj")
-        .fetch_all(&mut *tx)
-        .await?;
-    tx.commit().await?;
-    Ok(rows)
-}
-
-pub struct CommerceRow {
-    pub id: Uuid,
-    pub cnpj: String,
-    pub legal_name: String,
-    pub trade_name: String,
-    pub active: bool,
-    pub logo_file_id: Option<Uuid>,
-}
-
-pub async fn find_commerce_by_id(
-    pool: &PgPool,
-    tenant_id: TenantId,
-    id: Uuid,
-) -> Result<Option<CommerceRow>, PostgresError> {
-    let mut tx = pool.begin().await?;
-    apply_tenant_context(&mut tx, tenant_id).await?;
-    let row = sqlx::query_as::<_, (Uuid, String, String, String, bool, Option<Uuid>)>(
-        "SELECT id, cnpj, legal_name, trade_name, active, logo_file_id
-         FROM commerces.commerces WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&mut *tx)
-    .await?;
-    tx.commit().await?;
-    Ok(row.map(
-        |(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
-            id,
-            cnpj,
-            legal_name,
-            trade_name,
-            active,
-            logo_file_id,
-        },
-    ))
-}
-
-pub async fn list_commerces(
-    pool: &PgPool,
-    tenant_id: TenantId,
-    active: Option<bool>,
-    limit: i64,
-    offset: i64,
-) -> Result<Vec<CommerceRow>, PostgresError> {
-    let mut tx = pool.begin().await?;
-    apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool, Option<Uuid>)>(
-        "SELECT id, cnpj, legal_name, trade_name, active, logo_file_id
-         FROM commerces.commerces
-         WHERE ($1::bool IS NULL OR active = $1)
-         ORDER BY cnpj LIMIT $2 OFFSET $3",
-    )
-    .bind(active)
-    .bind(limit)
-    .bind(offset)
-    .fetch_all(&mut *tx)
-    .await?;
-    tx.commit().await?;
-    Ok(rows
-        .into_iter()
-        .map(
-            |(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
-                id,
-                cnpj,
-                legal_name,
-                trade_name,
-                active,
-                logo_file_id,
-            },
-        )
-        .collect())
-}
-
-pub async fn list_commerces_cursor(
-    pool: &PgPool,
-    tenant_id: TenantId,
-    active: Option<bool>,
-    after_id: Option<Uuid>,
-    limit: i64,
-) -> Result<Vec<CommerceRow>, PostgresError> {
-    let mut tx = pool.begin().await?;
-    apply_tenant_context(&mut tx, tenant_id).await?;
-    let rows = sqlx::query_as::<_, (Uuid, String, String, String, bool, Option<Uuid>)>(
-        "SELECT id, cnpj, legal_name, trade_name, active, logo_file_id
-         FROM commerces.commerces
-         WHERE ($1::bool IS NULL OR active = $1)
-           AND ($2::uuid IS NULL OR id > $2)
-         ORDER BY id ASC
-         LIMIT $3",
-    )
-    .bind(active)
-    .bind(after_id)
-    .bind(limit)
-    .fetch_all(&mut *tx)
-    .await?;
-    tx.commit().await?;
-    Ok(rows
-        .into_iter()
-        .map(
-            |(id, cnpj, legal_name, trade_name, active, logo_file_id)| CommerceRow {
-                id,
-                cnpj,
-                legal_name,
-                trade_name,
-                active,
-                logo_file_id,
-            },
-        )
-        .collect())
-}
-
-pub async fn count_commerces(
-    pool: &PgPool,
-    tenant_id: TenantId,
-    active: Option<bool>,
-) -> Result<i64, PostgresError> {
-    let mut tx = pool.begin().await?;
-    apply_tenant_context(&mut tx, tenant_id).await?;
-    let count = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM commerces.commerces WHERE ($1::bool IS NULL OR active = $1)",
-    )
-    .bind(active)
-    .fetch_one(&mut *tx)
-    .await?;
-    tx.commit().await?;
-    Ok(count)
-}
-
-/// Deactivates a commerce under tenant RLS (sets `active = false`).
 pub async fn deactivate_commerce(
     pool: &PgPool,
     tenant_id: TenantId,

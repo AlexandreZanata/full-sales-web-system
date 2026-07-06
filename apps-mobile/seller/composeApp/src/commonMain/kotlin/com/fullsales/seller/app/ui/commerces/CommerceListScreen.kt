@@ -11,7 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -39,17 +44,12 @@ fun CommerceListScreen(
     viewModel: CommerceViewModel,
     onCommerceClick: (String) -> Unit,
     onPick: ((String) -> Unit)? = null,
+    onRegisterCommerce: (() -> Unit)? = null,
     title: String? = null,
 ) {
     val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
-    PullToRefreshBox(
-        isRefreshing = state.refreshing,
-        onRefresh = { viewModel.refresh() },
-        modifier = Modifier
-            .fillMaxSize()
-            .semantics { contentDescription = s.a11y.pullToRefresh },
-    ) {
+    val content: @Composable () -> Unit = {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,6 +100,32 @@ fun CommerceListScreen(
                 }
             }
         }
+    }
+    if (onRegisterCommerce != null) {
+        Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(onClick = onRegisterCommerce) {
+                    Icon(Icons.Default.Add, contentDescription = s.a11y.registerCommerce)
+                }
+            },
+        ) { padding ->
+            PullToRefreshBox(
+                isRefreshing = state.refreshing,
+                onRefresh = { viewModel.refresh() },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .semantics { contentDescription = s.a11y.pullToRefresh },
+            ) { content() }
+        }
+    } else {
+        PullToRefreshBox(
+            isRefreshing = state.refreshing,
+            onRefresh = { viewModel.refresh() },
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics { contentDescription = s.a11y.pullToRefresh },
+        ) { content() }
     }
 }
 

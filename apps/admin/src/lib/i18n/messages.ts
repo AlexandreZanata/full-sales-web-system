@@ -53,6 +53,8 @@ export type Messages = {
     deactivate: string;
     search: string;
     viewAll: string;
+    review: string;
+    all: string;
     tryAgain: string;
     backToDashboard: string;
     somethingWentWrong: string;
@@ -413,6 +415,50 @@ export type Messages = {
       title: string;
       label: string;
       saving: string;
+    };
+    registrations: {
+      title: string;
+      description: string;
+      backToQueue: string;
+      notFound: string;
+      filterStatus: string;
+      approve: string;
+      reject: string;
+      openCommerce: string;
+      columns: {
+        tradeName: string;
+        cnpj: string;
+        status: string;
+      };
+      status: {
+        PendingReview: string;
+        Active: string;
+        Rejected: string;
+      };
+      mode: {
+        cnpj_lookup: string;
+        manual: string;
+      };
+      fields: {
+        cnpj: string;
+        legalName: string;
+        mode: string;
+        rejectionReason: string;
+      };
+      empty: {
+        title: string;
+        description: string;
+      };
+      rejectDialog: {
+        title: string;
+        message: string;
+        reason: string;
+      };
+      toast: {
+        approved: string;
+        rejected: string;
+      };
+      queueLink: string;
     };
     toast: {
       deactivated: string;

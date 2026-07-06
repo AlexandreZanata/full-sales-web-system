@@ -202,6 +202,25 @@ pub async fn deactivate_user_tenant(
     Ok(result.rows_affected() == 1)
 }
 
+/// Returns whether the user has the commerce review privilege flag.
+pub async fn user_can_review_commerce(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    user_id: Uuid,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let flag = sqlx::query_scalar::<_, bool>(
+        "SELECT can_review_commerce FROM identity.users WHERE id = $1 AND active = true",
+    )
+    .bind(user_id)
+    .fetch_optional(&mut *tx)
+    .await?
+    .unwrap_or(false);
+    tx.commit().await?;
+    Ok(flag)
+}
+
 pub struct UserListRow {
     pub id: Uuid,
     pub email: String,

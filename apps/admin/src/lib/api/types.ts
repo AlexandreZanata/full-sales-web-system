@@ -165,6 +165,27 @@ export type Commerce = {
 
 export type CommerceSummary = Commerce;
 
+export type RegistrationStatus = 'Active' | 'PendingReview' | 'Rejected';
+
+export type CommerceRegistration = Commerce & {
+  registrationStatus: RegistrationStatus;
+  submittedByUserId?: string;
+  reviewedByUserId?: string;
+  rejectionReason?: string;
+  registrationMode?: 'cnpj_lookup' | 'manual';
+  lookupSnapshot?: Record<string, unknown>;
+};
+
+export type RejectRegistrationRequest = {
+  reason: string;
+};
+
+export type PatchRegistrationRequest = {
+  legalName?: string;
+  tradeName?: string;
+  contact?: { phone?: string; email?: string };
+};
+
 export type CreateCommerceRequest = {
   cnpj: string;
   legalName: string;

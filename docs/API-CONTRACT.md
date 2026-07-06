@@ -188,6 +188,51 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Body:** `{ "fileId" }` — media file from `POST /v1/media/upload`
 - **Response 200:** Commerce
 
+### `GET /v1/commerces/cnpj-lookup`
+
+- **Auth:** Seller (submit), Admin / users with review privilege
+- **Query:** `cnpj` (digits, validated BR-CO-001)
+- **Response 200:** Normalized lookup payload (`cnpj`, `legalName`, `tradeName`, `address`, `provider`, `fetchedAt`)
+- **400:** `INVALID_CNPJ`
+- **404:** `CNPJ_NOT_FOUND`
+- **502:** `CNPJ_LOOKUP_UNAVAILABLE` (client may fall back to manual entry)
+- **429:** `RATE_LIMITED`
+
+### `POST /v1/commerces/registrations`
+
+- **Auth:** Seller (BR-CO-010)
+- **Body:** `{ "cnpj", "legalName", "tradeName?", "contact", "deliveryAddress", "registrationMode", "lookupSnapshot?" }`
+- **Response 201:** Commerce registration (`registrationStatus: PendingReview`, `active: false`)
+- **409:** `CNPJ_ALREADY_REGISTERED`
+
+### `GET /v1/commerces/registrations`
+
+- **Auth:** Seller (own submissions) / Admin or `can_review_commerce` (all)
+- **Query (cursor):** `limit`, `cursor`, `filter[status]` (`PendingReview` | `Active` | `Rejected`)
+- **Response 200:** Cursor list of registration resources
+
+### `GET /v1/commerces/registrations/{id}`
+
+- **Auth:** Submit owner or reviewer
+- **Response 200 / 404**
+
+### `PATCH /v1/commerces/registrations/{id}`
+
+- **Auth:** Submit owner while `PendingReview`, or reviewer
+- **Body:** partial `legalName`, `tradeName`, `contact`
+- **Response 200:** Updated registration
+
+### `POST /v1/commerces/registrations/{id}/approve`
+
+- **Auth:** Admin or `can_review_commerce` (BR-CO-011)
+- **Response 200:** `registrationStatus: Active`, `active: true`
+
+### `POST /v1/commerces/registrations/{id}/reject`
+
+- **Auth:** Reviewer
+- **Body:** `{ "reason" }` (required, non-empty)
+- **Response 200:** `registrationStatus: Rejected`
+
 ---
 
 ## Products

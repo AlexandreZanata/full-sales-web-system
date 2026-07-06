@@ -7,6 +7,7 @@ use crate::commerce_address_id::CommerceAddressId;
 use crate::commerce_id::CommerceId;
 use crate::error::CommerceError;
 use crate::postal_code::PostalCode;
+use crate::registration_status::RegistrationStatus;
 
 pub struct CreateCommerceAddressInput {
     pub id: CommerceAddressId,
@@ -149,6 +150,9 @@ pub fn ensure_address_allowed_for_commerce(
     address_type: AddressType,
 ) -> Result<(), CommerceError> {
     if !commerce.is_active() && address_type == AddressType::Delivery {
+        if commerce.registration_status() == RegistrationStatus::PendingReview {
+            return Ok(());
+        }
         return Err(CommerceError::InactiveCommerceCannotAddDeliveryAddress);
     }
     Ok(())

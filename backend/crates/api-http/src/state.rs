@@ -11,6 +11,7 @@ use infra_redis::{
 use infra_storage::{InMemoryObjectStorage, LocalFsObjectStorage, ObjectStorage};
 
 use crate::catalog_events::CatalogEventHub;
+use crate::cnpj_lookup::CnpjLookupProvider;
 
 pub const JWT_SECRET_ENV: &str = "JWT_SECRET";
 
@@ -24,11 +25,13 @@ pub struct AppState {
     pub rate_limiter: Arc<dyn RateLimiter>,
     pub login_rate_limit: RateLimitPolicy,
     pub verify_rate_limit: RateLimitPolicy,
+    pub cnpj_lookup_rate_limit: RateLimitPolicy,
     pub jwt: JwtService,
     pub refresh_ttl: Duration,
     pub storage: Arc<dyn ObjectStorage>,
     pub report_signing_key: Option<SigningKey>,
     pub catalog_events: Arc<CatalogEventHub>,
+    pub cnpj_lookup: Arc<dyn CnpjLookupProvider>,
 }
 
 impl AppState {
@@ -57,6 +60,17 @@ impl AppState {
             max: 60,
             window: Duration::from_secs(60),
         }
+    }
+
+    pub fn default_cnpj_lookup_rate_limit() -> RateLimitPolicy {
+        RateLimitPolicy {
+            max: 30,
+            window: Duration::from_secs(60),
+        }
+    }
+
+    pub fn mock_cnpj_lookup() -> Arc<dyn CnpjLookupProvider> {
+        Arc::new(crate::cnpj_lookup::MockCnpjLookup)
     }
 
     pub fn default_catalog_events() -> Arc<CatalogEventHub> {

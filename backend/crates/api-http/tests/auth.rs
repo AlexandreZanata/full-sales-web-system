@@ -63,6 +63,8 @@ async fn setup() -> TestEnv {
         storage: AppState::in_memory_storage(),
         report_signing_key: None,
         catalog_events: AppState::default_catalog_events(),
+        cnpj_lookup_rate_limit: AppState::default_cnpj_lookup_rate_limit(),
+        cnpj_lookup: AppState::mock_cnpj_lookup(),
     };
 
     TestEnv {

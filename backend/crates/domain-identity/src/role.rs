@@ -32,4 +32,12 @@ impl Role {
     pub fn can_register_commerce(self) -> bool {
         matches!(self, Self::Admin)
     }
+
+    pub fn can_submit_commerce(self) -> bool {
+        matches!(self, Self::Seller)
+    }
+
+    pub fn can_review_commerce_by_role(self) -> bool {
+        matches!(self, Self::Admin)
+    }
 }

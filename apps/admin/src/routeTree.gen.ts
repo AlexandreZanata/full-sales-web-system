@@ -37,6 +37,8 @@ import { Route as AuthenticatedInventoryAdjustmentsRouteImport } from './routes/
 import { Route as AuthenticatedDeliveriesIdRouteImport } from './routes/_authenticated/deliveries/$id'
 import { Route as AuthenticatedCommercesNewRouteImport } from './routes/_authenticated/commerces/new'
 import { Route as AuthenticatedCommercesIdRouteImport } from './routes/_authenticated/commerces/$id'
+import { Route as AuthenticatedCommercesRegistrationsIndexRouteImport } from './routes/_authenticated/commerces/registrations/index'
+import { Route as AuthenticatedCommercesRegistrationsIdRouteImport } from './routes/_authenticated/commerces/registrations/$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -191,6 +193,18 @@ const AuthenticatedCommercesIdRoute =
     path: '/commerces/$id',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCommercesRegistrationsIndexRoute =
+  AuthenticatedCommercesRegistrationsIndexRouteImport.update({
+    id: '/commerces/registrations/',
+    path: '/commerces/registrations/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommercesRegistrationsIdRoute =
+  AuthenticatedCommercesRegistrationsIdRouteImport.update({
+    id: '/commerces/registrations/$id',
+    path: '/commerces/registrations/$id',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -220,6 +234,8 @@ export interface FileRoutesByFullPath {
   '/sales/': typeof AuthenticatedSalesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/commerces/registrations/$id': typeof AuthenticatedCommercesRegistrationsIdRoute
+  '/commerces/registrations/': typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -249,6 +265,8 @@ export interface FileRoutesByTo {
   '/sales': typeof AuthenticatedSalesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/commerces/registrations/$id': typeof AuthenticatedCommercesRegistrationsIdRoute
+  '/commerces/registrations': typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -280,6 +298,8 @@ export interface FileRoutesById {
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/commerces/registrations/$id': typeof AuthenticatedCommercesRegistrationsIdRoute
+  '/_authenticated/commerces/registrations/': typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -311,6 +331,8 @@ export interface FileRouteTypes {
     | '/sales/'
     | '/settings/'
     | '/users/'
+    | '/commerces/registrations/$id'
+    | '/commerces/registrations/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -340,6 +362,8 @@ export interface FileRouteTypes {
     | '/sales'
     | '/settings'
     | '/users'
+    | '/commerces/registrations/$id'
+    | '/commerces/registrations'
   id:
     | '__root__'
     | '/_authenticated'
@@ -370,6 +394,8 @@ export interface FileRouteTypes {
     | '/_authenticated/sales/'
     | '/_authenticated/settings/'
     | '/_authenticated/users/'
+    | '/_authenticated/commerces/registrations/$id'
+    | '/_authenticated/commerces/registrations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -575,6 +601,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommercesIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/commerces/registrations/': {
+      id: '/_authenticated/commerces/registrations/'
+      path: '/commerces/registrations'
+      fullPath: '/commerces/registrations/'
+      preLoaderRoute: typeof AuthenticatedCommercesRegistrationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/commerces/registrations/$id': {
+      id: '/_authenticated/commerces/registrations/$id'
+      path: '/commerces/registrations/$id'
+      fullPath: '/commerces/registrations/$id'
+      preLoaderRoute: typeof AuthenticatedCommercesRegistrationsIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -605,6 +645,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
+  AuthenticatedCommercesRegistrationsIdRoute: typeof AuthenticatedCommercesRegistrationsIdRoute
+  AuthenticatedCommercesRegistrationsIndexRoute: typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -635,6 +677,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
+  AuthenticatedCommercesRegistrationsIdRoute:
+    AuthenticatedCommercesRegistrationsIdRoute,
+  AuthenticatedCommercesRegistrationsIndexRoute:
+    AuthenticatedCommercesRegistrationsIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

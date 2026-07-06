@@ -69,11 +69,13 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         rate_limiter: AppState::in_memory_rate_limiter(),
         login_rate_limit: AppState::default_login_rate_limit(),
         verify_rate_limit: AppState::default_verify_rate_limit(),
+        cnpj_lookup_rate_limit: AppState::default_cnpj_lookup_rate_limit(),
         jwt: AppState::jwt_from_env(),
         refresh_ttl: REFRESH_TOKEN_TTL,
         storage: AppState::dev_storage(),
         report_signing_key: AppState::report_signing_key_from_env(),
         catalog_events: AppState::default_catalog_events(),
+        cnpj_lookup: api_http::cnpj_lookup::default_cnpj_lookup_provider(),
     };
 
     Ok(full_app(state))

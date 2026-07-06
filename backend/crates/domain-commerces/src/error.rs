@@ -40,4 +40,22 @@ pub enum CommerceError {
 
     #[error("inactive commerce cannot add delivery addresses")]
     InactiveCommerceCannotAddDeliveryAddress,
+
+    #[error("invalid registration status")]
+    InvalidRegistrationStatus,
+
+    #[error("invalid registration mode")]
+    InvalidRegistrationMode,
+
+    #[error("invalid registration transition")]
+    InvalidRegistrationTransition,
+
+    #[error("registration is not editable")]
+    RegistrationNotEditable,
+
+    #[error("CNPJ already registered in tenant")]
+    CnpjAlreadyRegistered,
+
+    #[error("rejection reason is required")]
+    RejectionReasonRequired,
 }

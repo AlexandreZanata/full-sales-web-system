@@ -37,6 +37,7 @@ name = "api-http"
 version = "0.1.0"
 dependencies = [
  "application",
+ "async-trait",
  "axum",
  "chrono",
  "dev-seed",
@@ -58,6 +59,7 @@ dependencies = [
  "infra-postgres",
  "infra-redis",
  "infra-storage",
+ "reqwest",
  "serde",
  "serde_json",
  "testcontainers",

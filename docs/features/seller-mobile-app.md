@@ -61,6 +61,10 @@ Open `apps-mobile/seller` in Android Studio → run **androidApp**. iOS: see [io
 | `commerces` | Commerce catalog | Cached + `GET /v1/commerces` |
 | `commerces/pick` | Commerce picker (create sale) | Same as commerces |
 | `commerces/{commerceId}` | Commerce detail + addresses | `GET /v1/commerces/{id}`, `GET …/addresses` |
+| `commerces/registrations` | Registration mode picker | — |
+| `commerces/registrations/lookup` | CNPJ lookup + prefill | `GET /v1/commerces/cnpj-lookup` |
+| `commerces/registrations/form` | Submit registration | `POST /v1/commerces/registrations` |
+| `commerces/registrations/mine` | My submissions | `GET /v1/commerces/registrations` |
 | `products` | Product catalog | Cached + `GET /v1/products` |
 | `products/{productId}` | Product detail + stock | `GET /v1/products/{id}`, `GET /v1/inventory/products/{id}/balance` |
 

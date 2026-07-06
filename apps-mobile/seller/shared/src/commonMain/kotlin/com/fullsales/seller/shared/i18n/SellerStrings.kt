@@ -101,6 +101,40 @@ object SellerStrings {
 
     fun productListItem(messages: SellerMessages, name: String, sku: String, price: String): String =
         format(messages.a11y.productListItem, "name" to name, "sku" to sku, "price" to price)
+
+    fun registrationStatus(messages: SellerMessages, status: String): String = when (status) {
+        "PendingReview" -> messages.registrations.statusPending
+        "Active" -> messages.registrations.statusActive
+        "Rejected" -> messages.registrations.statusRejected
+        else -> status
+    }
+
+    fun registrationListItem(
+        messages: SellerMessages,
+        name: String,
+        status: String,
+        cnpj: String,
+    ): String = format(
+        messages.a11y.registrationListItem,
+        "name" to name,
+        "status" to status,
+        "cnpj" to cnpj,
+    )
+
+    fun registrationError(messages: SellerMessages, code: String): String = when (code) {
+        "INVALID_CNPJ" -> messages.registrations.cnpjInvalid
+        "CNPJ_NOT_FOUND" -> messages.registrations.lookupNotFound
+        "CNPJ_LOOKUP_UNAVAILABLE" -> messages.registrations.lookupUnavailable
+        "CNPJ_ALREADY_REGISTERED" -> messages.registrations.cnpjAlreadyRegistered
+        "NETWORK_ERROR" -> messages.registrations.networkError
+        else -> messages.registrations.submitFailed
+    }
+
+    fun registrationFieldError(messages: SellerMessages, code: String): String = when (code) {
+        "required" -> messages.registrations.fieldRequired
+        "invalid" -> messages.registrations.cnpjInvalid
+        else -> messages.registrations.fieldRequired
+    }
 }
 
 enum class AuthErrorCode {

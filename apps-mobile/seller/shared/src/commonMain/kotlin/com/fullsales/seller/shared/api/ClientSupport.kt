@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -48,3 +49,9 @@ internal suspend fun HttpClient.apiPostNoContent(
         throw response.apiExceptionFromResponse(json)
     }
 }
+
+internal suspend inline fun <reified T> HttpClient.apiPatch(
+    url: String,
+    json: Json,
+    crossinline block: HttpRequestBuilder.() -> Unit = {},
+): T = patch(url, block).decodeSuccess(json)

@@ -2,7 +2,7 @@
 
 use domain_commerces::{
     AddressType, Cnpj, Commerce, CommerceAddress, CommerceAddressId, CommerceId,
-    CreateCommerceAddressInput, CreateCommerceInput,
+    CreateCommerceAddressInput, CreateCommerceInput, SubmitCommerceRegistrationInput,
 };
 use domain_shared::TenantId;
 use uuid::Uuid;
@@ -31,13 +31,52 @@ pub fn restore_commerce(
     tenant_id: TenantId,
     active: bool,
 ) -> Result<Commerce, domain_commerces::CommerceError> {
-    let mut commerce = Commerce::create(CreateCommerceInput {
-        id: CommerceId::from_uuid(id),
-        cnpj: Cnpj::parse(cnpj)?,
-        legal_name: legal_name.to_owned(),
-        trade_name: Some(trade_name.to_owned()),
+    restore_commerce_with_status(
+        id,
+        cnpj,
+        legal_name,
+        trade_name,
         tenant_id,
-    });
+        active,
+        domain_commerces::RegistrationStatus::Active,
+        None,
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)] // ponytail: single restore helper until second caller needs struct
+pub fn restore_commerce_with_status(
+    id: Uuid,
+    cnpj: &str,
+    legal_name: &str,
+    trade_name: &str,
+    tenant_id: TenantId,
+    active: bool,
+    registration_status: domain_commerces::RegistrationStatus,
+    submitted_by_user_id: Option<Uuid>,
+    registration_mode: Option<domain_commerces::RegistrationMode>,
+) -> Result<Commerce, domain_commerces::CommerceError> {
+    let mut commerce = if registration_status == domain_commerces::RegistrationStatus::PendingReview
+    {
+        Commerce::submit_registration(SubmitCommerceRegistrationInput {
+            id: CommerceId::from_uuid(id),
+            cnpj: Cnpj::parse(cnpj)?,
+            legal_name: legal_name.to_owned(),
+            trade_name: Some(trade_name.to_owned()),
+            tenant_id,
+            submitted_by_user_id: submitted_by_user_id.unwrap_or_else(Uuid::nil),
+            registration_mode: registration_mode
+                .unwrap_or(domain_commerces::RegistrationMode::Manual),
+        })
+    } else {
+        Commerce::create(CreateCommerceInput {
+            id: CommerceId::from_uuid(id),
+            cnpj: Cnpj::parse(cnpj)?,
+            legal_name: legal_name.to_owned(),
+            trade_name: Some(trade_name.to_owned()),
+            tenant_id,
+        })
+    };
     if !active {
         commerce = commerce.deactivate();
     }

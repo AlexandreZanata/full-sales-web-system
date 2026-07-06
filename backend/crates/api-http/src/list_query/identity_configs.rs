@@ -5,6 +5,7 @@ use super::parse::RouteListConfig;
 const EQ: &[ListFilterOp] = &[ListFilterOp::Eq];
 
 static COMMERCE_FILTERS: [FilterFieldSpec; 1] = [FilterFieldSpec::new("active", EQ)];
+static REGISTRATION_FILTERS: [FilterFieldSpec; 1] = [FilterFieldSpec::new("status", EQ)];
 static USER_FILTERS: [FilterFieldSpec; 2] = [
     FilterFieldSpec::new("active", EQ),
     FilterFieldSpec::new("role", EQ),
@@ -12,6 +13,11 @@ static USER_FILTERS: [FilterFieldSpec; 2] = [
 
 pub static COMMERCES_LIST_CONFIG: RouteListConfig<'static> = RouteListConfig {
     filter_whitelist: &COMMERCE_FILTERS,
+    sort_whitelist: &[],
+};
+
+pub static REGISTRATIONS_LIST_CONFIG: RouteListConfig<'static> = RouteListConfig {
+    filter_whitelist: &REGISTRATION_FILTERS,
     sort_whitelist: &[],
 };
 

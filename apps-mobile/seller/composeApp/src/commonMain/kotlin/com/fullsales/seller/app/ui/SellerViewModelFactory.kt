@@ -4,12 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
+import com.fullsales.seller.app.platform.CommerceRegistrationDraftStore
 import com.fullsales.seller.app.platform.CreateSaleDraftStore
 import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.app.ui.auth.AuthViewModel
 import com.fullsales.seller.app.ui.commerces.CommerceDetailViewModel
 import com.fullsales.seller.app.ui.commerces.CommerceViewModel
+import com.fullsales.seller.app.ui.commerces.registrations.CnpjLookupViewModel
+import com.fullsales.seller.app.ui.commerces.registrations.CommerceRegistrationViewModel
+import com.fullsales.seller.app.ui.commerces.registrations.MyRegistrationsViewModel
 import com.fullsales.seller.app.ui.products.ProductDetailViewModel
 import com.fullsales.seller.app.ui.products.ProductViewModel
 import com.fullsales.seller.app.ui.sales.CreateSaleViewModel
@@ -46,6 +50,16 @@ class SellerViewModelFactory(
             ) as T
         modelClass.isAssignableFrom(CommerceDetailViewModel::class.java) ->
             CommerceDetailViewModel(container.apiClient) as T
+        modelClass.isAssignableFrom(CnpjLookupViewModel::class.java) ->
+            CnpjLookupViewModel(container.apiClient, container.networkMonitor) as T
+        modelClass.isAssignableFrom(CommerceRegistrationViewModel::class.java) ->
+            CommerceRegistrationViewModel(
+                container.apiClient,
+                container.networkMonitor,
+                CommerceRegistrationDraftStore(),
+            ) as T
+        modelClass.isAssignableFrom(MyRegistrationsViewModel::class.java) ->
+            MyRegistrationsViewModel(container.apiClient, container.networkMonitor) as T
         modelClass.isAssignableFrom(ProductViewModel::class.java) ->
             ProductViewModel(container.catalogRepository, container.syncCoordinator) as T
         modelClass.isAssignableFrom(ProductDetailViewModel::class.java) ->

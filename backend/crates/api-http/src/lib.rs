@@ -4,6 +4,7 @@ mod auth;
 pub mod catalog_events;
 mod categories;
 mod client_ip;
+pub mod cnpj_lookup;
 mod commerces;
 mod deliveries;
 mod error;

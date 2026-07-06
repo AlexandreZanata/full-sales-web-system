@@ -27,6 +27,16 @@ pub async fn insert_address(
 ) -> Result<(), PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
+    insert_address_in_tx(&mut tx, tenant_id, &row).await?;
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn insert_address_in_tx(
+    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    tenant_id: TenantId,
+    row: &AddressInsert,
+) -> Result<(), PostgresError> {
     sqlx::query(
         "INSERT INTO commerces.commerce_addresses
          (id, tenant_id, commerce_id, address_type, street, number, district, city, state,
@@ -36,19 +46,18 @@ pub async fn insert_address(
     .bind(row.id)
     .bind(tenant_id.as_uuid())
     .bind(row.commerce_id)
-    .bind(row.address_type)
-    .bind(row.street)
-    .bind(row.number)
-    .bind(row.district)
-    .bind(row.city)
-    .bind(row.state)
-    .bind(row.postal_code)
+    .bind(&row.address_type)
+    .bind(&row.street)
+    .bind(&row.number)
+    .bind(&row.district)
+    .bind(&row.city)
+    .bind(&row.state)
+    .bind(&row.postal_code)
     .bind(row.latitude)
     .bind(row.longitude)
     .bind(row.is_primary)
-    .execute(&mut *tx)
+    .execute(&mut **tx)
     .await?;
-    tx.commit().await?;
     Ok(())
 }
 

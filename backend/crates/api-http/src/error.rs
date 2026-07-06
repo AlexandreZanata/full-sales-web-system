@@ -266,6 +266,46 @@ impl ApiError {
         }
     }
 
+    pub fn cnpj_already_registered() -> Self {
+        Self {
+            status: StatusCode::CONFLICT,
+            code: "CNPJ_ALREADY_REGISTERED",
+            message: "CNPJ is already registered in this tenant",
+        }
+    }
+
+    pub fn cnpj_not_found() -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            code: "CNPJ_NOT_FOUND",
+            message: "CNPJ not found in registry",
+        }
+    }
+
+    pub fn cnpj_lookup_unavailable() -> Self {
+        Self {
+            status: StatusCode::BAD_GATEWAY,
+            code: "CNPJ_LOOKUP_UNAVAILABLE",
+            message: "CNPJ lookup service is unavailable",
+        }
+    }
+
+    pub fn invalid_registration_transition() -> Self {
+        Self {
+            status: StatusCode::CONFLICT,
+            code: "INVALID_REGISTRATION_TRANSITION",
+            message: "Registration cannot transition to requested state",
+        }
+    }
+
+    pub fn registration_not_editable() -> Self {
+        Self {
+            status: StatusCode::CONFLICT,
+            code: "REGISTRATION_NOT_EDITABLE",
+            message: "Registration is not editable in its current state",
+        }
+    }
+
     pub fn internal() -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,

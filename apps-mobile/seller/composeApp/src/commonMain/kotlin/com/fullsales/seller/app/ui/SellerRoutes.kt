@@ -8,6 +8,10 @@ object SellerRoutes {
     const val COMMERCES = "commerces"
     const val COMMERCE_PICK = "commerces/pick"
     const val COMMERCE_DETAIL = "commerces/{commerceId}"
+    const val COMMERCE_REGISTRATIONS = "commerces/registrations"
+    const val COMMERCE_REGISTRATION_MODE = "commerces/registrations/mode"
+    const val COMMERCE_REGISTRATION_CNPJ = "commerces/registrations/cnpj"
+    const val COMMERCE_REGISTRATION_FORM = "commerces/registrations/form"
     const val PRODUCTS = "products"
     const val PRODUCT_DETAIL = "products/{productId}"
 

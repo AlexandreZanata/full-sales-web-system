@@ -27,3 +27,9 @@ data class CursorListCommerceAddresses(
     val data: List<CommerceAddress>,
     val pagination: CursorPaginationMeta,
 )
+
+@Serializable
+data class CursorListRegistrations(
+    val data: List<CommerceRegistration>,
+    val pagination: CursorPaginationMeta,
+)

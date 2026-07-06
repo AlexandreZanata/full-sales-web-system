@@ -9,11 +9,13 @@ pub mod commerce_address_id;
 pub mod commerce_id;
 pub mod error;
 pub mod postal_code;
+pub mod registration_mode;
+pub mod registration_status;
 
 pub use address_type::AddressType;
 pub use brazilian_state::BrazilianState;
 pub use cnpj::Cnpj;
-pub use commerce::{Commerce, CreateCommerceInput};
+pub use commerce::{Commerce, CreateCommerceInput, SubmitCommerceRegistrationInput};
 pub use commerce_address::{
     CommerceAddress, CreateCommerceAddressInput, ensure_address_allowed_for_commerce,
     validate_order_delivery_address,
@@ -22,3 +24,5 @@ pub use commerce_address_id::CommerceAddressId;
 pub use commerce_id::CommerceId;
 pub use error::CommerceError;
 pub use postal_code::PostalCode;
+pub use registration_mode::RegistrationMode;
+pub use registration_status::RegistrationStatus;

@@ -1,8 +1,13 @@
 package com.fullsales.seller.shared.api
 
+import com.fullsales.seller.shared.model.CnpjLookupResult
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.CommerceAddress
+import com.fullsales.seller.shared.model.CommerceRegistration
 import com.fullsales.seller.shared.model.CreateSaleRequest
+import com.fullsales.seller.shared.model.CursorListRegistrations
+import com.fullsales.seller.shared.model.PatchRegistrationRequest
+import com.fullsales.seller.shared.model.SubmitRegistrationRequest
 import com.fullsales.seller.shared.model.LoginRequest
 import com.fullsales.seller.shared.model.LoginResponse
 import com.fullsales.seller.shared.model.MediaUploadResponse
@@ -67,6 +72,39 @@ class SellerApiClient(
 
     suspend fun getCommerce(id: String): Commerce =
         http.apiGet("$baseUrl/commerces/$id", json)
+
+    suspend fun lookupCnpj(cnpj: String): CnpjLookupResult {
+        val digits = cnpj.filter { it.isDigit() }
+        return http.apiGet("$baseUrl/commerces/cnpj-lookup?cnpj=$digits", json)
+    }
+
+    suspend fun submitRegistration(request: SubmitRegistrationRequest): CommerceRegistration =
+        http.apiPost("$baseUrl/commerces/registrations", json) {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+
+    suspend fun listRegistrations(
+        limit: Int = 50,
+        cursor: String? = null,
+        status: String? = null,
+    ): CursorListRegistrations {
+        val params = buildList {
+            add("limit=$limit")
+            status?.let { add("filter[status]=$it") }
+            cursor?.let { add("cursor=$it") }
+        }
+        return http.apiGet("$baseUrl/commerces/registrations?${params.joinToString("&")}", json)
+    }
+
+    suspend fun getRegistration(id: String): CommerceRegistration =
+        http.apiGet("$baseUrl/commerces/registrations/$id", json)
+
+    suspend fun patchRegistration(id: String, request: PatchRegistrationRequest): CommerceRegistration =
+        http.apiPatch("$baseUrl/commerces/registrations/$id", json) {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
 
     suspend fun listCommerceAddresses(id: String): List<CommerceAddress> {
         val all = mutableListOf<CommerceAddress>()

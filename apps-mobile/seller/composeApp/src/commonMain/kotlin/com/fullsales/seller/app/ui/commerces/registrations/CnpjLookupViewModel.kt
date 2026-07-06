@@ -1,0 +1,57 @@
+package com.fullsales.seller.app.ui.commerces.registrations
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.fullsales.seller.app.platform.NetworkMonitor
+import com.fullsales.seller.shared.api.ApiException
+import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.model.CnpjLookupResult
+import com.fullsales.seller.shared.model.isValidCnpjInput
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+data class CnpjLookupUiState(
+    val cnpj: String = "",
+    val loading: Boolean = false,
+    val errorCode: String? = null,
+    val result: CnpjLookupResult? = null,
+)
+
+class CnpjLookupViewModel(
+    private val apiClient: SellerApiClient,
+    private val networkMonitor: NetworkMonitor,
+) : ViewModel() {
+    private val _state = MutableStateFlow(CnpjLookupUiState())
+    val state: StateFlow<CnpjLookupUiState> = _state.asStateFlow()
+
+    fun setCnpj(value: String) {
+        _state.update { it.copy(cnpj = value, errorCode = null) }
+    }
+
+    fun lookup(onSuccess: (CnpjLookupResult) -> Unit) {
+        val cnpj = _state.value.cnpj
+        if (!isValidCnpjInput(cnpj)) {
+            _state.update { it.copy(errorCode = "INVALID_CNPJ") }
+            return
+        }
+        if (!networkMonitor.isOnline()) {
+            _state.update { it.copy(errorCode = "NETWORK_ERROR") }
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(loading = true, errorCode = null) }
+            runCatching { apiClient.lookupCnpj(cnpj) }
+                .onSuccess { result ->
+                    _state.update { it.copy(loading = false, result = result) }
+                    onSuccess(result)
+                }
+                .onFailure { err ->
+                    val code = (err as? ApiException)?.detail?.code ?: "LOOKUP_FAILED"
+                    _state.update { it.copy(loading = false, errorCode = code) }
+                }
+        }
+    }
+}

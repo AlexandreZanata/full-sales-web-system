@@ -17,3 +17,4 @@ Template: `agent-rules/11-documentation-and-glossary/adr-template.md`
 | [ADR-009](ADR-009-ephemeral-state-redis.md) | Redis for ephemeral state; outbox deferred | Accepted |
 | [ADR-010](ADR-010-stock-reservation-tenant-pool.md) | Stock reservations — tenant pool until driver assigned | Accepted |
 | [ADR-011](ADR-011-object-storage-minio.md) | Self-hosted MinIO for object storage | Accepted |
+| [ADR-012](ADR-012-commerce-registration-workflow.md) | Seller commerce registration + admin review | Accepted |

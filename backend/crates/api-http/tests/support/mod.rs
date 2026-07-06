@@ -69,6 +69,8 @@ pub async fn setup_with_tenant(tenant_id: domain_shared::TenantId) -> TestEnv {
         storage: AppState::in_memory_storage(),
         report_signing_key: Some(AppState::test_signing_key()),
         catalog_events: AppState::default_catalog_events(),
+        cnpj_lookup_rate_limit: AppState::default_cnpj_lookup_rate_limit(),
+        cnpj_lookup: AppState::mock_cnpj_lookup(),
     };
 
     TestEnv {
@@ -135,6 +137,12 @@ pub async fn seed_admin(env: &TestEnv) -> (Uuid, String) {
 
 pub async fn seed_driver(env: &TestEnv, email: &str) -> (Uuid, String) {
     let id = seed_user(env, email, "secret123", "Driver", true).await;
+    let token = login_token(env, email, "secret123").await;
+    (id, token)
+}
+
+pub async fn seed_seller(env: &TestEnv, email: &str) -> (Uuid, String) {
+    let id = seed_user(env, email, "secret123", "Seller", true).await;
     let token = login_token(env, email, "secret123").await;
     (id, token)
 }

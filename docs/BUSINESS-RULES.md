@@ -10,6 +10,9 @@
 | BR-IA-002 | `backend/crates/application/src/auth.rs`, `backend/crates/api-http/tests/auth.rs`, `backend/crates/domain-identity/tests/business_rules.rs` |
 | BR-IA-003 | `backend/crates/domain-identity/tests/commerce_contact.rs`, `backend/crates/infra-postgres/tests/identity_profiles.rs` |
 | BR-CO-001 | `backend/crates/domain-commerces/src/cnpj.rs`, `backend/crates/api-http/tests/auth.rs` |
+| BR-CO-010 | `backend/crates/api-http/tests/commerce_registrations.rs`, `backend/crates/domain-commerces/tests/commerce_registration.rs` |
+| BR-CO-011 | `backend/crates/api-http/tests/commerce_registrations.rs` |
+| BR-CO-012 | `backend/crates/api-http/tests/commerce_registrations.rs` |
 | BR-CO-004 | `backend/crates/domain-commerces/tests/commerce_address.rs` |
 | BR-CO-005 | `backend/crates/domain-commerces/tests/commerce_address.rs` |
 | BR-IN-003 | `packages/domain/src/sales/sale.test.ts` |
@@ -28,13 +31,17 @@
 
 ## Identity & Access
 
-### BR-IA-001 — Admin-only commerce registration
+### BR-IA-001 — Admin-only direct commerce registration
 
 ```
 GIVEN a User with role Driver or Seller
-WHEN they attempt to register a Commerce
+WHEN they attempt POST /v1/commerces (admin direct create)
 THEN the operation is rejected with Forbidden
 AND no Commerce record is created
+
+GIVEN a User with role Seller
+WHEN they POST /v1/commerces/registrations with valid payload
+THEN a Commerce is created with registrationStatus PendingReview (see BR-CO-010)
 ```
 
 ### BR-IA-002 — Inactive user cannot authenticate
@@ -75,6 +82,33 @@ GIVEN an active Commerce with no Pending sales
 WHEN Admin deactivates the Commerce
 THEN active becomes false
 AND new Sales referencing this Commerce are rejected
+```
+
+### BR-CO-010 — Seller submit creates pending commerce
+
+```
+GIVEN a User with role Seller
+WHEN they POST a valid registration to /v1/commerces/registrations
+THEN a Commerce is created with registrationStatus PendingReview and active false
+AND submittedByUserId is set
+AND a Delivery address is persisted
+```
+
+### BR-CO-011 — Only review privilege can approve
+
+```
+GIVEN a Commerce in PendingReview
+WHEN a User without review privilege calls POST .../approve
+THEN 403 Forbidden
+```
+
+### BR-CO-012 — CNPJ lookup does not bypass validation
+
+```
+GIVEN lookup returns data for a CNPJ
+WHEN seller submits registration
+THEN domain still validates CNPJ check digits (BR-CO-001)
+AND required address/contact fields are present
 ```
 
 ### BR-CO-004 — Inactive commerce cannot add delivery addresses

@@ -45,6 +45,7 @@ redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
 rand = "0.8"
 async-trait = "0.1"
 hex = "0.4"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 sha2 = "0.10"
 
 application = { path = "crates/application" }
