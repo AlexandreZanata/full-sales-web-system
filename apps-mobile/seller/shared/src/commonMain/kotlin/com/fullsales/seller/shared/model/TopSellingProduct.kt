@@ -13,5 +13,6 @@ data class TopSellingProduct(
 
 @Serializable
 data class TopSellingProductsResponse(
-    val items: List<TopSellingProduct>,
+    val data: List<TopSellingProduct>,
+    val pagination: com.fullsales.seller.shared.model.CursorPaginationMeta,
 )

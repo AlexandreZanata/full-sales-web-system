@@ -182,8 +182,9 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/products`
 
 - **Auth:** Admin, Driver, Seller
-- **Query:** `page`, `pageSize`, `active?` (`true` | `false`; omit for all)
-- **Response 200:** Paginated list — each item includes optional `categoryId`, `categoryName`, `categorySlug`
+- **Query (cursor):** `limit` (default 20, max 100), `cursor?`, `filter[active]` (`true` | `false`; omit filter for all)
+- **Response 200:** `{ "data": Product[], "pagination": { "next_cursor", "has_more", "limit" } }` — each item includes optional `categoryId`, `categoryName`, `categorySlug`
+- **400:** `invalid_pagination` | `invalid_filter_field`
 
 ### `GET /v1/products/{id}`
 
@@ -193,8 +194,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/products/top-selling`
 
 - **Auth:** Admin, Driver, Seller
-- **Query:** `limit?` (default `5`, max `20`)
-- **Response 200:** `{ "items": [{ "productId", "name", "sku", "unitsSold" }] }` — active products ranked by confirmed-sale units (see BR-SA-001)
+- **Query:** `limit?` (default `5`, max `20` for ranked slice; validated against standard `limit` bounds)
+- **Response 200:** Ranked list in cursor envelope — `{ "data": [{ "productId", "name", "sku", "unitsSold" }], "pagination": { "has_more": false, "limit" } }` — active products ranked by confirmed-sale units (see BR-SA-001)
 - **Note:** Empty until at least one sale is **Confirmed**; `Pending` create does not increment totals
 
 ### `PATCH /v1/products/{id}`
@@ -210,8 +211,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/categories`
 
 - **Auth:** Admin
-- **Query:** pagination, `active?`
-- **Response 200:** Paginated categories (`id`, `name`, `slug`, `description?`, `sortOrder`, `active`, `imageFileId?`, `thumbUrl?`, `productCount?`)
+- **Query (cursor):** `limit`, `cursor?`, `filter[active]?`
+- **Response 200:** Cursor envelope — categories (`id`, `name`, `slug`, `description?`, `sortOrder`, `active`, `imageFileId?`, `thumbUrl?`, `productCount?`)
 
 ### `POST /v1/categories`
 
@@ -255,7 +256,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/products/{id}/images`
 
 - **Auth:** Admin
-- **Response 200:** `{ "items": ProductImage[] }` — `id`, `fileId`, `isPrimary`, `sortOrder`
+- **Query (cursor):** `limit`, `cursor?`
+- **Response 200:** `{ "data": ProductImage[], "pagination": { ... } }` — `id`, `fileId`, `isPrimary`, `sortOrder`
 - **404:** `PRODUCT_NOT_FOUND` when product missing in tenant
 
 ### `POST /v1/products/{id}/images`
@@ -276,8 +278,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/inventory/balances`
 
 - **Auth:** Admin
-- **Query:** pagination, optional `search` (SKU or name)
-- **Response 200:** Paginated products with `balanceTotal`, `reserved`, and `available` (tenant pool minus active reservations)
+- **Query (cursor):** `limit`, `cursor?`, `filter[name][like]?`, `filter[sku][like]?`
+- **Response 200:** Cursor envelope — products with `balanceTotal`, `reserved`, and `available` (tenant pool minus active reservations)
 
 ### `GET /v1/inventory/products/{productId}/balance`
 
@@ -293,8 +295,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/inventory/products/{productId}/movements`
 
 - **Auth:** Admin
-- **Query:** pagination
-- **Response 200:** Paginated StockMovement list (append-only audit read)
+- **Query (cursor):** `limit`, `cursor?`, `filter[created_at][gte]?`, `filter[created_at][lte]?` (RFC 3339)
+- **Response 200:** Cursor envelope — StockMovement list (newest first; append-only audit read)
 
 ---
 

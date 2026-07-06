@@ -1,13 +1,17 @@
 use axum::{
     Json,
-    extract::{Query, State},
+    extract::{RawQuery, State},
+    response::{IntoResponse, Response},
 };
 use domain_identity::Role;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::auth::{AuthUser, require_roles};
 use crate::error::ApiError;
-use crate::pagination::paginate_offset;
+use crate::list_query::{
+    CursorListResponse, PRODUCTS_LIST_CONFIG, build_cursor_page, decode_query_pairs,
+    filter_eq_bool, parse_list_query,
+};
 use crate::state::AppState;
 
 pub mod catalog;
@@ -32,15 +36,6 @@ pub struct ProductResponse {
     pub category_slug: Option<String>,
 }
 
-#[derive(Serialize)]
-pub struct PaginatedProductsResponse {
-    pub items: Vec<ProductResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
 pub(crate) fn product_response_from_row(
     row: &infra_postgres::inventory::ProductRow,
 ) -> ProductResponse {
@@ -57,44 +52,31 @@ pub(crate) fn product_response_from_row(
     }
 }
 
-#[derive(Deserialize)]
-pub struct ListProductsQuery {
-    #[serde(default = "crate::pagination::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
-    pub page_size: u32,
-    pub active: Option<bool>,
-}
-
 pub async fn list_products(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<ListProductsQuery>,
-) -> Result<Json<PaginatedProductsResponse>, ApiError> {
-    require_can_read_products(&auth)?;
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
-
-    let rows = infra_postgres::inventory::list_products(
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<ProductResponse>>, Response> {
+    require_can_read_products(&auth).map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &PRODUCTS_LIST_CONFIG)
+        .map_err(IntoResponse::into_response)?;
+    let active = filter_eq_bool(&parsed.filters, "active");
+    let rows = infra_postgres::inventory::list_products_cursor(
         &state.app_pool,
         auth.tenant_id,
-        query.active,
-        page_size as i64,
-        offset,
+        active,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let total =
-        infra_postgres::inventory::count_products(&state.app_pool, auth.tenant_id, query.active)
-            .await
-            .map_err(|_| ApiError::internal())? as u64;
-
-    Ok(Json(PaginatedProductsResponse {
-        items: rows.iter().map(product_response_from_row).collect(),
-        page,
-        page_size,
-        total,
-    }))
+    let items: Vec<ProductResponse> = rows.iter().map(product_response_from_row).collect();
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |product| product.id,
+    )))
 }
 
 pub(crate) fn require_can_read_products(auth: &AuthUser) -> Result<(), ApiError> {

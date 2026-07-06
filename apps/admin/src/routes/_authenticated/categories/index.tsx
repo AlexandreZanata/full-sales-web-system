@@ -42,7 +42,7 @@ function CategoriesListPage() {
 
   const categories = useQuery({
     queryKey: ['categories', activeFilter],
-    queryFn: () => fetchCategories({ page: 1, pageSize, active: activeFilter }),
+    queryFn: () => fetchCategories({ limit: pageSize, active: activeFilter }),
   });
 
   const reorderMutation = useMutation({
@@ -79,7 +79,7 @@ function CategoriesListPage() {
     },
   });
 
-  const items = categories.data?.items ?? [];
+  const items = categories.data?.data ?? [];
   const orderedIds = useMemo(() => items.map((item) => item.id), [items]);
 
   const handleReorder = useCallback(

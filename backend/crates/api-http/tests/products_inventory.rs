@@ -1,4 +1,4 @@
-//! Phase 19 — Products & inventory contract tests.
+//! Phase 68B — cursor list contract tests for catalog and inventory routes.
 
 #[path = "support/mod.rs"]
 mod support;
@@ -9,9 +9,60 @@ use uuid::Uuid;
 
 use support::{minimal_webp_bytes, request, seed_admin, setup, upload_multipart};
 
-// Contract: create product → appears in GET list
 #[tokio::test]
-async fn contract_create_product_when_listed_then_present() {
+async fn contract_list_products_when_cursor_envelope_then_data_array() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/products?limit=20&filter[active]=true",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body["data"].is_array());
+    assert_eq!(body["pagination"]["has_more"], false);
+}
+
+#[tokio::test]
+async fn contract_list_products_when_invalid_filter_then_400() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/products?filter[unknown]=x",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "invalid_filter_field");
+}
+
+#[tokio::test]
+async fn contract_list_products_when_limit_over_max_then_400() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/products?limit=200",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "invalid_pagination");
+}
+
+#[tokio::test]
+async fn contract_create_product_when_listed_then_present_in_data() {
     let env = setup().await;
     let (_, admin_token) = seed_admin(&env).await;
 
@@ -37,14 +88,14 @@ async fn contract_create_product_when_listed_then_present() {
     let (list_status, list_body) = request(
         &env,
         "GET",
-        "/v1/products?page=1&pageSize=50",
+        "/v1/products?limit=50",
         Some(&admin_token),
         None,
     )
     .await;
     assert_eq!(list_status, StatusCode::OK);
     assert!(
-        list_body["items"]
+        list_body["data"]
             .as_array()
             .unwrap()
             .iter()
@@ -52,7 +103,6 @@ async fn contract_create_product_when_listed_then_present() {
     );
 }
 
-// Contract: adjustment increases balance
 #[tokio::test]
 async fn contract_adjustment_when_positive_then_balance_increases() {
     let env = setup().await;
@@ -117,7 +167,6 @@ async fn contract_adjustment_when_positive_then_balance_increases() {
     assert_eq!(after_body["available"].as_i64().unwrap(), before + 5);
 }
 
-// Contract: negative adjustment beyond balance → 422
 #[tokio::test]
 async fn contract_adjustment_when_exceeds_balance_then_422() {
     let env = setup().await;
@@ -162,9 +211,8 @@ async fn contract_adjustment_when_exceeds_balance_then_422() {
     assert_eq!(adj_body["error"]["code"], "INSUFFICIENT_BALANCE");
 }
 
-// Contract: attach image → GET list returns same image
 #[tokio::test]
-async fn contract_list_product_images_when_attached_then_returns_items() {
+async fn contract_list_product_images_when_attached_then_returns_data() {
     let env = setup().await;
     let (admin_id, admin_token) = seed_admin(&env).await;
 
@@ -226,7 +274,7 @@ async fn contract_list_product_images_when_attached_then_returns_items() {
     )
     .await;
     assert_eq!(list_status, StatusCode::OK);
-    let items = list_body["items"].as_array().expect("items");
+    let items = list_body["data"].as_array().expect("data");
     assert_eq!(items.len(), 1);
     assert_eq!(items[0]["id"].as_str(), Some(image_id));
     assert_eq!(items[0]["fileId"].as_str(), Some(file_id));
@@ -235,7 +283,6 @@ async fn contract_list_product_images_when_attached_then_returns_items() {
     let _ = admin_id;
 }
 
-// Contract: DELETE product image → 204 and list empty
 #[tokio::test]
 async fn contract_delete_product_image_when_attached_then_removed() {
     let env = setup().await;
@@ -309,10 +356,9 @@ async fn contract_delete_product_image_when_attached_then_removed() {
     )
     .await;
     assert_eq!(list_status, StatusCode::OK);
-    assert_eq!(list_body["items"].as_array().expect("items").len(), 0);
+    assert_eq!(list_body["data"].as_array().expect("data").len(), 0);
 }
 
-// Contract: inactive product appears when active=false filter set
 #[tokio::test]
 async fn contract_list_products_when_deactivated_then_visible_with_inactive_filter() {
     let env = setup().await;
@@ -349,14 +395,14 @@ async fn contract_list_products_when_deactivated_then_visible_with_inactive_filt
     let (inactive_status, inactive_body) = request(
         &env,
         "GET",
-        "/v1/products?page=1&pageSize=50&active=false",
+        "/v1/products?limit=50&filter[active]=false",
         Some(&admin_token),
         None,
     )
     .await;
     assert_eq!(inactive_status, StatusCode::OK);
     assert!(
-        inactive_body["items"]
+        inactive_body["data"]
             .as_array()
             .unwrap()
             .iter()
@@ -376,7 +422,7 @@ async fn contract_list_products_when_deactivated_then_visible_with_inactive_filt
 }
 
 #[tokio::test]
-async fn contract_list_stock_balances_when_products_seeded_then_returns_available() {
+async fn contract_list_stock_balances_when_products_seeded_then_returns_data() {
     let env = setup().await;
     let (_, admin_token) = seed_admin(&env).await;
     let product_id = support::seed_product(&env, "BAL-SKU", "Balance Widget", 1_000).await;
@@ -386,13 +432,13 @@ async fn contract_list_stock_balances_when_products_seeded_then_returns_availabl
     let (status, body) = request(
         &env,
         "GET",
-        "/v1/inventory/balances?page=1&pageSize=20&search=BAL-SKU",
+        "/v1/inventory/balances?limit=20&filter[sku][like]=BAL-SKU",
         Some(&admin_token),
         None,
     )
     .await;
     assert_eq!(status, StatusCode::OK);
-    let item = body["items"]
+    let item = body["data"]
         .as_array()
         .and_then(|items| items.first())
         .expect("item");

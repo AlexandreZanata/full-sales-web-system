@@ -1,6 +1,6 @@
 import { apiFetch, apiPost } from '@/lib/api/client';
+import type { CursorListParams, CursorListResponse } from '@/lib/cursorPagination';
 import type {
-  PaginatedResponse,
   ProductStockOverview,
   RecordMovementRequest,
   StockBalance,
@@ -11,23 +11,22 @@ export async function fetchStockBalance(productId: string): Promise<StockBalance
   return apiFetch<StockBalance>(`/inventory/products/${productId}/balance`);
 }
 
-export type StockOverviewParams = {
-  page: number;
-  pageSize: number;
+export type StockOverviewParams = CursorListParams & {
   search?: string;
 };
 
 export async function fetchStockOverview(
   params: StockOverviewParams,
-): Promise<PaginatedResponse<ProductStockOverview>> {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
-  });
-  if (params.search) {
-    query.set('search', params.search);
+): Promise<CursorListResponse<ProductStockOverview>> {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 20));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
   }
-  return apiFetch<PaginatedResponse<ProductStockOverview>>(`/inventory/balances?${query}`);
+  if (params.search) {
+    query.set('filter[sku][like]', params.search);
+  }
+  return apiFetch<CursorListResponse<ProductStockOverview>>(`/inventory/balances?${query}`);
 }
 
 export async function recordMovement(body: RecordMovementRequest): Promise<StockMovement> {
@@ -36,18 +35,17 @@ export async function recordMovement(body: RecordMovementRequest): Promise<Stock
 
 export type MovementsListParams = {
   productId: string;
-  page: number;
-  pageSize: number;
-};
+} & CursorListParams;
 
 export async function fetchMovements(
   params: MovementsListParams,
-): Promise<PaginatedResponse<StockMovement>> {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
-  });
-  return apiFetch<PaginatedResponse<StockMovement>>(
+): Promise<CursorListResponse<StockMovement>> {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 20));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
+  return apiFetch<CursorListResponse<StockMovement>>(
     `/inventory/products/${params.productId}/movements?${query}`,
   );
 }

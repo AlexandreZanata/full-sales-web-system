@@ -1,13 +1,18 @@
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, RawQuery, State},
     http::StatusCode,
+    response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
+use crate::list_query::{
+    PRODUCT_IMAGES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    parse_list_query,
+};
 use crate::products::require_can_write_products;
 use crate::state::AppState;
 
@@ -32,30 +37,36 @@ pub struct ProductImageResponse {
     pub is_primary: bool,
 }
 
-#[derive(Serialize)]
-pub struct ProductImagesListResponse {
-    pub items: Vec<ProductImageResponse>,
-}
-
 pub async fn list_product_images(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(product_id): Path<Uuid>,
-) -> Result<Json<ProductImagesListResponse>, ApiError> {
-    require_can_write_products(&auth)?;
-    super::catalog::ensure_product(&state, auth.tenant_id, product_id).await?;
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<ProductImageResponse>>, Response> {
+    require_can_write_products(&auth).map_err(IntoResponse::into_response)?;
+    super::catalog::ensure_product(&state, auth.tenant_id, product_id)
+        .await
+        .map_err(IntoResponse::into_response)?;
+    let parsed =
+        parse_list_query(&decode_query_pairs(query.as_deref()), &PRODUCT_IMAGES_LIST_CONFIG)
+            .map_err(IntoResponse::into_response)?;
 
-    let rows = infra_postgres::inventory::product_images::list_product_images(
+    let rows = infra_postgres::inventory::product_images::list_product_images_cursor(
         &state.app_pool,
         auth.tenant_id,
         product_id,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    Ok(Json(ProductImagesListResponse {
-        items: rows.iter().map(product_image_response).collect(),
-    }))
+    let items: Vec<ProductImageResponse> = rows.iter().map(product_image_response).collect();
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |image| image.id,
+    )))
 }
 
 pub async fn attach_product_image(

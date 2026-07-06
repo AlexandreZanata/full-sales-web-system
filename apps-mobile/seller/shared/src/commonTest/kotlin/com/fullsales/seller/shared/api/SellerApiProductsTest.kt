@@ -8,12 +8,16 @@ import io.ktor.http.HttpStatusCode
 
 class SellerApiProductsTest {
     @Test
-    fun listProducts_defaultsActiveTrue() = runTest {
+    fun listProducts_defaultsActiveFilterAndCursorEnvelope() = runTest {
         val recorder = RecordedMockEngine { request ->
             assertEquals("Bearer seller-token", request.authHeader())
             assertEquals("/v1/products", request.url.encodedPath)
-            assertTrue(request.url.encodedQuery.contains("active=true"))
-            HttpStatusCode.OK to """{"page":1,"pageSize":50,"total":0,"items":[]}"""
+            assertTrue(request.url.encodedQuery.contains("filter"))
+            assertTrue(request.url.encodedQuery.contains("active"))
+            assertTrue(request.url.encodedQuery.contains("limit=50"))
+            HttpStatusCode.OK to """
+                {"data":[],"pagination":{"next_cursor":null,"has_more":false,"limit":50}}
+            """.trimIndent()
         }
         val client = testClient(engine = recorder.engine())
         client.listProducts()

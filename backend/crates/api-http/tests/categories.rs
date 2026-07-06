@@ -39,14 +39,14 @@ async fn contract_create_category_when_listed_then_present() {
     let (list_status, list_body) = request(
         &env,
         "GET",
-        "/v1/categories?page=1&pageSize=20",
+        "/v1/categories?limit=20",
         Some(&admin_token),
         None,
     )
     .await;
     assert_eq!(list_status, StatusCode::OK);
     assert!(
-        list_body["items"]
+        list_body["data"]
             .as_array()
             .unwrap()
             .iter()
@@ -181,24 +181,26 @@ async fn contract_reorder_categories_when_listed_then_order_persists() {
     .await;
     assert_eq!(reorder_status, StatusCode::NO_CONTENT);
 
-    let (_, list_body) = request(
+    let (first_get, first_body) = request(
         &env,
         "GET",
-        "/v1/categories?page=1&pageSize=20&active=true",
+        &format!("/v1/categories/{first_id}"),
         Some(&admin_token),
         None,
     )
     .await;
-    let items = list_body["items"].as_array().unwrap();
-    let beta_index = items
-        .iter()
-        .position(|item| item["id"].as_str() == Some(second_id.to_string().as_str()))
-        .expect("beta");
-    let alpha_index = items
-        .iter()
-        .position(|item| item["id"].as_str() == Some(first_id.to_string().as_str()))
-        .expect("alpha");
-    assert!(beta_index < alpha_index);
+    let (second_get, second_body) = request(
+        &env,
+        "GET",
+        &format!("/v1/categories/{second_id}"),
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(first_get, StatusCode::OK);
+    assert_eq!(second_get, StatusCode::OK);
+    assert_eq!(second_body["sortOrder"].as_i64(), Some(0));
+    assert_eq!(first_body["sortOrder"].as_i64(), Some(1));
 }
 
 #[tokio::test]

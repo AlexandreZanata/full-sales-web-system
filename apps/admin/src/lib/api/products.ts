@@ -1,45 +1,45 @@
 import { apiDelete, apiFetch, apiPatch, apiPost } from '@/lib/api/client';
+import {
+  type CursorListParams,
+  type CursorListResponse,
+  fetchAllCursorPages,
+} from '@/lib/cursorPagination';
 import type { ActiveFilter } from '@/lib/commerces/constants';
 import type {
   AttachProductImageRequest,
   CreateProductRequest,
-  PaginatedResponse,
   Product,
   ProductImage,
   ProductSummary,
   UpdateProductRequest,
 } from '@/lib/api/types';
 
-export type ProductsListParams = {
-  page: number;
-  pageSize: number;
+export type ProductsListParams = CursorListParams & {
   active?: ActiveFilter;
 };
 
-function buildActiveQuery(active?: ActiveFilter): string {
-  if (active === 'true' || active === 'false') {
-    return active;
+function buildProductsQuery(params: ProductsListParams): string {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 20));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
   }
-  return '';
+  if (params.active === 'true' || params.active === 'false') {
+    query.set('filter[active]', params.active);
+  }
+  return query.toString();
 }
 
 export async function fetchProducts(
   params: ProductsListParams,
-): Promise<PaginatedResponse<ProductSummary>> {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
-  });
-  const active = buildActiveQuery(params.active);
-  if (active) {
-    query.set('active', active);
-  }
-  return apiFetch<PaginatedResponse<ProductSummary>>(`/products?${query}`);
+): Promise<CursorListResponse<ProductSummary>> {
+  return apiFetch<CursorListResponse<ProductSummary>>(`/products?${buildProductsQuery(params)}`);
 }
 
 export async function fetchProductsForPicker(): Promise<ProductSummary[]> {
-  const data = await fetchProducts({ page: 1, pageSize: 50, active: 'true' });
-  return data.items;
+  return fetchAllCursorPages(async (cursor) =>
+    fetchProducts({ limit: 100, cursor, active: 'true' }),
+  );
 }
 
 export async function fetchProduct(id: string): Promise<Product> {
@@ -67,6 +67,14 @@ export async function deleteProductImage(productId: string, imageId: string): Pr
   await apiDelete(`/products/${productId}/images/${imageId}`);
 }
 
-export async function fetchProductImages(productId: string): Promise<{ items: ProductImage[] }> {
-  return apiFetch<{ items: ProductImage[] }>(`/products/${productId}/images`);
+export async function fetchProductImages(
+  productId: string,
+  params: CursorListParams = {},
+): Promise<CursorListResponse<ProductImage>> {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 50));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
+  return apiFetch<CursorListResponse<ProductImage>>(`/products/${productId}/images?${query}`);
 }

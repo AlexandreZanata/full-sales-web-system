@@ -67,7 +67,7 @@ class CreateSaleViewModel(
             if (!networkMonitor.isOnline()) return@launch
             runCatching { apiClient.listTopSellingProducts(limit = 5) }
                 .onSuccess { response ->
-                    _state.update { it.copy(topSellingProducts = response.items) }
+                    _state.update { it.copy(topSellingProducts = response.data) }
                 }
         }
     }

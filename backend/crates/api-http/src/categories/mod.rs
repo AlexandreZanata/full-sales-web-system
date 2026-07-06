@@ -1,7 +1,8 @@
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, RawQuery, State},
     http::StatusCode,
+    response::{IntoResponse, Response},
 };
 use domain_shared::TenantId;
 use serde::{Deserialize, Serialize};
@@ -10,27 +11,13 @@ use uuid::Uuid;
 use crate::auth::{AuthUser, require_admin};
 use crate::catalog_events::notify_category_changed;
 use crate::error::ApiError;
-use crate::pagination::paginate_offset;
+use crate::list_query::{
+    CATEGORIES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_bool, parse_list_query,
+};
 use crate::portal::categories::{CategoryResponse, category_response};
 use crate::state::AppState;
 
-#[derive(Serialize)]
-pub struct PaginatedCategoriesResponse {
-    pub items: Vec<CategoryResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
-#[derive(Deserialize)]
-pub struct ListCategoriesQuery {
-    #[serde(default = "crate::pagination::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
-    pub page_size: u32,
-    pub active: Option<bool>,
-}
 
 #[derive(Deserialize)]
 pub struct CreateCategoryRequest {
@@ -67,41 +54,36 @@ pub struct UpdateCategoryImageRequest {
 pub async fn list_categories(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<ListCategoriesQuery>,
-) -> Result<Json<PaginatedCategoriesResponse>, ApiError> {
-    require_admin(&auth)?;
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
-    let rows = infra_postgres::inventory::product_categories::list_categories(
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<CategoryResponse>>, Response> {
+    require_admin(&auth).map_err(IntoResponse::into_response)?;
+    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &CATEGORIES_LIST_CONFIG)
+                .map_err(IntoResponse::into_response)?;
+    let active = filter_eq_bool(&parsed.filters, "active");
+    let rows = infra_postgres::inventory::product_categories::list_categories_cursor(
         &state.app_pool,
         auth.tenant_id,
-        query.active,
-        page_size as i64,
-        offset,
+        active,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
-    let total = infra_postgres::inventory::product_categories::count_categories(
-        &state.app_pool,
-        auth.tenant_id,
-        query.active,
-    )
-    .await
-    .map_err(|_| ApiError::internal())? as u64;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
     let mut items = Vec::with_capacity(rows.len());
     for row in rows {
         items.push(
             category_response(&state, auth.tenant_id, &row, true)
-                .await?,
+                .await
+                .map_err(IntoResponse::into_response)?,
         );
     }
 
-    Ok(Json(PaginatedCategoriesResponse {
+    Ok(Json(build_cursor_page(
         items,
-        page,
-        page_size,
-        total,
-    }))
+        parsed.pagination.limit,
+        |category| category.id,
+    )))
 }
 
 pub async fn create_category(

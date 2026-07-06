@@ -34,11 +34,3 @@ data class ProductDetail(
     @SerialName("primaryImageUrl") val primaryImageUrl: String? = null,
     @SerialName("primaryImageFileId") val primaryImageFileId: String? = null,
 )
-
-@Serializable
-data class PaginatedProducts(
-    val page: Int,
-    val pageSize: Int,
-    val total: Int,
-    val items: List<Product>,
-)

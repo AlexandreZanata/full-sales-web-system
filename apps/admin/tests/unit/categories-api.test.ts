@@ -18,18 +18,21 @@ describe('categories API — docs/API-CONTRACT.md Phase 43', () => {
     vi.unstubAllGlobals();
   });
 
-  it('fetchCategories passes active filter query param', async () => {
+  it('fetchCategories passes filter[active] query param', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ items: [], page: 1, pageSize: 20, total: 0 }),
+      json: async () => ({
+        data: [],
+        pagination: { next_cursor: null, has_more: false, limit: 20 },
+      }),
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await fetchCategories({ page: 1, pageSize: 20, active: 'true' });
+    await fetchCategories({ limit: 20, active: 'true' });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      '/v1/categories?page=1&pageSize=20&active=true',
+      '/v1/categories?limit=20&filter%5Bactive%5D=true',
       expect.any(Object),
     );
   });

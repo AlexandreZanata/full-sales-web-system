@@ -17,8 +17,8 @@ class SellerSyncTransport(
     override suspend fun fetchCommerces(page: Int, pageSize: Int): List<Commerce> =
         client.listCommerces(page, pageSize).items
 
-    override suspend fun fetchProducts(page: Int, pageSize: Int): List<Product> =
-        client.listProducts(page, pageSize).items
+    override suspend fun fetchProducts(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListProducts =
+        client.listProducts(limit, cursor)
 
     override suspend fun execute(entry: SyncOutboxEntry): SyncHttpResult = try {
         when (entry.method) {

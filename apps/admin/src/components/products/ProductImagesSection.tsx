@@ -29,7 +29,7 @@ export function ProductImagesSection({ productId }: ProductImagesSectionProps) {
     queryFn: () => fetchProductImages(productId),
   });
 
-  const images = imagesQuery.data?.items ?? [];
+  const images = imagesQuery.data?.data ?? [];
   const slots = slotCount(images);
   const slotImages = imagesBySlot(images, slots);
 

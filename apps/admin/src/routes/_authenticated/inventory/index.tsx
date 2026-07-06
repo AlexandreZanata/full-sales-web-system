@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { fetchStockOverview } from '@/lib/api/inventory';
 import { useI18n } from '@/lib/i18n/context';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
+import { cursorToTableState } from '@/lib/cursorPagination';
 
 export const Route = createFileRoute('/_authenticated/inventory/')({
   component: InventoryHubPage,
@@ -20,6 +20,7 @@ export const Route = createFileRoute('/_authenticated/inventory/')({
 function InventoryHubPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [search, setSearch] = useState('');
   const pageSize = 20;
 
@@ -44,10 +45,28 @@ function InventoryHubPage() {
 
   const overviewQuery = useQuery({
     queryKey: ['inventory', 'balances', page, pageSize, search],
-    queryFn: () => fetchStockOverview({ page, pageSize, search: search.trim() || undefined }),
+    queryFn: () =>
+      fetchStockOverview({
+        limit: pageSize,
+        cursor: cursors[page - 1],
+        search: search.trim() || undefined,
+      }),
   });
 
-  const pagination = overviewQuery.data ? paginatedResponseToTable(overviewQuery.data) : null;
+  const pagination = overviewQuery.data
+    ? cursorToTableState(page, overviewQuery.data.pagination.has_more)
+    : null;
+
+  function handlePageChange(nextPage: number) {
+    if (nextPage > page && overviewQuery.data?.pagination.next_cursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = overviewQuery.data?.pagination.next_cursor ?? undefined;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
 
   return (
     <div className="space-y-8">
@@ -84,6 +103,7 @@ function InventoryHubPage() {
             onChange={(event) => {
               setSearch(event.target.value);
               setPage(1);
+              setCursors([undefined]);
             }}
             className="sm:max-w-xs"
           />
@@ -108,7 +128,7 @@ function InventoryHubPage() {
 
         {!overviewQuery.isLoading &&
         !overviewQuery.isError &&
-        (overviewQuery.data?.items.length ?? 0) === 0 ? (
+        (overviewQuery.data?.data.length ?? 0) === 0 ? (
           <EmptyState
             title={t('inventory.overview.empty.title')}
             description={t('inventory.overview.empty.description')}
@@ -117,11 +137,11 @@ function InventoryHubPage() {
 
         {!overviewQuery.isLoading &&
         !overviewQuery.isError &&
-        (overviewQuery.data?.items.length ?? 0) > 0 ? (
+        (overviewQuery.data?.data.length ?? 0) > 0 ? (
           <StockOverviewTable
-            rows={overviewQuery.data?.items ?? []}
+            rows={overviewQuery.data?.data ?? []}
             pagination={pagination}
-            onPageChange={setPage}
+            onPageChange={handlePageChange}
           />
         ) : null}
       </section>

@@ -12,7 +12,7 @@ import { fetchMovements } from '@/lib/api/inventory';
 import { fetchProductsForPicker } from '@/lib/api/products';
 import type { StockMovement } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
+import { cursorToTableState } from '@/lib/cursorPagination';
 
 export const Route = createFileRoute('/_authenticated/inventory/ledger')({
   component: InventoryLedgerPage,
@@ -22,6 +22,7 @@ function InventoryLedgerPage() {
   const { t } = useI18n();
   const [productId, setProductId] = useState('');
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const pageSize = 20;
 
   const products = useQuery({
@@ -31,11 +32,29 @@ function InventoryLedgerPage() {
 
   const movements = useQuery({
     queryKey: ['inventory', 'movements', productId, page, pageSize],
-    queryFn: () => fetchMovements({ productId, page, pageSize }),
+    queryFn: () =>
+      fetchMovements({
+        productId,
+        limit: pageSize,
+        cursor: cursors[page - 1],
+      }),
     enabled: productId.length > 0,
   });
 
-  const pagination = movements.data ? paginatedResponseToTable(movements.data) : null;
+  const pagination = movements.data
+    ? cursorToTableState(page, movements.data.pagination.has_more)
+    : null;
+
+  function handlePageChange(nextPage: number) {
+    if (nextPage > page && movements.data?.pagination.next_cursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = movements.data?.pagination.next_cursor ?? undefined;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
 
   const columns: DataTableColumn<StockMovement>[] = useMemo(
     () => [
@@ -80,6 +99,7 @@ function InventoryLedgerPage() {
           onChange={(event) => {
             setProductId(event.target.value);
             setPage(1);
+            setCursors([undefined]);
           }}
         >
           <option value="">{t('forms.placeholders.selectProduct')}</option>
@@ -100,14 +120,14 @@ function InventoryLedgerPage() {
         <div className="flex justify-center py-16">
           <LoadingSpinner />
         </div>
-      ) : movements.data && movements.data.items.length > 0 ? (
+      ) : movements.data && movements.data.data.length > 0 ? (
         <DataTable
           caption={t('inventory.ledger.caption')}
           columns={columns}
-          rows={movements.data.items}
+          rows={movements.data.data}
           getRowKey={(row) => row.id}
           pagination={pagination}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       ) : (
         <EmptyState

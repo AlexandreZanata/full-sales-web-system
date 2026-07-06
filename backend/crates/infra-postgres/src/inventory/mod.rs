@@ -175,6 +175,31 @@ pub async fn list_products(
     Ok(rows.into_iter().map(map_product_row).collect())
 }
 
+pub async fn list_products_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    active: Option<bool>,
+    after_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<ProductRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, ProductDbRow>(&format!(
+        "{PRODUCT_SELECT}
+         WHERE ($1::bool IS NULL OR p.active = $1)
+           AND ($2::uuid IS NULL OR p.id > $2)
+         ORDER BY p.id ASC
+         LIMIT $3"
+    ))
+    .bind(active)
+    .bind(after_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows.into_iter().map(map_product_row).collect())
+}
+
 pub async fn list_portal_products(
     pool: &PgPool,
     tenant_id: TenantId,
@@ -367,8 +392,63 @@ pub async fn list_stock_movements_by_product(
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(rows
-        .into_iter()
+    Ok(map_movement_rows(rows))
+}
+
+pub async fn list_stock_movements_by_product_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product_id: Uuid,
+    before_id: Option<Uuid>,
+    from: Option<chrono::DateTime<chrono::Utc>>,
+    to: Option<chrono::DateTime<chrono::Utc>>,
+    limit: i64,
+) -> Result<Vec<StockMovementRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, (
+        Uuid,
+        Uuid,
+        Uuid,
+        String,
+        i32,
+        Option<Uuid>,
+        Option<String>,
+        chrono::DateTime<chrono::Utc>,
+    )>(
+        "SELECT id, product_id, responsible_id, movement_type, quantity, reference_id, reason, created_at
+         FROM inventory.stock_movements
+         WHERE product_id = $1
+           AND ($2::uuid IS NULL OR id < $2)
+           AND ($3::timestamptz IS NULL OR created_at >= $3)
+           AND ($4::timestamptz IS NULL OR created_at <= $4)
+         ORDER BY id DESC
+         LIMIT $5",
+    )
+    .bind(product_id)
+    .bind(before_id)
+    .bind(from)
+    .bind(to)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(map_movement_rows(rows))
+}
+
+fn map_movement_rows(
+    rows: Vec<(
+        Uuid,
+        Uuid,
+        Uuid,
+        String,
+        i32,
+        Option<Uuid>,
+        Option<String>,
+        chrono::DateTime<chrono::Utc>,
+    )>,
+) -> Vec<StockMovementRow> {
+    rows.into_iter()
         .map(
             |(
                 id,
@@ -390,7 +470,7 @@ pub async fn list_stock_movements_by_product(
                 created_at,
             },
         )
-        .collect())
+        .collect()
 }
 
 pub struct StockMovementInsert {

@@ -1,7 +1,8 @@
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, RawQuery, State},
     http::StatusCode,
+    response::{IntoResponse, Response},
 };
 use domain_identity::Role;
 use serde::{Deserialize, Serialize};
@@ -9,7 +10,11 @@ use uuid::Uuid;
 
 use crate::auth::{AuthUser, require_admin, require_roles};
 use crate::error::ApiError;
-use crate::pagination::{PaginationQuery, paginate_offset};
+use crate::list_query::{
+    STOCK_BALANCES_LIST_CONFIG, STOCK_MOVEMENTS_LIST_CONFIG, CursorListResponse,
+    build_cursor_page, decode_query_pairs, filter_gte_datetime, filter_like_pattern,
+    filter_lte_datetime, parse_list_query,
+};
 use crate::state::AppState;
 
 #[derive(Serialize)]
@@ -48,24 +53,6 @@ pub struct StockMovementResponse {
 }
 
 #[derive(Serialize)]
-pub struct PaginatedMovementsResponse {
-    pub items: Vec<StockMovementResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
-#[derive(Deserialize)]
-pub struct StockOverviewQuery {
-    #[serde(default = "crate::pagination::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
-    pub page_size: u32,
-    pub search: Option<String>,
-}
-
-#[derive(Serialize)]
 pub struct ProductStockOverviewResponse {
     #[serde(rename = "productId")]
     pub product_id: Uuid,
@@ -80,63 +67,36 @@ pub struct ProductStockOverviewResponse {
     pub available: i32,
 }
 
-#[derive(Serialize)]
-pub struct PaginatedStockOverviewResponse {
-    pub items: Vec<ProductStockOverviewResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
 pub async fn list_stock_balances(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<StockOverviewQuery>,
-) -> Result<Json<PaginatedStockOverviewResponse>, ApiError> {
-    require_admin(&auth)?;
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
-    let search = query.search.as_deref().map(str::trim).filter(|value| !value.is_empty());
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<ProductStockOverviewResponse>>, Response> {
+    require_admin(&auth).map_err(IntoResponse::into_response)?;
+    let parsed =
+        parse_list_query(&decode_query_pairs(query.as_deref()), &STOCK_BALANCES_LIST_CONFIG)
+            .map_err(IntoResponse::into_response)?;
+    let name_like = filter_like_pattern(&parsed.filters, "name");
+    let sku_like = filter_like_pattern(&parsed.filters, "sku");
 
-    let rows = infra_postgres::inventory::stock_overview::list_product_stock_overview(
+    let rows = infra_postgres::inventory::stock_overview::list_product_stock_overview_cursor(
         &state.app_pool,
         auth.tenant_id,
-        search,
-        page_size as i64,
-        offset,
+        name_like.as_deref(),
+        sku_like.as_deref(),
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let total = infra_postgres::inventory::stock_overview::count_product_stock_overview(
-        &state.app_pool,
-        auth.tenant_id,
-        search,
-    )
-    .await
-    .map_err(|_| ApiError::internal())? as u64;
-
-    Ok(Json(PaginatedStockOverviewResponse {
-        items: rows.iter().map(stock_overview_response).collect(),
-        page,
-        page_size,
-        total,
-    }))
-}
-
-fn stock_overview_response(
-    row: &infra_postgres::inventory::stock_overview::ProductStockOverviewRow,
-) -> ProductStockOverviewResponse {
-    ProductStockOverviewResponse {
-        product_id: row.product_id,
-        sku: row.sku.clone(),
-        name: row.name.clone(),
-        unit_of_measure: row.unit_of_measure.clone(),
-        active: row.active,
-        balance_total: row.balance_total,
-        reserved: row.reserved,
-        available: row.available,
-    }
+    let items: Vec<ProductStockOverviewResponse> =
+        rows.iter().map(stock_overview_response).collect();
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |row| row.product_id,
+    )))
 }
 
 pub async fn get_stock_balance(
@@ -214,30 +174,36 @@ pub async fn list_movements(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(product_id): Path<Uuid>,
-    Query(query): Query<PaginationQuery>,
-) -> Result<Json<PaginatedMovementsResponse>, ApiError> {
-    require_admin(&auth)?;
-    ensure_product(&state, auth.tenant_id, product_id).await?;
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<StockMovementResponse>>, Response> {
+    require_admin(&auth).map_err(IntoResponse::into_response)?;
+    ensure_product(&state, auth.tenant_id, product_id)
+        .await
+        .map_err(IntoResponse::into_response)?;
+    let parsed =
+        parse_list_query(&decode_query_pairs(query.as_deref()), &STOCK_MOVEMENTS_LIST_CONFIG)
+            .map_err(IntoResponse::into_response)?;
+    let from = filter_gte_datetime(&parsed.filters, "created_at");
+    let to = filter_lte_datetime(&parsed.filters, "created_at");
 
-    let rows = infra_postgres::inventory::list_stock_movements_by_product(
+    let rows = infra_postgres::inventory::list_stock_movements_by_product_cursor(
         &state.app_pool,
         auth.tenant_id,
         product_id,
-        page_size as i64,
-        offset,
+        parsed.pagination.cursor,
+        from,
+        to,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let total = rows.len() as u64;
-
-    Ok(Json(PaginatedMovementsResponse {
-        items: rows.iter().map(movement_response).collect(),
-        page,
-        page_size,
-        total,
-    }))
+    let items: Vec<StockMovementResponse> = rows.iter().map(movement_response).collect();
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |movement| movement.id,
+    )))
 }
 
 async fn ensure_product(
@@ -254,6 +220,21 @@ async fn ensure_product(
         Ok(())
     } else {
         Err(ApiError::product_not_found())
+    }
+}
+
+fn stock_overview_response(
+    row: &infra_postgres::inventory::stock_overview::ProductStockOverviewRow,
+) -> ProductStockOverviewResponse {
+    ProductStockOverviewResponse {
+        product_id: row.product_id,
+        sku: row.sku.clone(),
+        name: row.name.clone(),
+        unit_of_measure: row.unit_of_measure.clone(),
+        active: row.active,
+        balance_total: row.balance_total,
+        reserved: row.reserved,
+        available: row.available,
     }
 }
 

@@ -335,7 +335,7 @@ async fn contract_list_products_when_authenticated_then_200_with_pagination() {
         .oneshot(
             Request::builder()
                 .method("GET")
-                .uri("/v1/products?page=1&pageSize=20")
+                .uri("/v1/products?limit=20")
                 .header("authorization", format!("Bearer {}", env.driver_token))
                 .body(Body::empty())
                 .expect("request"),
@@ -348,10 +348,9 @@ async fn contract_list_products_when_authenticated_then_200_with_pagination() {
         .await
         .expect("bytes");
     let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
-    assert!(json["items"].is_array());
-    assert_eq!(json["page"], 1);
-    assert_eq!(json["pageSize"], 20);
-    assert!(json["total"].as_u64().is_some());
+    assert!(json["data"].is_array());
+    assert_eq!(json["pagination"]["limit"], 20);
+    assert_eq!(json["pagination"]["has_more"], false);
 }
 
 // Contract: Idempotency-Key replay → same 201 response
@@ -559,7 +558,7 @@ async fn contract_top_selling_products_after_confirm_then_lists_product() {
         .await
         .expect("bytes");
     let json: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
-    let items = json["items"].as_array().expect("items");
+    let items = json["data"].as_array().expect("data");
     assert_eq!(items.len(), 1);
     assert_eq!(items[0]["productId"], env.product_id.to_string());
     assert_eq!(items[0]["unitsSold"], 3);

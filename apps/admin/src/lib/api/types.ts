@@ -8,6 +8,8 @@ export type PaginatedResponse<T> = PaginationMeta & {
   items: T[];
 };
 
+export type { CursorListResponse, CursorPaginationMeta } from '@/lib/cursorPagination';
+
 export type OrderSummary = {
   id: string;
   status: string;

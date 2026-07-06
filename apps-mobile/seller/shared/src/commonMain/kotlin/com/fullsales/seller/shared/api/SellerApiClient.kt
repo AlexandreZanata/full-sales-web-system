@@ -7,8 +7,8 @@ import com.fullsales.seller.shared.model.LoginRequest
 import com.fullsales.seller.shared.model.LoginResponse
 import com.fullsales.seller.shared.model.MediaUploadResponse
 import com.fullsales.seller.shared.model.MediaUrlResponse
+import com.fullsales.seller.shared.model.CursorListProducts
 import com.fullsales.seller.shared.model.PaginatedCommerces
-import com.fullsales.seller.shared.model.PaginatedProducts
 import com.fullsales.seller.shared.model.PaginatedSales
 import com.fullsales.seller.shared.model.ProductDetail
 import com.fullsales.seller.shared.model.RefreshRequest
@@ -70,12 +70,16 @@ class SellerApiClient(
         http.apiGet("$baseUrl/commerces/$id/addresses", json)
 
     suspend fun listProducts(
-        page: Int = 1,
-        pageSize: Int = 50,
+        limit: Int = 50,
+        cursor: String? = null,
         active: Boolean = true,
-    ): PaginatedProducts {
-        val query = paginationQuery(page, pageSize, mapOf("active" to active.toString()))
-        return http.apiGet("$baseUrl/products?$query", json)
+    ): CursorListProducts {
+        val params = buildList {
+            add("limit=$limit")
+            add("filter[active]=$active")
+            cursor?.let { add("cursor=$it") }
+        }
+        return http.apiGet("$baseUrl/products?${params.joinToString("&")}", json)
     }
 
     suspend fun getProduct(id: String): ProductDetail =

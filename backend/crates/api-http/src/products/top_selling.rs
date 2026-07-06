@@ -2,10 +2,12 @@ use axum::{
     Json,
     extract::{Query, State},
 };
+use application::list_query::ListPagination;
 use serde::{Deserialize, Serialize};
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
+use crate::list_query::{CursorListResponse, CursorPaginationMeta};
 use crate::products::require_can_read_products;
 use crate::state::AppState;
 
@@ -29,35 +31,41 @@ pub struct TopSellingProductResponse {
     pub units_sold: i64,
 }
 
-#[derive(Serialize)]
-pub struct TopSellingProductsResponse {
-    pub items: Vec<TopSellingProductResponse>,
-}
-
 pub async fn list_top_selling_products(
     State(state): State<AppState>,
     auth: AuthUser,
     Query(query): Query<TopSellingProductsQuery>,
-) -> Result<Json<TopSellingProductsResponse>, ApiError> {
+) -> Result<Json<CursorListResponse<TopSellingProductResponse>>, ApiError> {
     require_can_read_products(&auth)?;
-    let limit = query.limit.clamp(1, 20) as i64;
+    // ponytail: ranked list capped at 20 — not cursor-paginated across pages
+    let limit = query.limit.clamp(1, 20);
+    let _ = ListPagination::new(Some(limit), None).map_err(|_| {
+        ApiError::bad_request("invalid_pagination", "limit must be between 1 and 100")
+    })?;
     let rows = infra_postgres::sales::list_top_selling_products(
         &state.app_pool,
         auth.tenant_id,
-        limit,
+        limit as i64,
     )
     .await
     .map_err(|_| ApiError::internal())?;
 
-    Ok(Json(TopSellingProductsResponse {
-        items: rows
-            .into_iter()
-            .map(|row| TopSellingProductResponse {
-                product_id: row.product_id,
-                name: row.name,
-                sku: row.sku,
-                units_sold: row.units_sold,
-            })
-            .collect(),
+    let data = rows
+        .into_iter()
+        .map(|row| TopSellingProductResponse {
+            product_id: row.product_id,
+            name: row.name,
+            sku: row.sku,
+            units_sold: row.units_sold,
+        })
+        .collect();
+
+    Ok(Json(CursorListResponse {
+        data,
+        pagination: CursorPaginationMeta {
+            next_cursor: None,
+            has_more: false,
+            limit,
+        },
     }))
 }

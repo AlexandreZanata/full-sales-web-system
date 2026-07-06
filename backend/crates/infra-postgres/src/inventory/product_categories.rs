@@ -118,6 +118,32 @@ pub async fn list_categories(
     Ok(rows.into_iter().map(CategoryRow::from).collect())
 }
 
+pub async fn list_categories_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    active: Option<bool>,
+    after_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<CategoryRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, CategoryDbRow>(
+        "SELECT id, name, slug, description, sort_order, active, image_file_id
+         FROM inventory.product_categories
+         WHERE ($1::bool IS NULL OR active = $1)
+           AND ($2::uuid IS NULL OR id > $2)
+         ORDER BY id ASC
+         LIMIT $3",
+    )
+    .bind(active)
+    .bind(after_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows.into_iter().map(CategoryRow::from).collect())
+}
+
 pub async fn list_active_categories(
     pool: &PgPool,
     tenant_id: TenantId,

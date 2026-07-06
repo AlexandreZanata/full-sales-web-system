@@ -1,13 +1,14 @@
 package com.fullsales.seller.shared.sync
 
 import com.fullsales.seller.shared.model.Commerce
+import com.fullsales.seller.shared.model.CursorListProducts
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.currentEpochMs
 import com.fullsales.seller.shared.repository.CatalogRepository
 
 interface CatalogPullClient {
     suspend fun fetchCommerces(page: Int, pageSize: Int): List<Commerce>
-    suspend fun fetchProducts(page: Int, pageSize: Int): List<Product>
+    suspend fun fetchProducts(limit: Int, cursor: String?): CursorListProducts
 }
 
 class CatalogPullSync(
@@ -18,9 +19,23 @@ class CatalogPullSync(
     suspend fun pullCatalog(nowEpochMs: Long = currentEpochMs()) {
         val commerces = fetchAllPages { page -> client.fetchCommerces(page, pageSize) }
         catalog.replaceCommerces(commerces)
-        val products = fetchAllPages { page -> client.fetchProducts(page, pageSize) }
+        val products = fetchAllProducts()
         catalog.replaceProducts(products.filter { it.active })
         catalog.setLastCatalogSyncEpochMs(nowEpochMs)
+    }
+
+    private suspend fun fetchAllProducts(): List<Product> {
+        val all = mutableListOf<Product>()
+        var cursor: String? = null
+        while (true) {
+            val page = client.fetchProducts(pageSize, cursor)
+            if (page.data.isEmpty()) break
+            all += page.data
+            if (!page.pagination.hasMore || page.pagination.nextCursor == null) break
+            cursor = page.pagination.nextCursor
+            if (page.data.size < pageSize) break
+        }
+        return all
     }
 
     private suspend fun <T> fetchAllPages(fetch: suspend (Int) -> List<T>): List<T> {

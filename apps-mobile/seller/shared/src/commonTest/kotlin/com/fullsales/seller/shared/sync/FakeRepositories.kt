@@ -154,8 +154,18 @@ class FakeCatalogPullClient : CatalogPullClient {
     override suspend fun fetchCommerces(page: Int, pageSize: Int): List<Commerce> =
         if (page == 1) commerces else emptyList()
 
-    override suspend fun fetchProducts(page: Int, pageSize: Int): List<Product> =
-        if (page == 1) products else emptyList()
+    override suspend fun fetchProducts(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListProducts =
+        if (cursor == null) {
+            com.fullsales.seller.shared.model.CursorListProducts(
+                products,
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        } else {
+            com.fullsales.seller.shared.model.CursorListProducts(
+                emptyList(),
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        }
 }
 
 class FakeTokenRefresher(private var ok: Boolean = true) : SyncTokenRefresher {

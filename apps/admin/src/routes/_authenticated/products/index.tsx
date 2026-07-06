@@ -17,7 +17,7 @@ import { ACTIVE_FILTERS, type ActiveFilter } from '@/lib/commerces/constants';
 import { useI18n } from '@/lib/i18n/context';
 import { activeFilterLabel } from '@/lib/i18n/labels';
 import { formatMoney } from '@/lib/products/formatPrice';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
+import { cursorToTableState } from '@/lib/cursorPagination';
 
 export const Route = createFileRoute('/_authenticated/products/')({
   component: ProductsListPage,
@@ -44,6 +44,7 @@ function matchesCategory(product: ProductSummary, categoryId: string): boolean {
 function ProductsListPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [search, setSearch] = useState('');
@@ -56,18 +57,41 @@ function ProductsListPage() {
 
   const products = useQuery({
     queryKey: ['products', page, pageSize, activeFilter],
-    queryFn: () => fetchProducts({ page, pageSize, active: activeFilter }),
+    queryFn: () =>
+      fetchProducts({
+        limit: pageSize,
+        cursor: cursors[page - 1],
+        active: activeFilter,
+      }),
   });
 
   const filteredItems = useMemo(
     () =>
-      (products.data?.items ?? [])
+      (products.data?.data ?? [])
         .filter((item) => matchesSearch(item, search))
         .filter((item) => matchesCategory(item, categoryFilter)),
-    [products.data?.items, search, categoryFilter],
+    [products.data?.data, search, categoryFilter],
   );
 
-  const pagination = products.data ? paginatedResponseToTable(products.data) : null;
+  const pagination = products.data
+    ? cursorToTableState(page, products.data.pagination.has_more)
+    : null;
+
+  function handlePageChange(nextPage: number) {
+    if (nextPage > page && products.data?.pagination.next_cursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = products.data?.pagination.next_cursor ?? undefined;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
+
+  function resetPagination() {
+    setPage(1);
+    setCursors([undefined]);
+  }
 
   const columns: DataTableColumn<ProductSummary>[] = useMemo(
     () => [
@@ -143,7 +167,7 @@ function ProductsListPage() {
           value={activeFilter}
           onChange={(event) => {
             setActiveFilter(event.target.value as ActiveFilter);
-            setPage(1);
+            resetPagination();
           }}
         >
           {ACTIVE_FILTERS.map((value) => (
@@ -188,7 +212,7 @@ function ProductsListPage() {
           rows={filteredItems}
           getRowKey={(row) => row.id}
           pagination={pagination}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       ) : (
         <EmptyState

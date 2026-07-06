@@ -50,15 +50,30 @@ pub async fn list_product_images(
     tenant_id: TenantId,
     product_id: Uuid,
 ) -> Result<Vec<ProductImageRow>, PostgresError> {
+    list_product_images_cursor(pool, tenant_id, product_id, None, i64::MAX / 2)
+        .await
+}
+
+pub async fn list_product_images_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    product_id: Uuid,
+    after_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<ProductImageRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let rows = sqlx::query_as::<_, (Uuid, Uuid, Uuid, i32, bool)>(
         "SELECT id, product_id, file_id, sort_order, is_primary
          FROM inventory.product_images
          WHERE product_id = $1
-         ORDER BY sort_order, created_at",
+           AND ($2::uuid IS NULL OR id > $2)
+         ORDER BY id ASC
+         LIMIT $3",
     )
     .bind(product_id)
+    .bind(after_id)
+    .bind(limit)
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;
