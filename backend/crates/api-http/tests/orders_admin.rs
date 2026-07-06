@@ -15,15 +15,20 @@ async fn contract_admin_when_list_orders_then_pagination_with_items() {
     let commerce_id = seed_commerce(&env, "11222333000181").await;
     let order_id = seed_order(&env, commerce_id, admin_id).await;
 
-    let (status, body) = request(&env, "GET", "/v1/orders", Some(&admin_token), None).await;
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/orders?limit=20",
+        Some(&admin_token),
+        None,
+    )
+    .await;
 
     assert_eq!(status, StatusCode::OK);
-    assert!(body["items"].is_array());
-    assert_eq!(body["page"], 1);
-    assert_eq!(body["pageSize"], 20);
-    assert!(body["total"].as_u64().is_some());
+    assert!(body["data"].is_array());
+    assert_eq!(body["pagination"]["limit"], 20);
     assert!(
-        body["items"]
+        body["data"]
             .as_array()
             .unwrap()
             .iter()

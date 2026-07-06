@@ -287,8 +287,8 @@ async fn contract_portal_products_when_commerce_contact_then_200_with_image_url(
         .await
         .expect("body");
     let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
-    assert_eq!(json["items"][0]["sku"], "PORT-001");
-    let image_url = json["items"][0]["primaryImageUrl"]
+    assert_eq!(json["data"][0]["sku"], "PORT-001");
+    let image_url = json["data"][0]["primaryImageUrl"]
         .as_str()
         .expect("primaryImageUrl");
     assert!(
@@ -354,7 +354,7 @@ async fn given_other_commerce_contact_when_list_orders_then_empty() {
         .await
         .expect("body");
     let json: serde_json::Value = serde_json::from_slice(&body).expect("json");
-    assert_eq!(json["total"], 0);
+    assert_eq!(json["data"].as_array().map(|items| items.len()), Some(0));
 }
 
 #[tokio::test]

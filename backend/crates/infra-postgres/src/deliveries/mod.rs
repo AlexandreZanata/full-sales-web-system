@@ -81,6 +81,8 @@ pub async fn find_delivery_by_id(
 pub struct DeliveryFilters {
     pub driver_id: Option<Uuid>,
     pub status: Option<String>,
+    pub from: Option<chrono::DateTime<chrono::Utc>>,
+    pub to: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 pub async fn list_deliveries(
@@ -103,6 +105,45 @@ pub async fn list_deliveries(
     .bind(filters.status.as_deref())
     .bind(limit)
     .bind(offset)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, order_id, driver_id, status)| DeliveryRow {
+            id,
+            order_id,
+            driver_id,
+            status,
+        })
+        .collect())
+}
+
+pub async fn list_deliveries_cursor(
+    pool: &PgPool,
+    session: &SessionContext,
+    filters: &DeliveryFilters,
+    before_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<DeliveryRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let rows = sqlx::query_as::<_, (Uuid, Uuid, Uuid, String)>(
+        "SELECT id, order_id, driver_id, status FROM deliveries.deliveries
+         WHERE ($1::uuid IS NULL OR driver_id = $1)
+           AND ($2::text IS NULL OR status = $2)
+           AND ($3::timestamptz IS NULL OR created_at >= $3)
+           AND ($4::timestamptz IS NULL OR created_at <= $4)
+           AND ($5::uuid IS NULL OR id < $5)
+         ORDER BY id DESC
+         LIMIT $6",
+    )
+    .bind(filters.driver_id)
+    .bind(filters.status.as_deref())
+    .bind(filters.from)
+    .bind(filters.to)
+    .bind(before_id)
+    .bind(limit)
     .fetch_all(&mut *tx)
     .await?;
     tx.commit().await?;

@@ -1,10 +1,15 @@
 use application::list_query::{ListFilter, ListFilterOp};
+use uuid::Uuid;
 
 pub fn filter_eq_string(filters: &[ListFilter], field: &str) -> Option<String> {
     filters
         .iter()
         .find(|f| f.field == field && f.op == ListFilterOp::Eq)
         .map(|f| f.value.clone())
+}
+
+pub fn filter_eq_uuid(filters: &[ListFilter], field: &str) -> Option<Uuid> {
+    filter_eq_string(filters, field).and_then(|value| Uuid::parse_str(value.trim()).ok())
 }
 
 pub fn filter_eq_bool(filters: &[ListFilter], field: &str) -> Option<bool> {

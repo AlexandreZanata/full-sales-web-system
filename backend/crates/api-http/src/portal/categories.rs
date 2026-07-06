@@ -1,15 +1,22 @@
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, RawQuery, State},
+    response::{IntoResponse, Response},
 };
 use domain_identity::Role;
 use domain_shared::TenantId;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use uuid::Uuid;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
-use crate::portal::products::{PortalProductResponse, list_products_for_tenant, resolve_public_catalog_tenant, PortalProductsQuery};
+use crate::list_query::{
+    PORTAL_CATEGORIES_LIST_CONFIG, CursorListResponse,
+    build_cursor_page, decode_query_pairs, parse_list_query,
+};
+use crate::portal::products::{
+    PortalProductResponse, build_portal_product_responses, resolve_public_catalog_tenant,
+};
 use crate::state::AppState;
 
 #[derive(Serialize)]
@@ -35,69 +42,73 @@ pub struct CategoryWithProductsResponse {
     #[serde(flatten)]
     pub category: CategoryResponse,
     pub products: Vec<PortalProductResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
-#[derive(Deserialize)]
-pub struct CategorySlugQuery {
-    #[serde(default = "default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "default_page_size")]
-    pub page_size: u32,
-}
-
-fn default_page() -> u32 {
-    1
-}
-
-fn default_page_size() -> u32 {
-    20
+    pub pagination: crate::list_query::CursorPaginationMeta,
 }
 
 pub async fn list_public_categories(
     State(state): State<AppState>,
-) -> Result<Json<Vec<CategoryResponse>>, ApiError> {
-    let tenant_id = resolve_public_catalog_tenant()?;
-    list_active_category_responses(&state, tenant_id).await
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<CategoryResponse>>, Response> {
+    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
+    list_categories_cursor(&state, tenant_id, query.as_deref())
+        .await
+        .map(Json)
+        .map_err(IntoResponse::into_response)
 }
 
 pub async fn get_public_category_by_slug(
     State(state): State<AppState>,
     Path(slug): Path<String>,
-    Query(query): Query<CategorySlugQuery>,
-) -> Result<Json<CategoryWithProductsResponse>, ApiError> {
-    let tenant_id = resolve_public_catalog_tenant()?;
-    category_with_products(&state, tenant_id, &slug, &query).await
+    RawQuery(query): RawQuery,
+) -> Result<Json<CategoryWithProductsResponse>, Response> {
+    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
+    category_with_products(&state, tenant_id, &slug, query.as_deref())
+        .await
+        .map(Json)
+        .map_err(IntoResponse::into_response)
 }
 
 pub async fn list_portal_categories(
     State(state): State<AppState>,
     auth: AuthUser,
-) -> Result<Json<Vec<CategoryResponse>>, ApiError> {
-    require_commerce_contact(&auth)?;
-    list_active_category_responses(&state, auth.tenant_id).await
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<CategoryResponse>>, Response> {
+    require_commerce_contact(&auth).map_err(IntoResponse::into_response)?;
+    list_categories_cursor(&state, auth.tenant_id, query.as_deref())
+        .await
+        .map(Json)
+        .map_err(IntoResponse::into_response)
 }
 
 pub async fn get_portal_category_by_slug(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(slug): Path<String>,
-    Query(query): Query<CategorySlugQuery>,
-) -> Result<Json<CategoryWithProductsResponse>, ApiError> {
-    require_commerce_contact(&auth)?;
-    category_with_products(&state, auth.tenant_id, &slug, &query).await
+    RawQuery(query): RawQuery,
+) -> Result<Json<CategoryWithProductsResponse>, Response> {
+    require_commerce_contact(&auth).map_err(IntoResponse::into_response)?;
+    category_with_products(&state, auth.tenant_id, &slug, query.as_deref())
+        .await
+        .map(Json)
+        .map_err(IntoResponse::into_response)
 }
 
-async fn list_active_category_responses(
+async fn list_categories_cursor(
     state: &AppState,
     tenant_id: TenantId,
-) -> Result<Json<Vec<CategoryResponse>>, ApiError> {
-    let rows = infra_postgres::inventory::product_categories::list_active_categories(
+    query: Option<&str>,
+) -> Result<CursorListResponse<CategoryResponse>, ApiError> {
+    let parsed = parse_list_query(
+        &decode_query_pairs(query),
+        &PORTAL_CATEGORIES_LIST_CONFIG,
+    )
+    .map_err(|err| ApiError::bad_request(&err.code, &err.message))?;
+    let rows = infra_postgres::inventory::product_categories::list_categories_cursor(
         &state.app_pool,
         tenant_id,
+        Some(true),
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
     .map_err(|_| ApiError::internal())?;
@@ -106,15 +117,19 @@ async fn list_active_category_responses(
     for row in rows {
         items.push(category_response(state, tenant_id, &row, false).await?);
     }
-    Ok(Json(items))
+    Ok(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |category| category.id,
+    ))
 }
 
 async fn category_with_products(
     state: &AppState,
     tenant_id: TenantId,
     slug: &str,
-    query: &CategorySlugQuery,
-) -> Result<Json<CategoryWithProductsResponse>, ApiError> {
+    query: Option<&str>,
+) -> Result<CategoryWithProductsResponse, ApiError> {
     let row = infra_postgres::inventory::product_categories::find_category_by_slug(
         &state.app_pool,
         tenant_id,
@@ -125,20 +140,33 @@ async fn category_with_products(
     .filter(|category| category.active)
     .ok_or_else(|| ApiError::not_found_with_code("CATEGORY_NOT_FOUND", "Category not found"))?;
 
-    let products_query = PortalProductsQuery {
-        page: query.page,
-        page_size: query.page_size,
-        category: Some(slug.to_owned()),
-    };
-    let products = list_products_for_tenant(state, tenant_id, &products_query).await?;
+    let parsed = parse_list_query(
+        &decode_query_pairs(query),
+        &PORTAL_CATEGORIES_LIST_CONFIG,
+    )
+    .map_err(|err| ApiError::bad_request(&err.code, &err.message))?;
 
-    Ok(Json(CategoryWithProductsResponse {
+    let product_rows = infra_postgres::inventory::list_portal_products_cursor(
+        &state.app_pool,
+        tenant_id,
+        Some(slug),
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
+    let products = build_portal_product_responses(state, tenant_id, &product_rows).await?;
+    let page = build_cursor_page(
+        products,
+        parsed.pagination.limit,
+        |product| product.id,
+    );
+
+    Ok(CategoryWithProductsResponse {
         category: category_response(state, tenant_id, &row, true).await?,
-        products: products.items,
-        page: products.page,
-        page_size: products.page_size,
-        total: products.total,
-    }))
+        products: page.data,
+        pagination: page.pagination,
+    })
 }
 
 pub(crate) async fn category_response(

@@ -8,6 +8,17 @@ export type PaginatedResponse<T> = PaginationMeta & {
   items: T[];
 };
 
+export type CursorPaginationMeta = {
+  next_cursor: string | null;
+  has_more: boolean;
+  limit: number;
+};
+
+export type CursorListResponse<T> = {
+  data: T[];
+  pagination: CursorPaginationMeta;
+};
+
 export type PortalProduct = {
   id: string;
   name: string;
@@ -40,9 +51,7 @@ export type PortalCategory = {
 
 export type PortalCategoryWithProducts = PortalCategory & {
   products: PortalProduct[];
-  page: number;
-  pageSize: number;
-  total: number;
+  pagination: CursorPaginationMeta;
 };
 
 export type PortalOrderItem = {

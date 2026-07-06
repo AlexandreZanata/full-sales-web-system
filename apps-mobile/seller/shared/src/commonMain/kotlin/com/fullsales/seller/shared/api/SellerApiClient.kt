@@ -10,7 +10,7 @@ import com.fullsales.seller.shared.model.MediaUrlResponse
 import com.fullsales.seller.shared.model.CursorListCommerceAddresses
 import com.fullsales.seller.shared.model.CursorListCommerces
 import com.fullsales.seller.shared.model.CursorListProducts
-import com.fullsales.seller.shared.model.PaginatedSales
+import com.fullsales.seller.shared.model.CursorListSales
 import com.fullsales.seller.shared.model.ProductDetail
 import com.fullsales.seller.shared.model.RefreshRequest
 import com.fullsales.seller.shared.model.Sale
@@ -118,21 +118,22 @@ class SellerApiClient(
         }
 
     suspend fun listSales(
-        page: Int = 1,
-        pageSize: Int = 50,
+        limit: Int = 50,
+        cursor: String? = null,
         commerceId: String? = null,
         status: String? = null,
         from: String? = null,
         to: String? = null,
-    ): PaginatedSales {
-        val params = buildMap {
-            commerceId?.let { put("commerceId", it) }
-            status?.let { put("status", it) }
-            from?.let { put("from", it) }
-            to?.let { put("to", it) }
+    ): CursorListSales {
+        val params = buildList {
+            add("limit=$limit")
+            commerceId?.let { add("filter[commerce_id]=$it") }
+            status?.let { add("filter[status]=$it") }
+            from?.let { add("filter[created_at][gte]=$it") }
+            to?.let { add("filter[created_at][lte]=$it") }
+            cursor?.let { add("cursor=$it") }
         }
-        val query = paginationQuery(page, pageSize, params)
-        return http.apiGet("$baseUrl/sales?$query", json)
+        return http.apiGet("$baseUrl/sales?${params.joinToString("&")}", json)
     }
 
     suspend fun getSale(id: String): Sale =

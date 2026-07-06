@@ -3,35 +3,23 @@ use std::time::Duration;
 
 use axum::{
     Json,
-    extract::{Query, State},
+    extract::{RawQuery, State},
+    response::{IntoResponse, Response},
 };
 use domain_identity::Role;
 use domain_shared::TenantId;
 use infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
+use crate::list_query::{
+    PORTAL_PRODUCTS_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_string, parse_list_query,
+};
 use crate::state::AppState;
 
 const DEV_SEED_TENANT_ID: &str = "01900001-0000-7000-8000-000000000001";
-
-#[derive(Deserialize)]
-pub struct PortalProductsQuery {
-    #[serde(default = "default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "default_page_size")]
-    pub page_size: u32,
-    pub category: Option<String>,
-}
-
-pub(super) fn default_page() -> u32 {
-    1
-}
-
-pub(super) fn default_page_size() -> u32 {
-    20
-}
 
 #[derive(Serialize)]
 pub struct PortalProductResponse {
@@ -52,32 +40,27 @@ pub struct PortalProductResponse {
     pub primary_image_url: Option<String>,
 }
 
-#[derive(Serialize)]
-pub struct PaginatedPortalProductsResponse {
-    pub items: Vec<PortalProductResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
 pub async fn list_portal_products(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<PortalProductsQuery>,
-) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
-    let _commerce_id = require_commerce_contact(&auth)?;
-    let response = list_products_for_tenant(&state, auth.tenant_id, &query).await?;
-    Ok(Json(response))
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<PortalProductResponse>>, Response> {
+    let _commerce_id = require_commerce_contact(&auth).map_err(IntoResponse::into_response)?;
+    list_products_cursor(&state, auth.tenant_id, query.as_deref())
+        .await
+        .map(Json)
+        .map_err(IntoResponse::into_response)
 }
 
 pub async fn list_public_products(
     State(state): State<AppState>,
-    Query(query): Query<PortalProductsQuery>,
-) -> Result<Json<PaginatedPortalProductsResponse>, ApiError> {
-    let tenant_id = resolve_public_catalog_tenant()?;
-    let response = list_products_for_tenant(&state, tenant_id, &query).await?;
-    Ok(Json(response))
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<PortalProductResponse>>, Response> {
+    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
+    list_products_cursor(&state, tenant_id, query.as_deref())
+        .await
+        .map(Json)
+        .map_err(IntoResponse::into_response)
 }
 
 pub(crate) fn resolve_public_catalog_tenant() -> Result<TenantId, ApiError> {
@@ -87,42 +70,32 @@ pub(crate) fn resolve_public_catalog_tenant() -> Result<TenantId, ApiError> {
     TenantId::parse(DEV_SEED_TENANT_ID).map_err(|_| ApiError::internal())
 }
 
-pub(crate) async fn list_products_for_tenant(
+pub(crate) async fn list_products_cursor(
     state: &AppState,
     tenant_id: TenantId,
-    query: &PortalProductsQuery,
-) -> Result<PaginatedPortalProductsResponse, ApiError> {
-    let page_size = query.page_size.clamp(1, 50);
-    let page = query.page.max(1);
-    let offset = ((page - 1) as i64) * (page_size as i64);
-    let category_slug = query.category.as_deref();
-
-    let rows = infra_postgres::inventory::list_portal_products(
+    query: Option<&str>,
+) -> Result<CursorListResponse<PortalProductResponse>, ApiError> {
+    let parsed = parse_list_query(
+        &decode_query_pairs(query),
+        &PORTAL_PRODUCTS_LIST_CONFIG,
+    )
+    .map_err(|err| ApiError::bad_request(&err.code, &err.message))?;
+    let category_slug = filter_eq_string(&parsed.filters, "category_slug");
+    let rows = infra_postgres::inventory::list_portal_products_cursor(
         &state.app_pool,
         tenant_id,
-        category_slug,
-        page_size as i64,
-        offset,
+        category_slug.as_deref(),
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
     .map_err(|_| ApiError::internal())?;
-
-    let total = infra_postgres::inventory::count_portal_products(
-        &state.app_pool,
-        tenant_id,
-        category_slug,
-    )
-    .await
-    .map_err(|_| ApiError::internal())? as u64;
-
     let items = build_portal_product_responses(state, tenant_id, &rows).await?;
-
-    Ok(PaginatedPortalProductsResponse {
+    Ok(build_cursor_page(
         items,
-        page,
-        page_size,
-        total,
-    })
+        parsed.pagination.limit,
+        |product| product.id,
+    ))
 }
 
 pub(crate) async fn build_portal_product_responses(

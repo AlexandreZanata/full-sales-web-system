@@ -1,46 +1,52 @@
 import { apiFetch, apiPost } from '@/lib/api/client';
-import type {
-  DeliverySummary,
-  OrderDetail,
-  OrderSummary,
-  PaginatedResponse,
-} from '@/lib/api/types';
+import {
+  type CursorListParams,
+  type CursorListResponse,
+  fetchAllCursorPages,
+} from '@/lib/cursorPagination';
+import type { DeliverySummary, OrderDetail, OrderSummary } from '@/lib/api/types';
 import type { OrderStatusFilter } from '@/lib/orders/constants';
 
-export type OrdersListParams = {
-  page: number;
-  pageSize: number;
+export type OrdersListParams = CursorListParams & {
   status?: OrderStatusFilter;
   commerceId?: string;
   from?: string;
   to?: string;
 };
 
-function buildOrdersQuery(params: OrdersListParams): URLSearchParams {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
-  });
+function buildOrdersQuery(params: OrdersListParams): string {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit ?? 20));
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
   if (params.status) {
-    query.set('status', params.status);
+    query.set('filter[status]', params.status);
   }
   if (params.commerceId) {
-    query.set('commerceId', params.commerceId);
+    query.set('filter[commerce_id]', params.commerceId);
   }
   if (params.from) {
-    query.set('from', params.from);
+    query.set('filter[created_at][gte]', params.from);
   }
   if (params.to) {
-    query.set('to', params.to);
+    query.set('filter[created_at][lte]', params.to);
   }
-  return query;
+  return query.toString();
 }
 
 export async function fetchOrders(
   params: OrdersListParams,
-): Promise<PaginatedResponse<OrderSummary>> {
-  const query = buildOrdersQuery(params);
-  return apiFetch<PaginatedResponse<OrderSummary>>(`/orders?${query}`);
+): Promise<CursorListResponse<OrderSummary>> {
+  return apiFetch<CursorListResponse<OrderSummary>>(`/orders?${buildOrdersQuery(params)}`);
+}
+
+export async function fetchAllOrders(
+  params: Omit<OrdersListParams, 'cursor' | 'limit'> = {},
+): Promise<OrderSummary[]> {
+  return fetchAllCursorPages(async (cursor) =>
+    fetchOrders({ ...params, limit: 100, cursor }),
+  );
 }
 
 export async function fetchOrder(id: string): Promise<OrderDetail> {

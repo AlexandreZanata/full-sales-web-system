@@ -332,8 +332,9 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/sales`
 
 - **Auth:** Admin, Driver (own), Seller (own)
-- **Query:** `commerceId?`, `driverId?` (Admin only; ignored for Driver/Seller), `from?`, `to?`, `status?`, pagination
-- **Response 200:** Paginated list
+- **Query (cursor):** `limit`, `cursor`, `filter[commerce_id]`, `filter[driver_id]` (Admin only; ignored for Driver/Seller), `filter[status]`, `filter[created_at][gte]`, `filter[created_at][lte]`
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }`
+- **Errors 400:** `invalid_pagination`, `invalid_filter_field`
 
 ### `POST /v1/sales/{id}/declare-payment`
 
@@ -350,8 +351,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 
 - **Auth:** none (public catalog)
 - **Tenant:** `PUBLIC_CATALOG_TENANT_ID` env, or dev seed tenant in local environments
-- **Query:** pagination, `category?` (category **slug**)
-- **Response 200:** Active products with `categoryId`, `categoryName`, `categorySlug`, optional `primaryImageUrl`
+- **Query (cursor):** `limit`, `cursor`, `filter[category_slug]` (category **slug**)
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` — active products with `categoryId`, `categoryName`, `categorySlug`, optional `primaryImageUrl`
 
 ### `GET /v1/public/products/{id}`
 
@@ -376,8 +377,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/portal/products`
 
 - **Auth:** CommerceContact only
-- **Query:** pagination, `category?` (category **slug**)
-- **Response 200:** Active products with `categoryId`, `categoryName`, `categorySlug`, optional `primaryImageUrl`
+- **Query (cursor):** `limit`, `cursor`, `filter[category_slug]` (category **slug**)
+- **Response 200:** Same cursor envelope as public products
 
 ### `GET /v1/portal/products/{id}`
 
@@ -388,23 +389,26 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/public/categories`
 
 - **Auth:** none
-- **Response 200:** Active categories ordered by `sortOrder`
+- **Query (cursor):** `limit`, `cursor`
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` — active categories ordered by `sortOrder`
 
 ### `GET /v1/public/categories/{slug}`
 
 - **Auth:** none
-- **Query:** pagination on nested products
-- **Response 200:** Category fields + paginated `products[]`
+- **Query (cursor on nested products):** `limit`, `cursor`
+- **Response 200:** Category fields + `products[]` + `pagination` (cursor envelope for products)
 
 ### `GET /v1/portal/categories`
 
 - **Auth:** CommerceContact
-- **Response 200:** Same as public categories for tenant
+- **Query (cursor):** `limit`, `cursor`
+- **Response 200:** Same cursor envelope as public categories
 
 ### `GET /v1/portal/categories/{slug}`
 
 - **Auth:** CommerceContact
-- **Response 200:** Category + paginated products
+- **Query (cursor on nested products):** `limit`, `cursor`
+- **Response 200:** Category + `products[]` + `pagination`
 
 ---
 
@@ -413,8 +417,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/portal/orders`
 
 - **Auth:** CommerceContact (JWT `commerceId` — RLS scoped)
-- **Query:** `status?`, pagination
-- **Response 200:** Orders for contact's commerce only
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` — orders for contact's commerce only
 
 ### `GET /v1/portal/orders/{id}`
 
@@ -453,8 +457,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/orders`
 
 - **Auth:** Admin
-- **Query:** `status?`, `commerceId?`, `from?`, `to?`, pagination
-- **Response 200:** Paginated order summaries
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[commerce_id]`, `filter[created_at][gte]`, `filter[created_at][lte]`
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }`
 
 ### `GET /v1/orders/{id}`
 
@@ -504,8 +508,8 @@ RFC 9457 alignment — see `agent-rules/10-api-design/rest-conventions.md`.
 ### `GET /v1/deliveries`
 
 - **Auth:** Admin (all); Driver (own via RLS)
-- **Query:** `status?`, pagination
-- **Response 200:** Paginated delivery list
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[created_at][gte]`, `filter[created_at][lte]`
+- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }`
 
 ### `GET /v1/deliveries/{id}`
 

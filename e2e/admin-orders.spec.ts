@@ -5,10 +5,7 @@ import { seedEnglishLocale } from './fixtures/locale';
 import { openNavLink } from './fixtures/nav';
 
 const seededOrders = {
-  page: 1,
-  pageSize: 20,
-  total: 1,
-  items: [
+  data: [
     {
       id: '770e8400-e29b-41d4-a716-446655440000',
       status: 'PendingApproval',
@@ -18,6 +15,12 @@ const seededOrders = {
       createdAt: '2026-07-01T12:00:00Z',
     },
   ],
+  pagination: { next_cursor: null, has_more: false, limit: 20 },
+};
+
+const emptyCursorPage = {
+  data: [],
+  pagination: { next_cursor: null, has_more: false, limit: 20 },
 };
 
 test.describe('Admin orders list', () => {
@@ -32,11 +35,11 @@ test.describe('Admin orders list', () => {
     });
     await page.route('**/v1/orders?*', async (route) => {
       const url = route.request().url();
-      if (url.includes('status=PendingApproval')) {
+      if (url.includes('filter%5Bstatus%5D=PendingApproval')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ page: 1, pageSize: 1, total: 0, items: [] }),
+          body: JSON.stringify({ ...emptyCursorPage, pagination: { ...emptyCursorPage.pagination, limit: 1 } }),
         });
         return;
       }
@@ -51,10 +54,7 @@ test.describe('Admin orders list', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          page: 1,
-          pageSize: 50,
-          total: 1,
-          items: [
+          data: [
             {
               id: '880e8400-e29b-41d4-a716-446655440001',
               cnpj: '11222333000181',
@@ -63,6 +63,7 @@ test.describe('Admin orders list', () => {
               active: true,
             },
           ],
+          pagination: { next_cursor: null, has_more: false, limit: 50 },
         }),
       });
     });
@@ -70,14 +71,14 @@ test.describe('Admin orders list', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ page: 1, pageSize: 1, total: 0, items: [] }),
+        body: JSON.stringify(emptyCursorPage),
       });
     });
     await page.route('**/v1/sales?*', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ page: 1, pageSize: 5, total: 0, items: [] }),
+        body: JSON.stringify({ ...emptyCursorPage, pagination: { ...emptyCursorPage.pagination, limit: 5 } }),
       });
     });
 

@@ -2,7 +2,7 @@ import { ApiError, apiDelete, apiFetch, apiPost, apiPut } from '@/lib/api/client
 import { getAccessToken } from '@/lib/auth/tokens';
 import type {
   CreatePortalOrderRequest,
-  PaginatedResponse,
+  CursorListResponse,
   PortalCategory,
   PortalCategoryWithProducts,
   PortalOrderDetail,
@@ -12,21 +12,21 @@ import type {
 } from '@/lib/api/types';
 
 export type PortalProductsParams = {
-  page?: number;
-  pageSize?: number;
-  category?: string;
+  limit?: number;
+  cursor?: string;
+  categorySlug?: string;
   search?: string;
 };
 
 export type PortalOrdersParams = {
-  page?: number;
-  pageSize?: number;
+  limit?: number;
+  cursor?: string;
   status?: string;
 };
 
 export type PortalCategoryBySlugParams = {
-  page?: number;
-  pageSize?: number;
+  limit?: number;
+  cursor?: string;
 };
 
 function portalAuthPath(
@@ -40,19 +40,31 @@ function portalAuthPath(
   return hasSession ? { path: portalPath } : { path: publicPath, init: { skipAuth: true } };
 }
 
+function buildProductListQuery(params: PortalProductsParams): string {
+  const query = new URLSearchParams({ limit: String(params.limit ?? 50) });
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
+  if (params.categorySlug) {
+    query.set('filter[category_slug]', params.categorySlug);
+  }
+  return query.toString();
+}
+
 export async function fetchPortalCategories(): Promise<PortalCategory[]> {
-  const { path, init } = portalAuthPath('/portal/categories', '/public/categories');
-  return apiFetch<PortalCategory[]>(path, init);
+  const { path, init } = portalAuthPath('/portal/categories?limit=100', '/public/categories?limit=100');
+  const response = await apiFetch<CursorListResponse<PortalCategory>>(path, init);
+  return response.data;
 }
 
 export async function fetchPortalCategoryBySlug(
   slug: string,
   params: PortalCategoryBySlugParams = {},
 ): Promise<PortalCategoryWithProducts> {
-  const query = new URLSearchParams({
-    page: String(params.page ?? 1),
-    pageSize: String(params.pageSize ?? 50),
-  });
+  const query = new URLSearchParams({ limit: String(params.limit ?? 50) });
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
+  }
   const { path, init } = portalAuthPath(
     `/portal/categories/${encodeURIComponent(slug)}?${query}`,
     `/public/categories/${encodeURIComponent(slug)}?${query}`,
@@ -78,17 +90,11 @@ export async function fetchPortalProductById(id: string): Promise<PortalProductD
 
 export async function fetchPortalProducts(
   params: PortalProductsParams = {},
-): Promise<PaginatedResponse<PortalProduct>> {
-  const query = new URLSearchParams({
-    page: String(params.page ?? 1),
-    pageSize: String(params.pageSize ?? 50),
-  });
-  if (params.category) {
-    query.set('category', params.category);
-  }
+): Promise<CursorListResponse<PortalProduct>> {
+  const query = buildProductListQuery(params);
   const hasSession = Boolean(getAccessToken());
   const path = hasSession ? `/portal/products?${query}` : `/public/products?${query}`;
-  const response = await apiFetch<PaginatedResponse<PortalProduct>>(
+  const response = await apiFetch<CursorListResponse<PortalProduct>>(
     path,
     hasSession ? undefined : { skipAuth: true },
   );
@@ -96,30 +102,24 @@ export async function fetchPortalProducts(
     return response;
   }
   const term = params.search.trim().toLowerCase();
-  return {
-    ...response,
-    items: response.items.filter(
-      (product) =>
-        product.name.toLowerCase().includes(term) || product.sku.toLowerCase().includes(term),
-    ),
-    total: response.items.filter(
-      (product) =>
-        product.name.toLowerCase().includes(term) || product.sku.toLowerCase().includes(term),
-    ).length,
-  };
+  const filtered = response.data.filter(
+    (product) =>
+      product.name.toLowerCase().includes(term) || product.sku.toLowerCase().includes(term),
+  );
+  return { ...response, data: filtered };
 }
 
 export async function fetchPortalOrders(
   params: PortalOrdersParams = {},
-): Promise<PaginatedResponse<PortalOrderSummary>> {
-  const query = new URLSearchParams({
-    page: String(params.page ?? 1),
-    pageSize: String(params.pageSize ?? 20),
-  });
-  if (params.status) {
-    query.set('status', params.status);
+): Promise<CursorListResponse<PortalOrderSummary>> {
+  const query = new URLSearchParams({ limit: String(params.limit ?? 20) });
+  if (params.cursor) {
+    query.set('cursor', params.cursor);
   }
-  return apiFetch<PaginatedResponse<PortalOrderSummary>>(`/portal/orders?${query}`);
+  if (params.status) {
+    query.set('filter[status]', params.status);
+  }
+  return apiFetch<CursorListResponse<PortalOrderSummary>>(`/portal/orders?${query}`);
 }
 
 export async function fetchPortalOrder(id: string): Promise<PortalOrderDetail> {

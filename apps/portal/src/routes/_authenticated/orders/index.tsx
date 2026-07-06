@@ -21,7 +21,7 @@ function OrdersPage() {
 
   const ordersQuery = useQuery({
     queryKey: ['portal', 'orders'],
-    queryFn: () => fetchPortalOrders({ pageSize: 50 }),
+    queryFn: () => fetchPortalOrders({ limit: 50 }),
     enabled: Boolean(user),
   });
 
@@ -58,7 +58,7 @@ function OrdersPage() {
     );
   }
 
-  const orders = ordersQuery.data?.items ?? [];
+  const orders = ordersQuery.data?.data ?? [];
 
   return (
     <div className="space-y-4">

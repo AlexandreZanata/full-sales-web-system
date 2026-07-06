@@ -53,7 +53,10 @@ export async function fulfillCategoriesList(route: Route): Promise<void> {
   await route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify(MOCK_CATEGORIES),
+    body: JSON.stringify({
+      data: MOCK_CATEGORIES,
+      pagination: { next_cursor: null, has_more: false, limit: 100 },
+    }),
   });
 }
 
@@ -64,9 +67,7 @@ export async function fulfillCategoryBySlug(route: Route): Promise<void> {
     body: JSON.stringify({
       ...MOCK_CATEGORY,
       products: [MOCK_PRODUCT],
-      page: 1,
-      pageSize: 50,
-      total: 1,
+      pagination: { next_cursor: null, has_more: false, limit: 50 },
     }),
   });
 }
@@ -76,10 +77,8 @@ export async function fulfillProductsList(route: Route): Promise<void> {
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
-      page: 1,
-      pageSize: 50,
-      total: 1,
-      items: [MOCK_PRODUCT],
+      data: [MOCK_PRODUCT],
+      pagination: { next_cursor: null, has_more: false, limit: 50 },
     }),
   });
 }

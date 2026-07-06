@@ -5,8 +5,8 @@ use application::deliveries::{
 };
 use axum::{
     Json,
-    extract::{Path, Query, State},
-    response::Response,
+    extract::{Path, RawQuery, State},
+    response::{IntoResponse, Response},
 };
 use domain_deliveries::{Delivery, DeliveryCreateInput, DeliveryId, DeliveryStatus};
 use domain_identity::UserId;
@@ -18,14 +18,17 @@ use uuid::Uuid;
 
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
+use crate::list_query::{
+    DELIVERIES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_string, filter_gte_datetime, filter_lte_datetime, parse_list_query,
+};
 use crate::portal::load_order;
 use crate::session::session_from_auth;
 use crate::state::AppState;
 use crate::validation::ValidatedJson;
 
 pub use support::{
-    ConfirmDeliveryRequest, CreateDeliveryRequest, DeliveriesQuery, DeliveryResponse,
-    PaginatedDeliveriesResponse,
+    ConfirmDeliveryRequest, CreateDeliveryRequest, DeliveryResponse,
 };
 
 pub async fn create_order_delivery(
@@ -74,35 +77,33 @@ pub async fn create_order_delivery(
 pub async fn list_deliveries(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<DeliveriesQuery>,
-) -> Result<Json<PaginatedDeliveriesResponse>, ApiError> {
-    support::require_delivery_reader(&auth)?;
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<DeliveryResponse>>, Response> {
+    support::require_delivery_reader(&auth).map_err(IntoResponse::into_response)?;
     let session = session_from_auth(&auth);
-    let page_size = query.page_size.clamp(1, 50);
-    let page = query.page.max(1);
-    let offset = ((page - 1) as i64) * (page_size as i64);
+    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &DELIVERIES_LIST_CONFIG)
+        .map_err(IntoResponse::into_response)?;
     let filters = DeliveryFilters {
         driver_id: None,
-        status: query.status.clone(),
+        status: filter_eq_string(&parsed.filters, "status"),
+        from: filter_gte_datetime(&parsed.filters, "created_at"),
+        to: filter_lte_datetime(&parsed.filters, "created_at"),
     };
-    let rows = infra_postgres::deliveries::list_deliveries(
+    let rows = infra_postgres::deliveries::list_deliveries_cursor(
         &state.app_pool,
         &session,
         &filters,
-        page_size as i64,
-        offset,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
-    let total = infra_postgres::deliveries::count_deliveries(&state.app_pool, &session, &filters)
-        .await
-        .map_err(|_| ApiError::internal())? as u64;
-    Ok(Json(PaginatedDeliveriesResponse {
-        items: rows.into_iter().map(support::row_to_response).collect(),
-        page,
-        page_size,
-        total,
-    }))
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+    let items: Vec<DeliveryResponse> = rows.into_iter().map(support::row_to_response).collect();
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |delivery| delivery.id,
+    )))
 }
 
 pub async fn get_delivery(

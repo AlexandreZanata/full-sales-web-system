@@ -27,6 +27,7 @@ export const ptBR: Messages = {
     confirm: 'Confirmar',
     working: 'Processando…',
     tryAgain: 'Tentar novamente',
+    loadMore: 'Carregar mais',
     backToCatalog: 'Voltar ao catálogo',
     somethingWentWrong: 'Algo deu errado',
     unexpectedError: 'Ocorreu um erro inesperado.',

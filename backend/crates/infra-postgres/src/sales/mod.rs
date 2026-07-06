@@ -461,6 +461,83 @@ pub async fn list_sales(
         .collect())
 }
 
+pub async fn list_sales_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    filters: &SaleFilters,
+    before_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<SaleListRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            Uuid,
+            String,
+            String,
+            String,
+            bool,
+            i64,
+            String,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
+        "SELECT id, driver_id, commerce_id, status, payment_method,
+                declared_payment_method, declared_payment_received,
+                total_amount, total_currency, created_at
+         FROM sales.sales
+         WHERE ($1::uuid IS NULL OR commerce_id = $1)
+           AND ($2::uuid IS NULL OR driver_id = $2)
+           AND ($3::text IS NULL OR status = $3)
+           AND ($4::timestamptz IS NULL OR created_at >= $4)
+           AND ($5::timestamptz IS NULL OR created_at <= $5)
+           AND ($6::uuid IS NULL OR id < $6)
+         ORDER BY id DESC
+         LIMIT $7",
+    )
+    .bind(filters.commerce_id)
+    .bind(filters.driver_id)
+    .bind(filters.status.as_deref())
+    .bind(filters.from)
+    .bind(filters.to)
+    .bind(before_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(
+                id,
+                driver_id,
+                commerce_id,
+                status,
+                payment_method,
+                declared_payment_method,
+                declared_payment_received,
+                total_amount,
+                total_currency,
+                created_at,
+            )| SaleListRow {
+                id,
+                driver_id,
+                commerce_id,
+                status,
+                payment_method,
+                declared_payment_method,
+                declared_payment_received,
+                total_amount,
+                total_currency,
+                created_at,
+            },
+        )
+        .collect())
+}
+
 pub async fn count_sales(
     pool: &PgPool,
     tenant_id: TenantId,

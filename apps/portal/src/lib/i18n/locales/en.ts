@@ -27,6 +27,7 @@ export const en: Messages = {
     confirm: 'Confirm',
     working: 'Working…',
     tryAgain: 'Try again',
+    loadMore: 'Load more',
     backToCatalog: 'Back to catalog',
     somethingWentWrong: 'Something went wrong',
     unexpectedError: 'An unexpected error occurred.',

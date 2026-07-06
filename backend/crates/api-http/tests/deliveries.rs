@@ -246,10 +246,10 @@ async fn given_two_drivers_when_driver_lists_deliveries_then_own_only() {
             delivery_through_transit(&env, &admin_token, driver_token, driver_id, order_id).await;
     }
 
-    let (status, body) = request(&env, "GET", "/v1/deliveries", Some(&driver_a_token), None).await;
+    let (status, body) = request(&env, "GET", "/v1/deliveries?limit=50", Some(&driver_a_token), None).await;
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["total"], 1);
-    assert_eq!(body["items"][0]["driverId"], driver_a.to_string());
+    assert_eq!(body["data"].as_array().map(|a| a.len()), Some(1));
+    assert_eq!(body["data"][0]["driverId"], driver_a.to_string());
 }
 
 // Contract: confirm without proofFileId → validation error

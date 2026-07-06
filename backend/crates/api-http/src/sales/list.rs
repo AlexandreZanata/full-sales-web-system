@@ -1,91 +1,67 @@
 use axum::{
     Json,
-    extract::{Query, State},
+    extract::{RawQuery, State},
+    response::{IntoResponse, Response},
 };
-use chrono::{DateTime, Utc};
 use domain_identity::Role;
 use domain_sales::PaymentMethod;
-use serde::Deserialize;
-use uuid::Uuid;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
-use crate::pagination::paginate_offset;
+use crate::list_query::{
+    SALES_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_string, filter_eq_uuid, filter_gte_datetime, filter_lte_datetime, parse_list_query,
+};
 use crate::sales::types::{SaleSummaryResponse, parse_sale_status};
 use crate::state::AppState;
-
-#[derive(Deserialize)]
-pub struct ListSalesQuery {
-    #[serde(default = "crate::pagination::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
-    pub page_size: u32,
-    #[serde(rename = "commerceId")]
-    pub commerce_id: Option<Uuid>,
-    #[serde(rename = "driverId")]
-    pub driver_id: Option<Uuid>,
-    pub from: Option<DateTime<Utc>>,
-    pub to: Option<DateTime<Utc>>,
-    pub status: Option<String>,
-}
-
-#[derive(serde::Serialize)]
-pub struct PaginatedSalesResponse {
-    pub items: Vec<SaleSummaryResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
 
 pub async fn list_sales(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<ListSalesQuery>,
-) -> Result<Json<PaginatedSalesResponse>, ApiError> {
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<SaleSummaryResponse>>, Response> {
     match auth.role {
         Role::Admin | Role::Driver | Role::Seller => {}
-        _ => return Err(ApiError::forbidden()),
+        _ => return Err(IntoResponse::into_response(ApiError::forbidden())),
     }
 
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
+    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &SALES_LIST_CONFIG)
+        .map_err(IntoResponse::into_response)?;
+
     let driver_id = match auth.role {
         Role::Driver | Role::Seller => Some(auth.user_id),
-        Role::Admin => query.driver_id,
+        Role::Admin => filter_eq_uuid(&parsed.filters, "driver_id"),
         _ => None,
     };
 
     let filters = infra_postgres::sales::SaleFilters {
-        commerce_id: query.commerce_id,
+        commerce_id: filter_eq_uuid(&parsed.filters, "commerce_id"),
         driver_id,
-        status: query.status.clone(),
-        from: query.from,
-        to: query.to,
+        status: filter_eq_string(&parsed.filters, "status"),
+        from: filter_gte_datetime(&parsed.filters, "created_at"),
+        to: filter_lte_datetime(&parsed.filters, "created_at"),
     };
 
-    let rows = infra_postgres::sales::list_sales(
+    let rows = infra_postgres::sales::list_sales_cursor(
         &state.app_pool,
         auth.tenant_id,
         &filters,
-        page_size as i64,
-        offset,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let total = infra_postgres::sales::count_sales(&state.app_pool, auth.tenant_id, &filters)
-        .await
-        .map_err(|_| ApiError::internal())? as u64;
+    let items: Vec<SaleSummaryResponse> = rows
+        .into_iter()
+        .filter_map(sale_summary_from_row)
+        .collect();
 
-    let items: Vec<SaleSummaryResponse> =
-        rows.into_iter().filter_map(sale_summary_from_row).collect();
-
-    Ok(Json(PaginatedSalesResponse {
+    Ok(Json(build_cursor_page(
         items,
-        page,
-        page_size,
-        total,
-    }))
+        parsed.pagination.limit,
+        |sale| sale.id,
+    )))
 }
 
 fn sale_summary_from_row(row: infra_postgres::sales::SaleListRow) -> Option<SaleSummaryResponse> {

@@ -67,32 +67,6 @@ pub struct DeliveryResponse {
     pub order_items: Option<Vec<DeliveryOrderItemResponse>>,
 }
 
-#[derive(Serialize)]
-pub struct PaginatedDeliveriesResponse {
-    pub items: Vec<DeliveryResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
-#[derive(Deserialize)]
-pub struct DeliveriesQuery {
-    pub status: Option<String>,
-    #[serde(default = "default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "default_page_size")]
-    pub page_size: u32,
-}
-
-fn default_page() -> u32 {
-    1
-}
-
-fn default_page_size() -> u32 {
-    20
-}
-
 pub async fn order_has_delivery(
     state: &AppState,
     session: &SessionContext,

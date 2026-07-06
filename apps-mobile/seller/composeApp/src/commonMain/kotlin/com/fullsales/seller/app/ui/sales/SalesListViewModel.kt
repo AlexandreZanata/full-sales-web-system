@@ -48,7 +48,7 @@ class SalesListViewModel(
             _state.update { it.copy(refreshing = true, isOffline = !networkMonitor.isOnline()) }
             runCatching { syncCoordinator.syncPullAndPush() }
             val fetchOk = runCatching {
-                remoteSales = apiClient.listSales(page = 1, pageSize = 20).items
+                remoteSales = apiClient.listSales(limit = 20).data
             }.isSuccess
             _state.update {
                 it.copy(

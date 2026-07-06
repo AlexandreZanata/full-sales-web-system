@@ -5,9 +5,9 @@ use application::orders::{
 };
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, RawQuery, State},
     http::StatusCode,
-    response::Response,
+    response::{IntoResponse, Response},
 };
 use domain_commerces::CommerceId;
 use domain_identity::UserId;
@@ -21,18 +21,72 @@ use uuid::Uuid;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
+use crate::list_query::{
+    PORTAL_ORDERS_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_string, parse_list_query,
+};
 use crate::portal::products::require_commerce_contact;
 use crate::session::session_from_auth;
 use crate::state::AppState;
 use crate::validation::{ValidatedJson, to_json_bytes};
 
-#[derive(Deserialize)]
-pub struct PortalOrdersQuery {
-    pub status: Option<String>,
-    #[serde(default = "super::products::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "super::products::default_page_size")]
-    pub page_size: u32,
+#[derive(Serialize)]
+pub struct PortalOrderSummaryResponse {
+    pub id: Uuid,
+    pub status: String,
+    #[serde(rename = "totalAmount")]
+    pub total_amount: i64,
+    #[serde(rename = "totalCurrency")]
+    pub total_currency: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+pub async fn list_portal_orders(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<PortalOrderSummaryResponse>>, Response> {
+    let _ = require_commerce_contact(&auth).map_err(IntoResponse::into_response)?;
+    let session = session_from_auth(&auth);
+    let parsed =
+        parse_list_query(&decode_query_pairs(query.as_deref()), &PORTAL_ORDERS_LIST_CONFIG)
+            .map_err(IntoResponse::into_response)?;
+
+    let status = filter_eq_string(&parsed.filters, "status");
+    let filters = infra_postgres::orders::OrderListFilters {
+        status: status.as_deref(),
+        commerce_id: None,
+        from: None,
+        to: None,
+    };
+
+    let rows = infra_postgres::orders::list_orders_cursor(
+        &state.app_pool,
+        &session,
+        &filters,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
+    )
+    .await
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+
+    let items: Vec<PortalOrderSummaryResponse> = rows
+        .into_iter()
+        .map(|row| PortalOrderSummaryResponse {
+            id: row.id,
+            status: row.status,
+            total_amount: row.total_amount,
+            total_currency: row.total_currency,
+            created_at: row.created_at,
+        })
+        .collect();
+
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |order| order.id,
+    )))
 }
 
 #[derive(Deserialize)]
@@ -89,76 +143,6 @@ pub(crate) struct PortalOrderResponse {
     #[serde(rename = "rejectionReason")]
     pub rejection_reason: Option<String>,
     pub items: Vec<PortalOrderItemResponse>,
-}
-
-#[derive(Serialize)]
-pub struct PortalOrderSummaryResponse {
-    pub id: Uuid,
-    pub status: String,
-    #[serde(rename = "totalAmount")]
-    pub total_amount: i64,
-    #[serde(rename = "totalCurrency")]
-    pub total_currency: String,
-    #[serde(rename = "createdAt")]
-    pub created_at: chrono::DateTime<chrono::Utc>,
-}
-
-#[derive(Serialize)]
-pub struct PaginatedPortalOrdersResponse {
-    pub items: Vec<PortalOrderSummaryResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
-}
-
-pub async fn list_portal_orders(
-    State(state): State<AppState>,
-    auth: AuthUser,
-    Query(query): Query<PortalOrdersQuery>,
-) -> Result<Json<PaginatedPortalOrdersResponse>, ApiError> {
-    let _ = require_commerce_contact(&auth)?;
-    let session = session_from_auth(&auth);
-    let page_size = query.page_size.clamp(1, 50);
-    let page = query.page.max(1);
-    let offset = ((page - 1) as i64) * (page_size as i64);
-
-    let filters = infra_postgres::orders::OrderListFilters {
-        status: query.status.as_deref(),
-        commerce_id: None,
-        from: None,
-        to: None,
-    };
-
-    let rows = infra_postgres::orders::list_orders(
-        &state.app_pool,
-        &session,
-        &filters,
-        page_size as i64,
-        offset,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?;
-
-    let total = infra_postgres::orders::count_orders(&state.app_pool, &session, &filters)
-        .await
-        .map_err(|_| ApiError::internal())? as u64;
-
-    Ok(Json(PaginatedPortalOrdersResponse {
-        items: rows
-            .into_iter()
-            .map(|row| PortalOrderSummaryResponse {
-                id: row.id,
-                status: row.status,
-                total_amount: row.total_amount,
-                total_currency: row.total_currency,
-                created_at: row.created_at,
-            })
-            .collect(),
-        page,
-        page_size,
-        total,
-    }))
 }
 
 pub async fn get_portal_order(

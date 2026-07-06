@@ -1,4 +1,4 @@
-//! Phase 20 — Sales list & declare-payment contract tests.
+//! Phase 68D — Sales list cursor envelope contract tests.
 
 #[path = "support/mod.rs"]
 mod support;
@@ -50,36 +50,47 @@ async fn seed_stock(
     .expect("stock");
 }
 
-// Contract: list returns pagination meta
 #[tokio::test]
-async fn contract_list_sales_when_driver_then_pagination_meta() {
+async fn contract_list_sales_when_driver_then_cursor_envelope() {
     let env = setup().await;
     let (driver_id, driver_token) = seed_driver(&env, "driver@test.com").await;
     let commerce_id = seed_commerce(&env, "11222333000181").await;
     let product_id = seed_product(&env, "SKU-001", "Widget", 1_000).await;
-
-    infra_postgres::inventory::upsert_stock_balance(
-        &env.app_pool,
-        env.tenant_id,
-        driver_id,
-        product_id,
-        10,
-    )
-    .await
-    .expect("stock");
-
+    seed_stock(&env, driver_id, product_id, 10).await;
     create_sale(&env, &driver_token, commerce_id, product_id).await;
 
-    let (status, body) = request(&env, "GET", "/v1/sales", Some(&driver_token), None).await;
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/sales?limit=20",
+        Some(&driver_token),
+        None,
+    )
+    .await;
 
     assert_eq!(status, StatusCode::OK);
-    assert!(body["items"].is_array());
-    assert_eq!(body["page"], 1);
-    assert_eq!(body["pageSize"], 20);
-    assert!(body["total"].as_u64().is_some());
+    assert!(body["data"].is_array());
+    assert_eq!(body["pagination"]["limit"], 20);
+    assert_eq!(body["pagination"]["has_more"], false);
 }
 
-// Contract: driver B cannot declare driver A sale → 403
+#[tokio::test]
+async fn contract_list_sales_when_invalid_filter_then_400() {
+    let env = setup().await;
+    let (_, driver_token) = seed_driver(&env, "driver-filter-400@test.com").await;
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/sales?filter[unknown]=x",
+        Some(&driver_token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "invalid_filter_field");
+}
+
 #[tokio::test]
 async fn contract_declare_payment_when_other_driver_then_forbidden() {
     let env = setup().await;
@@ -87,16 +98,7 @@ async fn contract_declare_payment_when_other_driver_then_forbidden() {
     let (_, driver_b_token) = seed_driver(&env, "driver-b@test.com").await;
     let commerce_id = seed_commerce(&env, "11222333000181").await;
     let product_id = seed_product(&env, "SKU-002", "Gadget", 2_000).await;
-
-    infra_postgres::inventory::upsert_stock_balance(
-        &env.app_pool,
-        env.tenant_id,
-        driver_a_id,
-        product_id,
-        10,
-    )
-    .await
-    .expect("stock");
+    seed_stock(&env, driver_a_id, product_id, 10).await;
 
     let sale_id = create_sale(&env, &driver_a_token, commerce_id, product_id).await;
 
@@ -113,7 +115,6 @@ async fn contract_declare_payment_when_other_driver_then_forbidden() {
     assert_eq!(body["error"]["code"], "UNAUTHORIZED_PAYMENT_DECLARATION");
 }
 
-// Contract: seller lists own sale after create
 #[tokio::test]
 async fn contract_list_sales_when_seller_creates_then_returns_own_sale() {
     let env = setup().await;
@@ -130,12 +131,11 @@ async fn contract_list_sales_when_seller_creates_then_returns_own_sale() {
     let (status, body) = request(&env, "GET", "/v1/sales", Some(&seller_token), None).await;
 
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["total"], 1);
-    assert_eq!(body["items"][0]["id"], sale_id);
-    assert_eq!(body["items"][0]["driverId"], seller_id.to_string());
+    assert_eq!(body["data"].as_array().map(|a| a.len()), Some(1));
+    assert_eq!(body["data"][0]["id"], sale_id);
+    assert_eq!(body["data"][0]["driverId"], seller_id.to_string());
 }
 
-// Contract: seller list excludes another user's sale
 #[tokio::test]
 async fn contract_list_sales_when_seller_then_excludes_other_user_sale() {
     let env = setup().await;
@@ -155,13 +155,12 @@ async fn contract_list_sales_when_seller_then_excludes_other_user_sale() {
     let (status, body) = request(&env, "GET", "/v1/sales", Some(&seller_token), None).await;
 
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["total"], 1);
-    assert_eq!(body["items"][0]["id"], seller_sale_id);
+    assert_eq!(body["data"].as_array().map(|a| a.len()), Some(1));
+    assert_eq!(body["data"][0]["id"], seller_sale_id);
 }
 
-// Contract: seller driverId query is ignored (Admin-only filter)
 #[tokio::test]
-async fn contract_list_sales_when_seller_driver_id_query_then_ignored() {
+async fn contract_list_sales_when_seller_driver_id_filter_then_ignored() {
     let env = setup().await;
     let (seller_id, seller_token) = (
         support::seed_user(&env, "seller-filter@test.com", "secret123", "Seller", true).await,
@@ -176,11 +175,11 @@ async fn contract_list_sales_when_seller_driver_id_query_then_ignored() {
     let seller_sale_id = create_sale(&env, &seller_token, commerce_id, product_id).await;
     create_sale(&env, &driver_token, commerce_id, product_id).await;
 
-    let path = format!("/v1/sales?driverId={driver_id}");
+    let path = format!("/v1/sales?filter[driver_id]={driver_id}");
     let (status, body) = request(&env, "GET", &path, Some(&seller_token), None).await;
 
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["total"], 1);
-    assert_eq!(body["items"][0]["id"], seller_sale_id);
-    assert_eq!(body["items"][0]["driverId"], seller_id.to_string());
+    assert_eq!(body["data"].as_array().map(|a| a.len()), Some(1));
+    assert_eq!(body["data"][0]["id"], seller_sale_id);
+    assert_eq!(body["data"][0]["driverId"], seller_id.to_string());
 }

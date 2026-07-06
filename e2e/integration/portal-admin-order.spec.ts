@@ -13,14 +13,14 @@ test.describe('Integration: portal order visible in admin', () => {
     const portalToken = await login('portal@seed-store.com', 'secret123');
     const adminToken = await login('admin@test.com', 'secret123');
 
-    const productsResponse = await request.get(`${API_BASE}/v1/portal/products?pageSize=1`, {
+    const productsResponse = await request.get(`${API_BASE}/v1/portal/products?limit=1`, {
       headers: { Authorization: `Bearer ${portalToken}` },
     });
     expect(productsResponse.ok()).toBeTruthy();
     const products = (await productsResponse.json()) as {
-      items: Array<{ id: string }>;
+      data: Array<{ id: string }>;
     };
-    const productId = products.items[0]?.id;
+    const productId = products.data[0]?.id;
     expect(productId).toBeTruthy();
 
     const createResponse = await request.post(`${API_BASE}/v1/portal/orders`, {
@@ -44,12 +44,12 @@ test.describe('Integration: portal order visible in admin', () => {
     expect(submitResponse.ok()).toBeTruthy();
 
     const adminOrders = await request.get(
-      `${API_BASE}/v1/orders?status=PendingApproval&pageSize=50`,
+      `${API_BASE}/v1/orders?filter[status]=PendingApproval&limit=50`,
       { headers: { Authorization: `Bearer ${adminToken}` } },
     );
     expect(adminOrders.ok()).toBeTruthy();
-    const list = (await adminOrders.json()) as { items: Array<{ id: string; status: string }> };
-    const found = list.items.find((item) => item.id === orderId);
+    const list = (await adminOrders.json()) as { data: Array<{ id: string; status: string }> };
+    const found = list.data.find((item) => item.id === orderId);
     expect(found?.status).toBe('PendingApproval');
   });
 });

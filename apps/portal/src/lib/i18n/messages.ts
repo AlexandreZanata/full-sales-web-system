@@ -25,6 +25,7 @@ export type Messages = {
     confirm: string;
     working: string;
     tryAgain: string;
+    loadMore: string;
     backToCatalog: string;
     somethingWentWrong: string;
     unexpectedError: string;
@@ -115,6 +116,7 @@ export type MessageKey =
   | 'common.confirm'
   | 'common.working'
   | 'common.tryAgain'
+  | 'common.loadMore'
   | 'common.backToCatalog'
   | 'common.somethingWentWrong'
   | 'common.unexpectedError'

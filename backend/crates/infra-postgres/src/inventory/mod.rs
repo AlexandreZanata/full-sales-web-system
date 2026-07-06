@@ -224,6 +224,32 @@ pub async fn list_portal_products(
     Ok(rows.into_iter().map(map_product_row).collect())
 }
 
+pub async fn list_portal_products_cursor(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    category_slug: Option<&str>,
+    after_id: Option<uuid::Uuid>,
+    limit: i64,
+) -> Result<Vec<ProductRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let rows = sqlx::query_as::<_, ProductDbRow>(&format!(
+        "{PRODUCT_SELECT}
+         WHERE p.active = true
+           AND ($1::text IS NULL OR c.slug = $1)
+           AND ($2::uuid IS NULL OR p.id > $2)
+         ORDER BY p.id ASC
+         LIMIT $3"
+    ))
+    .bind(category_slug)
+    .bind(after_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows.into_iter().map(map_product_row).collect())
+}
+
 pub async fn count_portal_products(
     pool: &PgPool,
     tenant_id: TenantId,

@@ -17,7 +17,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { orderStatusFilterLabel } from '@/lib/i18n/labels';
 import { ORDER_STATUS_FILTERS, type OrderStatusFilter } from '@/lib/orders/constants';
 import { formatMoney } from '@/lib/products/formatPrice';
-import { paginatedResponseToTable } from '@/lib/tablePagination';
+import { cursorToTableState } from '@/lib/cursorPagination';
 
 export const Route = createFileRoute('/_authenticated/orders/')({
   component: OrdersListPage,
@@ -27,6 +27,7 @@ function OrdersListPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('');
   const [commerceFilter, setCommerceFilter] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -50,8 +51,8 @@ function OrdersListPage() {
     queryKey: ['orders', page, pageSize, statusFilter, commerceFilter, fromDate, toDate],
     queryFn: () =>
       fetchOrders({
-        page,
-        pageSize,
+        limit: pageSize,
+        cursor: cursors[page - 1],
         status: statusFilter,
         commerceId: commerceFilter || undefined,
         from: fromDate ? dateFilterToIso(fromDate, 'start') : undefined,
@@ -59,7 +60,25 @@ function OrdersListPage() {
       }),
   });
 
-  const pagination = orders.data ? paginatedResponseToTable(orders.data) : null;
+  const pagination = orders.data
+    ? cursorToTableState(page, orders.data.pagination.has_more)
+    : null;
+
+  function handlePageChange(nextPage: number) {
+    if (nextPage > page && orders.data?.pagination.next_cursor) {
+      setCursors((prev) => {
+        const copy = [...prev];
+        copy[page] = orders.data?.pagination.next_cursor ?? undefined;
+        return copy;
+      });
+    }
+    setPage(nextPage);
+  }
+
+  function resetPagination() {
+    setPage(1);
+    setCursors([undefined]);
+  }
 
   const columns: DataTableColumn<OrderSummary>[] = useMemo(
     () => [
@@ -103,7 +122,7 @@ function OrdersListPage() {
           value={statusFilter}
           onChange={(event) => {
             setStatusFilter(event.target.value as OrderStatusFilter);
-            setPage(1);
+            resetPagination();
           }}
         >
           {ORDER_STATUS_FILTERS.map((value) => (
@@ -118,7 +137,7 @@ function OrdersListPage() {
           value={commerceFilter}
           onChange={(event) => {
             setCommerceFilter(event.target.value);
-            setPage(1);
+            resetPagination();
           }}
         >
           <option value="">{t('common.filter.allCommerces')}</option>
@@ -135,7 +154,7 @@ function OrdersListPage() {
           value={fromDate}
           onChange={(event) => {
             setFromDate(event.target.value);
-            setPage(1);
+            resetPagination();
           }}
         />
 
@@ -145,7 +164,7 @@ function OrdersListPage() {
           value={toDate}
           onChange={(event) => {
             setToDate(event.target.value);
-            setPage(1);
+            resetPagination();
           }}
         />
       </div>
@@ -154,14 +173,14 @@ function OrdersListPage() {
         <div className="flex justify-center py-16">
           <LoadingSpinner />
         </div>
-      ) : orders.data && orders.data.items.length > 0 ? (
+      ) : orders.data && orders.data.data.length > 0 ? (
         <DataTable
           caption={t('orders.list.caption')}
           columns={columns}
-          rows={orders.data.items}
+          rows={orders.data.data}
           getRowKey={(row) => row.id}
           pagination={pagination}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
           onRowClick={(row) => {
             void navigate({ to: '/orders/$id', params: { id: row.id } });
           }}

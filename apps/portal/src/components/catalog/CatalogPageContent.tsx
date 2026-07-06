@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 
@@ -35,20 +35,33 @@ export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
-  const categoryQuery = useQuery({
+  const categoryQuery = useInfiniteQuery({
     queryKey: ['portal', 'category', activeSlug],
-    queryFn: () => {
+    queryFn: ({ pageParam }) => {
       if (!activeSlug) {
         throw new Error('Category slug is required');
       }
-      return fetchPortalCategoryBySlug(activeSlug);
+      return fetchPortalCategoryBySlug(activeSlug, {
+        limit: 50,
+        cursor: pageParam,
+      });
     },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.has_more ? (lastPage.pagination.next_cursor ?? undefined) : undefined,
     enabled: Boolean(activeSlug),
   });
 
+  const categoryProducts = useMemo(
+    () => categoryQuery.data?.pages.flatMap((page) => page.products) ?? [],
+    [categoryQuery.data?.pages],
+  );
+
+  const categoryTitle = categoryQuery.data?.pages[0]?.name;
+
   const filteredProducts = useMemo(
-    () => filterProductsBySearch(categoryQuery.data?.products ?? [], debouncedSearch),
-    [categoryQuery.data?.products, debouncedSearch],
+    () => filterProductsBySearch(categoryProducts, debouncedSearch),
+    [categoryProducts, debouncedSearch],
   );
 
   if (categoriesQuery.isLoading || (activeSlug && categoryQuery.isLoading)) {
@@ -91,6 +104,8 @@ export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
     );
   }
 
+  const showLoadMore = categoryQuery.hasNextPage && !debouncedSearch.trim();
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold text-foreground">{t('catalog.title')}</h1>
@@ -98,7 +113,7 @@ export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
         categories={categories}
         products={filteredProducts}
         activeCategorySlug={activeSlug}
-        categoryTitle={categoryQuery.data?.name}
+        categoryTitle={categoryTitle}
         onCategorySelect={(slug) => {
           void navigate({ to: '/', search: { category: slug } });
         }}
@@ -128,6 +143,19 @@ export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
         gridViewLabel={t('catalog.viewGrid')}
         categoriesAriaLabel={t('catalog.categories')}
       />
+      {showLoadMore ? (
+        <div className="flex justify-center">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              void categoryQuery.fetchNextPage();
+            }}
+            disabled={categoryQuery.isFetchingNextPage}
+          >
+            {t('common.loadMore')}
+          </Button>
+        </div>
+      ) : null}
       <CartFab />
     </div>
   );

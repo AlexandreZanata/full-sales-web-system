@@ -1,32 +1,23 @@
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, RawQuery, State},
+    response::{IntoResponse, Response},
 };
 use chrono::{DateTime, Utc};
 use domain_orders::OrderStatus;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use uuid::Uuid;
 
 use crate::admin_orders::AdminOrderResponse;
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
-use crate::pagination::paginate_offset;
+use crate::list_query::{
+    ORDERS_LIST_CONFIG, CursorListResponse, build_cursor_page, decode_query_pairs,
+    filter_eq_string, filter_eq_uuid, filter_gte_datetime, filter_lte_datetime, parse_list_query,
+};
 use crate::portal::{load_order, map_order_error, map_postgres_order_error, order_to_response};
 use crate::session::session_from_auth;
 use crate::state::AppState;
-
-#[derive(Deserialize)]
-pub struct ListOrdersQuery {
-    #[serde(default = "crate::pagination::default_page")]
-    pub page: u32,
-    #[serde(rename = "pageSize", default = "crate::pagination::default_page_size")]
-    pub page_size: u32,
-    pub status: Option<String>,
-    #[serde(rename = "commerceId")]
-    pub commerce_id: Option<Uuid>,
-    pub from: Option<DateTime<Utc>>,
-    pub to: Option<DateTime<Utc>>,
-}
 
 #[derive(Serialize)]
 pub struct OrderSummaryResponse {
@@ -40,15 +31,6 @@ pub struct OrderSummaryResponse {
     pub total_currency: String,
     #[serde(rename = "createdAt")]
     pub created_at: DateTime<Utc>,
-}
-
-#[derive(Serialize)]
-pub struct PaginatedOrdersResponse {
-    pub items: Vec<OrderSummaryResponse>,
-    pub page: u32,
-    #[serde(rename = "pageSize")]
-    pub page_size: u32,
-    pub total: u64,
 }
 
 #[derive(Serialize)]
@@ -72,48 +54,47 @@ pub struct AdminOrderDetailResponse {
 pub async fn list_orders(
     State(state): State<AppState>,
     auth: AuthUser,
-    Query(query): Query<ListOrdersQuery>,
-) -> Result<Json<PaginatedOrdersResponse>, ApiError> {
-    require_admin(&auth)?;
+    RawQuery(query): RawQuery,
+) -> Result<Json<CursorListResponse<OrderSummaryResponse>>, Response> {
+    require_admin(&auth).map_err(IntoResponse::into_response)?;
     let session = session_from_auth(&auth);
-    let (page, page_size, offset) = paginate_offset(query.page, query.page_size);
+    let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &ORDERS_LIST_CONFIG)
+        .map_err(IntoResponse::into_response)?;
+    let status = filter_eq_string(&parsed.filters, "status");
     let filters = infra_postgres::orders::OrderListFilters {
-        status: query.status.as_deref(),
-        commerce_id: query.commerce_id,
-        from: query.from,
-        to: query.to,
+        status: status.as_deref(),
+        commerce_id: filter_eq_uuid(&parsed.filters, "commerce_id"),
+        from: filter_gte_datetime(&parsed.filters, "created_at"),
+        to: filter_lte_datetime(&parsed.filters, "created_at"),
     };
 
-    let rows = infra_postgres::orders::list_orders(
+    let rows = infra_postgres::orders::list_orders_cursor(
         &state.app_pool,
         &session,
         &filters,
-        page_size as i64,
-        offset,
+        parsed.pagination.cursor,
+        parsed.pagination.fetch_size() as i64,
     )
     .await
-    .map_err(|_| ApiError::internal())?;
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let total = infra_postgres::orders::count_orders(&state.app_pool, &session, &filters)
-        .await
-        .map_err(|_| ApiError::internal())? as u64;
+    let items: Vec<OrderSummaryResponse> = rows
+        .into_iter()
+        .map(|row| OrderSummaryResponse {
+            id: row.id,
+            status: row.status,
+            commerce_id: row.commerce_id,
+            total_amount: row.total_amount,
+            total_currency: row.total_currency,
+            created_at: row.created_at,
+        })
+        .collect();
 
-    Ok(Json(PaginatedOrdersResponse {
-        items: rows
-            .into_iter()
-            .map(|row| OrderSummaryResponse {
-                id: row.id,
-                status: row.status,
-                commerce_id: row.commerce_id,
-                total_amount: row.total_amount,
-                total_currency: row.total_currency,
-                created_at: row.created_at,
-            })
-            .collect(),
-        page,
-        page_size,
-        total,
-    }))
+    Ok(Json(build_cursor_page(
+        items,
+        parsed.pagination.limit,
+        |order| order.id,
+    )))
 }
 
 pub async fn get_order(

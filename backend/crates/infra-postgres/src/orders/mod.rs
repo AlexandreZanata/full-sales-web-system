@@ -268,6 +268,60 @@ pub async fn list_orders(
         .collect())
 }
 
+pub async fn list_orders_cursor(
+    pool: &PgPool,
+    session: &SessionContext,
+    filters: &OrderListFilters<'_>,
+    before_id: Option<Uuid>,
+    limit: i64,
+) -> Result<Vec<OrderListRow>, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            String,
+            i64,
+            String,
+            chrono::DateTime<chrono::Utc>,
+        ),
+    >(
+        "SELECT id, commerce_id, status, total_amount, total_currency, created_at
+         FROM orders.orders
+         WHERE ($1::text IS NULL OR status = $1)
+           AND ($2::uuid IS NULL OR commerce_id = $2)
+           AND ($3::timestamptz IS NULL OR created_at >= $3)
+           AND ($4::timestamptz IS NULL OR created_at <= $4)
+           AND ($5::uuid IS NULL OR id < $5)
+         ORDER BY id DESC
+         LIMIT $6",
+    )
+    .bind(filters.status)
+    .bind(filters.commerce_id)
+    .bind(filters.from)
+    .bind(filters.to)
+    .bind(before_id)
+    .bind(limit)
+    .fetch_all(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(id, commerce_id, status, total_amount, total_currency, created_at)| OrderListRow {
+                id,
+                commerce_id,
+                status,
+                total_amount,
+                total_currency,
+                created_at,
+            },
+        )
+        .collect())
+}
+
 pub async fn count_orders(
     pool: &PgPool,
     session: &SessionContext,

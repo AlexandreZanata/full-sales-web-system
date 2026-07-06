@@ -38,9 +38,7 @@ data class CreateSaleItem(
 )
 
 @Serializable
-data class PaginatedSales(
-    val page: Int,
-    val pageSize: Int,
-    val total: Int,
-    val items: List<Sale>,
+data class CursorListSales(
+    val data: List<Sale>,
+    val pagination: CursorPaginationMeta,
 )
