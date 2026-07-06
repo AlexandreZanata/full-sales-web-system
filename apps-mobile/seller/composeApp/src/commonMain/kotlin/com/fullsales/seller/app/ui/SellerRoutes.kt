@@ -20,5 +20,5 @@ object SellerRoutes {
     fun productDetail(productId: String) = "products/$productId"
 
     fun showsBottomBar(route: String?): Boolean =
-        route == SALES || route == SALES_NEW
+        route == SALES || route == SALES_NEW || route == COMMERCES
 }

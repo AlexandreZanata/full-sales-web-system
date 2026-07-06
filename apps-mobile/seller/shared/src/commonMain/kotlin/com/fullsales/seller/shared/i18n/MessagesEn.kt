@@ -4,6 +4,7 @@ val messagesEn = SellerMessages(
     nav = SellerMessages.Nav(
         sales = "Sales",
         newSale = "New sale",
+        commerces = "Commerces",
         logout = "Sign out",
         sellerFallback = "Seller",
     ),
@@ -173,6 +174,7 @@ val messagesEn = SellerMessages(
         menu = "Menu",
         newSale = "New sale",
         sales = "Sales",
+        commerces = "Commerces",
         removeLine = "Remove line",
         addLine = "Add line",
         increaseQuantity = "Increase quantity",

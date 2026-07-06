@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +44,7 @@ fun SellerShellScaffold(
     accessibilityViewModel: AccessibilityViewModel,
     onNavigateSales: () -> Unit,
     onNavigateNewSale: () -> Unit,
+    onNavigateCommerces: () -> Unit,
     onLogout: () -> Unit,
     content: @Composable (PaddingValues) -> Unit,
 ) {
@@ -96,6 +98,12 @@ fun SellerShellScaffold(
                         onClick = onNavigateNewSale,
                         icon = { Icon(Icons.Default.Add, contentDescription = s.a11y.newSale) },
                         label = { Text(s.nav.newSale) },
+                    )
+                    NavigationBarItem(
+                        selected = currentRoute == SellerRoutes.COMMERCES,
+                        onClick = onNavigateCommerces,
+                        icon = { Icon(Icons.Default.Store, contentDescription = s.a11y.commerces) },
+                        label = { Text(s.nav.commerces) },
                     )
                 }
             }

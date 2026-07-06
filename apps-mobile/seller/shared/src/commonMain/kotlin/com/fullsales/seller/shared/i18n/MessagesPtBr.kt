@@ -4,6 +4,7 @@ val messagesPtBr = SellerMessages(
     nav = SellerMessages.Nav(
         sales = "Vendas",
         newSale = "Nova venda",
+        commerces = "Comércios",
         logout = "Sair",
         sellerFallback = "Vendedor",
     ),
@@ -173,6 +174,7 @@ val messagesPtBr = SellerMessages(
         menu = "Menu",
         newSale = "Nova venda",
         sales = "Vendas",
+        commerces = "Comércios",
         removeLine = "Remover item",
         addLine = "Adicionar item",
         increaseQuantity = "Aumentar quantidade",

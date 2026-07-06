@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -16,6 +17,7 @@ import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.ui.auth.AuthViewModel
 import com.fullsales.seller.app.ui.auth.LoginScreen
+import com.fullsales.seller.app.ui.commerces.CommerceListScreen
 import com.fullsales.seller.app.ui.commerces.CommerceViewModel
 import com.fullsales.seller.app.ui.i18n.SellerStringsProvider
 import com.fullsales.seller.app.ui.products.ProductViewModel
@@ -106,6 +108,23 @@ private fun SellerNavHostContent(
             accessibilityViewModel,
         ) {
             NewSaleWithCommercePicker(navController, factory)
+        }
+        shellRoute(
+            SellerRoutes.COMMERCES,
+            navController,
+            settings,
+            syncBadge,
+            authViewModel,
+            settingsViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+        ) {
+            LaunchedEffect(Unit) { commerceViewModel.refresh() }
+            CommerceListScreen(
+                viewModel = commerceViewModel,
+                onCommerceClick = { id -> navController.navigate(SellerRoutes.commerceDetail(id)) },
+                onRegisterCommerce = { navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_MODE) },
+            )
         }
         detailRoute(
             SellerRoutes.SALE_DETAIL,

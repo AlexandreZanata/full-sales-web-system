@@ -16,6 +16,7 @@ data class SellerMessages(
     data class Nav(
         val sales: String = "",
         val newSale: String = "",
+        val commerces: String = "",
         val logout: String = "",
         val sellerFallback: String = "",
     )
@@ -195,6 +196,7 @@ data class SellerMessages(
         val menu: String = "",
         val newSale: String = "",
         val sales: String = "",
+        val commerces: String = "",
         val removeLine: String = "",
         val addLine: String = "",
         val increaseQuantity: String = "",

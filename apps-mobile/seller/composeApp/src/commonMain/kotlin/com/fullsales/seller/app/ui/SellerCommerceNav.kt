@@ -43,16 +43,6 @@ internal fun NavGraphBuilder.commerceRoutes(
     localeViewModel: LocaleViewModel,
     accessibilityViewModel: AccessibilityViewModel,
 ) {
-    composable(SellerRoutes.COMMERCES) {
-        LaunchedEffect(Unit) { commerceViewModel.refresh() }
-        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
-            CommerceListScreen(
-                viewModel = commerceViewModel,
-                onCommerceClick = { id -> navController.navigate(SellerRoutes.commerceDetail(id)) },
-                onRegisterCommerce = { navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_MODE) },
-            )
-        }
-    }
     composable(SellerRoutes.COMMERCE_REGISTRATION_MODE) {
         DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
             val registrationViewModel: CommerceRegistrationViewModel = viewModel(factory = factory)

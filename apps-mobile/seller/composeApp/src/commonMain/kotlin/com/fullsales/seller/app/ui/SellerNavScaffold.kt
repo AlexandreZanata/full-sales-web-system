@@ -84,6 +84,7 @@ internal fun ShellScaffold(
         accessibilityViewModel = accessibilityViewModel,
         onNavigateSales = { navController.navigate(SellerRoutes.SALES) { launchSingleTop = true } },
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
+        onNavigateCommerces = { navController.navigate(SellerRoutes.COMMERCES) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },
     ) { padding ->
         Box(Modifier.padding(padding)) { content() }
@@ -109,6 +110,7 @@ internal fun DetailShell(
         accessibilityViewModel = accessibilityViewModel,
         onNavigateSales = { navController.navigate(SellerRoutes.SALES) { launchSingleTop = true } },
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
+        onNavigateCommerces = { navController.navigate(SellerRoutes.COMMERCES) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },
     ) { padding ->
         Box(Modifier.padding(padding)) { content() }
