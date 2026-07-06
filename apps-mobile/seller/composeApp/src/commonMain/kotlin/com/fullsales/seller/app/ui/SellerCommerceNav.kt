@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.ui.auth.AuthViewModel
 import com.fullsales.seller.app.ui.commerces.CommerceDetailScreen
@@ -33,9 +34,11 @@ internal fun NavGraphBuilder.commerceRoutes(
     syncBadge: SyncBadge,
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
+    accessibilityViewModel: AccessibilityViewModel,
 ) {
     composable(SellerRoutes.COMMERCES) {
-        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel) {
+        LaunchedEffect(Unit) { commerceViewModel.refresh() }
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
             CommerceListScreen(
                 viewModel = commerceViewModel,
                 onCommerceClick = { id -> navController.navigate(SellerRoutes.commerceDetail(id)) },
@@ -43,7 +46,8 @@ internal fun NavGraphBuilder.commerceRoutes(
         }
     }
     composable(SellerRoutes.COMMERCE_PICK) {
-        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel) {
+        LaunchedEffect(Unit) { commerceViewModel.refresh() }
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
             val s = LocalSellerStrings.current
             CommerceListScreen(
                 viewModel = commerceViewModel,
@@ -66,6 +70,7 @@ internal fun NavGraphBuilder.commerceRoutes(
         syncBadge,
         authViewModel,
         localeViewModel,
+        accessibilityViewModel,
     ) { id ->
         val detailViewModel: CommerceDetailViewModel = viewModel(factory = factory)
         CommerceDetailScreen(commerceId = id, viewModel = detailViewModel)

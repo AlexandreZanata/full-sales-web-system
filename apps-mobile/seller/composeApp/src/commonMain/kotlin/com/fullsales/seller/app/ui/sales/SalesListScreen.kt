@@ -25,9 +25,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.a11y.listItemSummary
 import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.SalesListItem
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -55,7 +59,8 @@ fun SalesListScreen(
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .semantics { contentDescription = s.a11y.pullToRefresh },
         ) {
             when {
                 state.items.isEmpty() && state.isOffline && !state.remoteLoaded ->
@@ -87,13 +92,17 @@ fun SalesListScreen(
 
 @Composable
 private fun SaleRow(sale: SalesListItem, onClick: () -> Unit) {
+    val s = LocalSellerStrings.current
     val moneyLocale = if (sale.totalCurrency == "BRL") Locale("pt", "BR") else Locale.getDefault()
     val money = NumberFormat.getCurrencyInstance(moneyLocale).format(sale.totalAmount)
     val dateLabel = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         .format(Date(sale.createdAtEpochMs))
+    val statusLabel = SellerStrings.saleStatus(s, sale.status)
+    val summary = SellerStrings.saleListItem(s, sale.shortId, dateLabel, statusLabel, money)
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .listItemSummary(summary)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
     ) {

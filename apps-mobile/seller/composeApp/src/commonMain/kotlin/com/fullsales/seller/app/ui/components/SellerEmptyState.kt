@@ -2,6 +2,7 @@ package com.fullsales.seller.app.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -34,6 +36,7 @@ fun SellerEmptyState(
             Icons.Outlined.Receipt,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clearAndSetSemantics { },
         )
         Text(title, style = MaterialTheme.typography.headlineSmall)
         Text(
@@ -42,7 +45,10 @@ fun SellerEmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (actionLabel != null && onAction != null) {
-            FilledTonalButton(onClick = onAction) {
+            FilledTonalButton(
+                onClick = onAction,
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+            ) {
                 Text(actionLabel)
             }
         }

@@ -22,8 +22,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.a11y.listItemSummary
+import com.fullsales.seller.app.ui.a11y.screenTitle
+import com.fullsales.seller.app.ui.a11y.selectableChipA11y
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.displayName
 
@@ -40,7 +46,9 @@ fun CommerceListScreen(
     PullToRefreshBox(
         isRefreshing = state.refreshing,
         onRefresh = { viewModel.refresh() },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { contentDescription = s.a11y.pullToRefresh },
     ) {
         Column(
             modifier = Modifier
@@ -48,7 +56,11 @@ fun CommerceListScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(title ?: s.commerces.title, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                title ?: s.commerces.title,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.screenTitle(),
+            )
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = viewModel::setSearchQuery,
@@ -61,16 +73,21 @@ fun CommerceListScreen(
                     selected = state.activeOnly,
                     onClick = { viewModel.setActiveOnly(true) },
                     label = { Text(s.common.active) },
+                    modifier = Modifier.selectableChipA11y(s.common.active, state.activeOnly, s.a11y.selected),
                 )
                 FilterChip(
                     selected = !state.activeOnly,
                     onClick = { viewModel.setActiveOnly(false) },
                     label = { Text(s.common.all) },
+                    modifier = Modifier.selectableChipA11y(s.common.all, !state.activeOnly, s.a11y.selected),
                 )
             }
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             when {
-                state.isEmpty -> Text(s.commerces.empty, style = MaterialTheme.typography.bodyLarge)
+                state.isEmpty -> Text(
+                    if (state.isOffline && state.items.isEmpty()) s.commerces.emptyOffline else s.commerces.empty,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
                 else -> LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
                     items(state.filtered, key = { it.id }) { commerce ->
                         CommerceRow(
@@ -89,10 +106,13 @@ fun CommerceListScreen(
 @Composable
 private fun CommerceRow(commerce: Commerce, onClick: () -> Unit) {
     val s = LocalSellerStrings.current
+    val status = if (commerce.active) s.common.active else s.common.inactive
+    val summary = SellerStrings.commerceListItem(s, commerce.displayName(), status)
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
+            .listItemSummary(summary)
             .clickable(onClick = onClick),
     ) {
         Row(

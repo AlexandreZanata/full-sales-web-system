@@ -3,6 +3,7 @@ package com.fullsales.seller.app.ui.sales
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,7 +28,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.formatMoneyMinorUnits
@@ -65,10 +68,15 @@ fun CreateSaleScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(s.sales.new, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                s.sales.new,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.screenTitle(),
+            )
             CommercePickerField(
                 commerces = state.commerces,
                 commerceId = state.commerceId,
@@ -99,8 +107,15 @@ fun CreateSaleScreen(
                     canRemove = state.lines.size > 1,
                 )
             }
-            TextButton(onClick = viewModel::addLine) {
-                Icon(Icons.Default.Add, contentDescription = null)
+            TextButton(
+                onClick = viewModel::addLine,
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp),
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.clearAndSetSemantics { },
+                )
                 Text(s.sales.addLine)
             }
         }
@@ -126,11 +141,20 @@ private fun CreateSaleBottomBar(
                 Text(formatMoneyMinorUnits(totalMinor), style = MaterialTheme.typography.headlineSmall)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text(s.common.back) }
+                TextButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = 48.dp),
+                ) {
+                    Text(s.common.back)
+                }
                 Button(
                     onClick = onSubmit,
                     enabled = !submitting,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = 48.dp),
                 ) {
                     Text(if (submitting) s.common.saving else s.sales.confirm)
                 }

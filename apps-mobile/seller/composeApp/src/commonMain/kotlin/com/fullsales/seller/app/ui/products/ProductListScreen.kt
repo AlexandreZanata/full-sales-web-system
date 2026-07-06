@@ -21,8 +21,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.a11y.listItemSummary
+import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.formatProductPrice
 
@@ -38,7 +43,9 @@ fun ProductListScreen(
     PullToRefreshBox(
         isRefreshing = state.refreshing,
         onRefresh = { viewModel.refresh() },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { contentDescription = s.a11y.pullToRefresh },
     ) {
         Column(
             modifier = Modifier
@@ -46,7 +53,11 @@ fun ProductListScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(title ?: s.products.title, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                title ?: s.products.title,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.screenTitle(),
+            )
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = viewModel::setSearchQuery,
@@ -69,10 +80,14 @@ fun ProductListScreen(
 
 @Composable
 private fun ProductRow(product: Product, onClick: () -> Unit) {
+    val s = LocalSellerStrings.current
+    val price = formatProductPrice(product.priceAmount, product.priceCurrency)
+    val summary = SellerStrings.productListItem(s, product.name, product.sku, price)
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
+            .listItemSummary(summary)
             .clickable(onClick = onClick),
     ) {
         Row(

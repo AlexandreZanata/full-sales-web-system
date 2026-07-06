@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.displayName
+import com.fullsales.seller.app.a11y.AccessibilityViewModel
+import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,7 @@ data class CommerceListUiState(
     val activeOnly: Boolean = true,
     val refreshing: Boolean = false,
     val error: String? = null,
+    val isOffline: Boolean = false,
 ) {
     val filtered: List<Commerce> = items
         .asSequence()
@@ -39,6 +42,7 @@ private fun commerceMatchesSearch(commerce: Commerce, query: String): Boolean {
 class CommerceViewModel(
     private val catalogRepository: CatalogRepository,
     private val syncCoordinator: SellerSyncCoordinator,
+    private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     private val _activeOnly = MutableStateFlow(true)
@@ -62,6 +66,7 @@ class CommerceViewModel(
                     activeOnly = activeOnly,
                     refreshing = refreshing,
                     error = error,
+                    isOffline = !networkMonitor.isOnline(),
                 )
             }.collect { _state.value = it }
         }

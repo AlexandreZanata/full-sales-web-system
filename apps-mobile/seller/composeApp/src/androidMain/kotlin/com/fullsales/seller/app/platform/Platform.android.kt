@@ -3,7 +3,23 @@ package com.fullsales.seller.app.platform
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import com.fullsales.seller.shared.a11y.TextSizePreset
 import com.fullsales.seller.shared.i18n.SellerLocale
+
+actual class AccessibilityStore actual constructor() {
+    private val prefs = appContext.getSharedPreferences(PREFS_A11Y, Context.MODE_PRIVATE)
+
+    actual fun read(): TextSizePreset = TextSizePreset.fromTag(prefs.getString(KEY_TEXT_SIZE, null))
+
+    actual fun write(preset: TextSizePreset) {
+        prefs.edit().putString(KEY_TEXT_SIZE, preset.name).apply()
+    }
+
+    private companion object {
+        const val PREFS_A11Y = "seller_a11y"
+        const val KEY_TEXT_SIZE = "text_size_preset"
+    }
+}
 
 actual class LocaleStore actual constructor() {
     private val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

@@ -3,6 +3,7 @@ package com.fullsales.seller.app.ui.sales
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.a11y.selectableChipA11y
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -39,7 +41,12 @@ internal fun CommercePickerField(
     val s = LocalSellerStrings.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(s.sales.commerce, style = MaterialTheme.typography.titleMedium)
-        androidx.compose.material3.Button(onClick = onOpenPicker, modifier = Modifier.fillMaxWidth()) {
+        androidx.compose.material3.Button(
+            onClick = onOpenPicker,
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 48.dp),
+        ) {
             Text(s.sales.browseCommerces)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -48,6 +55,11 @@ internal fun CommercePickerField(
                     selected = commerce.id == commerceId,
                     onClick = { onSelect(commerce.id) },
                     label = { Text(commerce.displayName()) },
+                    modifier = Modifier.selectableChipA11y(
+                        commerce.displayName(),
+                        commerce.id == commerceId,
+                        s.a11y.selected,
+                    ),
                 )
             }
         }
@@ -76,6 +88,11 @@ internal fun PaymentMethodChips(
                     selected = selected == method,
                     onClick = { onSelect(method) },
                     label = { Text(SellerStrings.paymentMethod(s, method)) },
+                    modifier = Modifier.selectableChipA11y(
+                        SellerStrings.paymentMethod(s, method),
+                        selected == method,
+                        s.a11y.selected,
+                    ),
                 )
             }
         }
@@ -152,6 +169,11 @@ private fun ProductPickerChips(
                 selected = product.id == productId,
                 onClick = { onSelect(product.id) },
                 label = { Text("${product.name} (${product.sku})", maxLines = 1) },
+                modifier = Modifier.selectableChipA11y(
+                    "${product.name} (${product.sku})",
+                    product.id == productId,
+                    s.a11y.selected,
+                ),
             )
         }
     }

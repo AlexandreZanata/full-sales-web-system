@@ -87,6 +87,18 @@ All seller-facing HTTP routes have `SellerApiClient` methods and MockEngine unit
 
 Tests: `SyncEngineTest`, `OfflineSalePersistenceTest` (Robolectric), `OfflineSaleOutboxTest` + `CreateSaleInstrumentedTest` (instrumented).
 
+## Accessibility (Phase 66)
+
+| Feature | Implementation |
+|---------|----------------|
+| System font scale | `SellerTheme` composes `LocalDensity` with OS `fontScale` × in-app preset |
+| In-app text size | `TextSizePreset` (`Normal` 1.0 / `Large` 1.15 / `ExtraLarge` 1.3) via `AccessibilityStore` + `TextSizeSwitcher` on login and shell |
+| TalkBack labels | `SellerMessages.A11y` strings; list rows use `contentDescription` summaries |
+| Touch targets | Primary actions use `defaultMinSize(48.dp)` minimum height |
+| Commerce picker | Auto-sync on first open (`COMMERCE_PICK` / `COMMERCES`); offline empty mentions pull-to-sync |
+
+**Manual validation (Android):** Settings → Display → Font size **Largest**; enable TalkBack; walk login → sales list → create sale → commerce pick. Verify preset switcher on login and shell top bar.
+
 ## i18n
 
 Default locale: **pt-BR**. Switch EN/PT via M3 `SegmentedButton` on login and shell top bar — no app restart. Messages in `shared/i18n/`.
@@ -131,4 +143,4 @@ GitHub Actions jobs `seller-kmp` (Ubuntu) and `seller-ios` (macOS) — see [.git
 - [ADR-051](../adr/ADR-051-seller-kmp-app.md) — separate seller app vs field
 - Module README: [apps-mobile/seller/README.md](../../apps-mobile/seller/README.md)
 
-**Updated:** 2026-07-05
+**Updated:** 2026-07-06

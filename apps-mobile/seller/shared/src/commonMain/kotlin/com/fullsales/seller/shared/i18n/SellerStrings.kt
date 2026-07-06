@@ -81,6 +81,26 @@ object SellerStrings {
         vars.forEach { (key, value) -> result = result.replace("{$key}", value) }
         return result
     }
+
+    fun saleListItem(
+        messages: SellerMessages,
+        id: String,
+        date: String,
+        status: String,
+        amount: String,
+    ): String = format(
+        messages.a11y.saleListItem,
+        "id" to id,
+        "date" to date,
+        "status" to status,
+        "amount" to amount,
+    )
+
+    fun commerceListItem(messages: SellerMessages, name: String, status: String): String =
+        format(messages.a11y.commerceListItem, "name" to name, "status" to status)
+
+    fun productListItem(messages: SellerMessages, name: String, sku: String, price: String): String =
+        format(messages.a11y.productListItem, "name" to name, "sku" to sku, "price" to price)
 }
 
 enum class AuthErrorCode {

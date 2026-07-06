@@ -2,6 +2,7 @@ package com.fullsales.seller.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.app.ui.auth.AuthViewModel
@@ -35,7 +36,11 @@ class SellerViewModelFactory(
                 container.networkMonitor,
             ) as T
         modelClass.isAssignableFrom(CommerceViewModel::class.java) ->
-            CommerceViewModel(container.catalogRepository, container.syncCoordinator) as T
+            CommerceViewModel(
+                container.catalogRepository,
+                container.syncCoordinator,
+                container.networkMonitor,
+            ) as T
         modelClass.isAssignableFrom(CommerceDetailViewModel::class.java) ->
             CommerceDetailViewModel(container.apiClient) as T
         modelClass.isAssignableFrom(ProductViewModel::class.java) ->
@@ -70,6 +75,8 @@ class SellerViewModelFactory(
             ) as T
         modelClass.isAssignableFrom(LocaleViewModel::class.java) ->
             LocaleViewModel() as T
+        modelClass.isAssignableFrom(AccessibilityViewModel::class.java) ->
+            AccessibilityViewModel() as T
         else -> error("Unknown ViewModel: ${modelClass.name}")
     }
 }

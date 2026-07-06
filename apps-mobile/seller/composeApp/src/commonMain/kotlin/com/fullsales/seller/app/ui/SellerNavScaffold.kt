@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.ui.auth.AuthViewModel
 import com.fullsales.seller.app.ui.settings.SettingsUiState
@@ -25,11 +26,20 @@ internal fun NavGraphBuilder.shellRoute(
     authViewModel: AuthViewModel,
     settingsViewModel: SettingsViewModel,
     localeViewModel: LocaleViewModel,
+    accessibilityViewModel: AccessibilityViewModel,
     content: @Composable () -> Unit,
 ) {
     composable(route) {
         LaunchedEffect(Unit) { settingsViewModel.loadIfStale() }
-        ShellScaffold(route, navController, settings, syncBadge, authViewModel, localeViewModel) {
+        ShellScaffold(
+            route,
+            navController,
+            settings,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+        ) {
             content()
         }
     }
@@ -43,11 +53,12 @@ internal fun NavGraphBuilder.detailRoute(
     syncBadge: SyncBadge,
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
+    accessibilityViewModel: AccessibilityViewModel,
     content: @Composable (String) -> Unit,
 ) {
     composable(route, arguments = listOf(navArgument(argName) { type = NavType.StringType })) { entry ->
         val id = entry.arguments?.getString(argName).orEmpty()
-        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel) {
+        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
             content(id)
         }
     }
@@ -61,6 +72,7 @@ internal fun ShellScaffold(
     syncBadge: SyncBadge,
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
+    accessibilityViewModel: AccessibilityViewModel,
     content: @Composable () -> Unit,
 ) {
     SellerShellScaffold(
@@ -69,6 +81,7 @@ internal fun ShellScaffold(
         logoUrl = settings.logoUrl,
         syncBadge = syncBadge,
         localeViewModel = localeViewModel,
+        accessibilityViewModel = accessibilityViewModel,
         onNavigateSales = { navController.navigate(SellerRoutes.SALES) { launchSingleTop = true } },
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },
@@ -84,6 +97,7 @@ internal fun DetailShell(
     syncBadge: SyncBadge,
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
+    accessibilityViewModel: AccessibilityViewModel,
     content: @Composable () -> Unit,
 ) {
     SellerShellScaffold(
@@ -92,6 +106,7 @@ internal fun DetailShell(
         logoUrl = settings.logoUrl,
         syncBadge = syncBadge,
         localeViewModel = localeViewModel,
+        accessibilityViewModel = accessibilityViewModel,
         onNavigateSales = { navController.navigate(SellerRoutes.SALES) { launchSingleTop = true } },
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },

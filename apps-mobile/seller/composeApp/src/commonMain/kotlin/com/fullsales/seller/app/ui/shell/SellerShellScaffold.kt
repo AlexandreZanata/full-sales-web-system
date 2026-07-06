@@ -32,11 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.ui.SellerRoutes
 import com.fullsales.seller.app.ui.components.RemoteImage
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.i18n.LocaleSwitcher
+import com.fullsales.seller.app.ui.i18n.TextSizeSwitcher
 import com.fullsales.seller.app.ui.sync.SyncBadge
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,6 +49,7 @@ fun SellerShellScaffold(
     logoUrl: String?,
     syncBadge: SyncBadge,
     localeViewModel: LocaleViewModel,
+    accessibilityViewModel: AccessibilityViewModel,
     onNavigateSales: () -> Unit,
     onNavigateNewSale: () -> Unit,
     onLogout: () -> Unit,
@@ -54,6 +57,7 @@ fun SellerShellScaffold(
 ) {
     val s = LocalSellerStrings.current
     val locale by localeViewModel.locale.collectAsState()
+    val textSizePreset by accessibilityViewModel.preset.collectAsState()
     val showBottomBar = SellerRoutes.showsBottomBar(currentRoute)
     var menuExpanded by remember { mutableStateOf(false) }
     Scaffold(
@@ -77,6 +81,11 @@ fun SellerShellScaffold(
                     LocaleSwitcher(
                         locale = locale,
                         onLocaleChange = localeViewModel::setLocale,
+                        modifier = Modifier.padding(end = 8.dp),
+                    )
+                    TextSizeSwitcher(
+                        preset = textSizePreset,
+                        onPresetChange = accessibilityViewModel::setPreset,
                         modifier = Modifier.padding(end = 8.dp),
                     )
                     SyncBadgeChip(syncBadge)

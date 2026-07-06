@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.ui.auth.AuthViewModel
@@ -20,13 +21,18 @@ import com.fullsales.seller.app.ui.sales.SalesListScreen
 import com.fullsales.seller.app.ui.sales.SalesListViewModel
 import com.fullsales.seller.app.ui.settings.SettingsViewModel
 import com.fullsales.seller.app.ui.sync.SyncStatusViewModel
+import com.fullsales.seller.app.ui.theme.SellerTheme
 
 @Composable
 fun SellerNavHost(container: SellerAppContainer) {
     val factory = SellerViewModelFactory(container)
     val localeViewModel: LocaleViewModel = viewModel(factory = factory)
+    val accessibilityViewModel: AccessibilityViewModel = viewModel(factory = factory)
+    val textSizePreset by accessibilityViewModel.preset.collectAsState()
     SellerStringsProvider(localeViewModel) {
-        SellerNavHostContent(container, factory, localeViewModel)
+        SellerTheme(textSizePreset = textSizePreset) {
+            SellerNavHostContent(container, factory, localeViewModel, accessibilityViewModel)
+        }
     }
 }
 
@@ -35,6 +41,7 @@ private fun SellerNavHostContent(
     container: SellerAppContainer,
     factory: SellerViewModelFactory,
     localeViewModel: LocaleViewModel,
+    accessibilityViewModel: AccessibilityViewModel,
 ) {
     val authViewModel: AuthViewModel = viewModel(factory = factory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
@@ -53,6 +60,7 @@ private fun SellerNavHostContent(
             LoginScreen(
                 viewModel = authViewModel,
                 localeViewModel = localeViewModel,
+                accessibilityViewModel = accessibilityViewModel,
                 onLoggedIn = {
                     settingsViewModel.loadIfStale(force = true)
                     container.requestSync()
@@ -70,6 +78,7 @@ private fun SellerNavHostContent(
             authViewModel,
             settingsViewModel,
             localeViewModel,
+            accessibilityViewModel,
         ) {
             SalesListScreen(
                 viewModel = salesListViewModel,
@@ -85,6 +94,7 @@ private fun SellerNavHostContent(
             authViewModel,
             settingsViewModel,
             localeViewModel,
+            accessibilityViewModel,
         ) {
             NewSaleWithCommercePicker(navController, factory)
         }
@@ -96,6 +106,7 @@ private fun SellerNavHostContent(
             syncBadge,
             authViewModel,
             localeViewModel,
+            accessibilityViewModel,
         ) { id ->
             val viewModel: SaleDetailViewModel = viewModel(factory = factory)
             SaleDetailScreen(saleId = id, viewModel = viewModel)
@@ -108,6 +119,7 @@ private fun SellerNavHostContent(
             syncBadge,
             authViewModel,
             localeViewModel,
+            accessibilityViewModel,
         )
         productRoutes(
             navController,
@@ -117,6 +129,7 @@ private fun SellerNavHostContent(
             syncBadge,
             authViewModel,
             localeViewModel,
+            accessibilityViewModel,
         )
     }
 }

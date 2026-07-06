@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -99,7 +101,11 @@ private fun SaleDetailContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(s.sales.detail, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                s.sales.detail,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.screenTitle(),
+            )
             SaleStatusChip(status = detail.status)
         }
         detail.syncChip?.let { SyncStatusChip(it) }
@@ -137,7 +143,9 @@ private fun SaleDetailContent(
                 Button(
                     onClick = onConfirm,
                     enabled = !acting,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = 48.dp),
                 ) {
                     if (acting) CircularProgressIndicator(modifier = Modifier.padding(4.dp))
                     else Text(s.sales.confirmShort)
@@ -145,7 +153,9 @@ private fun SaleDetailContent(
                 OutlinedButton(
                     onClick = onCancel,
                     enabled = !acting,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = 48.dp),
                     colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),
