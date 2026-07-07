@@ -7,11 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import {
-  confirmDelivery,
-  fetchDelivery,
-  startDeliveryTransit,
-} from '@/lib/api/deliveries';
+import { confirmDelivery, fetchDelivery, startDeliveryTransit } from '@/lib/api/deliveries';
 import { uploadDeliveryProof } from '@/lib/api/uploads';
 import { ApiError } from '@/lib/api/client';
 import { useI18n } from '@/lib/i18n/context';
@@ -42,7 +38,9 @@ function DeliveryDetailPage() {
     mutationFn: () => startDeliveryTransit(id),
     onSuccess: () => void invalidate(),
     onError: (err) => {
-      setError(err instanceof ApiError ? deliveryActionErrorMessage(err.code) : t('common.loadFailed'));
+      setError(
+        err instanceof ApiError ? deliveryActionErrorMessage(err.code) : t('common.loadFailed'),
+      );
     },
   });
 
@@ -57,7 +55,9 @@ function DeliveryDetailPage() {
     },
     onSuccess: () => void invalidate(),
     onError: (err) => {
-      setError(err instanceof ApiError ? deliveryActionErrorMessage(err.code) : t('common.loadFailed'));
+      setError(
+        err instanceof ApiError ? deliveryActionErrorMessage(err.code) : t('common.loadFailed'),
+      );
     },
   });
 
@@ -85,8 +85,7 @@ function DeliveryDetailPage() {
 
       <Card className="space-y-3 text-sm">
         <p>
-          {t('deliveries.orderId')}:{' '}
-          <span className="font-mono text-xs">{delivery.orderId}</span>
+          {t('deliveries.orderId')}: <span className="font-mono text-xs">{delivery.orderId}</span>
         </p>
         {delivery.orderItems?.length ? (
           <ul className="divide-y divide-hairline border-y border-hairline">
@@ -116,7 +115,10 @@ function DeliveryDetailPage() {
 
       {isInTransit ? (
         <div className="space-y-3">
-          <label htmlFor={proofInputId} className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          <label
+            htmlFor={proofInputId}
+            className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+          >
             {t('deliveries.proofPhoto')}
           </label>
           <input

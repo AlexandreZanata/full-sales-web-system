@@ -11,11 +11,14 @@ pnpm install
 pnpm verify          # lint + test + build + Rust checks
 pnpm validate:openapi # OpenAPI 3.1 schema validation (swagger-cli)
 pnpm dev             # API (Rust) + web (Vite) in parallel
+./scripts/dev-frontends.sh   # all Vite frontends only (HMR, no Docker)
+pnpm dev:frontends   # same as the script above
 pnpm lint && pnpm test && pnpm build
 ```
 
 | App | Command | URL |
 |-----|---------|-----|
+| **All frontends** | `./scripts/dev-frontends.sh` or `pnpm dev:frontends` | web + admin + portal + field (Vite HMR) |
 | API | `pnpm dev:api` or `cd backend && cargo run -p api-http` | `http://127.0.0.1:8080/health` |
 | Web | `pnpm dev:web` | `http://127.0.0.1:5173` |
 | Admin | `pnpm dev:admin` | `http://127.0.0.1:5174` |

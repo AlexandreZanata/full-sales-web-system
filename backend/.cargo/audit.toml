@@ -1,0 +1,14 @@
+# Transitive advisories without a safe upgrade path in this workspace.
+# Revisit when printpdf migrates to >=0.10 (lopdf >=0.42) and aws-sdk drops rustls 0.21.
+
+[advisories]
+ignore = [
+    # printpdf 0.7 → lopdf 0.31; PDF export is admin-generated trusted input only.
+    "RUSTSEC-2026-0187",
+    # sqlx-core optional MySQL RSA auth; we use PostgreSQL only.
+    "RUSTSEC-2023-0071",
+    # aws-smithy-http-client (S3) pins rustls 0.21 / webpki 0.101 until upstream updates.
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+    "RUSTSEC-2026-0104",
+]

@@ -8,6 +8,7 @@ import kotlinx.cinterop.value
 import platform.CoreFoundation.CFTypeRefVar
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.NSData
+import platform.Foundation.NSMutableDictionary
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
@@ -23,6 +24,7 @@ import platform.Security.kSecMatchLimitOne
 import platform.Security.kSecReturnData
 import platform.Security.kSecValueData
 
+@OptIn(ExperimentalForeignApi::class)
 internal class KeychainTokenStore {
     fun getAccessToken(): String? = read(KEY_ACCESS)
 
@@ -38,46 +40,40 @@ internal class KeychainTokenStore {
         delete(KEY_REFRESH)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun write(account: String, value: String) {
         delete(account)
-        val data = (value as NSString).dataUsingEncoding(NSUTF8StringEncoding) ?: return
-        memScoped {
-            val query = mapOf<Any?, Any?>(
-                kSecClass to kSecClassGenericPassword,
-                kSecAttrService to SERVICE,
-                kSecAttrAccount to account,
-                kSecValueData to data,
-            )
-            SecItemAdd(query, null)
+        val data = value.toNsData() ?: return
+        val query = keychainQuery(account).apply {
+            setObject(data, forKey = kSecValueData)
         }
+        SecItemAdd(query, null)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun read(account: String): String? = memScoped {
         val result = alloc<CFTypeRefVar>()
-        val query = mapOf<Any?, Any?>(
-            kSecClass to kSecClassGenericPassword,
-            kSecAttrService to SERVICE,
-            kSecAttrAccount to account,
-            kSecReturnData to kCFBooleanTrue,
-            kSecMatchLimit to kSecMatchLimitOne,
-        )
+        val query = keychainQuery(account).apply {
+            setObject(kCFBooleanTrue, forKey = kSecReturnData)
+            setObject(kSecMatchLimitOne, forKey = kSecMatchLimit)
+        }
         val status = SecItemCopyMatching(query, result.ptr)
         if (status.toInt() != 0) return null
         val data = result.value as? NSData ?: return null
         NSString.create(data, NSUTF8StringEncoding) as String
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun delete(account: String) {
-        val query = mapOf<Any?, Any?>(
-            kSecClass to kSecClassGenericPassword,
-            kSecAttrService to SERVICE,
-            kSecAttrAccount to account,
-        )
-        SecItemDelete(query)
+        SecItemDelete(keychainQuery(account))
     }
+
+    private fun keychainQuery(account: String): NSMutableDictionary =
+        NSMutableDictionary().apply {
+            setObject(kSecClassGenericPassword, forKey = kSecClass)
+            setObject(SERVICE, forKey = kSecAttrService)
+            setObject(account, forKey = kSecAttrAccount)
+        }
+
+    private fun String.toNsData(): NSData? =
+        NSString.create(string = this).dataUsingEncoding(NSUTF8StringEncoding)
 
     private companion object {
         const val SERVICE = "com.fullsales.seller.tokens"

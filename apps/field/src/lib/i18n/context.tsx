@@ -4,7 +4,13 @@ import type { MessageKey, Messages } from '@/lib/i18n/messages';
 import { en } from '@/lib/i18n/locales/en';
 import { ptBR } from '@/lib/i18n/locales/pt-BR';
 import { resolveInitialLocale, writeStoredLocale } from '@/lib/i18n/storage';
-import { formatMessage, deliveryStatusLabel, paymentMethodLabel, saleStatusLabel, translate } from '@/lib/i18n/translate';
+import {
+  formatMessage,
+  deliveryStatusLabel,
+  paymentMethodLabel,
+  saleStatusLabel,
+  translate,
+} from '@/lib/i18n/translate';
 import { LOCALE_LABELS, type Locale } from '@/lib/i18n/types';
 
 type I18nContextValue = {

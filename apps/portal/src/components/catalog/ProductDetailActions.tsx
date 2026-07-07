@@ -27,9 +27,8 @@ export function ProductDetailActions({
   const navigate = useNavigate();
   const { addProduct } = useCart();
 
-  const contactHref =
-    salesContactPhone?.trim() ?
-      buildSellerWhatsAppLink(salesContactPhone, product, productUrl)
+  const contactHref = salesContactPhone?.trim()
+    ? buildSellerWhatsAppLink(salesContactPhone, product, productUrl)
     : null;
 
   const placeOrder = () => {
@@ -47,7 +46,11 @@ export function ProductDetailActions({
       >
         {t('productDetail.addToCart')}
       </Button>
-      <Button className="w-full sm:w-auto sm:min-w-[10rem]" variant="secondary" onClick={placeOrder}>
+      <Button
+        className="w-full sm:w-auto sm:min-w-[10rem]"
+        variant="secondary"
+        onClick={placeOrder}
+      >
         {t('productDetail.placeOrder')}
       </Button>
       {contactHref ? (

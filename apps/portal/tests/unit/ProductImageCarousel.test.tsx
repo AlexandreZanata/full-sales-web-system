@@ -16,7 +16,9 @@ describe('ProductImageCarousel — Phase 49 contract', () => {
 
     expect(screen.getByRole('img', { name: 'Widget A' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Go to image|Ir para imagem/ })).toHaveLength(3);
-    expect(screen.getByRole('button', { name: /Previous image|Imagem anterior/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Previous image|Imagem anterior/ }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Next image|Próxima imagem/ })).toBeInTheDocument();
   });
 
@@ -24,7 +26,11 @@ describe('ProductImageCarousel — Phase 49 contract', () => {
     renderWithI18n(<ProductImageCarousel slides={[slides[0] as (typeof slides)[number]]} />);
 
     expect(screen.getByRole('img', { name: 'Widget A' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Previous image|Imagem anterior/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Go to image|Ir para imagem/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Previous image|Imagem anterior/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Go to image|Ir para imagem/ }),
+    ).not.toBeInTheDocument();
   });
 });

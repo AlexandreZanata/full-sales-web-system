@@ -49,9 +49,9 @@ function ProductDetailPage() {
 
   const catalogSearch = product.categorySlug ?? categorySlug;
   const productUrl =
-    typeof window !== 'undefined' ?
-      `${window.location.origin}/products/${product.id}${catalogSearch ? `?category=${encodeURIComponent(catalogSearch)}` : ''}`
-    : `/products/${product.id}`;
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/products/${product.id}${catalogSearch ? `?category=${encodeURIComponent(catalogSearch)}` : ''}`
+      : `/products/${product.id}`;
 
   return (
     <div className="space-y-6 pb-24 md:pb-0">

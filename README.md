@@ -64,6 +64,9 @@ pnpm verify
 # Dev: API (Rust) + web (Vite) in parallel
 pnpm dev
 
+# All web frontends only (Vite HMR, no Docker — API must be running separately)
+./scripts/dev-frontends.sh
+
 # API only
 pnpm dev:api          # GET http://127.0.0.1:8080/health
 

@@ -8,7 +8,5 @@ export function DeliveryStatusBadge({ status, className }: DeliveryStatusBadgePr
   const { deliveryStatus } = useI18n();
   const token = getDeliveryStatusToken(status);
 
-  return (
-    <DomainStatusBadge colors={token} label={deliveryStatus(status)} className={className} />
-  );
+  return <DomainStatusBadge colors={token} label={deliveryStatus(status)} className={className} />;
 }

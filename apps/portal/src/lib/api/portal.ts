@@ -52,7 +52,10 @@ function buildProductListQuery(params: PortalProductsParams): string {
 }
 
 export async function fetchPortalCategories(): Promise<PortalCategory[]> {
-  const { path, init } = portalAuthPath('/portal/categories?limit=100', '/public/categories?limit=100');
+  const { path, init } = portalAuthPath(
+    '/portal/categories?limit=100',
+    '/public/categories?limit=100',
+  );
   const response = await apiFetch<CursorListResponse<PortalCategory>>(path, init);
   return response.data;
 }
