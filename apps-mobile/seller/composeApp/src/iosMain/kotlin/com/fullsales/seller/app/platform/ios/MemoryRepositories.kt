@@ -78,16 +78,27 @@ internal class MemorySaleRepository : SaleRepository {
             sale
         }
 
-    override suspend fun updateStatus(localId: String, status: LocalSaleStatus) = mutex.withLock {
-        sales[localId]?.let { sales[localId] = it.copy(status = status) }
-        flow.value = sales.values.toList()
+    override suspend fun updateStatus(localId: String, status: LocalSaleStatus) {
+        mutex.withLock {
+            sales[localId]?.let { sales[localId] = it.copy(status = status) }
+            flow.value = sales.values.toList()
+        }
     }
 
-    override suspend fun markSyncFailed(localId: String, reason: String) = mutex.withLock {
-        sales[localId]?.let {
-            sales[localId] = it.copy(status = LocalSaleStatus.SyncFailed, syncFailureReason = reason)
+    override suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus) {
+        mutex.withLock {
+            sales[localId]?.let { sales[localId] = it.copy(remoteId = remoteId, status = status) }
+            flow.value = sales.values.toList()
         }
-        flow.value = sales.values.toList()
+    }
+
+    override suspend fun markSyncFailed(localId: String, reason: String) {
+        mutex.withLock {
+            sales[localId]?.let {
+                sales[localId] = it.copy(status = LocalSaleStatus.SyncFailed, syncFailureReason = reason)
+            }
+            flow.value = sales.values.toList()
+        }
     }
 }
 
@@ -103,12 +114,16 @@ internal class MemoryOutboxRepository : SyncOutboxRepository {
         entries.values.filter { !it.completed }.sortedBy { it.createdAtEpochMs }
     }
 
-    override suspend fun markCompleted(id: String) = mutex.withLock {
-        entries[id]?.let { entries[id] = it.copy(completed = true) }
+    override suspend fun markCompleted(id: String) {
+        mutex.withLock {
+            entries[id]?.let { entries[id] = it.copy(completed = true) }
+        }
     }
 
-    override suspend fun markFailed(id: String, error: String?) = mutex.withLock {
-        entries[id]?.let { entries[id] = it.copy(attempts = it.attempts + 1, lastError = error) }
+    override suspend fun markFailed(id: String, error: String?) {
+        mutex.withLock {
+            entries[id]?.let { entries[id] = it.copy(attempts = it.attempts + 1, lastError = error) }
+        }
     }
 
     override suspend fun countPendingForSale(saleLocalId: String): Int = mutex.withLock {

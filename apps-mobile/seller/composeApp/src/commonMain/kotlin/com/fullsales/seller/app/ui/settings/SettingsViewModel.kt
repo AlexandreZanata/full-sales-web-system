@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.model.SiteSettings
+import com.fullsales.seller.shared.model.currentEpochMs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +24,7 @@ class SettingsViewModel(
     private var fetchedAtEpochMs: Long = 0L
 
     fun loadIfStale(force: Boolean = false) {
-        val now = System.currentTimeMillis()
+        val now = currentEpochMs()
         if (!force && now - fetchedAtEpochMs < STALE_MS && _state.value.displayName != null) return
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true)

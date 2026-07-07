@@ -1,5 +1,9 @@
 package com.fullsales.seller.shared.model
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
 /** Formats minor-unit amount (centavos) as BRL currency. */
 fun formatMoneyMinorUnits(amountMinor: Long, currency: String = "BRL"): String {
     require(currency == "BRL") { "Only BRL formatting is supported" }
@@ -18,6 +22,22 @@ fun formatMoneyMinorUnits(amountMinor: Long, currency: String = "BRL"): String {
 
 fun formatProductPrice(priceAmount: Double, currency: String): String =
     formatMoneyMinorUnits(priceAmount.toLong(), currency)
+
+/** dd/MM/yyyy HH:mm in the device time zone. */
+fun formatSalesListDateTime(epochMs: Long): String {
+    val dt = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(TimeZone.currentSystemDefault())
+    return buildString {
+        append(dt.dayOfMonth.toString().padStart(2, '0'))
+        append('/')
+        append(dt.monthNumber.toString().padStart(2, '0'))
+        append('/')
+        append(dt.year)
+        append(' ')
+        append(dt.hour.toString().padStart(2, '0'))
+        append(':')
+        append(dt.minute.toString().padStart(2, '0'))
+    }
+}
 
 fun stockBadgeLabel(available: Int?): String = when {
     available == null -> "Stock unknown"

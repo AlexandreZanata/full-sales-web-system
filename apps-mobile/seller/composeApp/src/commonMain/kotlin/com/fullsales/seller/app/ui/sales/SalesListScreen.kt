@@ -33,10 +33,8 @@ import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.SalesListItem
-import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.fullsales.seller.shared.model.formatMoneyMinorUnits
+import com.fullsales.seller.shared.model.formatSalesListDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,10 +91,8 @@ fun SalesListScreen(
 @Composable
 private fun SaleRow(sale: SalesListItem, onClick: () -> Unit) {
     val s = LocalSellerStrings.current
-    val moneyLocale = if (sale.totalCurrency == "BRL") Locale("pt", "BR") else Locale.getDefault()
-    val money = NumberFormat.getCurrencyInstance(moneyLocale).format(sale.totalAmount)
-    val dateLabel = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        .format(Date(sale.createdAtEpochMs))
+    val money = formatMoneyMinorUnits(sale.totalAmount.toLong(), sale.totalCurrency)
+    val dateLabel = formatSalesListDateTime(sale.createdAtEpochMs)
     val statusLabel = SellerStrings.saleStatus(s, sale.status)
     val summary = SellerStrings.saleListItem(s, sale.shortId, dateLabel, statusLabel, money)
     Card(

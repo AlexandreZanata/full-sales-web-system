@@ -2,6 +2,8 @@ package com.fullsales.seller.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.CreationExtras
+import kotlin.reflect.KClass
 import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.platform.CommerceRegistrationDraftStore
@@ -30,41 +32,41 @@ class SellerViewModelFactory(
 ) : ViewModelProvider.Factory {
     val mediaUrlResolver: MediaUrlResolver get() = container.mediaUrlResolver
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
-        modelClass.isAssignableFrom(AuthViewModel::class.java) ->
+    override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T = when (modelClass) {
+        AuthViewModel::class ->
             AuthViewModel(container.apiClient, container.tokenStore) as T
-        modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
+        SettingsViewModel::class ->
             SettingsViewModel(container.apiClient) as T
-        modelClass.isAssignableFrom(SalesListViewModel::class.java) ->
+        SalesListViewModel::class ->
             SalesListViewModel(
                 container.apiClient,
                 container.saleRepository,
                 container.syncCoordinator,
                 container.networkMonitor,
             ) as T
-        modelClass.isAssignableFrom(CommerceViewModel::class.java) ->
+        CommerceViewModel::class ->
             CommerceViewModel(
                 container.catalogRepository,
                 container.syncCoordinator,
                 container.networkMonitor,
             ) as T
-        modelClass.isAssignableFrom(CommerceDetailViewModel::class.java) ->
+        CommerceDetailViewModel::class ->
             CommerceDetailViewModel(container.apiClient) as T
-        modelClass.isAssignableFrom(CnpjLookupViewModel::class.java) ->
+        CnpjLookupViewModel::class ->
             CnpjLookupViewModel(container.apiClient, container.networkMonitor) as T
-        modelClass.isAssignableFrom(CommerceRegistrationViewModel::class.java) ->
+        CommerceRegistrationViewModel::class ->
             CommerceRegistrationViewModel(
                 container.apiClient,
                 container.networkMonitor,
                 CommerceRegistrationDraftStore(),
             ) as T
-        modelClass.isAssignableFrom(MyRegistrationsViewModel::class.java) ->
+        MyRegistrationsViewModel::class ->
             MyRegistrationsViewModel(container.apiClient, container.networkMonitor) as T
-        modelClass.isAssignableFrom(ProductViewModel::class.java) ->
+        ProductViewModel::class ->
             ProductViewModel(container.catalogRepository, container.syncCoordinator) as T
-        modelClass.isAssignableFrom(ProductDetailViewModel::class.java) ->
+        ProductDetailViewModel::class ->
             ProductDetailViewModel(container.apiClient, container.mediaUrlResolver) as T
-        modelClass.isAssignableFrom(CreateSaleViewModel::class.java) ->
+        CreateSaleViewModel::class ->
             CreateSaleViewModel(
                 container.apiClient,
                 container.catalogRepository,
@@ -72,7 +74,7 @@ class SellerViewModelFactory(
                 container.networkMonitor,
                 CreateSaleDraftStore(),
             ) as T
-        modelClass.isAssignableFrom(SaleDetailViewModel::class.java) ->
+        SaleDetailViewModel::class ->
             SaleDetailViewModel(
                 SaleDetailLoader(container.apiClient, container.saleRepository),
                 SaleActionSubmitter(
@@ -84,17 +86,17 @@ class SellerViewModelFactory(
                 container.catalogRepository,
                 container.networkMonitor,
             ) as T
-        modelClass.isAssignableFrom(SyncStatusViewModel::class.java) ->
+        SyncStatusViewModel::class ->
             SyncStatusViewModel(
                 container,
                 container.saleRepository,
                 container.outboxRepository,
                 container.networkMonitor,
             ) as T
-        modelClass.isAssignableFrom(LocaleViewModel::class.java) ->
+        LocaleViewModel::class ->
             LocaleViewModel() as T
-        modelClass.isAssignableFrom(AccessibilityViewModel::class.java) ->
+        AccessibilityViewModel::class ->
             AccessibilityViewModel() as T
-        else -> error("Unknown ViewModel: ${modelClass.name}")
+        else -> error("Unknown ViewModel: ${modelClass.simpleName}")
     }
 }
