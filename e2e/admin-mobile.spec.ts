@@ -2,6 +2,11 @@ import { expect, test } from '@playwright/test';
 
 import { seedEnglishLocale } from './fixtures/locale';
 
+const emptyCursorPage = {
+  data: [],
+  pagination: { next_cursor: null, has_more: false, limit: 20 },
+};
+
 test.describe('Admin mobile navigation', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
@@ -11,14 +16,17 @@ test.describe('Admin mobile navigation', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ page: 1, pageSize: 20, total: 0, items: [] }),
+        body: JSON.stringify(emptyCursorPage),
       });
     });
     await page.route('**/v1/users?*', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ page: 1, pageSize: 50, total: 0, items: [] }),
+        body: JSON.stringify({
+          ...emptyCursorPage,
+          pagination: { ...emptyCursorPage.pagination, limit: 50 },
+        }),
       });
     });
     await page.goto('/login');
