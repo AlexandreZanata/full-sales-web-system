@@ -144,6 +144,27 @@ fn normalize_sales_contact_phone(raw: &str) -> Result<Option<String>, ApiError> 
     Ok(Some(digits))
 }
 
+/// Missing logo blob must not fail settings — branding still returns without `logoUrl`.
+async fn resolve_logo_url(
+    state: &AppState,
+    tenant_id: domain_shared::TenantId,
+    file_id: Uuid,
+) -> Result<Option<String>, ApiError> {
+    let Some(file) = infra_postgres::media::find_file_by_id(&state.app_pool, tenant_id, file_id)
+        .await
+        .map_err(|_| ApiError::internal())?
+    else {
+        return Ok(None);
+    };
+    match media::presign_object(state, &file.bucket, &file.object_key).await {
+        Ok(presigned) => Ok(Some(media::authenticated_media_content_url(
+            file_id,
+            &presigned.url,
+        ))),
+        Err(_) => Ok(None),
+    }
+}
+
 async fn settings_response(
     state: &AppState,
     tenant_id: domain_shared::TenantId,
@@ -154,17 +175,7 @@ async fn settings_response(
         .ok_or_else(ApiError::not_found)?;
 
     let logo_url = match row.logo_file_id {
-        Some(file_id) => {
-            let file = infra_postgres::media::find_file_by_id(&state.app_pool, tenant_id, file_id)
-                .await
-                .map_err(|_| ApiError::internal())?
-                .ok_or_else(ApiError::internal)?;
-            let presigned = media::presign_object(state, &file.bucket, &file.object_key).await?;
-            Some(media::authenticated_media_content_url(
-                file_id,
-                &presigned.url,
-            ))
-        }
+        Some(file_id) => resolve_logo_url(state, tenant_id, file_id).await?,
         None => None,
     };
 

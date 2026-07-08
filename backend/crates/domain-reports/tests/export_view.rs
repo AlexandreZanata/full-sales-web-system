@@ -38,13 +38,14 @@ fn given_invalid_json_when_parsed_then_invalid_json() {
 }
 
 #[test]
-fn given_commerce_period_when_parsed_then_unsupported_type() {
+fn given_commerce_period_or_consolidated_when_parsed_then_same_view_as_daily_driver() {
     let payload = assembly_with_sales(vec![]).assemble().expect("assemble");
-    let err = parse_export_view("CommercePeriod", &payload.canonical_json).expect_err("type");
-    assert!(matches!(
-        err,
-        ReportExportError::UnsupportedReportType(value) if value == "CommercePeriod"
-    ));
+    let daily = parse_export_view("DailyDriver", &payload.canonical_json).expect("daily");
+    let commerce = parse_export_view("CommercePeriod", &payload.canonical_json).expect("commerce");
+    let consolidated =
+        parse_export_view("Consolidated", &payload.canonical_json).expect("consolidated");
+    assert_eq!(commerce, daily);
+    assert_eq!(consolidated, daily);
 }
 
 #[test]

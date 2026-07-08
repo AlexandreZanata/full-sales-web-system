@@ -10,15 +10,13 @@ pub fn parse_export_view(
     canonical_json: &str,
 ) -> Result<ReportExportView, ReportExportError> {
     match report_type {
-        "DailyDriver" => parse_daily_driver(canonical_json),
-        "CommercePeriod" | "Consolidated" => Err(ReportExportError::UnsupportedReportType(
-            report_type.to_owned(),
-        )),
+        // Canonical payload v2 is shared across report types (period/sales/settlement).
+        "DailyDriver" | "CommercePeriod" | "Consolidated" => parse_signed_report(canonical_json),
         other => Err(ReportExportError::UnsupportedReportType(other.to_owned())),
     }
 }
 
-fn parse_daily_driver(canonical_json: &str) -> Result<ReportExportView, ReportExportError> {
+fn parse_signed_report(canonical_json: &str) -> Result<ReportExportView, ReportExportError> {
     let value: Value =
         serde_json::from_str(canonical_json).map_err(|_| ReportExportError::InvalidJson)?;
 

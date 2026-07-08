@@ -3,6 +3,9 @@ pub mod error;
 pub mod format;
 pub mod parse;
 pub mod pdf;
+mod pdf_body;
+mod pdf_draw;
+mod pdf_header;
 pub mod view;
 pub mod xlsx;
 

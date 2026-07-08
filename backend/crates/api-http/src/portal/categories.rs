@@ -193,6 +193,7 @@ pub(crate) async fn category_response(
     })
 }
 
+/// Missing blob must not fail category list/detail/PUT image.
 pub(crate) async fn category_thumb_url(
     state: &AppState,
     tenant_id: TenantId,
@@ -201,21 +202,25 @@ pub(crate) async fn category_thumb_url(
     let Some(file_id) = image_file_id else {
         return Ok(None);
     };
-    let file = infra_postgres::media::find_file_by_id(&state.app_pool, tenant_id, file_id)
+    let Some(file) = infra_postgres::media::find_file_by_id(&state.app_pool, tenant_id, file_id)
         .await
         .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::internal)?;
+    else {
+        return Ok(None);
+    };
     let ttl =
         std::time::Duration::from_secs(infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS);
-    let presigned = state
+    match state
         .storage
         .presigned_get(&file.bucket, &file.object_key, ttl)
         .await
-        .map_err(|_| ApiError::internal())?;
-    Ok(Some(crate::media::catalog_image_url(
-        file_id,
-        &presigned.url,
-    )))
+    {
+        Ok(presigned) => Ok(Some(crate::media::catalog_image_url(
+            file_id,
+            &presigned.url,
+        ))),
+        Err(_) => Ok(None),
+    }
 }
 
 fn require_commerce_contact(auth: &AuthUser) -> Result<(), ApiError> {
