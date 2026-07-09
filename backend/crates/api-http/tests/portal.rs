@@ -71,6 +71,7 @@ async fn setup() -> PortalEnv {
         catalog_events: AppState::default_catalog_events(),
         cnpj_lookup_rate_limit: AppState::default_cnpj_lookup_rate_limit(),
         cnpj_lookup: AppState::mock_cnpj_lookup(),
+        cnpj_miss_cache: AppState::in_memory_cnpj_miss_cache(),
     };
 
     let commerce_a = Uuid::now_v7();

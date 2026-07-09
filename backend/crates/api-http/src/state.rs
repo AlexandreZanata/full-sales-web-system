@@ -6,7 +6,7 @@ use infra_crypto::JwtService;
 use infra_postgres::PgPool;
 use infra_redis::{
     IdempotencyStore, InMemoryIdempotencyStore, InMemoryRateLimiter, RateLimitPolicy, RateLimiter,
-    RefreshTokenStore,
+    RefreshTokenStore, CnpjMissCache, InMemoryCnpjMissCache,
 };
 use infra_storage::{InMemoryObjectStorage, LocalFsObjectStorage, ObjectStorage};
 
@@ -32,6 +32,7 @@ pub struct AppState {
     pub report_signing_key: Option<SigningKey>,
     pub catalog_events: Arc<CatalogEventHub>,
     pub cnpj_lookup: Arc<dyn CnpjLookupProvider>,
+    pub cnpj_miss_cache: Arc<dyn CnpjMissCache>,
 }
 
 impl AppState {
@@ -71,6 +72,10 @@ impl AppState {
 
     pub fn mock_cnpj_lookup() -> Arc<dyn CnpjLookupProvider> {
         Arc::new(crate::cnpj_lookup::MockCnpjLookup)
+    }
+
+    pub fn in_memory_cnpj_miss_cache() -> Arc<dyn CnpjMissCache> {
+        Arc::new(InMemoryCnpjMissCache::new())
     }
 
     pub fn default_catalog_events() -> Arc<CatalogEventHub> {

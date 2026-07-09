@@ -35,9 +35,16 @@ pub async fn lookup_cnpj(
         return Err(ApiError::rate_limited());
     }
 
+    if state.cnpj_miss_cache.is_negative(&digits).await {
+        return Err(ApiError::cnpj_not_found());
+    }
+
     match state.cnpj_lookup.lookup(&digits).await {
         Ok(result) => Ok(axum::Json(result)),
-        Err(CnpjLookupError::NotFound) => Err(ApiError::cnpj_not_found()),
+        Err(CnpjLookupError::NotFound) => {
+            let _ = state.cnpj_miss_cache.record_negative(&digits).await;
+            Err(ApiError::cnpj_not_found())
+        }
         Err(CnpjLookupError::Unavailable) => Err(ApiError::cnpj_lookup_unavailable()),
     }
 }

@@ -51,6 +51,8 @@ Reuse logic from [`@br-validators`](https://github.com/AlexandreZanata/br-valida
 
 API key is server-side only; clients use the unchanged Full Sales lookup contract.
 
+`CNPJ_NOT_FOUND` responses are cached in Redis for 24h (`cnpj-lookup:miss:{cnpj}`) to reduce upstream quota use. Cutover runbook: [docs/runbooks/opencnpj-cutover.md](runbooks/opencnpj-cutover.md).
+
 ---
 
 ## Production deployment (planned)

@@ -78,9 +78,14 @@ impl RefreshTokenStore for InMemoryRefreshTokenStore {
 
 pub mod redis_store;
 
+pub mod cnpj_miss_cache;
 pub mod idempotency;
 pub mod rate_limit;
 
+pub use cnpj_miss_cache::{
+    CNPJ_MISS_TTL, CnpjMissCache, InMemoryCnpjMissCache, MissCacheError, RedisCnpjMissCache,
+    miss_key,
+};
 pub use idempotency::{IdempotencyRecord, IdempotencyStore, InMemoryIdempotencyStore};
 pub use rate_limit::{InMemoryRateLimiter, RateLimitPolicy, RateLimiter};
 pub use redis_store::RedisRefreshTokenStore;

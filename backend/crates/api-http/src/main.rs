@@ -4,6 +4,7 @@ use std::sync::Arc;
 use api_http::{AppState, app, full_app, init_tracing, listen_addr};
 use application::REFRESH_TOKEN_TTL;
 use infra_redis::{InMemoryRefreshTokenStore, RedisRefreshTokenStore, RefreshTokenStore};
+use infra_redis::{InMemoryCnpjMissCache, RedisCnpjMissCache, CnpjMissCache};
 use tokio::net::TcpListener;
 use tracing::info;
 
@@ -61,6 +62,13 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
             Arc::new(InMemoryRefreshTokenStore::new())
         };
 
+    let cnpj_miss_cache: Arc<dyn CnpjMissCache> =
+        if let Ok(redis_url) = std::env::var("REDIS_URL") {
+            Arc::new(RedisCnpjMissCache::connect(&redis_url).await?)
+        } else {
+            Arc::new(InMemoryCnpjMissCache::new())
+        };
+
     let state = AppState {
         admin_pool,
         app_pool,
@@ -76,6 +84,7 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         report_signing_key: AppState::report_signing_key_from_env(),
         catalog_events: AppState::default_catalog_events(),
         cnpj_lookup: api_http::cnpj_lookup::default_cnpj_lookup_provider(),
+        cnpj_miss_cache,
     };
 
     Ok(full_app(state))
