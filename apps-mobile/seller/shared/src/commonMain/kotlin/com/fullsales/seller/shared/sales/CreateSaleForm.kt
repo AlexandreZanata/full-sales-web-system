@@ -88,3 +88,21 @@ fun buildCreateSaleRequest(
         items = items,
     )
 }
+
+/** Quantity reserved in the open sale form for one product (all lines). */
+fun reservedQuantityInSale(lines: List<CreateSaleLineInput>, productId: String): Int =
+    lines.filter { it.productId == productId }
+        .sumOf { it.quantityText.toIntOrNull() ?: 0 }
+
+/**
+ * Stock badge value while composing a sale. Decreases as lines are added; backend balance
+ * is unchanged until the sale is submitted.
+ */
+fun visualStockRemaining(
+    availableStock: Int?,
+    lines: List<CreateSaleLineInput>,
+    productId: String,
+): Int? {
+    if (availableStock == null || productId.isBlank()) return availableStock
+    return (availableStock - reservedQuantityInSale(lines, productId)).coerceAtLeast(0)
+}

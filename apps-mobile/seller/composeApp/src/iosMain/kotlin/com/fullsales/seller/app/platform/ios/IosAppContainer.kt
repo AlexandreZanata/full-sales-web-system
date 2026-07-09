@@ -6,6 +6,8 @@ import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.app.platform.SellerTokenStore
 import com.fullsales.seller.shared.api.AuthTokenProvider
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.api.apiBaseUrl
+import com.fullsales.seller.shared.media.productThumbnailLoadUrl
 import com.fullsales.seller.shared.api.SellerSyncTransport
 import com.fullsales.seller.shared.api.TokenRefreshHandler
 import com.fullsales.seller.shared.api.createSellerHttpClient
@@ -76,9 +78,13 @@ private class IosMediaUrlResolver(
     private val apiClient: SellerApiClient,
 ) : MediaUrlResolver {
     override suspend fun resolveImageUrl(directUrl: String?, fileId: String?): String? {
-        directUrl?.takeIf { it.isNotBlank() }?.let { return it }
+        directUrl?.takeIf { it.isNotBlank() }?.let {
+            return productThumbnailLoadUrl(it, apiBaseUrl)
+        }
         val id = fileId?.takeIf { it.isNotBlank() } ?: return null
-        return runCatching { apiClient.getMediaUrl(id).url }.getOrNull()
+        return runCatching {
+            productThumbnailLoadUrl(apiClient.getMediaUrl(id).url, apiBaseUrl)
+        }.getOrNull()
     }
 }
 

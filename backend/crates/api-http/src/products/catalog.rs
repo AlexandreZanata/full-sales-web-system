@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::products::{
-    ProductResponse, product_response_from_row, require_can_read_products,
+    ProductResponse, require_can_read_products,
     require_can_write_products,
 };
 use crate::state::AppState;
@@ -145,7 +145,16 @@ pub async fn get_product(
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::product_not_found)?;
-    Ok(Json(product_detail_from_row(&row)))
+    let images = super::primary_image::load_primary_images_by_product_id(
+        &state,
+        auth.tenant_id,
+        &[id],
+    )
+    .await?;
+    Ok(Json(product_detail_from_row(
+        &row,
+        images.get(&id).cloned(),
+    )))
 }
 
 pub async fn update_product(
@@ -239,9 +248,12 @@ async fn ensure_category(
     }
 }
 
-fn product_detail_from_row(row: &infra_postgres::inventory::ProductRow) -> ProductDetailResponse {
+fn product_detail_from_row(
+    row: &infra_postgres::inventory::ProductRow,
+    primary_image: Option<super::primary_image::PrimaryImageRef>,
+) -> ProductDetailResponse {
     ProductDetailResponse {
-        product: product_response_from_row(row),
+        product: super::product_response_from_row(row, primary_image),
         category_id: row.category_id,
         category_name: row.category_name.clone(),
         category_slug: row.category_slug.clone(),

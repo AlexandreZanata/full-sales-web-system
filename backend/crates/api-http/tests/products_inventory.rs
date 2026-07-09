@@ -280,6 +280,30 @@ async fn contract_list_product_images_when_attached_then_returns_data() {
     assert_eq!(items[0]["fileId"].as_str(), Some(file_id));
     assert_eq!(items[0]["isPrimary"], true);
 
+    let (products_status, products_body) = request(
+        &env,
+        "GET",
+        "/v1/products?limit=20",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(products_status, StatusCode::OK);
+    let product = products_body["data"]
+        .as_array()
+        .expect("data")
+        .iter()
+        .find(|item| item["id"].as_str() == Some(product_id))
+        .expect("product in list");
+    assert_eq!(product["primaryImageFileId"].as_str(), Some(file_id));
+    let image_url = product["primaryImageUrl"]
+        .as_str()
+        .expect("primaryImageUrl");
+    assert!(
+        image_url.starts_with("/v1/public/media/"),
+        "expected public media url, got {image_url}"
+    );
+
     let _ = admin_id;
 }
 

@@ -23,7 +23,7 @@ import com.fullsales.seller.shared.db.entity.SyncMetadataEntity
         SyncOutboxEntity::class,
         SyncMetadataEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class SellerDatabase : RoomDatabase() {

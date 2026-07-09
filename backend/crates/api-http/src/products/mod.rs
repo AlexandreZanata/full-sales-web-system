@@ -16,6 +16,7 @@ use crate::state::AppState;
 
 pub mod catalog;
 pub mod catalog_images;
+pub mod primary_image;
 pub mod top_selling;
 
 #[derive(Serialize)]
@@ -34,10 +35,15 @@ pub struct ProductResponse {
     pub category_name: Option<String>,
     #[serde(rename = "categorySlug", skip_serializing_if = "Option::is_none")]
     pub category_slug: Option<String>,
+    #[serde(rename = "primaryImageUrl", skip_serializing_if = "Option::is_none")]
+    pub primary_image_url: Option<String>,
+    #[serde(rename = "primaryImageFileId", skip_serializing_if = "Option::is_none")]
+    pub primary_image_file_id: Option<uuid::Uuid>,
 }
 
 pub(crate) fn product_response_from_row(
     row: &infra_postgres::inventory::ProductRow,
+    primary_image: Option<primary_image::PrimaryImageRef>,
 ) -> ProductResponse {
     ProductResponse {
         id: row.id,
@@ -49,6 +55,8 @@ pub(crate) fn product_response_from_row(
         category_id: row.category_id,
         category_name: row.category_name.clone(),
         category_slug: row.category_slug.clone(),
+        primary_image_url: primary_image.as_ref().and_then(|image| image.url.clone()),
+        primary_image_file_id: primary_image.map(|image| image.file_id),
     }
 }
 
@@ -71,7 +79,20 @@ pub async fn list_products(
     .await
     .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
-    let items: Vec<ProductResponse> = rows.iter().map(product_response_from_row).collect();
+    let product_ids: Vec<uuid::Uuid> = rows.iter().map(|row| row.id).collect();
+    let images = primary_image::load_primary_images_by_product_id(
+        &state,
+        auth.tenant_id,
+        &product_ids,
+    )
+    .await
+    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+    let items: Vec<ProductResponse> = rows
+        .iter()
+        .map(|row| {
+            product_response_from_row(row, images.get(&row.id).cloned())
+        })
+        .collect();
     Ok(Json(build_cursor_page(
         items,
         parsed.pagination.limit,

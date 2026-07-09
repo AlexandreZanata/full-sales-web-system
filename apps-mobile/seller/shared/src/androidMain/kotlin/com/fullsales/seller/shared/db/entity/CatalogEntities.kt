@@ -22,4 +22,6 @@ data class ProductEntity(
     val categoryId: String? = null,
     val categoryName: String? = null,
     val categorySlug: String? = null,
+    val primaryImageUrl: String? = null,
+    val primaryImageFileId: String? = null,
 )

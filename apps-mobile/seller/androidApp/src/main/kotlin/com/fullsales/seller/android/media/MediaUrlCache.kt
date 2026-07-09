@@ -2,6 +2,8 @@ package com.fullsales.seller.android.media
 
 import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.api.apiBaseUrl
+import com.fullsales.seller.shared.media.productThumbnailLoadUrl
 import java.time.Instant
 
 class MediaUrlCache(
@@ -14,13 +16,16 @@ class MediaUrlCache(
     private val cache = mutableMapOf<String, Cached>()
 
     override suspend fun resolveImageUrl(directUrl: String?, fileId: String?): String? {
-        directUrl?.takeIf { it.isNotBlank() }?.let { return it }
+        directUrl?.takeIf { it.isNotBlank() }?.let {
+            return productThumbnailLoadUrl(it, apiBaseUrl)
+        }
         val id = fileId?.takeIf { it.isNotBlank() } ?: return null
         cache[id]?.takeIf { !isExpired(it) }?.let { return it.url }
         val response = runCatching { apiClient.getMediaUrl(id) }.getOrNull() ?: return null
-        val expiresAt = parseEpochSeconds(response.expiresAt) ?: return response.url
-        cache[id] = Cached(response.url, expiresAt)
-        return response.url
+        val loadable = productThumbnailLoadUrl(response.url, apiBaseUrl)
+        val expiresAt = parseEpochSeconds(response.expiresAt) ?: return loadable
+        cache[id] = Cached(loadable, expiresAt)
+        return loadable
     }
 
     private fun isExpired(cached: Cached): Boolean =

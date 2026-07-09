@@ -16,11 +16,13 @@ import com.fullsales.seller.shared.model.SyncOutboxEntry
 fun CommerceEntity.toModel() = Commerce(id, legalName, tradeName, active)
 fun ProductEntity.toModel() = Product(
     id, name, sku, priceAmount, priceCurrency, active, categoryId, categoryName, categorySlug,
+    primaryImageUrl, primaryImageFileId,
 )
 
 fun Commerce.toEntity() = CommerceEntity(id, legalName, tradeName, active)
 fun Product.toEntity() = ProductEntity(
     id, name, sku, priceAmount, priceCurrency, active, categoryId, categoryName, categorySlug,
+    primaryImageUrl, primaryImageFileId,
 )
 
 fun SaleWithLines.toModel(): LocalSale = LocalSale(

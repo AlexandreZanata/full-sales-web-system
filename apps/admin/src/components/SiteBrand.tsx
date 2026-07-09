@@ -1,4 +1,5 @@
 import { BrandMark } from '@/components/BrandMark';
+import { useMediaPreviewUrl } from '@/hooks/useMediaPreviewUrl';
 import { useI18n } from '@/lib/i18n/context';
 import { adminTokens } from '@/lib/admin-tokens';
 import { BRAND_NAME } from '@/lib/brand';
@@ -16,15 +17,15 @@ export function SiteBrand({ className, subtitleKey, fallbackSubtitle }: SiteBran
   const { t } = useI18n();
   const settings = useSiteSettings();
   const displayName = settings.data?.displayName;
-  const logoUrl = settings.data?.logoUrl;
+  const logoPreviewUrl = useMediaPreviewUrl(settings.data?.logoFileId);
   const subtitle = subtitleKey ? t(subtitleKey) : (fallbackSubtitle ?? '');
 
   return (
     <div className={cn(adminTokens.shellBrandBar, className)}>
       <div className="flex items-center gap-3">
-        {logoUrl ? (
+        {logoPreviewUrl ? (
           <img
-            src={logoUrl}
+            src={logoPreviewUrl}
             alt=""
             className="size-10 shrink-0 rounded-md border border-hairline object-cover"
           />

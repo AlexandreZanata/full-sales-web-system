@@ -27,6 +27,7 @@ import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.TopSellingProduct
 import com.fullsales.seller.shared.sales.CreateSaleLineErrors
 import com.fullsales.seller.shared.sales.CreateSaleLineInput
+import com.fullsales.seller.shared.sales.visualStockRemaining
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +73,11 @@ internal fun SaleProductListSection(
                         line = line,
                         products = products,
                         topSellingProducts = topSellingProducts,
-                        stock = stockByProductId[line.productId],
+                        stock = visualStockRemaining(
+                            stockByProductId[line.productId],
+                            lines,
+                            line.productId,
+                        ),
                     quantityError = lineErrors.getOrNull(index)?.quantityError,
                     mediaUrlResolver = mediaUrlResolver,
                     onChange = { onUpdateLine(index, it) },
