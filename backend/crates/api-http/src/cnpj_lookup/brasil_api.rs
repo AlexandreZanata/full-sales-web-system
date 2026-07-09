@@ -79,10 +79,37 @@ impl CnpjLookupProvider for BrasilApiCnpjLookup {
     }
 }
 
-pub fn cnpj_lookup_from_env() -> Arc<dyn CnpjLookupProvider> {
-    let provider = std::env::var("CNPJ_LOOKUP_PROVIDER").unwrap_or_else(|_| "brasilapi".into());
-    match provider.as_str() {
-        "mock" => Arc::new(super::MockCnpjLookup),
-        _ => Arc::new(BrasilApiCnpjLookup::from_env()),
+pub fn build_cnpj_lookup_provider(
+    provider: &str,
+) -> Result<Arc<dyn CnpjLookupProvider>, String> {
+    match provider {
+        "mock" => Ok(Arc::new(super::MockCnpjLookup)),
+        "opencnpj" => Ok(Arc::new(super::opencnpj::OpenCnpjLookup::from_env()?)),
+        _ => Ok(Arc::new(BrasilApiCnpjLookup::from_env())),
     }
+}
+
+#[cfg(test)]
+pub fn build_cnpj_lookup_provider_with_key(
+    provider: &str,
+    api_key: Option<&str>,
+) -> Result<Arc<dyn CnpjLookupProvider>, String> {
+    match provider {
+        "mock" => Ok(Arc::new(super::MockCnpjLookup)),
+        "opencnpj" => {
+            let key = api_key.ok_or_else(|| {
+                "CNPJ_LOOKUP_API_KEY is required when CNPJ_LOOKUP_PROVIDER=opencnpj".to_string()
+            })?;
+            Ok(Arc::new(super::opencnpj::OpenCnpjLookup::from_config(
+                super::opencnpj::DEFAULT_BASE_URL.into(),
+                key.to_string(),
+            )?))
+        }
+        _ => Ok(Arc::new(BrasilApiCnpjLookup::from_env())),
+    }
+}
+
+pub fn cnpj_lookup_from_env() -> Result<Arc<dyn CnpjLookupProvider>, String> {
+    let provider = std::env::var("CNPJ_LOOKUP_PROVIDER").unwrap_or_else(|_| "brasilapi".into());
+    build_cnpj_lookup_provider(&provider)
 }

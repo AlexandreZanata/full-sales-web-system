@@ -39,6 +39,18 @@
 
 Reuse logic from [`@br-validators`](https://github.com/AlexandreZanata/br-validators) for CNPJ Value Object — includes RFB alphanumeric format support.
 
+## CNPJ lookup upstream (Phase 70)
+
+`GET /v1/commerces/cnpj-lookup` proxies to a configurable provider behind `CnpjLookupProvider`:
+
+| Provider | Env | Notes |
+|----------|-----|-------|
+| `brasilapi` (default) | `CNPJ_LOOKUP_URL` optional | No API key |
+| `opencnpj` | `CNPJ_LOOKUP_URL`, `CNPJ_LOOKUP_API_KEY` required | [OpenCNPJ](https://github.com/AlexandreZanata/OpenCNPJ) at `https://api.comerc.app.br` |
+| `mock` | — | CI and local contract tests |
+
+API key is server-side only; clients use the unchanged Full Sales lookup contract.
+
 ---
 
 ## Production deployment (planned)
