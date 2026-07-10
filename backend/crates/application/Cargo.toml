@@ -13,6 +13,7 @@ domain-inventory.workspace = true
 domain-media.workspace = true
 domain-orders.workspace = true
 domain-sales.workspace = true
+domain-platform.workspace = true
 domain-shared.workspace = true
 thiserror.workspace = true
 uuid.workspace = true

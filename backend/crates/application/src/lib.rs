@@ -15,6 +15,7 @@ pub mod list_query;
 pub mod orders;
 pub mod products;
 pub mod sales;
+pub mod tenants;
 pub mod users;
 
 pub use commerce_registrations::{
@@ -38,6 +39,12 @@ pub enum AppError {
 
     #[error("forbidden")]
     Forbidden,
+
+    #[error("tenant suspended")]
+    TenantSuspended,
+
+    #[error(transparent)]
+    Platform(#[from] domain_platform::PlatformError),
 }
 
 /// Authenticated principal returned after successful login.

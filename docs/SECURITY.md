@@ -57,6 +57,18 @@ Application layer **re-checks** authorization for use cases — defense in depth
 
 **Tests:** `backend/crates/api-http/tests/platform_auth.rs`, `platform_auth_matrix.rs`, `auth_matrix.rs`.
 
+### Tenant suspension gate (Phase 2 — ADR-015, BR-PL-001)
+
+| Tenant `status` | Mutating `/v1/*` | `GET` reads | `/v1/billing/*` |
+|-----------------|------------------|-------------|-----------------|
+| `Trial`, `Active`, `PastDue` | Allowed | Allowed | Allowed |
+| `Suspended`, `Offboarding` | **403 `TENANT_SUSPENDED`** | Allowed | Allowed |
+| `Deleted` | Blocked | Denied | Denied |
+
+Middleware: `tenant_gate_middleware` after `auth_middleware` on protected tenant routes.
+
+**Tests:** `backend/crates/api-http/tests/tenant_lifecycle.rs`.
+
 ---
 
 ## JWT + refresh flow

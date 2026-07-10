@@ -266,6 +266,14 @@ impl ApiError {
         }
     }
 
+    pub fn tenant_suspended() -> Self {
+        Self {
+            status: StatusCode::FORBIDDEN,
+            code: "TENANT_SUSPENDED",
+            message: "Tenant is suspended — mutating operations are blocked",
+        }
+    }
+
     pub fn cnpj_already_registered() -> Self {
         Self {
             status: StatusCode::CONFLICT,

@@ -782,9 +782,9 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 ---
 
-## Platform SaaS (`proposed` → partial Phase 1)
+## Platform SaaS (`proposed` → Phase 1–2 partial)
 
-> **Status:** Phase 1 implements auth, `/v1/platform/users`, impersonation. Remaining routes still `proposed`.  
+> **Status:** Phase 1 auth/impersonation + Phase 2 tenant lifecycle implemented. Billing routes still `proposed`.  
 > ADRs: [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md).
 
 ### Platform error codes (additions)
@@ -841,6 +841,27 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Body:** `{ "status"?, "planId"?, "trialEndsAt"?, "suspendedReason"?, "settings"? }`
 - **Response 200:** Updated tenant
 - **Response 409:** `InvalidTenantTransition`
+
+### `POST /v1/platform/tenants/{id}/suspend`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "reason" }` (required, min 3 chars)
+- **Response 200:** Updated tenant with `status: Suspended`
+
+### `POST /v1/platform/tenants/{id}/reactivate`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** Updated tenant with `status: Active`
+
+### `POST /v1/platform/tenants/{id}/offboard`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** Tenant `status: Offboarding`, `offboardingScheduledAt` set
+
+### `POST /v1/platform/jobs/offboarding`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** `{ "processed": [...], "lgpdExport": "stub" }` — anonymizes PII after 90-day retention
 
 ---
 

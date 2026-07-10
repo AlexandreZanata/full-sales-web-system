@@ -17,6 +17,7 @@ mod portal_content;
 mod platform;
 mod platform_audit;
 mod products;
+mod tenant_gate;
 mod reports;
 mod routes;
 mod sales;

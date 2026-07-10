@@ -1,3 +1,13 @@
+pub mod offboarding;
+pub mod tenants_lifecycle;
+
+pub use offboarding::{anonymize_tenant_pii, find_offboarding_candidates};
+pub use tenants_lifecycle::{
+    ProvisionTenantParams, TenantCounts, TenantLifecycleRow, TenantListRow, find_tenant_lifecycle,
+    find_tenant_status, list_tenants_platform, plan_exists, provision_tenant, tenant_counts,
+    update_tenant_lifecycle,
+};
+
 use domain_shared::TenantId;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -17,11 +27,14 @@ pub struct TenantRow {
 
 /// Inserts a tenant (admin/migration path — no RLS on `shared.tenants`).
 pub async fn insert_tenant(pool: &PgPool, id: TenantId, name: &str) -> Result<(), PostgresError> {
-    sqlx::query("INSERT INTO shared.tenants (id, name, display_name) VALUES ($1, $2, $2)")
-        .bind(id.as_uuid())
-        .bind(name)
-        .execute(pool)
-        .await?;
+    sqlx::query(
+        "INSERT INTO shared.tenants (id, name, legal_name, display_name, status, active)
+         VALUES ($1, $2, $2, $2, 'Active', true)",
+    )
+    .bind(id.as_uuid())
+    .bind(name)
+    .execute(pool)
+    .await?;
     Ok(())
 }
 

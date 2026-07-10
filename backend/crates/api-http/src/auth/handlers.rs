@@ -144,6 +144,8 @@ fn map_app_error(err: AppError) -> ApiError {
             ApiError::invalid_credentials()
         }
         AppError::Forbidden => ApiError::forbidden(),
+        AppError::TenantSuspended => ApiError::tenant_suspended(),
+        AppError::Platform(_) => ApiError::bad_request("INVALID_INPUT", "Invalid platform request"),
         AppError::Identity(_) => ApiError::bad_request("INVALID_INPUT", "Invalid request"),
         AppError::Commerce(_) => ApiError::invalid_cnpj(),
     }

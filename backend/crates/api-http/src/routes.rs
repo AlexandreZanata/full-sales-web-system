@@ -9,11 +9,13 @@ use crate::admin_orders::{
 };
 use crate::audit::list_audit_events;
 use crate::platform::{
-    end_impersonation, list_platform_users, platform_login, platform_logout, platform_mfa_verify,
-    platform_refresh, start_impersonation,
+    create_tenant, end_impersonation, get_tenant, list_platform_tenants, list_platform_users,
+    offboard_tenant, patch_tenant, platform_login, platform_logout, platform_mfa_verify,
+    platform_refresh, reactivate_tenant, run_offboarding_job, start_impersonation, suspend_tenant,
 };
 use crate::platform::auth::platform_auth_middleware;
 use crate::auth::{auth_middleware, login, logout, refresh};
+use crate::tenant_gate::tenant_gate_middleware;
 use crate::catalog_events::stream_catalog_events;
 use crate::categories::{
     create_category, delete_category, get_category, list_categories, reorder_categories,
@@ -238,6 +240,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/audit/events", get(list_audit_events))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
+            tenant_gate_middleware,
+        ))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
             auth_middleware,
         ))
         .with_state(state.clone());
@@ -251,6 +257,15 @@ pub fn v1_router(state: AppState) -> Router {
     let platform_protected = Router::new()
         .route("/v1/platform/auth/logout", post(platform_logout))
         .route("/v1/platform/users", get(list_platform_users))
+        .route(
+            "/v1/platform/tenants",
+            get(list_platform_tenants).post(create_tenant),
+        )
+        .route("/v1/platform/tenants/{id}", get(get_tenant).patch(patch_tenant))
+        .route("/v1/platform/tenants/{id}/suspend", post(suspend_tenant))
+        .route("/v1/platform/tenants/{id}/reactivate", post(reactivate_tenant))
+        .route("/v1/platform/tenants/{id}/offboard", post(offboard_tenant))
+        .route("/v1/platform/jobs/offboarding", post(run_offboarding_job))
         .route("/v1/platform/impersonate", post(start_impersonation))
         .route("/v1/platform/impersonate/end", post(end_impersonation))
         .layer(axum::middleware::from_fn_with_state(
