@@ -25,6 +25,25 @@ pub async fn apply_tenant_context(
     Ok(())
 }
 
+/// Enables PlatformAdmin cross-tenant reads (ADR-016).
+pub async fn apply_bypass_rls(tx: &mut Transaction<'_, Postgres>) -> Result<(), PostgresError> {
+    sqlx::query("SELECT set_config('app.bypass_rls', 'true', true)")
+        .execute(&mut **tx)
+        .await?;
+    Ok(())
+}
+
+/// Sets tenant context for impersonation without RLS bypass.
+pub async fn apply_impersonation_context(
+    tx: &mut Transaction<'_, Postgres>,
+    tenant_id: TenantId,
+) -> Result<(), PostgresError> {
+    sqlx::query("SELECT set_config('app.bypass_rls', 'false', true)")
+        .execute(&mut **tx)
+        .await?;
+    apply_tenant_context(tx, tenant_id).await
+}
+
 /// Sets tenant + role context for role-scoped RLS policies.
 pub async fn apply_session_context(
     tx: &mut Transaction<'_, Postgres>,

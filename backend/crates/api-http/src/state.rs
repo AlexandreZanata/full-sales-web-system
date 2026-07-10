@@ -21,6 +21,7 @@ pub struct AppState {
     pub admin_pool: PgPool,
     pub app_pool: PgPool,
     pub refresh_store: Arc<dyn RefreshTokenStore>,
+    pub platform_refresh_store: Arc<dyn RefreshTokenStore>,
     pub idempotency_store: Arc<dyn IdempotencyStore>,
     pub rate_limiter: Arc<dyn RateLimiter>,
     pub login_rate_limit: RateLimitPolicy,
@@ -108,5 +109,13 @@ impl AppState {
         let bytes = hex::decode(hex_key.trim()).ok()?;
         let array: [u8; 32] = bytes.try_into().ok()?;
         Some(SigningKey::from_bytes(&array))
+    }
+
+    pub fn in_memory_refresh_stores() -> (
+        Arc<dyn RefreshTokenStore>,
+        Arc<dyn RefreshTokenStore>,
+    ) {
+        let store = Arc::new(infra_redis::InMemoryRefreshTokenStore::new());
+        (store.clone(), store)
     }
 }

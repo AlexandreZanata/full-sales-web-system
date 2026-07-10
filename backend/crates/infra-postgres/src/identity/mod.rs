@@ -6,6 +6,7 @@ use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
 pub mod driver_profiles;
+pub mod platform;
 pub mod seller_profiles;
 
 pub use driver_profiles::{
@@ -15,6 +16,12 @@ pub use driver_profiles::{
 pub use seller_profiles::{
     SellerProfileInsert, SellerProfileRow, find_seller_profile_by_user_id, insert_seller_profile,
     upsert_seller_profile,
+};
+pub use platform::{
+    CrossTenantUserRow, ImpersonationGrantInsert, InsertPlatformUserParams, PlatformLoginRecord,
+    find_platform_user_by_id, find_platform_user_for_login, find_tenant_admin_user,
+    insert_impersonation_grant, insert_platform_user, list_users_cross_tenant,
+    revoke_impersonation_grant, tenant_exists,
 };
 
 /// Row persisted in `identity.users`.

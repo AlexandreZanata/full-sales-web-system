@@ -56,10 +56,12 @@ pub async fn setup_with_tenant(tenant_id: domain_shared::TenantId) -> TestEnv {
         .await
         .expect("tenant");
 
+    let (refresh_store, platform_refresh_store) = AppState::in_memory_refresh_stores();
     let state = AppState {
         admin_pool: admin_pool.clone(),
         app_pool: app_pool.clone(),
-        refresh_store: Arc::new(infra_redis::InMemoryRefreshTokenStore::new()),
+        refresh_store,
+        platform_refresh_store,
         idempotency_store: AppState::in_memory_idempotency(),
         rate_limiter: AppState::in_memory_rate_limiter(),
         login_rate_limit: AppState::default_login_rate_limit(),
@@ -632,4 +634,70 @@ pub async fn seed_portal_home_content(env: &TestEnv) -> PortalHomeSeed {
         banner_id,
         promotion_id,
     }
+}
+
+pub const PLATFORM_ADMIN_EMAIL: &str = "platform@test.com";
+pub const DEV_MFA_SECRET: &str = "KVKFKRCPNZQUYMLXOVYDSQKJKZDTSRLD";
+
+pub async fn seed_platform_admin(env: &TestEnv) -> Uuid {
+    let id = Uuid::parse_str("01900001-0006-7000-8000-000000000001").expect("platform id");
+    if infra_postgres::identity::find_platform_user_for_login(&env.admin_pool, PLATFORM_ADMIN_EMAIL)
+        .await
+        .expect("lookup")
+        .is_some()
+    {
+        return id;
+    }
+    let hash = PasswordHasher::hash("secret123").expect("hash");
+    infra_postgres::identity::insert_platform_user(
+        &env.admin_pool,
+        infra_postgres::identity::InsertPlatformUserParams {
+            id,
+            email: PLATFORM_ADMIN_EMAIL,
+            name: "Platform Admin",
+            password_hash: &hash,
+            mfa_secret: Some(DEV_MFA_SECRET),
+            mfa_enrolled: true,
+        },
+    )
+    .await
+    .expect("platform admin");
+    id
+}
+
+pub fn current_mfa_code() -> String {
+    infra_crypto::TotpVerifier::from_base32_secret(DEV_MFA_SECRET)
+        .expect("totp")
+        .current_code()
+}
+
+pub async fn platform_login_step(env: &TestEnv, email: &str, password: &str) -> Value {
+    let body = json!({ "email": email, "password": password }).to_string();
+    let (status, json) = request(env, "POST", "/v1/platform/auth/login", None, Some(body)).await;
+    assert_eq!(status, StatusCode::OK, "platform login: {json}");
+    json
+}
+
+pub async fn platform_access_token(env: &TestEnv) -> String {
+    seed_platform_admin(env).await;
+    let login = platform_login_step(env, PLATFORM_ADMIN_EMAIL, "secret123").await;
+    assert_eq!(login["mfaRequired"], true);
+    let mfa_body = json!({
+        "mfaToken": login["mfaToken"],
+        "code": current_mfa_code()
+    })
+    .to_string();
+    let (status, json) = request(
+        env,
+        "POST",
+        "/v1/platform/auth/mfa/verify",
+        None,
+        Some(mfa_body),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "mfa: {json}");
+    json["accessToken"]
+        .as_str()
+        .expect("access token")
+        .to_owned()
 }

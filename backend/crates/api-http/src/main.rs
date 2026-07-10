@@ -62,6 +62,13 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
             Arc::new(InMemoryRefreshTokenStore::new())
         };
 
+    let platform_refresh_store: Arc<dyn RefreshTokenStore> =
+        if let Ok(redis_url) = std::env::var("REDIS_URL") {
+            Arc::new(RedisRefreshTokenStore::connect(&redis_url).await?)
+        } else {
+            Arc::new(InMemoryRefreshTokenStore::new())
+        };
+
     let cnpj_miss_cache: Arc<dyn CnpjMissCache> =
         if let Ok(redis_url) = std::env::var("REDIS_URL") {
             Arc::new(RedisCnpjMissCache::connect(&redis_url).await?)
@@ -73,6 +80,7 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         admin_pool,
         app_pool,
         refresh_store,
+        platform_refresh_store,
         idempotency_store: AppState::in_memory_idempotency(),
         rate_limiter: AppState::in_memory_rate_limiter(),
         login_rate_limit: AppState::default_login_rate_limit(),

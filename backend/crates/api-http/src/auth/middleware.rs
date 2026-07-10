@@ -14,6 +14,7 @@ pub struct AuthUser {
     pub tenant_id: TenantId,
     pub role: Role,
     pub commerce_id: Option<uuid::Uuid>,
+    pub impersonating: bool,
 }
 
 impl<S> FromRequestParts<S> for AuthUser
@@ -36,31 +37,71 @@ pub async fn auth_middleware(
     mut request: axum::extract::Request,
     next: axum::middleware::Next,
 ) -> Result<Response, ApiError> {
-    let auth_header = request
-        .headers()
-        .get(http::header::AUTHORIZATION)
-        .and_then(|v| v.to_str().ok())
-        .ok_or_else(ApiError::unauthorized)?;
+    let token = bearer_token(request.headers())?;
 
-    let token = auth_header
-        .strip_prefix("Bearer ")
-        .ok_or_else(ApiError::unauthorized)?;
+    if let Ok(claims) = state.jwt.verify_access_token(token) {
+        let role = Role::parse(&claims.role).map_err(|_| ApiError::unauthorized())?;
+        request.extensions_mut().insert(AuthUser {
+            user_id: claims.sub,
+            tenant_id: TenantId::from_uuid(claims.tenant_id),
+            role,
+            commerce_id: claims.commerce_id,
+            impersonating: false,
+        });
+        return Ok(next.run(request).await);
+    }
 
     let claims = state
         .jwt
-        .verify_access_token(token)
+        .verify_platform_access_token(token)
         .map_err(|_| ApiError::unauthorized())?;
 
-    let role = Role::parse(&claims.role).map_err(|_| ApiError::unauthorized())?;
+    if !claims.impersonating {
+        return Err(ApiError::unauthorized());
+    }
+
+    let tenant_id = claims
+        .acting_tenant_id
+        .ok_or_else(ApiError::unauthorized)?;
+    let acting_role = claims
+        .acting_role
+        .as_deref()
+        .unwrap_or("Admin");
+    let role = Role::parse(acting_role).map_err(|_| ApiError::unauthorized())?;
+    let user_id = claims.acting_user_id.unwrap_or(claims.sub);
 
     request.extensions_mut().insert(AuthUser {
-        user_id: claims.sub,
-        tenant_id: TenantId::from_uuid(claims.tenant_id),
+        user_id,
+        tenant_id: TenantId::from_uuid(tenant_id),
         role,
-        commerce_id: claims.commerce_id,
+        commerce_id: None,
+        impersonating: true,
     });
 
     Ok(next.run(request).await)
+}
+
+pub async fn reject_platform_token_middleware(
+    State(state): State<AppState>,
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> Result<Response, ApiError> {
+    if let Ok(token) = bearer_token(request.headers())
+        && state.jwt.verify_platform_access_token(token).is_ok()
+    {
+        return Err(ApiError::forbidden());
+    }
+    Ok(next.run(request).await)
+}
+
+fn bearer_token(headers: &http::HeaderMap) -> Result<&str, ApiError> {
+    let auth_header = headers
+        .get(http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .ok_or_else(ApiError::unauthorized)?;
+    auth_header
+        .strip_prefix("Bearer ")
+        .ok_or_else(ApiError::unauthorized)
 }
 
 pub fn require_admin(user: &AuthUser) -> Result<(), ApiError> {

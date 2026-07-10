@@ -15,7 +15,10 @@ pub mod sales;
 pub mod shared;
 
 pub use error::PostgresError;
-pub use rls::{SessionContext, apply_session_context, set_session_context, set_tenant_context};
+pub use rls::{
+    SessionContext, apply_bypass_rls, apply_session_context, set_session_context,
+    set_tenant_context,
+};
 pub use sqlx::PgPool;
 
 /// Returns the crate version (health/diagnostics).

@@ -30,6 +30,33 @@ Request → auth middleware (JWT validate)
 
 Application layer **re-checks** authorization for use cases — defense in depth (BOLA prevention).
 
+### Tenant roles (`Role`)
+
+| Role | Scope |
+|------|-------|
+| `Admin` | Full tenant management |
+| `Driver` | Field sales + assigned stock |
+| `Seller` | Field sales + order creation |
+| `CommerceContact` | Own commerce portal |
+
+### PlatformAdmin (Phase 1 — ADR-013, ADR-016)
+
+| Actor | Auth | `tenant_id` in JWT | RLS |
+|-------|------|-------------------|-----|
+| **PlatformAdmin** | `POST /v1/platform/auth/login` + MFA | No | `app.bypass_rls = true` on `/v1/platform/*` |
+| **Impersonation** | `POST /v1/platform/impersonate` | `actingTenantId` + `Admin` role | Tenant-scoped — **no** bypass |
+| **Tenant users** | `POST /v1/auth/login` | Yes | `app.tenant_id` from JWT |
+
+### Authorization matrix (Phase 1)
+
+| Route prefix | PlatformAdmin | Impersonating Admin | Tenant Admin | Driver/Seller |
+|--------------|---------------|---------------------|--------------|---------------|
+| `/v1/platform/*` | Yes (MFA) | No — use platform token | **Forbidden** | **Forbidden** |
+| `/v1/users`, `/v1/commerces`, … | No — impersonate first | Yes (scoped tenant) | Yes | Role-limited |
+| `/v1/auth/*` | Tenant flow only | Tenant flow only | Yes | Yes |
+
+**Tests:** `backend/crates/api-http/tests/platform_auth.rs`, `platform_auth_matrix.rs`, `auth_matrix.rs`.
+
 ---
 
 ## JWT + refresh flow

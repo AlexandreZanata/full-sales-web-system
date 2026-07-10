@@ -19,6 +19,7 @@ mod error;
 mod foundation;
 pub mod ids;
 mod orders;
+mod platform_admin;
 mod portal_content;
 mod reports;
 mod sales;
@@ -69,6 +70,9 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     let foundation = foundation::seed_foundation(&pools.admin, &pools.app)
         .await
         .map_err(|e| wrap_step("foundation", e))?;
+    platform_admin::seed_platform_admin(&pools.admin)
+        .await
+        .map_err(|e| wrap_step("platform_admin", e))?;
     site_settings::seed_tenant_site_settings(&pools.app, &pools.admin, foundation.tenant_id)
         .await
         .map_err(|e| wrap_step("site_settings", e))?;

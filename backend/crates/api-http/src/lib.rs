@@ -14,6 +14,8 @@ mod media;
 mod pagination;
 mod portal;
 mod portal_content;
+mod platform;
+mod platform_audit;
 mod products;
 mod reports;
 mod routes;

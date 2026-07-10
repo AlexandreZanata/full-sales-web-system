@@ -11,6 +11,7 @@ domain-shared.workspace = true
 jsonwebtoken.workspace = true
 serde.workspace = true
 thiserror.workspace = true
+totp-rs.workspace = true
 uuid.workspace = true
 
 [lints]

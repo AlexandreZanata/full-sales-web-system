@@ -26,8 +26,8 @@ pub struct AccessTokenClaims {
 
 #[derive(Clone)]
 pub struct JwtService {
-    secret: Vec<u8>,
-    ttl: Duration,
+    pub(crate) secret: Vec<u8>,
+    pub(crate) ttl: Duration,
 }
 
 impl JwtService {

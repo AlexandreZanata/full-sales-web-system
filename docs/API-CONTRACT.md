@@ -782,9 +782,9 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 ---
 
-## Platform SaaS (`proposed`)
+## Platform SaaS (`proposed` → partial Phase 1)
 
-> **Status:** `proposed` — Phase 0 contract draft. Not implemented until Phases 1–13.  
+> **Status:** Phase 1 implements auth, `/v1/platform/users`, impersonation. Remaining routes still `proposed`.  
 > ADRs: [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md).
 
 ### Platform error codes (additions)

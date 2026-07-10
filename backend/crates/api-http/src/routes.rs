@@ -8,6 +8,11 @@ use crate::admin_orders::{
     approve_order, cancel_order, get_order, list_orders, reject_order_handler, start_picking,
 };
 use crate::audit::list_audit_events;
+use crate::platform::{
+    end_impersonation, list_platform_users, platform_login, platform_logout, platform_mfa_verify,
+    platform_refresh, start_impersonation,
+};
+use crate::platform::auth::platform_auth_middleware;
 use crate::auth::{auth_middleware, login, logout, refresh};
 use crate::catalog_events::stream_catalog_events;
 use crate::categories::{
@@ -235,9 +240,29 @@ pub fn v1_router(state: AppState) -> Router {
             state.clone(),
             auth_middleware,
         ))
+        .with_state(state.clone());
+
+    let platform_public = Router::new()
+        .route("/v1/platform/auth/login", post(platform_login))
+        .route("/v1/platform/auth/mfa/verify", post(platform_mfa_verify))
+        .route("/v1/platform/auth/refresh", post(platform_refresh))
+        .with_state(state.clone());
+
+    let platform_protected = Router::new()
+        .route("/v1/platform/auth/logout", post(platform_logout))
+        .route("/v1/platform/users", get(list_platform_users))
+        .route("/v1/platform/impersonate", post(start_impersonation))
+        .route("/v1/platform/impersonate/end", post(end_impersonation))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            platform_auth_middleware,
+        ))
         .with_state(state);
 
-    public.merge(protected)
+    public
+        .merge(protected)
+        .merge(platform_public)
+        .merge(platform_protected)
 }
 
 pub fn router() -> Router {

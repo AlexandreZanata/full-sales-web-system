@@ -15,6 +15,10 @@ pub fn admin_user_id() -> Uuid {
     parse("01900001-0001-7000-8000-000000000001")
 }
 
+pub fn platform_admin_id() -> Uuid {
+    parse("01900001-0006-7000-8000-000000000001")
+}
+
 pub fn driver_a_id() -> Uuid {
     parse("01900001-0002-7000-8000-000000000001")
 }

@@ -28,4 +28,16 @@ pub enum IdentityError {
 
     #[error("forbidden")]
     Forbidden,
+
+    #[error("invalid platform user id")]
+    InvalidPlatformUserId,
+
+    #[error("impersonation reason too short")]
+    InvalidImpersonationReason,
+
+    #[error("impersonation grant expired")]
+    ImpersonationExpired,
+
+    #[error("impersonation grant revoked")]
+    ImpersonationRevoked,
 }

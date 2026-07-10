@@ -51,10 +51,12 @@ async fn setup() -> TestEnv {
         .await
         .expect("tenant");
 
+    let (refresh_store, platform_refresh_store) = AppState::in_memory_refresh_stores();
     let state = AppState {
         admin_pool: admin_pool.clone(),
         app_pool: app_pool.clone(),
-        refresh_store: Arc::new(InMemoryRefreshTokenStore::new()),
+        refresh_store,
+        platform_refresh_store,
         idempotency_store: AppState::in_memory_idempotency(),
         rate_limiter: AppState::in_memory_rate_limiter(),
         login_rate_limit: AppState::default_login_rate_limit(),
