@@ -8,6 +8,13 @@ use crate::media;
 use crate::portal::resolve_public_catalog_tenant;
 use crate::state::AppState;
 
+pub mod payments;
+
+pub use payments::{
+    connect_asaas, disconnect_asaas, get_payment_balance, get_payment_settings,
+    list_payment_transactions, update_payment_settings,
+};
+
 #[derive(Serialize)]
 pub struct SettingsResponse {
     #[serde(rename = "displayName")]
@@ -18,6 +25,8 @@ pub struct SettingsResponse {
     pub logo_url: Option<String>,
     #[serde(rename = "salesContactPhone", skip_serializing_if = "Option::is_none")]
     pub sales_contact_phone: Option<String>,
+    #[serde(rename = "paymentMethods", skip_serializing_if = "Option::is_none")]
+    pub payment_methods: Option<payments::PaymentMethodsResponse>,
 }
 
 #[derive(Deserialize, Default)]
@@ -179,10 +188,13 @@ async fn settings_response(
         None => None,
     };
 
+    let payment_methods = payments::public_payment_methods(state, tenant_id).await?;
+
     Ok(Json(SettingsResponse {
         display_name: row.display_name,
         logo_file_id: row.logo_file_id,
         logo_url,
         sales_contact_phone: row.sales_contact_phone,
+        payment_methods,
     }))
 }

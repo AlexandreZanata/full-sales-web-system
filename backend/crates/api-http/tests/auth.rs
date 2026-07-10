@@ -70,6 +70,10 @@ async fn setup() -> TestEnv {
         cnpj_miss_cache: AppState::in_memory_cnpj_miss_cache(),
         payment_gateway: AppState::mock_payment_gateway(),
         asaas_webhook_token: None,
+        credential_encryptor: Some(AppState::test_credential_encryptor()),
+        settlement_cache: AppState::test_settlement_cache(),
+        settlement_rate_limit: AppState::default_settlement_rate_limit(),
+        tenant_asaas_base_url: None,
     };
 
     TestEnv {

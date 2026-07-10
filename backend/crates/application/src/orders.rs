@@ -37,7 +37,7 @@ pub fn approve_order(
     balance_by_product: HashMap<ProductId, i32>,
     reserved_by_product: HashMap<ProductId, i32>,
 ) -> Result<ApproveOrderResult, OrdersAppError> {
-    if order.status() != OrderStatus::PendingApproval {
+    if order.status() != OrderStatus::PendingApproval && order.status() != OrderStatus::Paid {
         return Err(OrderError::InvalidTransition {
             from: order.status(),
             to: OrderStatus::Approved,
@@ -163,6 +163,10 @@ pub fn update_portal_draft(command: UpdatePortalDraftCommand) -> Result<Order, O
 
 pub fn submit_portal_order(order: Order) -> Result<Order, OrdersAppError> {
     order.submit().map_err(OrdersAppError::from)
+}
+
+pub fn submit_portal_order_online(order: Order) -> Result<Order, OrdersAppError> {
+    order.submit_for_online_payment().map_err(OrdersAppError::from)
 }
 
 pub fn reject_order(order: Order, reason: &str) -> Result<Order, OrdersAppError> {

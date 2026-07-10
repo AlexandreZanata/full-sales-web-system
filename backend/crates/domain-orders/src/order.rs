@@ -147,6 +147,19 @@ impl Order {
         Ok(self)
     }
 
+    pub fn submit_for_online_payment(mut self) -> Result<Self, OrderError> {
+        if self.items.is_empty() {
+            return Err(OrderError::EmptyOrder);
+        }
+        self.transition_to(OrderStatus::AwaitingPayment)?;
+        Ok(self)
+    }
+
+    pub fn confirm_online_payment(mut self) -> Result<Self, OrderError> {
+        self.transition_to(OrderStatus::Paid)?;
+        Ok(self)
+    }
+
     /// Draft-only update — replace lines, notes, and delivery address (portal CRUD).
     pub fn update_draft(
         mut self,
@@ -315,6 +328,10 @@ fn can_transition(from: OrderStatus, to: OrderStatus) -> bool {
     matches!(
         (from, to),
         (OrderStatus::Draft, OrderStatus::PendingApproval)
+            | (OrderStatus::Draft, OrderStatus::AwaitingPayment)
+            | (OrderStatus::AwaitingPayment, OrderStatus::Paid)
+            | (OrderStatus::Paid, OrderStatus::Approved)
+            | (OrderStatus::Paid, OrderStatus::Rejected)
             | (OrderStatus::PendingApproval, OrderStatus::Approved)
             | (OrderStatus::PendingApproval, OrderStatus::Rejected)
             | (OrderStatus::Approved, OrderStatus::Picking)

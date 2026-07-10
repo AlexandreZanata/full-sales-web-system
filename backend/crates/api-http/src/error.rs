@@ -66,6 +66,14 @@ impl ApiError {
         }
     }
 
+    pub fn forbidden_with_code(code: &'static str, message: &'static str) -> Self {
+        Self {
+            status: StatusCode::FORBIDDEN,
+            code,
+            message,
+        }
+    }
+
     pub fn webhook_unauthorized() -> Self {
         Self {
             status: StatusCode::UNAUTHORIZED,

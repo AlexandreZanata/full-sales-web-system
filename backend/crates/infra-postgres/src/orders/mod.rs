@@ -138,7 +138,7 @@ pub async fn approve_order_transaction(
     let updated = sqlx::query(
         "UPDATE orders.orders
          SET status = 'Approved'
-         WHERE id = $1 AND status = 'PendingApproval'",
+         WHERE id = $1 AND status IN ('PendingApproval', 'Paid')",
     )
     .bind(order_id)
     .execute(&mut *tx)
@@ -168,7 +168,7 @@ pub async fn cancel_order_transaction(
         "UPDATE orders.orders
          SET status = 'Cancelled', cancelled_at = now()
          WHERE id = $1
-           AND status IN ('Draft', 'PendingApproval', 'Approved', 'Picking')",
+           AND status IN ('Draft', 'PendingApproval', 'Paid', 'Approved', 'Picking')",
     )
     .bind(order_id)
     .execute(&mut *tx)
@@ -530,7 +530,7 @@ pub async fn reject_order(
     let updated = sqlx::query(
         "UPDATE orders.orders
          SET status = 'Rejected', rejection_reason = $2
-         WHERE id = $1 AND status = 'PendingApproval'",
+         WHERE id = $1 AND status IN ('PendingApproval', 'Paid')",
     )
     .bind(order_id)
     .bind(reason)
@@ -575,6 +575,62 @@ async fn insert_order_in_tx(
     .execute(&mut **tx)
     .await?;
     Ok(())
+}
+
+pub async fn submit_order_for_online_payment(
+    pool: &PgPool,
+    session: &SessionContext,
+    order_id: Uuid,
+    asaas_payment_id: &str,
+) -> Result<(), PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_session_context(&mut tx, session).await?;
+    let updated = sqlx::query(
+        "UPDATE orders.orders
+         SET status = 'AwaitingPayment', asaas_payment_id = $2
+         WHERE id = $1 AND status = 'Draft'
+           AND EXISTS (SELECT 1 FROM orders.order_items WHERE order_id = $1)",
+    )
+    .bind(order_id)
+    .bind(asaas_payment_id)
+    .execute(&mut *tx)
+    .await?;
+    if updated.rows_affected() == 0 {
+        return Err(PostgresError::Database(sqlx::Error::RowNotFound));
+    }
+    tx.commit().await?;
+    Ok(())
+}
+
+pub async fn confirm_order_payment_admin(
+    pool: &PgPool,
+    order_id: Uuid,
+    asaas_payment_id: &str,
+) -> Result<Option<TenantId>, PostgresError> {
+    let tenant_id = sqlx::query_scalar::<_, Uuid>(
+        "UPDATE orders.orders
+         SET status = 'Paid'
+         WHERE id = $1 AND status = 'AwaitingPayment' AND asaas_payment_id = $2
+         RETURNING tenant_id",
+    )
+    .bind(order_id)
+    .bind(asaas_payment_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(tenant_id.map(TenantId::from_uuid))
+}
+
+pub async fn find_order_tenant_by_id(
+    pool: &PgPool,
+    order_id: Uuid,
+) -> Result<Option<(TenantId, String)>, PostgresError> {
+    let row = sqlx::query_as::<_, (Uuid, String)>(
+        "SELECT tenant_id, status FROM orders.orders WHERE id = $1",
+    )
+    .bind(order_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row.map(|(tenant_id, status)| (TenantId::from_uuid(tenant_id), status)))
 }
 
 async fn insert_order_item_in_tx(

@@ -320,6 +320,23 @@
 
 ---
 
+## TenantPaymentSettings
+
+**Definition:** Tenant Admin configuration for collecting portal payments via the tenant's own Asaas account (Pro+ only, ADR-018).
+**Fields:** `enabled`, method toggles (PIX, credit, boleto), `autoCapture`
+**Storage:** `billing.tenant_payment_settings`
+**Code name:** `TenantPaymentSettings`
+
+---
+
+## TenantAsaasCredentials
+
+**Definition:** Encrypted tenant Asaas API key (AES-256-GCM) for portal payment collection — separate from platform `ASAAS_API_KEY`.
+**Storage:** `billing.tenant_asaas_credentials`
+**Code name:** `TenantAsaasCredentials`
+
+---
+
 ## AsaasCustomer
 
 **Definition:** Tenant's customer record on the **platform** Asaas account — used for SaaS subscription billing (`externalReference` = `TenantId`).

@@ -1,6 +1,6 @@
 use axum::{
     Json, Router,
-    routing::{get, patch, post, put},
+    routing::{delete, get, patch, post, put},
 };
 use serde::Serialize;
 
@@ -55,7 +55,11 @@ use crate::reports::{export_report, generate_report, get_report, list_reports, v
 use crate::sales::{
     cancel_sale, confirm_sale, create_sale, declare_sale_payment, get_sale, list_sales,
 };
-use crate::settings::{get_public_settings, get_settings, patch_settings, update_site_logo};
+use crate::settings::{
+    connect_asaas, disconnect_asaas, get_payment_balance, get_payment_settings,
+    get_settings, get_public_settings, list_payment_transactions, patch_settings,
+    update_payment_settings, update_site_logo,
+};
 use crate::state::AppState;
 use crate::users::{
     create_user, deactivate_user, get_user, list_users, upsert_driver_profile,
@@ -238,6 +242,19 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/media/{id}/content", get(get_media_content))
         .route("/v1/settings", get(get_settings).patch(patch_settings))
         .route("/v1/settings/logo", put(update_site_logo))
+        .route(
+            "/v1/settings/payments",
+            get(get_payment_settings).put(update_payment_settings),
+        )
+        .route(
+            "/v1/settings/payments/asaas/connect",
+            post(connect_asaas).delete(disconnect_asaas),
+        )
+        .route("/v1/settings/payments/balance", get(get_payment_balance))
+        .route(
+            "/v1/settings/payments/transactions",
+            get(list_payment_transactions),
+        )
         .route("/v1/reports", post(generate_report).get(list_reports))
         .route("/v1/reports/{id}", get(get_report))
         .route("/v1/reports/{id}/export", get(export_report))

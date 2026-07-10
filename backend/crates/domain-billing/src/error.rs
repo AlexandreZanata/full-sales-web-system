@@ -46,4 +46,10 @@ pub enum BillingError {
 
     #[error("invoice not found")]
     InvoiceNotFound,
+
+    #[error("plan does not allow online payments")]
+    PlanDoesNotAllowOnlinePayments,
+
+    #[error("tenant Asaas not connected")]
+    TenantAsaasNotConnected,
 }

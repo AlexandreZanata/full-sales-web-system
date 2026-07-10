@@ -1017,24 +1017,55 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `GET /v1/settings/payments`
 
 - **Auth:** Tenant Admin
-- **Response 200:** Tenant payment settings + Asaas connection status
+- **Response 200:** `{ "enabled", "methods": { "pix", "credit", "boleto" }, "autoCapture", "asaas": { "connected", "apiKeyLast4?", "connectedAt?" } }`
+
+**Implemented:** Phase 5.
 
 ### `PUT /v1/settings/payments`
 
-- **Auth:** Tenant Admin (Pro+ for online payments)
+- **Auth:** Tenant Admin (Pro+ for `enabled: true`)
 - **Body:** `{ "enabled", "methods": { "pix", "credit", "boleto" }, "autoCapture" }`
 - **Response 200:** Updated settings
+- **Response 403:** `PLAN_FEATURE_UNAVAILABLE` (Starter plan)
+
+**Implemented:** Phase 5.
 
 ### `POST /v1/settings/payments/asaas/connect`
 
-- **Auth:** Tenant Admin
-- **Body:** `{ "apiKey" }` — encrypted at rest (ADR-018)
+- **Auth:** Tenant Admin (Pro+)
+- **Body:** `{ "apiKey" }` — encrypted at rest with AES-256-GCM (ADR-018)
 - **Response 200:** `{ "connected": true, "accountName" }`
+- **Response 400:** `INVALID_ASAAS_CREDENTIALS`
+
+**Implemented:** Phase 5 — validates via Asaas `GET /myAccount`; audit event `tenant.asaas.connected`.
 
 ### `DELETE /v1/settings/payments/asaas/connect`
 
 - **Auth:** Tenant Admin
-- **Response 204:** Credentials removed
+- **Response 204:** Credentials removed; online payments disabled
+
+**Implemented:** Phase 5 — audit event `tenant.asaas.disconnected`.
+
+### `GET /v1/settings/payments/balance`
+
+- **Auth:** Tenant Admin
+- **Response 200:** `{ "balanceMinor", "currency" }` — proxied from tenant Asaas account (read-only)
+- **Rate limit:** 30 req/min per tenant; **cache:** 60s
+
+**Implemented:** Phase 5 — no withdraw through platform v1.
+
+### `GET /v1/settings/payments/transactions`
+
+- **Auth:** Tenant Admin
+- **Query:** `offset`, `limit` (max 50)
+- **Response 200:** `{ "data": [ { "id", "type", "amountMinor", "date", "description?" } ], "hasMore" }`
+- **Rate limit:** 30 req/min per tenant; **cache:** 60s
+
+**Implemented:** Phase 5.
+
+### Public checkout subset
+
+`GET /v1/public/settings` includes optional `paymentMethods` when tenant online payments are enabled (portal checkout).
 
 ---
 

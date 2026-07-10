@@ -42,7 +42,7 @@ pub async fn approve_order(
     require_admin(&auth)?;
     let session = session_from_auth(&auth);
     let order = load_order(&state, &session, id).await?;
-    if order.status() != OrderStatus::PendingApproval {
+    if order.status() != OrderStatus::PendingApproval && order.status() != OrderStatus::Paid {
         return Err(ApiError::invalid_order_transition());
     }
 

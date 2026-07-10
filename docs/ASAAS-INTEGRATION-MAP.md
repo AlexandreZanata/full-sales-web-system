@@ -63,7 +63,10 @@ Uses **tenant's own** `ASAAS_API_KEY` (decrypted server-side). Same endpoints; s
 
 | Operation | Method | Asaas path | When |
 |-----------|--------|------------|------|
+| Validate key | `GET` | `/v3/myAccount` | Tenant Admin connects Asaas (Phase 5) |
 | Create payment | `POST` | `/v3/payments` | Portal checkout for order total |
+| Balance | `GET` | `/v3/finance/balance` | Tenant Admin settlement view (read-only) |
+| Transactions | `GET` | `/v3/financialTransactions` | Tenant Admin settlement history |
 | Refund | `POST` | `/v3/payments/{id}/refund` | Admin-initiated refund v1 |
 
 ---

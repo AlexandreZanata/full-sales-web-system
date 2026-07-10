@@ -10,6 +10,8 @@ use crate::error::OrderError;
 #[serde(rename_all = "PascalCase")]
 pub enum OrderStatus {
     Draft,
+    AwaitingPayment,
+    Paid,
     PendingApproval,
     Approved,
     Rejected,
@@ -24,6 +26,8 @@ impl OrderStatus {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Draft => "Draft",
+            Self::AwaitingPayment => "AwaitingPayment",
+            Self::Paid => "Paid",
             Self::PendingApproval => "PendingApproval",
             Self::Approved => "Approved",
             Self::Rejected => "Rejected",
@@ -42,7 +46,7 @@ impl OrderStatus {
     pub fn can_cancel(self) -> bool {
         matches!(
             self,
-            Self::Draft | Self::PendingApproval | Self::Approved | Self::Picking
+            Self::Draft | Self::PendingApproval | Self::Paid | Self::Approved | Self::Picking
         )
     }
 
@@ -57,6 +61,8 @@ impl FromStr for OrderStatus {
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
             "Draft" => Ok(Self::Draft),
+            "AwaitingPayment" => Ok(Self::AwaitingPayment),
+            "Paid" => Ok(Self::Paid),
             "PendingApproval" => Ok(Self::PendingApproval),
             "Approved" => Ok(Self::Approved),
             "Rejected" => Ok(Self::Rejected),

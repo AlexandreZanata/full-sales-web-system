@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use application::billing::PaymentGateway;
 use ed25519_dalek::SigningKey;
-use infra_crypto::JwtService;
+use infra_crypto::{CredentialEncryptor, JwtService};
 use infra_postgres::PgPool;
 use infra_redis::{
     IdempotencyStore, InMemoryIdempotencyStore, InMemoryRateLimiter, RateLimitPolicy, RateLimiter,
@@ -13,6 +13,7 @@ use infra_storage::{InMemoryObjectStorage, LocalFsObjectStorage, ObjectStorage};
 
 use crate::catalog_events::CatalogEventHub;
 use crate::cnpj_lookup::CnpjLookupProvider;
+use crate::settings::payments::SettlementCache;
 
 pub const JWT_SECRET_ENV: &str = "JWT_SECRET";
 
@@ -37,6 +38,11 @@ pub struct AppState {
     pub cnpj_miss_cache: Arc<dyn CnpjMissCache>,
     pub payment_gateway: Arc<dyn PaymentGateway>,
     pub asaas_webhook_token: Option<String>,
+    pub credential_encryptor: Option<Arc<CredentialEncryptor>>,
+    pub settlement_cache: Arc<SettlementCache>,
+    pub settlement_rate_limit: RateLimitPolicy,
+    /// ponytail: integration tests point tenant Asaas client at wiremock without env mutation.
+    pub tenant_asaas_base_url: Option<String>,
 }
 
 impl AppState {
@@ -72,6 +78,17 @@ impl AppState {
             max: 30,
             window: Duration::from_secs(60),
         }
+    }
+
+    pub fn default_settlement_rate_limit() -> RateLimitPolicy {
+        RateLimitPolicy {
+            max: 30,
+            window: Duration::from_secs(60),
+        }
+    }
+
+    pub fn credential_encryptor_from_env() -> Option<Arc<CredentialEncryptor>> {
+        CredentialEncryptor::from_env().ok().map(Arc::new)
     }
 
     pub fn mock_cnpj_lookup() -> Arc<dyn CnpjLookupProvider> {
@@ -132,5 +149,17 @@ impl AppState {
     ) {
         let store = Arc::new(infra_redis::InMemoryRefreshTokenStore::new());
         (store.clone(), store)
+    }
+
+    pub fn test_credential_encryptor() -> Arc<CredentialEncryptor> {
+        use base64::{Engine, engine::general_purpose::STANDARD};
+        let key = STANDARD.encode([9u8; 32]);
+        Arc::new(
+            CredentialEncryptor::from_master_key_b64(&key, 1).expect("test credential encryptor"),
+        )
+    }
+
+    pub fn test_settlement_cache() -> Arc<SettlementCache> {
+        Arc::new(SettlementCache::new(Duration::from_secs(60)))
     }
 }

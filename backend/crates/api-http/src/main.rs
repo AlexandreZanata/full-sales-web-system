@@ -95,6 +95,10 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         cnpj_miss_cache,
         payment_gateway: AppState::payment_gateway_from_env(),
         asaas_webhook_token: AppState::asaas_webhook_token_from_env(),
+        credential_encryptor: AppState::credential_encryptor_from_env(),
+        settlement_cache: AppState::test_settlement_cache(),
+        settlement_rate_limit: AppState::default_settlement_rate_limit(),
+        tenant_asaas_base_url: None,
     };
 
     Ok(full_app(state))

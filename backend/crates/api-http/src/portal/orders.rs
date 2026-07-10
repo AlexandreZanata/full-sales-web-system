@@ -1,7 +1,8 @@
 use application::orders::{
     CreatePortalOrderCommand, PortalOrderLineInput, UpdatePortalDraftCommand,
     create_portal_order as build_portal_order, order_to_dto,
-    submit_portal_order as submit_order_domain, update_portal_draft,
+    submit_portal_order as submit_order_domain,
+    submit_portal_order_online as submit_order_online_domain, update_portal_draft,
 };
 use axum::{
     Json,
@@ -256,6 +257,29 @@ pub async fn submit_portal_order(
     let _ = require_commerce_contact(&auth)?;
     let session = session_from_auth(&auth);
     let existing = load_order(&state, &session, id).await?;
+    let settings =
+        crate::settings::payments::load_settings(&state, auth.tenant_id).await?;
+    if settings.enabled {
+        let total = existing.total().map_err(|_| ApiError::internal())?;
+        let payment_id = crate::settings::payments::create_order_payment(
+            &state,
+            auth.tenant_id,
+            id,
+            "Portal Customer",
+            total.amount_minor(),
+        )
+        .await?;
+        let order = submit_order_online_domain(existing).map_err(map_order_error)?;
+        infra_postgres::orders::submit_order_for_online_payment(
+            &state.app_pool,
+            &session,
+            id,
+            &payment_id,
+        )
+        .await
+        .map_err(map_postgres_order_error)?;
+        return Ok(Json(order_to_response(&order)?));
+    }
     let order = submit_order_domain(existing).map_err(map_order_error)?;
     infra_postgres::orders::submit_order(&state.app_pool, &session, id)
         .await

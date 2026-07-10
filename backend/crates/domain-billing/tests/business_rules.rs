@@ -13,7 +13,7 @@ fn starter_plan() -> SubscriptionPlan {
         "Starter",
         9_900,
         BillingInterval::Monthly,
-        serde_json::json!({ "maxUsers": 5, "customDomain": false }),
+        serde_json::json!({ "maxUsers": 5, "customDomain": false, "onlinePayments": false }),
     )
     .expect("starter plan")
 }

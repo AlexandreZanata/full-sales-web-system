@@ -1,3 +1,4 @@
+use application::billing::parse_order_payment_reference;
 use axum::{
     Json,
     extract::State,
@@ -48,7 +49,16 @@ pub async fn asaas_webhook(
     let payload: AsaasWebhookPayload = serde_json::from_value(body.clone())
         .map_err(|_| ApiError::bad_request("INVALID_PAYLOAD", "Invalid Asaas webhook payload"))?;
 
-    let tenant_id = extract_tenant_id(&body);
+    let order_id = extract_order_payment_id(&body);
+    let tenant_id = if let Some(order_id) = order_id {
+        infra_postgres::orders::find_order_tenant_by_id(&state.admin_pool, order_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .map(|(tenant_id, _)| tenant_id)
+            .or_else(|| extract_tenant_id(&body))
+    } else {
+        extract_tenant_id(&body)
+    };
     let inserted = infra_postgres::billing::insert_payment_event(
         &state.admin_pool,
         infra_postgres::billing::PaymentEventInsert {
@@ -62,14 +72,24 @@ pub async fn asaas_webhook(
     .map_err(|_| ApiError::internal())?;
 
     if inserted {
-        crate::billing::process_asaas_event(
-            &state.admin_pool,
-            &payload.event,
-            tenant_id,
-            &body,
-        )
-        .await
-        .map_err(|_| ApiError::internal())?;
+        if order_id.is_some() {
+            crate::settings::payments::process_order_payment_webhook(
+                &state.admin_pool,
+                &payload.event,
+                &body,
+            )
+            .await
+            .map_err(|_| ApiError::internal())?;
+        } else {
+            crate::billing::process_asaas_event(
+                &state.admin_pool,
+                &payload.event,
+                tenant_id,
+                &body,
+            )
+            .await
+            .map_err(|_| ApiError::internal())?;
+        }
         infra_postgres::billing::mark_payment_event_processed(&state.admin_pool, &payload.id)
             .await
             .map_err(|_| ApiError::internal())?;
@@ -82,6 +102,20 @@ pub async fn asaas_webhook(
             duplicate: !inserted,
         }),
     ))
+}
+
+fn extract_order_payment_id(body: &serde_json::Value) -> Option<uuid::Uuid> {
+    for key in ["payment", "subscription", "invoice"] {
+        if let Some(reference) = body
+            .get(key)
+            .and_then(|v| v.get("externalReference"))
+            .and_then(|v| v.as_str())
+            && let Some(order_id) = parse_order_payment_reference(reference)
+        {
+            return Some(order_id);
+        }
+    }
+    None
 }
 
 fn extract_tenant_id(body: &serde_json::Value) -> Option<TenantId> {

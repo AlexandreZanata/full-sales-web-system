@@ -29,6 +29,7 @@
 | BR-BI-001 | `backend/crates/api-http/tests/billing_webhook.rs` |
 | BR-BI-002 | `backend/crates/domain-billing/tests/business_rules.rs`, `backend/crates/api-http/tests/billing_subscription.rs` |
 | BR-BI-003 | `backend/crates/api-http/tests/billing_subscription.rs` |
+| BR-TP-001 | `backend/crates/domain-billing/tests/tenant_payment_settings.rs` |
 
 ---
 
@@ -452,6 +453,21 @@ WHEN the dunning job runs on day 8
 THEN the tenant transitions to Suspended
 AND mutating APIs are blocked per BR-PL-001
 ```
+
+### BR-TP-001 — Starter plan cannot enable online payments
+
+```
+GIVEN a Tenant on the Starter plan
+WHEN Tenant Admin enables online payment collection
+THEN the operation is rejected with PLAN_FEATURE_UNAVAILABLE
+AND no payment settings are persisted with enabled=true
+
+GIVEN a Tenant on Pro or Enterprise
+WHEN Tenant Admin connects a valid tenant Asaas API key
+THEN credentials are stored encrypted and online payments may be enabled
+```
+
+**Tests:** `domain-billing/tests/tenant_payment_settings.rs`, `api-http/tests/billing_tenant_payments.rs`
 
 ### BR-FR-001 — Payment velocity limit
 

@@ -22,6 +22,7 @@
 | `ASAAS_TIMEOUT_SECS` | No | HTTP timeout (default 15) |
 | `ASAAS_MAX_RETRIES` | No | Retries on 429/5xx (default 3) |
 | `ASAAS_CIRCUIT_THRESHOLD` | No | Failures before circuit opens (default 5) |
+| `BILLING_CREDENTIALS_MASTER_KEY` | Tenant payment connect (Phase 5) | Base64-encoded 32-byte AES key for encrypting per-tenant Asaas API keys at rest (ADR-018) |
 
 When `ASAAS_API_KEY` is unset, local dev uses `MockPaymentGateway` (customer ids `cus_mock_{tenantId}`).
 

@@ -25,6 +25,7 @@ domain-sales.workspace = true
 domain-shared.workspace = true
 ed25519-dalek = { version = "2", features = ["rand_core"] }
 hex.workspace = true
+base64.workspace = true
 http.workspace = true
 infra-crypto.workspace = true
 infra-postgres.workspace = true

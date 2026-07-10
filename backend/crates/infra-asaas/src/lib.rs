@@ -5,12 +5,17 @@ mod error_map;
 mod metrics;
 mod mock;
 mod sanitize;
+mod tenant_client;
 
 pub use circuit_breaker::CircuitBreaker;
 pub use client::AsaasClient;
 pub use config::AsaasConfig;
 pub use metrics::AsaasMetrics;
 pub use mock::{FailingPaymentGateway, MockPaymentGateway};
+pub use tenant_client::{
+    BalanceResponse, CreatePaymentResponse, FinancialTransaction, FinancialTransactionsResponse,
+    MyAccountResponse, TenantAsaasClient,
+};
 
 use std::sync::Arc;
 
