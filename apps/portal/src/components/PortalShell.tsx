@@ -57,7 +57,7 @@ export function PortalShell({ children }: PortalShellProps) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="sticky top-0 z-20 border-b border-hairline bg-surface/95 backdrop-blur">
+      <header className="portal-header">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-3">
             {headerLogoUrl ? (

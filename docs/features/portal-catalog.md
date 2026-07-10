@@ -118,6 +118,28 @@ Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalP
 
 `PortalShell` prefetches categories and links **Catalog** to `/?category=<firstSlug>` (desktop nav + mobile bottom bar). Catalog nav stays active on `/products/$id` routes (GAP-061).
 
+Header uses `.portal-header` (Phase 71B). Full FoodKing-style nav (search pill, cart total, login pill) lands in Phase 71C.
+
+---
+
+## Design tokens (Phase 71B)
+
+| Path | Purpose |
+|------|---------|
+| `src/styles/theme.css` | FoodKing-aligned CSS variables and component classes |
+| `src/lib/settings/applyTheme.ts` | `hexToOklch`, `applyThemePrimaryColor`, `bootstrapPortalTheme` |
+
+| Token | Default | Notes |
+|-------|---------|-------|
+| `--primary` | `#FE1F00` (oklch) | Overridden at boot from `settings.themePrimaryColor` when present |
+| `--surface-muted` | `#F7F7FC` | Category chip background |
+| `--hairline` | `#EFF0F6` | Borders, search pill |
+| Font | Rubik 400–700 | Google Fonts in `index.html` |
+
+Component classes: `.portal-header`, `.portal-footer`, `.catalog-add-pill-btn`, `.catalog-product-card-grid` (`rounded-2xl`).
+
+Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DESIGN-SPEC.md`.
+
 ---
 
 ## i18n keys
@@ -132,7 +154,7 @@ Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalP
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 
-Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `ProductCardList.test.tsx` (list card hierarchy + metadata), `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`.
+Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `ProductCardList.test.tsx` (list card hierarchy + metadata), `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `applyTheme.test.ts` (brand color runtime).
 
 Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
 
@@ -148,4 +170,4 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ---
 
-**Updated:** 2026-07-05 (list card mobile layout)
+**Updated:** 2026-07-10 (Phase 71B design tokens)

@@ -6,6 +6,8 @@ export type SiteSettings = {
   logoFileId?: string;
   logoUrl?: string;
   salesContactPhone?: string;
+  /** Tenant brand color (hex). Applied at runtime via `applyThemePrimaryColor`. */
+  themePrimaryColor?: string;
 };
 
 export async function fetchSettings(): Promise<SiteSettings> {
