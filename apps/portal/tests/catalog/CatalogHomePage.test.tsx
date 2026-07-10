@@ -16,10 +16,6 @@ vi.mock('@/components/catalog/home/FeaturedItemsSection', () => ({
   FeaturedItemsSection: () => <section data-testid="featured-items" />,
 }));
 
-vi.mock('@/components/catalog/home/OfferBannersSection', () => ({
-  OfferBannersSection: () => <section data-testid="offer-banners" />,
-}));
-
 vi.mock('@/components/catalog/home/PopularItemsSection', () => ({
   PopularItemsSection: () => <section data-testid="popular-items" />,
 }));
@@ -37,7 +33,6 @@ describe('CatalogHomePage — Phase 71J contract', () => {
       'hero-banner',
       'home-categories',
       'featured-items',
-      'offer-banners',
       'popular-items',
     ]);
   });

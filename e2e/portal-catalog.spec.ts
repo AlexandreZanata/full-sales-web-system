@@ -13,8 +13,6 @@ test.describe('Portal catalog flow', () => {
     await expect(page.getByTestId('home-categories')).toBeVisible();
     await expect(page.getByTestId('featured-items')).toBeVisible();
     await expect(page.getByText('Featured Burger')).toBeVisible();
-    await expect(page.getByTestId('offer-banners')).toBeVisible();
-    await expect(page.getByText('Tasty Burger')).toBeVisible();
     await expect(page.getByTestId('popular-items')).toBeVisible();
     await expect(page.getByText('Popular Soda')).toBeVisible();
   });

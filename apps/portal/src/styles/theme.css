@@ -176,6 +176,26 @@ body {
     @apply text-sm font-medium text-primary hover:underline;
   }
 
+  .catalog-breadcrumb {
+    @apply rounded-xl border border-hairline bg-surface-muted/60 px-3 py-2.5 text-sm;
+  }
+
+  .catalog-breadcrumb__list {
+    @apply flex flex-wrap items-center gap-x-2 gap-y-1;
+  }
+
+  .catalog-breadcrumb__link {
+    @apply font-medium text-muted-foreground transition-colors hover:text-primary;
+  }
+
+  .catalog-breadcrumb__current {
+    @apply font-semibold text-foreground;
+  }
+
+  .catalog-breadcrumb__sep {
+    @apply size-3.5 shrink-0 text-muted-foreground/45;
+  }
+
   .catalog-category-chip--active {
     @apply border-primary bg-surface-muted shadow-sm;
   }

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { ChevronRight } from 'lucide-react';
 
 import { ProductDetailActions } from '@/components/catalog/ProductDetailActions';
 import { ProductDetailInfo } from '@/components/catalog/ProductDetailInfo';
@@ -55,33 +56,37 @@ function ProductDetailPage() {
 
   return (
     <div className="space-y-6 pb-24 md:pb-0">
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <ol className="flex flex-wrap items-center gap-1">
+      <nav aria-label="Breadcrumb" className="catalog-breadcrumb">
+        <ol className="catalog-breadcrumb__list">
           <li>
             <Link
               to="/"
               search={catalogSearch ? { category: catalogSearch } : undefined}
-              className="hover:text-foreground"
+              className="catalog-breadcrumb__link"
             >
               {t('nav.catalog')}
             </Link>
           </li>
           {product.categoryName ? (
             <>
-              <li aria-hidden>→</li>
+              <li aria-hidden className="flex items-center">
+                <ChevronRight className="catalog-breadcrumb__sep" />
+              </li>
               <li>
                 <Link
                   to="/"
                   search={catalogSearch ? { category: catalogSearch } : undefined}
-                  className="hover:text-foreground"
+                  className="catalog-breadcrumb__link"
                 >
                   {product.categoryName}
                 </Link>
               </li>
             </>
           ) : null}
-          <li aria-hidden>→</li>
-          <li className="text-foreground">{product.name}</li>
+          <li aria-hidden className="flex items-center">
+            <ChevronRight className="catalog-breadcrumb__sep" />
+          </li>
+          <li className="catalog-breadcrumb__current">{product.name}</li>
         </ol>
       </nav>
 

@@ -1,7 +1,6 @@
 import { FeaturedItemsSection } from '@/components/catalog/home/FeaturedItemsSection';
 import { HeroBannerCarousel } from '@/components/catalog/home/HeroBannerCarousel';
 import { HomeCategorySection } from '@/components/catalog/home/HomeCategorySection';
-import { OfferBannersSection } from '@/components/catalog/home/OfferBannersSection';
 import { PopularItemsSection } from '@/components/catalog/home/PopularItemsSection';
 import { useI18n } from '@/lib/i18n/context';
 
@@ -14,7 +13,6 @@ export function CatalogHomePage() {
       <HeroBannerCarousel />
       <HomeCategorySection />
       <FeaturedItemsSection />
-      <OfferBannersSection />
       <PopularItemsSection />
     </div>
   );

@@ -10,7 +10,6 @@ import { resolveDefaultCategorySlug, catalogHomeSearch } from '@/lib/catalog/cat
 import {
   isPortalHomeActive,
   isPortalMenuActive,
-  isPortalOffersActive,
 } from '@/lib/catalog/portalHeaderNav';
 import { useCatalogCategories } from '@/lib/catalog/useCatalogCategories';
 import { useI18n } from '@/lib/i18n/context';
@@ -23,7 +22,6 @@ export function PortalHeader() {
   const { logout, user } = usePortalAuth();
   const { totalAmount, currency } = useCart();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const hash = useRouterState({ select: (state) => state.location.hash });
   const { category } = useSearch({ strict: false });
   const settings = useSiteSettings(Boolean(user));
   const categoriesQuery = useCatalogCategories();
@@ -76,14 +74,6 @@ export function PortalHeader() {
             className={navLinkClass(isPortalMenuActive(pathname, category))}
           >
             {t('nav.menu')}
-          </Link>
-          <Link
-            to="/"
-            hash="offers"
-            search={catalogHomeSearch}
-            className={navLinkClass(isPortalOffersActive(hash))}
-          >
-            {t('nav.offers')}
           </Link>
         </nav>
 

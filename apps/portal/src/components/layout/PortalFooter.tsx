@@ -70,9 +70,6 @@ export function PortalFooter() {
             >
               {t('nav.menu')}
             </Link>
-            <Link to="/" hash="offers" search={catalogHomeSearch} className="hover:underline">
-              {t('nav.offers')}
-            </Link>
           </nav>
         </div>
 
