@@ -12,16 +12,19 @@ use crate::billing::asaas_webhook;
 use crate::billing::{attach_payment_method, get_invoice, get_subscription, list_invoices};
 use crate::health::readiness;
 use crate::maintenance::maintenance_middleware;
+use crate::audit_context::audit_context_middleware;
 use crate::platform::{
     add_blocklist_entry, create_tenant, delete_blocklist_entry, disable_platform_user,
     enable_platform_user, end_impersonation, get_platform_user, get_tenant, get_tenant_stats,
-    health_history, health_matrix, list_fraud_events, list_platform_tenants, list_platform_users, list_tenant_orders_support,
+    get_tenant_export, health_history, health_matrix, list_fraud_events, list_platform_audit_events,
+    list_platform_tenants, list_platform_users, list_tenant_orders_support,
     list_tenant_products_support, list_tenant_sales_support, list_tenant_workforce,
     offboard_tenant, patch_platform_user, patch_tenant, patch_tenant_features,
     platform_login, platform_logout, platform_mfa_verify, platform_refresh, reactivate_tenant,
     reset_platform_user_password, resolve_fraud_event, run_dunning_job, run_offboarding_job,
-    schedule_maintenance, start_impersonation, suspend_tenant,
+    schedule_maintenance, start_impersonation, start_tenant_export, suspend_tenant,
 };
+use crate::platform::export::{get_settings_data_export, start_settings_data_export};
 use crate::platform::auth::platform_auth_middleware;
 use crate::auth::{auth_middleware, login, logout, refresh};
 use crate::tenant_gate::tenant_gate_middleware;
@@ -295,6 +298,11 @@ pub fn v1_router(state: AppState) -> Router {
             "/v1/settings/payments/transactions",
             get(list_payment_transactions),
         )
+        .route("/v1/settings/data-export", post(start_settings_data_export))
+        .route(
+            "/v1/settings/data-export/{jobId}",
+            get(get_settings_data_export),
+        )
         .route("/v1/reports", post(generate_report).get(list_reports))
         .route("/v1/reports/{id}", get(get_report))
         .route("/v1/reports/{id}/export", get(export_report))
@@ -304,6 +312,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/billing/invoices", get(list_invoices))
         .route("/v1/billing/invoices/{id}", get(get_invoice))
         .route("/v1/billing/payment-methods", post(attach_payment_method))
+        .layer(axum::middleware::from_fn(audit_context_middleware))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             maintenance_middleware,
@@ -345,6 +354,12 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/platform/tenants/{id}/orders", get(list_tenant_orders_support))
         .route("/v1/platform/tenants/{id}/sales", get(list_tenant_sales_support))
         .route("/v1/platform/tenants/{id}/products", get(list_tenant_products_support))
+        .route("/v1/platform/audit/events", get(list_platform_audit_events))
+        .route("/v1/platform/tenants/{id}/export", post(start_tenant_export))
+        .route(
+            "/v1/platform/tenants/{id}/export/{jobId}",
+            get(get_tenant_export),
+        )
         .route("/v1/platform/maintenance", post(schedule_maintenance))
         .route("/v1/platform/health/matrix", get(health_matrix))
         .route("/v1/platform/health/history", get(health_history))
@@ -375,6 +390,7 @@ pub fn v1_router(state: AppState) -> Router {
         )
         .route("/v1/platform/blocklist", post(add_blocklist_entry))
         .route("/v1/platform/blocklist/{id}", delete(delete_blocklist_entry))
+        .layer(axum::middleware::from_fn(audit_context_middleware))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             platform_auth_middleware,

@@ -6,6 +6,7 @@ mod fraud;
 mod billing;
 mod admin_orders;
 mod audit;
+mod audit_context;
 mod auth;
 pub mod catalog_events;
 mod categories;

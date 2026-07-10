@@ -24,13 +24,24 @@ pub async fn find_offboarding_candidates(
 pub async fn anonymize_tenant_pii(
     pool: &PgPool,
     tenant_id: TenantId,
-) -> Result<(), PostgresError> {
+) -> Result<bool, PostgresError> {
+    let held = sqlx::query_scalar::<_, bool>(
+        "SELECT COALESCE((settings->>'legalHold')::boolean, false)
+         FROM shared.tenants WHERE id = $1",
+    )
+    .bind(tenant_id.as_uuid())
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(false);
+    if held {
+        return Ok(false);
+    }
     let mut tx = pool.begin().await?;
     apply_bypass_rls(&mut tx).await?;
     sqlx::query(
         "UPDATE identity.users SET
-            email = 'deleted+' || id::text || '@anonymized.local',
-            name = 'Anonymized User',
+            email = 'deleted-' || id::text || '@anonymized.local',
+            name = 'Redacted',
             active = false
          WHERE tenant_id = $1",
     )
@@ -44,7 +55,6 @@ pub async fn anonymize_tenant_pii(
             display_name = 'Deleted',
             name = 'Deleted Tenant',
             active = false,
-            settings = settings || '{\"lgpd_export\":\"stub\"}'::jsonb,
             updated_at = now()
          WHERE id = $1",
     )
@@ -52,5 +62,5 @@ pub async fn anonymize_tenant_pii(
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(())
+    Ok(true)
 }

@@ -3,9 +3,12 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use domain_shared::TenantId;
+
+use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::platform::auth::PlatformAuthUser;
-use crate::platform_audit::record_platform_audit_stub;
+use crate::platform_audit::record_platform_audit;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -34,6 +37,7 @@ pub struct MaintenanceWindowResponse {
 pub async fn schedule_maintenance(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Json(body): Json<ScheduleMaintenanceRequest>,
 ) -> Result<(StatusCode, Json<MaintenanceWindowResponse>), ApiError> {
     if body.message.trim().len() < 3 {
@@ -64,13 +68,17 @@ pub async fn schedule_maintenance(
     )
     .await
     .map_err(|_| ApiError::internal())?;
-    record_platform_audit_stub(
+    record_platform_audit(
         &state,
+        &ctx,
         auth.user_id,
         "maintenance.schedule",
-        body.tenant_id,
+        body.tenant_id.map(TenantId::from_uuid),
+        "MaintenanceWindow",
+        id,
+        None,
     )
-    .await;
+    .await?;
     Ok((
         StatusCode::CREATED,
         Json(MaintenanceWindowResponse {

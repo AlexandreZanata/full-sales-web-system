@@ -521,3 +521,5 @@ WHEN the use case completes
 THEN an immutable audit.events row is appended with actor, action, target tenant, correlation id
 AND the event cannot be updated or deleted
 ```
+
+**Tests:** `api-http/tests/audit_compliance.rs` (`contract_suspend_tenant_when_platform_admin_then_audit_row_exists`)

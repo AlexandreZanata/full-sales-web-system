@@ -6,12 +6,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::audit_context::AuditRequestContext;
 use crate::domains::support::{persist_domain, row_to_domain};
 use crate::domains::verification::force_verify_domain;
 use crate::error::ApiError;
 use crate::list_query::build_cursor_page;
 use crate::platform::auth::PlatformAuthUser;
-use crate::platform_audit::record_platform_audit_stub;
+use crate::platform_audit::record_platform_audit;
 use crate::state::AppState;
 
 const DEFAULT_LIMIT: u32 = 20;
@@ -71,6 +72,7 @@ pub async fn list_platform_domains(
 pub async fn force_verify_platform_domain(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
 ) -> Result<Json<PlatformDomainResponse>, ApiError> {
     force_verify_domain(&state, id).await?;
@@ -78,19 +80,24 @@ pub async fn force_verify_platform_domain(
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::not_found)?;
-    record_platform_audit_stub(
+    record_platform_audit(
         &state,
+        &ctx,
         auth.user_id,
         "domain.force_verify",
-        Some(row.tenant_id.as_uuid()),
+        Some(row.tenant_id),
+        "Domain",
+        id,
+        None,
     )
-    .await;
+    .await?;
     Ok(Json(platform_response(&row)))
 }
 
 pub async fn patch_platform_domain(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     Json(body): Json<PatchPlatformDomainRequest>,
 ) -> Result<Json<PlatformDomainResponse>, ApiError> {
@@ -126,13 +133,17 @@ pub async fn patch_platform_domain(
     }
 
     persist_domain(&state.admin_pool, &domain, true).await?;
-    record_platform_audit_stub(
+    record_platform_audit(
         &state,
+        &ctx,
         auth.user_id,
         "domain.patch",
-        Some(domain.tenant_id.as_uuid()),
+        Some(domain.tenant_id),
+        "Domain",
+        id,
+        None,
     )
-    .await;
+    .await?;
     Ok(Json(platform_from_domain(&domain)))
 }
 

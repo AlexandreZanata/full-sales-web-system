@@ -22,11 +22,13 @@ async fn given_audit_event_when_admin_lists_then_cursor_envelope() {
         NewAuditEvent {
             id: event_id,
             actor_id: admin_id,
+            actor_type: domain_audit::ActorType::User,
             action: "payment.declared".into(),
             resource_type: "sale".into(),
             resource_id,
             metadata: None,
             correlation_id: None,
+            ip: None,
         },
     )
     .await
@@ -61,11 +63,13 @@ async fn given_audit_event_when_filter_by_actor_then_matches() {
         NewAuditEvent {
             id: event_id,
             actor_id: admin_id,
+            actor_type: domain_audit::ActorType::User,
             action: "sale.confirmed".into(),
             resource_type: "sale".into(),
             resource_id: Uuid::now_v7(),
             metadata: None,
             correlation_id: None,
+            ip: None,
         },
     )
     .await

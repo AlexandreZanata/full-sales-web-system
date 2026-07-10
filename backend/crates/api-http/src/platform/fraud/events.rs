@@ -7,10 +7,12 @@ use domain_fraud::FraudResolution;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::fraud::restore_fraud_event;
 use crate::list_query::build_cursor_page;
 use crate::platform::auth::PlatformAuthUser;
+use crate::platform_audit::record_platform_audit;
 use crate::state::AppState;
 
 const DEFAULT_LIMIT: u32 = 20;
@@ -90,6 +92,7 @@ pub async fn list_fraud_events(
 pub async fn resolve_fraud_event(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     Json(body): Json<ResolveFraudEventRequest>,
 ) -> Result<Json<FraudEventResponse>, ApiError> {
@@ -114,6 +117,20 @@ pub async fn resolve_fraud_event(
     .await
     .map_err(|_| ApiError::internal())?
     .ok_or_else(ApiError::not_found)?;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "fraud.resolve",
+        row.tenant_id,
+        "FraudEvent",
+        id,
+        Some(serde_json::json!({
+            "resolution": body.resolution,
+            "note": body.note,
+        })),
+    )
+    .await?;
     Ok(Json(event_response(&restore_fraud_event(&updated))))
 }
 

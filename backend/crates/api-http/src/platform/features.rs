@@ -2,9 +2,10 @@ use axum::{Json, extract::{Path, State}};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::platform::auth::PlatformAuthUser;
-use crate::platform_audit::record_platform_audit_stub;
+use crate::platform_audit::record_platform_audit;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -30,6 +31,7 @@ pub struct TenantFeaturesResponse {
 pub async fn patch_tenant_features(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     Json(body): Json<PatchTenantFeaturesRequest>,
 ) -> Result<Json<TenantFeaturesResponse>, ApiError> {
@@ -59,7 +61,17 @@ pub async fn patch_tenant_features(
     infra_postgres::shared::update_tenant_feature_flags(&state.admin_pool, tenant_id, flags)
         .await
         .map_err(|_| ApiError::internal())?;
-    record_platform_audit_stub(&state, auth.user_id, "tenant.features.patch", Some(id)).await;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "tenant.features.patch",
+        Some(tenant_id),
+        "Tenant",
+        id,
+        None,
+    )
+    .await?;
     let resolved = super::feature_support::load_resolved_flags(&state, tenant_id).await?;
     Ok(Json(TenantFeaturesResponse {
         online_payments: resolved.online_payments,

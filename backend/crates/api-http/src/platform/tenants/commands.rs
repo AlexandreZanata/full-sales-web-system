@@ -9,12 +9,14 @@ use infra_crypto::PasswordHasher;
 use serde::Deserialize;
 use uuid::Uuid;
 
+use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::platform::auth::PlatformAuthUser;
 use crate::platform::tenants::types::{
     ProvisionTenantResponse, TenantDetailResponse, map_platform_patch_error, row_to_tenant,
     tenant_detail,
 };
+use crate::platform_audit::record_platform_audit;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -52,6 +54,7 @@ pub struct SuspendRequest {
 pub async fn create_tenant(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Json(body): Json<CreateTenantRequest>,
 ) -> Result<(StatusCode, Json<ProvisionTenantResponse>), ApiError> {
     if !infra_postgres::shared::plan_exists(&state.admin_pool, body.plan_id)
@@ -203,6 +206,18 @@ pub async fn create_tenant(
         }
     }
 
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "tenant.create",
+        Some(tenant_id),
+        "Tenant",
+        tenant_id.as_uuid(),
+        None,
+    )
+    .await?;
+
     Ok((
         StatusCode::CREATED,
         Json(ProvisionTenantResponse {
@@ -233,7 +248,8 @@ pub async fn get_tenant(
 
 pub async fn patch_tenant(
     State(state): State<AppState>,
-    _auth: PlatformAuthUser,
+    auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     Json(body): Json<PatchTenantRequest>,
 ) -> Result<Json<TenantDetailResponse>, ApiError> {
@@ -270,35 +286,90 @@ pub async fn patch_tenant(
     if !updated {
         return Err(ApiError::not_found());
     }
-    get_tenant(State(state), _auth, Path(id)).await
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "tenant.patch",
+        Some(tenant_id),
+        "Tenant",
+        id,
+        None,
+    )
+    .await?;
+    get_tenant(State(state), auth, Path(id)).await
 }
 
 pub async fn suspend_tenant(
     State(state): State<AppState>,
-    _auth: PlatformAuthUser,
+    auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     Json(body): Json<SuspendRequest>,
 ) -> Result<Json<TenantDetailResponse>, ApiError> {
-    persist_transition(&state, TenantId::from_uuid(id), |tenant| {
+    let tenant_id = TenantId::from_uuid(id);
+    let response = persist_transition(&state, tenant_id, |tenant| {
         application::tenants::apply_suspend(tenant, &body.reason)
     })
-    .await
+    .await?;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "tenant.suspend",
+        Some(tenant_id),
+        "Tenant",
+        id,
+        Some(serde_json::json!({ "reason": body.reason })),
+    )
+    .await?;
+    Ok(response)
 }
 
 pub async fn reactivate_tenant(
     State(state): State<AppState>,
-    _auth: PlatformAuthUser,
+    auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
 ) -> Result<Json<TenantDetailResponse>, ApiError> {
-    persist_transition(&state, TenantId::from_uuid(id), application::tenants::apply_reactivate).await
+    let tenant_id = TenantId::from_uuid(id);
+    let response =
+        persist_transition(&state, tenant_id, application::tenants::apply_reactivate).await?;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "tenant.reactivate",
+        Some(tenant_id),
+        "Tenant",
+        id,
+        None,
+    )
+    .await?;
+    Ok(response)
 }
 
 pub async fn offboard_tenant(
     State(state): State<AppState>,
-    _auth: PlatformAuthUser,
+    auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
 ) -> Result<Json<TenantDetailResponse>, ApiError> {
-    persist_transition(&state, TenantId::from_uuid(id), application::tenants::apply_offboard).await
+    let tenant_id = TenantId::from_uuid(id);
+    let response =
+        persist_transition(&state, tenant_id, application::tenants::apply_offboard).await?;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "tenant.offboard",
+        Some(tenant_id),
+        "Tenant",
+        id,
+        None,
+    )
+    .await?;
+    Ok(response)
 }
 
 pub async fn run_offboarding_job(
@@ -310,13 +381,18 @@ pub async fn run_offboarding_job(
             .await
             .map_err(|_| ApiError::internal())?;
     let mut processed = Vec::new();
+    let mut skipped = Vec::new();
     for tenant_id in candidates {
-        infra_postgres::shared::anonymize_tenant_pii(&state.admin_pool, tenant_id)
+        let anonymized = infra_postgres::shared::anonymize_tenant_pii(&state.admin_pool, tenant_id)
             .await
             .map_err(|_| ApiError::internal())?;
-        processed.push(tenant_id.as_uuid());
+        if anonymized {
+            processed.push(tenant_id.as_uuid());
+        } else {
+            skipped.push(tenant_id.as_uuid());
+        }
     }
-    Ok(Json(serde_json::json!({ "processed": processed, "lgpdExport": "stub" })))
+    Ok(Json(serde_json::json!({ "processed": processed, "skipped": skipped })))
 }
 
 pub async fn run_dunning_job(

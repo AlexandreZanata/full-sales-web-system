@@ -768,8 +768,12 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 - **Auth:** Admin
 - **Query (cursor):** `limit`, `cursor`, `filter[actor_id]`, `filter[action]`, `filter[created_at][gte]`, `filter[created_at][lte]`
-- **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` — append-only audit events (`audit.events`), newest first
+- **Response 200:** `{ "data": [AuditEvent], "pagination": { ... } }` — append-only audit events (`audit.events`), newest first; max **90-day** date range per query
 - **Response 403:** Non-admin roles
+
+**AuditEvent fields:** `id`, `tenantId?`, `actorId`, `actorType`, `action`, `resourceType`, `resourceId`, `metadata?`, `ip?`, `correlationId?`, `createdAt`
+
+**Implemented:** Phase 10.
 
 ### `GET /v1/fraud/alerts`
 
@@ -1100,8 +1104,39 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `GET /v1/platform/audit/events`
 
 - **Auth:** PlatformAdmin
-- **Query (cursor):** `limit`, `cursor`, `filter[tenant_id]`, `filter[actor_id]`, `filter[action]`
+- **Query (cursor):** `limit`, `cursor`, `filter[tenant_id]`, `filter[actor_id]`, `filter[action]`, `filter[created_at][gte/lte]` — max 90-day range
 - **Response 200:** Cross-tenant audit log
+
+**Implemented:** Phase 10.
+
+### `POST /v1/platform/tenants/{id}/export`
+
+- **Auth:** PlatformAdmin
+- **Response 202:** Export job — LGPD JSON bundle ZIP (users, commerces, orders, sales; no secrets)
+- **Audit:** `tenant.export.requested`
+
+**Implemented:** Phase 10.
+
+### `GET /v1/platform/tenants/{id}/export/{jobId}`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** Job status + presigned `downloadUrl` when completed
+
+**Implemented:** Phase 10.
+
+### `POST /v1/settings/data-export`
+
+- **Auth:** Tenant Admin
+- **Response 202:** Export job for own tenant
+
+**Implemented:** Phase 10.
+
+### `GET /v1/settings/data-export/{jobId}`
+
+- **Auth:** Tenant Admin
+- **Response 200:** Job status + presigned URL
+
+**Implemented:** Phase 10.
 
 ---
 

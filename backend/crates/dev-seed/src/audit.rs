@@ -156,11 +156,13 @@ async fn insert_event_if_missing(
         NewAuditEvent {
             id: spec.id,
             actor_id: spec.actor_id,
+            actor_type: domain_audit::ActorType::User,
             action: spec.action,
             resource_type: spec.resource_type,
             resource_id: spec.resource_id,
             metadata: spec.metadata,
             correlation_id: None,
+            ip: None,
         },
     )
     .await?;

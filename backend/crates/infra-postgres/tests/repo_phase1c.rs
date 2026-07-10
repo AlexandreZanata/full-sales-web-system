@@ -130,11 +130,13 @@ async fn rls_audit_events_isolated() {
         NewAuditEvent {
             id: Uuid::now_v7(),
             actor_id: actor_a,
+            actor_type: domain_audit::ActorType::User,
             action: "sale.create".to_owned(),
             resource_type: "sale".to_owned(),
             resource_id: Uuid::now_v7(),
             metadata: None,
             correlation_id: None,
+            ip: None,
         },
     )
     .await

@@ -83,6 +83,7 @@ dependencies = [
  "base64",
  "chrono",
  "dev-seed",
+ "domain-audit",
  "domain-billing",
  "domain-commerces",
  "domain-deliveries",
@@ -121,6 +122,7 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "wiremock",
+ "zip",
 ]
 
 [[package]]
@@ -129,6 +131,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
+ "domain-audit",
  "domain-billing",
  "domain-commerces",
  "domain-deliveries",
@@ -1347,6 +1350,7 @@ name = "dev-seed"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "domain-audit",
  "domain-commerces",
  "domain-identity",
  "domain-orders",
@@ -1414,6 +1418,18 @@ dependencies = [
  "base64",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "domain-audit"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "domain-shared",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]
@@ -2532,6 +2548,7 @@ name = "infra-postgres"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "domain-audit",
  "domain-billing",
  "domain-domains",
  "domain-fraud",

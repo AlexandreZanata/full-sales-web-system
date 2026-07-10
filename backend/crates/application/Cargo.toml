@@ -14,6 +14,7 @@ domain-media.workspace = true
 domain-orders.workspace = true
 domain-sales.workspace = true
 domain-platform.workspace = true
+domain-audit.workspace = true
 domain-billing.workspace = true
 domain-fraud.workspace = true
 domain-shared.workspace = true

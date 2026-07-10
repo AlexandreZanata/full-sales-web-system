@@ -3,6 +3,7 @@ use axum::{Json, extract::State};
 use domain_billing::ensure_online_payments_allowed;
 use application::billing::api_key_last4;
 
+use crate::audit_context::AuditRequestContext;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::state::AppState;
@@ -13,6 +14,7 @@ use super::types::{ConnectAsaasRequest, ConnectAsaasResponse};
 pub async fn connect_asaas(
     State(state): State<AppState>,
     auth: AuthUser,
+    ctx: AuditRequestContext,
     Json(body): Json<ConnectAsaasRequest>,
 ) -> Result<Json<ConnectAsaasResponse>, ApiError> {
     ensure_admin(&auth)?;
@@ -50,6 +52,7 @@ pub async fn connect_asaas(
     .map_err(|_| ApiError::internal())?;
     audit_payment_action(
         &state,
+        &ctx,
         &auth,
         "tenant.asaas.connected",
         serde_json::json!({ "apiKeyLast4": last4 }),
@@ -64,6 +67,7 @@ pub async fn connect_asaas(
 pub async fn disconnect_asaas(
     State(state): State<AppState>,
     auth: AuthUser,
+    ctx: AuditRequestContext,
 ) -> Result<axum::http::StatusCode, ApiError> {
     ensure_admin(&auth)?;
     infra_postgres::billing::delete_credentials(&state.admin_pool, auth.tenant_id)
@@ -72,7 +76,7 @@ pub async fn disconnect_asaas(
     infra_postgres::billing::disable_online_payments(&state.admin_pool, auth.tenant_id)
         .await
         .map_err(|_| ApiError::internal())?;
-    audit_payment_action(&state, &auth, "tenant.asaas.disconnected", serde_json::json!({}))
+    audit_payment_action(&state, &ctx, &auth, "tenant.asaas.disconnected", serde_json::json!({}))
         .await?;
     Ok(axum::http::StatusCode::NO_CONTENT)
 }

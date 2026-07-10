@@ -15,6 +15,7 @@ axum = { workspace = true, features = ["multipart"] }
 domain-commerces.workspace = true
 domain-deliveries.workspace = true
 domain-identity.workspace = true
+domain-audit.workspace = true
 domain-billing.workspace = true
 domain-domains.workspace = true
 domain-fraud.workspace = true
@@ -49,6 +50,7 @@ futures-util = "0.3"
 uuid.workspace = true
 reqwest.workspace = true
 async-trait.workspace = true
+zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 application.workspace = true

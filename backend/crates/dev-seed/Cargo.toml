@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 chrono.workspace = true
 domain-commerces.workspace = true
+domain-audit.workspace = true
 domain-identity.workspace = true
 domain-orders.workspace = true
 domain-reports.workspace = true

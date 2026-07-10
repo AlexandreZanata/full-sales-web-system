@@ -106,6 +106,7 @@ pub async fn tenant_asaas_client(
 
 pub async fn audit_payment_action(
     state: &AppState,
+    ctx: &crate::audit_context::AuditRequestContext,
     auth: &AuthUser,
     action: &str,
     metadata: serde_json::Value,
@@ -116,11 +117,13 @@ pub async fn audit_payment_action(
         NewAuditEvent {
             id: Uuid::now_v7(),
             actor_id: auth.user_id,
+            actor_type: domain_audit::ActorType::User,
             action: action.to_owned(),
             resource_type: "TenantPaymentSettings".into(),
             resource_id: auth.tenant_id.as_uuid(),
             metadata: Some(metadata),
-            correlation_id: None,
+            correlation_id: ctx.correlation_id,
+            ip: Some(ctx.ip.clone()),
         },
     )
     .await

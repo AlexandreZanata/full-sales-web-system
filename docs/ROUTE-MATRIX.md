@@ -230,7 +230,9 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 
 | Method | Path | Auth | Status | Migrations | Rules | Task |
 |--------|------|------|--------|------------|-------|------|
-| GET | `/v1/audit/events` | Admin | ✅ | `220` | read-only, RN-PAG3 | 26 |
+| GET | `/v1/audit/events` | Admin | ✅ | `audit.events` | Phase 10 — 90d range |
+| POST | `/v1/settings/data-export` | Admin | ✅ | `ops.data_export_jobs` | Phase 10 |
+| GET | `/v1/settings/data-export/{jobId}` | Admin | ✅ | `ops.data_export_jobs` | Phase 10 |
 
 ---
 

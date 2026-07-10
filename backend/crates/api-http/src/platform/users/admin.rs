@@ -7,10 +7,13 @@ use infra_crypto::PasswordHasher;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use domain_shared::TenantId;
+
+use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::platform::auth::PlatformAuthUser;
 use crate::platform::users::{PlatformUserItem, to_item};
-use crate::platform_audit::record_platform_audit_stub;
+use crate::platform_audit::record_platform_audit;
 use crate::state::AppState;
 
 #[derive(Serialize)]
@@ -45,21 +48,24 @@ pub async fn get_platform_user(
 pub async fn disable_platform_user(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
 ) -> Result<Json<UserActiveResponse>, ApiError> {
-    mutate_active(&state, &auth, id, false).await
+    mutate_active(&state, &ctx, &auth, id, false).await
 }
 
 pub async fn enable_platform_user(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
 ) -> Result<Json<UserActiveResponse>, ApiError> {
-    mutate_active(&state, &auth, id, true).await
+    mutate_active(&state, &ctx, &auth, id, true).await
 }
 
 async fn mutate_active(
     state: &AppState,
+    ctx: &AuditRequestContext,
     auth: &PlatformAuthUser,
     id: Uuid,
     active: bool,
@@ -74,19 +80,24 @@ async fn mutate_active(
     infra_postgres::identity::set_user_active(&state.app_pool, id, active)
         .await
         .map_err(|_| ApiError::internal())?;
-    record_platform_audit_stub(
+    record_platform_audit(
         state,
+        ctx,
         auth.user_id,
         if active { "user.enable" } else { "user.disable" },
-        Some(row.tenant_id),
+        Some(TenantId::from_uuid(row.tenant_id)),
+        "User",
+        id,
+        None,
     )
-    .await;
+    .await?;
     Ok(Json(UserActiveResponse { active }))
 }
 
 pub async fn reset_platform_user_password(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, Json<ResetPasswordResponse>), ApiError> {
     let row = infra_postgres::identity::find_user_cross_tenant(&state.app_pool, id)
@@ -98,8 +109,17 @@ pub async fn reset_platform_user_password(
     infra_postgres::identity::update_user_password(&state.app_pool, id, &hash)
         .await
         .map_err(|_| ApiError::internal())?;
-    record_platform_audit_stub(&state, auth.user_id, "user.reset_password", Some(row.tenant_id))
-        .await;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "user.reset_password",
+        Some(TenantId::from_uuid(row.tenant_id)),
+        "User",
+        id,
+        None,
+    )
+    .await?;
     Ok((
         StatusCode::ACCEPTED,
         Json(ResetPasswordResponse {
@@ -112,6 +132,7 @@ pub async fn reset_platform_user_password(
 pub async fn patch_platform_user(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     Json(body): Json<PatchPlatformUserRequest>,
 ) -> Result<Json<PlatformUserItem>, ApiError> {
@@ -131,7 +152,17 @@ pub async fn patch_platform_user(
     infra_postgres::identity::update_user_role(&state.app_pool, id, &role)
         .await
         .map_err(|_| ApiError::internal())?;
-    record_platform_audit_stub(&state, auth.user_id, "user.patch", Some(row.tenant_id)).await;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "user.patch",
+        Some(TenantId::from_uuid(row.tenant_id)),
+        "User",
+        id,
+        Some(serde_json::json!({ "role": role })),
+    )
+    .await?;
     get_platform_user(State(state), auth, Path(id)).await
 }
 

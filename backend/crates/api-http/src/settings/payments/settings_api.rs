@@ -2,6 +2,7 @@ use axum::{Json, extract::State};
 
 use domain_billing::{BillingError, PaymentMethodToggles};
 
+use crate::audit_context::AuditRequestContext;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::state::AppState;
@@ -49,6 +50,7 @@ pub async fn payment_settings_response(
 pub async fn update_payment_settings(
     State(state): State<AppState>,
     auth: AuthUser,
+    ctx: AuditRequestContext,
     Json(body): Json<UpdatePaymentSettingsRequest>,
 ) -> Result<Json<PaymentSettingsResponse>, ApiError> {
     ensure_admin(&auth)?;
@@ -82,6 +84,7 @@ pub async fn update_payment_settings(
     .map_err(|_| ApiError::internal())?;
     audit_payment_action(
         &state,
+        &ctx,
         &auth,
         "tenant.payment_settings.updated",
         serde_json::json!({ "enabled": settings.enabled }),

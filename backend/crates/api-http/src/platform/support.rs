@@ -8,6 +8,7 @@ use infra_postgres::rls::SessionContext;
 use uuid::Uuid;
 
 use crate::admin_orders::list::OrderSummaryResponse;
+use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::list_query::{
     ORDERS_LIST_CONFIG, PRODUCTS_LIST_CONFIG, SALES_LIST_CONFIG, build_cursor_page,
@@ -15,7 +16,7 @@ use crate::list_query::{
     filter_lte_datetime, parse_list_query,
 };
 use crate::platform::auth::PlatformAuthUser;
-use crate::platform_audit::record_platform_audit_stub;
+use crate::platform_audit::record_platform_audit;
 use crate::sales::types::SaleSummaryResponse;
 use crate::products::ProductResponse;
 use crate::state::AppState;
@@ -23,12 +24,15 @@ use crate::state::AppState;
 pub async fn list_tenant_orders_support(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     RawQuery(query): RawQuery,
 ) -> Result<Json<crate::list_query::CursorListResponse<OrderSummaryResponse>>, Response> {
     let tenant_id = TenantId::from_uuid(id);
     ensure_tenant(&state, id).await.map_err(api_err_response)?;
-    audit_support(&state, &auth, id, "support.orders.list").await;
+    audit_support(&state, &ctx, &auth, id, "support.orders.list")
+        .await
+        .map_err(api_err_response)?;
 
     let session = admin_session(tenant_id, auth.user_id);
     let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &ORDERS_LIST_CONFIG)
@@ -71,12 +75,15 @@ pub async fn list_tenant_orders_support(
 pub async fn list_tenant_sales_support(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     RawQuery(query): RawQuery,
 ) -> Result<Json<crate::list_query::CursorListResponse<SaleSummaryResponse>>, Response> {
     let tenant_id = TenantId::from_uuid(id);
     ensure_tenant(&state, id).await.map_err(api_err_response)?;
-    audit_support(&state, &auth, id, "support.sales.list").await;
+    audit_support(&state, &ctx, &auth, id, "support.sales.list")
+        .await
+        .map_err(api_err_response)?;
 
     let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &SALES_LIST_CONFIG)
         .map_err(|e| e.into_response("unknown".to_owned()))?;
@@ -111,12 +118,15 @@ pub async fn list_tenant_sales_support(
 pub async fn list_tenant_products_support(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Path(id): Path<Uuid>,
     RawQuery(query): RawQuery,
 ) -> Result<Json<crate::list_query::CursorListResponse<ProductResponse>>, Response> {
     let tenant_id = TenantId::from_uuid(id);
     ensure_tenant(&state, id).await.map_err(api_err_response)?;
-    audit_support(&state, &auth, id, "support.products.list").await;
+    audit_support(&state, &ctx, &auth, id, "support.products.list")
+        .await
+        .map_err(api_err_response)?;
 
     let parsed = parse_list_query(&decode_query_pairs(query.as_deref()), &PRODUCTS_LIST_CONFIG)
         .map_err(|e| e.into_response("unknown".to_owned()))?;
@@ -161,8 +171,24 @@ async fn ensure_tenant(state: &AppState, id: Uuid) -> Result<(), ApiError> {
     Ok(())
 }
 
-async fn audit_support(state: &AppState, auth: &PlatformAuthUser, tenant_id: Uuid, action: &str) {
-    record_platform_audit_stub(state, auth.user_id, action, Some(tenant_id)).await;
+async fn audit_support(
+    state: &AppState,
+    ctx: &AuditRequestContext,
+    auth: &PlatformAuthUser,
+    tenant_id: Uuid,
+    action: &str,
+) -> Result<(), ApiError> {
+    record_platform_audit(
+        state,
+        ctx,
+        auth.user_id,
+        action,
+        Some(TenantId::from_uuid(tenant_id)),
+        "Tenant",
+        tenant_id,
+        None,
+    )
+    .await
 }
 
 fn api_err_response(err: ApiError) -> Response {

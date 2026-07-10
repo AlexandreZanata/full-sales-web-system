@@ -14,6 +14,7 @@ members = [
     "crates/domain-billing",
     "crates/domain-fraud",
     "crates/domain-domains",
+    "crates/domain-audit",
     "crates/application",
     "crates/infra-postgres",
     "crates/infra-redis",
@@ -68,6 +69,7 @@ domain-platform = { path = "crates/domain-platform" }
 domain-billing = { path = "crates/domain-billing" }
 domain-fraud = { path = "crates/domain-fraud" }
 domain-domains = { path = "crates/domain-domains" }
+domain-audit = { path = "crates/domain-audit" }
 domain-reports = { path = "crates/domain-reports" }
 domain-shared = { path = "crates/domain-shared" }
 infra-asaas = { path = "crates/infra-asaas" }

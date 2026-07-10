@@ -6,9 +6,10 @@ use domain_shared::TenantId;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::platform_audit::record_platform_audit_stub;
+use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::platform::auth::PlatformAuthUser;
+use crate::platform_audit::record_platform_audit;
 use crate::state::AppState;
 
 const IMPERSONATION_TTL: Duration = Duration::from_secs(15 * 60);
@@ -41,6 +42,7 @@ pub struct EndImpersonationRequest {
 pub async fn start_impersonation(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Json(body): Json<ImpersonateRequest>,
 ) -> Result<Json<ImpersonateResponse>, ApiError> {
     if body.reason.trim().len() < 3 {
@@ -86,13 +88,17 @@ pub async fn start_impersonation(
     .await
     .map_err(|_| ApiError::internal())?;
 
-    record_platform_audit_stub(
+    record_platform_audit(
         &state,
+        &ctx,
         auth.user_id,
         "impersonation.start",
-        Some(body.tenant_id),
+        Some(tenant_id),
+        "ImpersonationGrant",
+        grant_id,
+        Some(serde_json::json!({ "reason": body.reason.trim() })),
     )
-    .await;
+    .await?;
 
     let token = state
         .jwt
@@ -115,6 +121,7 @@ pub async fn start_impersonation(
 pub async fn end_impersonation(
     State(state): State<AppState>,
     auth: PlatformAuthUser,
+    ctx: AuditRequestContext,
     Json(body): Json<EndImpersonationRequest>,
 ) -> Result<http::StatusCode, ApiError> {
     let revoked = infra_postgres::identity::revoke_impersonation_grant(
@@ -128,6 +135,16 @@ pub async fn end_impersonation(
         return Err(ApiError::not_found());
     }
 
-    record_platform_audit_stub(&state, auth.user_id, "impersonation.end", None).await;
+    record_platform_audit(
+        &state,
+        &ctx,
+        auth.user_id,
+        "impersonation.end",
+        None,
+        "ImpersonationGrant",
+        body.grant_id,
+        None,
+    )
+    .await?;
     Ok(http::StatusCode::NO_CONTENT)
 }
