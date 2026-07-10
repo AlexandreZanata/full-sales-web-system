@@ -2,6 +2,7 @@
 
 pub mod domains;
 pub mod fraud;
+pub mod ops;
 pub mod portal;
 pub mod audit;
 pub mod billing;

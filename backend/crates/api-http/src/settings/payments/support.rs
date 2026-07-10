@@ -44,12 +44,22 @@ pub async fn load_plan_limits(
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::not_found)?;
-    let plan_id = row.plan_id.ok_or_else(ApiError::not_found)?;
-    let plan = infra_postgres::billing::find_plan(&state.admin_pool, plan_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::not_found)?;
-    Ok(plan.feature_limits)
+    let plan_limits = match row.plan_id {
+        Some(plan_id) => {
+            let plan = infra_postgres::billing::find_plan(&state.admin_pool, plan_id)
+                .await
+                .map_err(|_| ApiError::internal())?
+                .ok_or_else(ApiError::not_found)?;
+            plan.feature_limits
+        }
+        None => serde_json::json!({}),
+    };
+    let resolved = application::feature_flags::resolve_feature_flags(&plan_limits, &row.settings);
+    Ok(serde_json::json!({
+        "onlinePayments": resolved.online_payments,
+        "customDomain": resolved.custom_domain,
+        "apiRateTier": resolved.api_rate_tier,
+    }))
 }
 
 pub async fn load_settings(

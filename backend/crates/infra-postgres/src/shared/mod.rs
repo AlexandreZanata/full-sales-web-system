@@ -1,5 +1,11 @@
 pub mod offboarding;
+pub mod tenant_stats;
 pub mod tenants_lifecycle;
+
+pub use tenant_stats::{
+    TenantWorkforceStats, admin_session_for_tenant, tenant_workforce_stats,
+    update_tenant_feature_flags,
+};
 
 pub use offboarding::{anonymize_tenant_pii, find_offboarding_candidates};
 pub use tenants_lifecycle::{

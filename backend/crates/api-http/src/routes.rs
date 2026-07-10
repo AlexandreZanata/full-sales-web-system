@@ -10,11 +10,16 @@ use crate::admin_orders::{
 use crate::audit::list_audit_events;
 use crate::billing::asaas_webhook;
 use crate::billing::{attach_payment_method, get_invoice, get_subscription, list_invoices};
+use crate::maintenance::maintenance_middleware;
 use crate::platform::{
-    add_blocklist_entry, create_tenant, delete_blocklist_entry, end_impersonation, get_tenant,
-    list_fraud_events, list_platform_tenants, list_platform_users, offboard_tenant, patch_tenant,
+    add_blocklist_entry, create_tenant, delete_blocklist_entry, disable_platform_user,
+    enable_platform_user, end_impersonation, get_platform_user, get_tenant, get_tenant_stats,
+    list_fraud_events, list_platform_tenants, list_platform_users, list_tenant_orders_support,
+    list_tenant_products_support, list_tenant_sales_support, list_tenant_workforce,
+    offboard_tenant, patch_platform_user, patch_tenant, patch_tenant_features,
     platform_login, platform_logout, platform_mfa_verify, platform_refresh, reactivate_tenant,
-    resolve_fraud_event, run_dunning_job, run_offboarding_job, start_impersonation, suspend_tenant,
+    reset_platform_user_password, resolve_fraud_event, run_dunning_job, run_offboarding_job,
+    schedule_maintenance, start_impersonation, suspend_tenant,
 };
 use crate::platform::auth::platform_auth_middleware;
 use crate::auth::{auth_middleware, login, logout, refresh};
@@ -125,6 +130,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/public/settings", get(get_public_settings))
         .route("/v1/reports/{id}/verify", get(verify_report))
         .route("/v1/billing/webhooks/asaas", post(asaas_webhook))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            maintenance_middleware,
+        ))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             host_tenant_middleware,
@@ -286,6 +295,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/billing/payment-methods", post(attach_payment_method))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
+            maintenance_middleware,
+        ))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
             tenant_gate_middleware,
         ))
         .layer(axum::middleware::from_fn_with_state(
@@ -303,11 +316,25 @@ pub fn v1_router(state: AppState) -> Router {
     let platform_protected = Router::new()
         .route("/v1/platform/auth/logout", post(platform_logout))
         .route("/v1/platform/users", get(list_platform_users))
+        .route("/v1/platform/users/{id}", get(get_platform_user).patch(patch_platform_user))
+        .route("/v1/platform/users/{id}/disable", post(disable_platform_user))
+        .route("/v1/platform/users/{id}/enable", post(enable_platform_user))
+        .route(
+            "/v1/platform/users/{id}/reset-password",
+            post(reset_platform_user_password),
+        )
         .route(
             "/v1/platform/tenants",
             get(list_platform_tenants).post(create_tenant),
         )
         .route("/v1/platform/tenants/{id}", get(get_tenant).patch(patch_tenant))
+        .route("/v1/platform/tenants/{id}/users", get(list_tenant_workforce))
+        .route("/v1/platform/tenants/{id}/stats", get(get_tenant_stats))
+        .route("/v1/platform/tenants/{id}/features", patch(patch_tenant_features))
+        .route("/v1/platform/tenants/{id}/orders", get(list_tenant_orders_support))
+        .route("/v1/platform/tenants/{id}/sales", get(list_tenant_sales_support))
+        .route("/v1/platform/tenants/{id}/products", get(list_tenant_products_support))
+        .route("/v1/platform/maintenance", post(schedule_maintenance))
         .route("/v1/platform/tenants/{id}/suspend", post(suspend_tenant))
         .route("/v1/platform/tenants/{id}/reactivate", post(reactivate_tenant))
         .route("/v1/platform/tenants/{id}/offboard", post(offboard_tenant))

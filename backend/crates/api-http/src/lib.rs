@@ -1,3 +1,4 @@
+mod maintenance;
 mod domains;
 mod fraud;
 mod billing;

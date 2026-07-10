@@ -6,6 +6,7 @@ use domain_shared::TenantId;
 use thiserror::Error;
 use uuid::Uuid;
 
+pub mod feature_flags;
 pub mod auth;
 pub mod domains;
 pub mod fraud;

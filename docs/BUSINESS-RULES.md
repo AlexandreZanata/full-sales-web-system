@@ -491,6 +491,17 @@ AND an audit event is emitted
 
 **Tests:** `domain-fraud/tests/business_rules.rs`, `api-http/tests/platform_fraud.rs` (`contract_blocklist_when_email_blocked_then_provision_rejected`)
 
+### BR-PL-001 — Last tenant Admin required
+
+```
+GIVEN a tenant has exactly one active Admin user
+WHEN PlatformAdmin disables that user or changes their role away from Admin
+THEN the operation is rejected with LAST_ADMIN_REQUIRED
+AND at least one active Admin remains for the tenant
+```
+
+**Tests:** `api-http/tests/platform_operations.rs` (`contract_platform_disable_when_last_admin_then_rejected`)
+
 ### BR-DM-001 — One active primary domain
 
 ```

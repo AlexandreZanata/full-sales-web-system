@@ -116,40 +116,6 @@ pub async fn revoke_impersonation_grant(
     Ok(result.rows_affected() == 1)
 }
 
-pub struct CrossTenantUserRow {
-    pub id: Uuid,
-    pub tenant_id: Uuid,
-    pub email: String,
-    pub name: String,
-    pub role: String,
-    pub active: bool,
-}
-
-pub async fn list_users_cross_tenant(
-    pool: &PgPool,
-    tenant_filter: Option<Uuid>,
-    after_id: Option<Uuid>,
-    limit: i64,
-) -> Result<Vec<CrossTenantUserRow>, PostgresError> {
-    let mut tx = pool.begin().await?;
-    apply_bypass_rls(&mut tx).await?;
-    let rows = sqlx::query_as::<_, CrossTenantUserRecord>(
-        "SELECT id, tenant_id, email, name, role, active
-         FROM identity.users
-         WHERE ($1::uuid IS NULL OR tenant_id = $1)
-           AND ($2::uuid IS NULL OR id > $2)
-         ORDER BY id ASC
-         LIMIT $3",
-    )
-    .bind(tenant_filter)
-    .bind(after_id)
-    .bind(limit)
-    .fetch_all(&mut *tx)
-    .await?;
-    tx.commit().await?;
-    Ok(rows.into_iter().map(CrossTenantUserRow::from).collect())
-}
-
 pub async fn find_tenant_admin_user(
     pool: &PgPool,
     tenant_id: TenantId,
@@ -207,29 +173,6 @@ impl From<PlatformLoginRow> for PlatformLoginRecord {
             active: row.active,
             mfa_secret: row.mfa_secret,
             mfa_enrolled: row.mfa_enrolled,
-        }
-    }
-}
-
-#[derive(sqlx::FromRow)]
-struct CrossTenantUserRecord {
-    id: Uuid,
-    tenant_id: Uuid,
-    email: String,
-    name: String,
-    role: String,
-    active: bool,
-}
-
-impl From<CrossTenantUserRecord> for CrossTenantUserRow {
-    fn from(row: CrossTenantUserRecord) -> Self {
-        Self {
-            id: row.id,
-            tenant_id: row.tenant_id,
-            email: row.email,
-            name: row.name,
-            role: row.role,
-            active: row.active,
         }
     }
 }

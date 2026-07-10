@@ -72,7 +72,7 @@ pub async fn login(
         return Err(ApiError::invalid_credentials());
     }
 
-    let auth = match application::auth::authenticate_login(&to_app_record(record), &body.password, true)
+    let auth = match application::auth::authenticate_login(&to_app_record(record.clone()), &body.password, true)
     {
         Ok(auth) => auth,
         Err(AppError::Identity(domain_identity::IdentityError::InactiveUser)) => {
@@ -84,6 +84,8 @@ pub async fn login(
         }
         Err(err) => return Err(map_app_error(err)),
     };
+
+    let _ = infra_postgres::identity::touch_last_login(&state.admin_pool, record.id).await;
 
     issue_tokens(&state, auth).await
 }

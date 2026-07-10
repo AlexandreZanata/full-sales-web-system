@@ -16,6 +16,13 @@ pub use payments::{
 };
 
 #[derive(Serialize)]
+pub struct MaintenanceBanner {
+    pub message: String,
+    #[serde(rename = "endsAt")]
+    pub ends_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Serialize)]
 pub struct SettingsResponse {
     #[serde(rename = "displayName")]
     pub display_name: String,
@@ -27,6 +34,8 @@ pub struct SettingsResponse {
     pub sales_contact_phone: Option<String>,
     #[serde(rename = "paymentMethods", skip_serializing_if = "Option::is_none")]
     pub payment_methods: Option<payments::PaymentMethodsResponse>,
+    #[serde(rename = "maintenanceBanner", skip_serializing_if = "Option::is_none")]
+    pub maintenance_banner: Option<MaintenanceBanner>,
 }
 
 #[derive(Deserialize, Default)]
@@ -189,6 +198,7 @@ async fn settings_response(
     };
 
     let payment_methods = payments::public_payment_methods(state, tenant_id).await?;
+    let maintenance_banner = active_maintenance_banner(state, tenant_id).await?;
 
     Ok(Json(SettingsResponse {
         display_name: row.display_name,
@@ -196,5 +206,31 @@ async fn settings_response(
         logo_url,
         sales_contact_phone: row.sales_contact_phone,
         payment_methods,
+        maintenance_banner,
     }))
+}
+
+async fn active_maintenance_banner(
+    state: &AppState,
+    tenant_id: domain_shared::TenantId,
+) -> Result<Option<MaintenanceBanner>, ApiError> {
+    if let Some(window) = infra_postgres::ops::find_active_for_tenant(&state.admin_pool, tenant_id)
+        .await
+        .map_err(|_| ApiError::internal())?
+    {
+        return Ok(Some(MaintenanceBanner {
+            message: window.message,
+            ends_at: window.ends_at,
+        }));
+    }
+    if let Some(window) = infra_postgres::ops::find_active_global(&state.admin_pool)
+        .await
+        .map_err(|_| ApiError::internal())?
+    {
+        return Ok(Some(MaintenanceBanner {
+            message: window.message,
+            ends_at: window.ends_at,
+        }));
+    }
+    Ok(None)
 }

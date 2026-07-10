@@ -879,18 +879,112 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `GET /v1/platform/users`
 
 - **Auth:** PlatformAdmin
-- **Query (cursor):** `limit`, `cursor`, `filter[tenant_id]`, `filter[role]`, `filter[active]`, `filter[email][contains]`
-- **Response 200:** Cross-tenant user list
+- **Query (cursor):** `limit`, `cursor`, `filter[tenant_id]`, `filter[role]`, `filter[active]`, `filter[email][prefix]`, `sort` (`createdAt` | `email` | `name`)
+- **Response 200:** Cross-tenant user list with `tenant` summary (no password fields)
+
+**Implemented:** Phase 8.
+
+### `GET /v1/platform/users/{id}`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** User detail including `lastLoginAt` when tracked
+
+**Implemented:** Phase 8.
+
+### `PATCH /v1/platform/users/{id}`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "role"?: "Admin" | "Driver" | "Seller" }`
+- **Response 200:** Updated user
+- **Response 400:** `LAST_ADMIN_REQUIRED` when demoting/disabling sole Admin
+- **Audit:** `user.patch`
+
+**Implemented:** Phase 8.
 
 ### `POST /v1/platform/users/{id}/reset-password`
 
 - **Auth:** PlatformAdmin
-- **Response 202:** Reset email queued
+- **Response 202:** `{ "queued": true, "temporaryPassword" }` — ponytail: email queue stub; password rotated immediately
+- **Audit:** `user.reset_password`
+
+**Implemented:** Phase 8.
 
 ### `POST /v1/platform/users/{id}/disable`
 
 - **Auth:** PlatformAdmin
 - **Response 200:** `{ "active": false }`
+- **Audit:** `user.disable`
+
+**Implemented:** Phase 8.
+
+### `POST /v1/platform/users/{id}/enable`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** `{ "active": true }`
+- **Audit:** `user.enable`
+
+**Implemented:** Phase 8.
+
+---
+
+## Platform workforce and support
+
+### `GET /v1/platform/tenants/{id}/users`
+
+- **Auth:** PlatformAdmin
+- **Query (cursor):** `limit`, `cursor`
+- **Response 200:** All employees for tenant
+
+**Implemented:** Phase 8.
+
+### `GET /v1/platform/tenants/{id}/stats`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** `{ "users", "drivers", "sellers", "commerces", "orders", "mrrMinor", "mrrCurrency" }`
+
+**Implemented:** Phase 8.
+
+### `GET /v1/platform/tenants/{id}/orders`
+
+- **Auth:** PlatformAdmin (read-only)
+- **Query:** Same cursor filters as tenant `GET /v1/orders`
+- **Audit:** `support.orders.list`
+
+**Implemented:** Phase 8.
+
+### `GET /v1/platform/tenants/{id}/sales`
+
+- **Auth:** PlatformAdmin (read-only)
+- **Audit:** `support.sales.list`
+
+**Implemented:** Phase 8.
+
+### `GET /v1/platform/tenants/{id}/products`
+
+- **Auth:** PlatformAdmin (read-only)
+- **Audit:** `support.products.list`
+
+**Implemented:** Phase 8.
+
+### `POST /v1/platform/maintenance`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "tenantId"?, "message", "startsAt", "endsAt" }` — omit `tenantId` for global window
+- **Response 201:** Maintenance window
+- **Middleware:** `503 MAINTENANCE` on tenant/public routes during active window (except `/health`, `/v1/platform/*`, `GET /v1/settings`)
+- **Settings:** `maintenanceBanner` on `GET /v1/settings` and `GET /v1/public/settings` when applicable
+- **Audit:** `maintenance.schedule`
+
+**Implemented:** Phase 8.
+
+### `PATCH /v1/platform/tenants/{id}/features`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "onlinePayments"?, "customDomain"?, "apiRateTier"?: "standard" | "pro" | "enterprise" }`
+- **Response 200:** Resolved effective flags (plan defaults + `settings.feature_flags` overrides)
+- **Audit:** `tenant.features.patch`
+
+**Implemented:** Phase 8 — defaults per plan in `billing.plans.feature_limits`; overrides in `shared.tenants.settings.feature_flags`.
 
 ---
 

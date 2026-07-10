@@ -7,6 +7,7 @@ use crate::rls::apply_tenant_context;
 
 pub mod driver_profiles;
 pub mod platform;
+pub mod platform_users;
 pub mod seller_profiles;
 
 pub use driver_profiles::{
@@ -18,10 +19,14 @@ pub use seller_profiles::{
     upsert_seller_profile,
 };
 pub use platform::{
-    CrossTenantUserRow, ImpersonationGrantInsert, InsertPlatformUserParams, PlatformLoginRecord,
+    ImpersonationGrantInsert, InsertPlatformUserParams, PlatformLoginRecord,
     find_platform_user_by_id, find_platform_user_for_login, find_tenant_admin_user,
-    insert_impersonation_grant, insert_platform_user, list_users_cross_tenant,
-    revoke_impersonation_grant, tenant_exists,
+    insert_impersonation_grant, insert_platform_user, revoke_impersonation_grant, tenant_exists,
+};
+pub use platform_users::{
+    CrossTenantUserDetailRow, CrossTenantUserFilters, UserSort, count_active_admins,
+    find_user_cross_tenant, list_tenant_users, list_users_cross_tenant, set_user_active,
+    touch_last_login, update_user_password, update_user_role,
 };
 
 /// Row persisted in `identity.users`.

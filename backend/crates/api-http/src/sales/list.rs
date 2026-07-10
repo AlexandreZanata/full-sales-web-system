@@ -62,7 +62,7 @@ pub async fn list_sales(
     )))
 }
 
-fn sale_summary_from_row(row: infra_postgres::sales::SaleListRow) -> Option<SaleSummaryResponse> {
+pub(crate) fn sale_summary_from_row(row: infra_postgres::sales::SaleListRow) -> Option<SaleSummaryResponse> {
     let status = parse_sale_status(&row.status).ok()?;
     let payment_method = PaymentMethod::parse(&row.payment_method).ok()?;
     Some(SaleSummaryResponse {

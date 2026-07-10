@@ -25,21 +25,8 @@ pub fn row_to_domain(row: &DomainRow) -> TenantDomain {
 }
 
 pub async fn ensure_custom_domain_plan(state: &AppState, tenant_id: TenantId) -> Result<(), ApiError> {
-    let lifecycle = infra_postgres::shared::find_tenant_lifecycle(&state.admin_pool, tenant_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::not_found)?;
-    let Some(plan_id) = lifecycle.plan_id else {
-        return Err(ApiError::forbidden_with_code(
-            "PLAN_FEATURE_UNAVAILABLE",
-            "Custom domain requires Pro or Enterprise plan",
-        ));
-    };
-    let plan = infra_postgres::billing::find_plan(&state.admin_pool, plan_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::not_found)?;
-    if !domain_billing::plan_allows_custom_domain(&plan.feature_limits) {
+    let flags = crate::platform::feature_support::load_resolved_flags(state, tenant_id).await?;
+    if !flags.custom_domain {
         return Err(ApiError::forbidden_with_code(
             "PLAN_FEATURE_UNAVAILABLE",
             "Custom domain requires Pro or Enterprise plan",
