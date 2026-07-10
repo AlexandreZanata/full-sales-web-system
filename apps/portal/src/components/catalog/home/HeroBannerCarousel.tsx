@@ -37,13 +37,16 @@ export function HeroBannerCarousel() {
         autoplay={{ delay: 5000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
       >
-        {banners.map((banner) => {
+        {banners.map((banner, index) => {
+          const isFirstSlide = index === 0;
           const image = (
             <img
               src={banner.imageUrl}
               alt={banner.altText ?? ''}
               className="aspect-[3/1] w-full rounded-2xl object-cover"
-              loading="eager"
+              loading={isFirstSlide ? 'eager' : 'lazy'}
+              fetchPriority={isFirstSlide ? 'high' : undefined}
+              sizes="(min-width: 1152px) 1152px, 100vw"
             />
           );
 

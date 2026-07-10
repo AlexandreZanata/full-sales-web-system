@@ -1,283 +1,181 @@
-# Portal catalog (Phases 45–47)
+# Portal catalog (Phases 45–47, 71 FoodKing redesign)
 
-> Reusable catalog UI + production catalog page in `apps/portal` (`@full-sales/portal`).  
-> API contract: [API-CONTRACT.md](../API-CONTRACT.md) · Backend routes: [ROUTE-MATRIX.md](../ROUTE-MATRIX.md)
+> Guest + authenticated catalog in `apps/portal` (`@full-sales/portal`).  
+> API: [API-CONTRACT.md](../API-CONTRACT.md) · Routes: [ROUTE-MATRIX.md](../ROUTE-MATRIX.md)
 
-**Status:** Phase 47 complete — demo-ready dev seed + documentation.
+**Status:** Phase 71 complete (71A–71P) — PO visual sign-off pending (71Q).
 
-**Design inspiration:** [FoodKing](https://github.com/inilabs/foodking) catalog UX (`MenuComponent`, `CategoryComponent`). Side-by-side mapping: `.local/phases/_reference/FOODKING-CATALOG-MAP.md`.
+**Design reference:** FoodKing UX — `.local/phases/71-portal-catalog-foodking-redesign/_reference/DESIGN-SPEC.md`
 
 ---
 
-## Dev commands
+## Portal home demo (start here)
+
+Full FoodKing-style home at `/` after seed + API:
 
 ```bash
-pnpm dev:portal                              # http://127.0.0.1:5175
-pnpm seed:dev                                # categories + products (idempotent)
+# 1. Infrastructure + API (from repo root)
+docker compose up -d          # Postgres, Redis, MinIO — if not already running
+pnpm dev:api                  # http://127.0.0.1:8080
+
+# 2. Seed catalog + portal home content (idempotent)
+pnpm seed:dev                 # categories, products, banners, promotions, featured flags
+
+# 3. Portal dev server
+pnpm dev:portal               # http://127.0.0.1:5175
+
+# 4. Verify
 pnpm --filter @full-sales/portal lint test build
+pnpm test:e2e:portal          # home sections, menu, cart, visual snapshots, axe
 ```
 
-### Dev seed catalog (Phase 47)
+| URL | What you should see |
+|-----|---------------------|
+| `/` | Hero carousel → Our Menu chips → Featured grid → Offer cards → Popular list |
+| `/?category=bebidas` | Menu catalog with category bar, search, grid/list toggle |
+| `/products/{id}?category=slug` | Product detail gallery + sticky actions |
 
-After `pnpm seed:dev`, the portal catalog shows five categories with placeholder images on the first three:
+**Admin CMS** (optional content edits): `pnpm dev:admin` → `/portal` — hero banners, promotions, product `isFeatured`.
 
-| Slug | Name | Products (sample) |
-|------|------|-------------------|
-| `bebidas` | Bebidas | Refrigerante Cola 2L |
-| `snacks` | Snacks | Batata Chips Original |
-| `limpeza` | Limpeza | Detergente Neutro 500ml |
-| `congelados` | Congelados | Pizza Congelada Mussarela (inactive) |
-| `mercearia` | Mercearia | — (empty category for demo) |
-
-Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by slug on re-run.
+**Credentials:** dev seed admin `admin@seed-store.com` / `secret123` · portal guest needs no login.
 
 ---
 
-## Catalog page flow
+## Home vs menu routing
 
-| Step | Behavior |
-|------|----------|
-| 1 | User opens `/` → **home** with hero banner (`CatalogHomePage`) |
-| 2 | User opens Menu nav or `/?category=<slug>` → category catalog |
-| 3 | `CategoryBar` loads from `useCatalogCategories()` |
-| 3 | Products load via `fetchPortalCategoryBySlug(slug)` |
-| 4 | Client search filters within category (debounced) |
-| 5 | List/grid toggle persisted in `localStorage` |
-| 6 | Product detail at `/products/$id?category=<slug>` |
+| URL | Component | Sections / behavior |
+|-----|-----------|---------------------|
+| `/` | `CatalogHomePage` | Hero → Categories → Featured → Offers → Popular |
+| `/?category={slug}` | `CatalogPageContent` | Category bar (menu variant), toolbar, product grid/list |
+| `/?category={slug}&q={term}` | `CatalogPageContent` | Menu + debounced client search (header or toolbar) |
+| `/products/{id}?category={slug}` | Product detail route | Gallery, specs, cart / order / WhatsApp CTAs |
 
-**Route files:** `routes/_authenticated/index.tsx`, `components/catalog/CatalogPageContent.tsx`
+**Routing file:** `routes/_authenticated/index.tsx` — renders home when `?category=` is absent; menu otherwise.
+
+**Nav behavior:**
+
+- Header **Home** → `/` (clears `category` / `q` via `catalogHomeSearch`)
+- Header **Menu** / mobile bottom **Cardápio** → `/?category=<first active slug>`
+- Header **Offers** → `/#offers` anchor on home promo section
 
 ---
 
-## Component library (`src/components/catalog/`)
+## Home page components (`components/catalog/home/`)
+
+| Component | `data-testid` | Hook / API | Role |
+|-----------|---------------|------------|------|
+| `CatalogHomePage` | `catalog-home-page` | — | Stacks all home sections; sr-only `<h1>` for a11y |
+| `HeroBannerCarousel` | `hero-banner` | `useHeroBanners` → `GET /v1/public/banners?placement=hero` | Swiper autoplay; first slide `fetchPriority=high` + `sizes` for LCP |
+| `HomeCategorySection` | `home-categories` | `useCatalogCategories` | "Our menu" title, View All pill, `CategoryBar` variant `home` |
+| `FeaturedItemsSection` | `featured-items` | `useFeaturedProducts` → `GET /v1/public/products/featured` | 2–4 col grid, `ProductCardGrid` |
+| `OfferBannersSection` | `offer-banners` | `usePromotions` → `GET /v1/public/promotions` | Pastel promo cards, `id="offers"` anchor |
+| `PopularItemsSection` | `popular-items` | `usePopularProducts` → `GET /v1/public/products/popular` | 1–3 col list layout, `ProductCardList` |
+
+**Fallbacks** (when API empty or unreachable): catalog list slice for featured/popular; demo promo cards; settings/demo hero SVG — see API client table below.
+
+---
+
+## Menu catalog components
 
 | Component | Role |
 |-----------|------|
-| `CategoryBar` | Horizontal scroll category chips; arrow-key navigation |
-| `ProductCardGrid` | Vertical product card |
-| `ProductCardList` | Horizontal list row card — larger mobile thumbnail, grouped SKU/category meta, prominent price, full-width CTA on small screens |
-| `ProductCatalog` | Composes bar + toolbar + cards |
+| `CatalogPageContent` | Menu route body — `data-testid="catalog-menu"`, back-to-home link, URL `q` sync |
+| `CategoryBar` | variant `menu`: active chip bottom border; variant `home`: scroll-snap chips |
 | `CatalogToolbar` | Category title, search slot, list/grid toggle |
-| `CatalogPageContent` | Catalog route body (data + composition) |
-| `CatalogEmptyState` | Empty catalog with illustration |
-| `CatalogSkeleton` | Loading placeholders |
-| `ProductImage` | Shared image with `alt={product.name}` |
-| `ProductImageCarousel` | Loop carousel with prev/next and dot indicators |
-| `ProductMediaPanel` | Sticky gallery wrapper for product detail |
-| `ProductDetailInfo` | Title, price, description, specs table |
-| `ProductDetailSkeleton` | Product detail loading state |
-| `ProductDetailActions` | Sticky CTAs: cart, place order, contact seller |
+| `ProductCatalog` | Composes bar + toolbar + cards |
+| `ProductCardGrid` / `ProductCardList` | FoodKing cards: image, description, price, Add pill |
+| `ProductCardAddPill` | `.catalog-add-pill-btn` |
+| `ProductInfoDialog` | Native `<dialog>` for extended description |
+| `CatalogEmptyState` / `CatalogSkeleton` | Empty + loading states |
 
 ---
 
-## Product detail page (`/products/$id`)
+## Portal shell (`components/layout/`)
+
+| Component | Role |
+|-----------|------|
+| `PortalShell` | Header + main + footer + mobile bottom nav + `CartFab` |
+| `PortalHeader` | Logo, Home/Menu/Offers, desktop search pill, locale, cart pill, login |
+| `PortalHeaderSearch` | Syncs header search with menu `?q=` and active category |
+| `PortalFooter` | Red band: newsletter stub, links, contact phone, copyright |
+
+---
+
+## Product detail (`/products/$id`)
 
 | Step | Behavior |
 |------|----------|
-| 1 | User opens product from catalog → `/products/{id}?category={slug}` |
-| 2 | `fetchPortalProductById(id)` → `GET /v1/portal/products/{id}` (public when logged out) |
-| 3 | `ProductMediaPanel` builds gallery from `primaryImageUrl` + `imageUrls[]` |
-| 4 | Single image: no carousel chrome; 2+ images: arrows + dots |
-| 5 | Specs show SKU, unit of measure, category, status |
-| 6 | `ProductDetailActions` sticky bar: add to cart, place order (→ cart), contact seller (WhatsApp) |
-| 7 | Contact seller uses `salesContactPhone` from `GET /v1/public/settings` (guest) or `/v1/settings` (logged in) |
+| 1 | Open from catalog → `/products/{id}?category={slug}` |
+| 2 | `fetchPortalProductById` — public when logged out |
+| 3 | `ProductMediaPanel` + `ProductImageCarousel` when 2+ images |
+| 4 | `ProductDetailActions` — cart, place order, WhatsApp (`salesContactPhone`) |
 
-**Route file:** `routes/_authenticated/products/$id.tsx`
-
-**Components:** `ProductDetailActions`, `lib/contact/sellerWhatsAppLink.ts`
-
----
-
-## Catalog utilities
-
-| Path | Purpose |
-|------|---------|
-| `src/lib/catalog/gallerySlides.ts` | `buildGallerySlides` — primary first, dedupe |
-| `src/lib/catalog/catalogSearch.ts` | Search param parsing, slug validation, client filter |
-| `src/lib/catalog/viewMode.ts` | `CatalogViewMode` + `localStorage` persistence |
-| `src/lib/catalog/useCatalogCategories.ts` | React Query hook — `staleTime` 5 min |
-| `src/lib/catalog/useDebouncedValue.ts` | Debounced search input |
-| `src/lib/catalog/useCatalogRealtime.ts` | SSE invalidation for all catalog queries |
+**Route:** `routes/_authenticated/products/$id.tsx`
 
 ---
 
 ## API client
 
-| Function | Endpoint (public / portal) |
-|----------|----------------------------|
-| `fetchPortalCategories` | `GET /v1/public/categories` or `/v1/portal/categories` |
-| `fetchPortalCategoryBySlug` | `GET /v1/public/categories/{slug}` or `/v1/portal/categories/{slug}` |
-| `fetchPortalProductById` | `GET /v1/public/products/{id}` or `/v1/portal/products/{id}` |
+| Function | Endpoint |
+|----------|----------|
+| `fetchPortalCategories` | `GET /v1/public/categories` (guest) or `/v1/portal/categories` |
+| `fetchPortalCategoryBySlug` | `GET /v1/public/categories/{slug}` or portal variant |
+| `fetchPortalProductById` | `GET /v1/public/products/{id}` or portal variant |
+| `fetchPortalProducts` | `GET /v1/public/products` — catalog fallback |
+| `fetchPortalBanners` | `GET /v1/public/banners?placement=hero` |
+| `fetchPortalFeaturedProducts` | `GET /v1/public/products/featured` |
+| `fetchPortalPromotions` | `GET /v1/public/promotions` |
+| `fetchPortalPopularProducts` | `GET /v1/public/products/popular` |
 | `fetchSettings` | `GET /v1/public/settings` or `/v1/settings` |
-| `fetchPortalProducts` | `GET /v1/public/products?category=` (fallback) |
-| `fetchPortalFeaturedProducts` | `GET /v1/public/products/featured` (catalog fallback when empty) |
-| `fetchPortalPromotions` | `GET /v1/public/promotions` (demo fallback when empty) |
-| `fetchPortalPopularProducts` | `GET /v1/public/products/popular` (catalog fallback when empty) |
-| `fetchPortalBanners` | `GET /v1/public/banners?placement=hero` (settings/demo fallback) |
 
-Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalProductDetail` in `src/lib/api/types.ts`.
+Guest calls use `skipAuth: true` on public paths. Types in `src/lib/api/types.ts`.
 
 ---
 
-## Portal shell
+## Dev seed
 
-`PortalShell` composes `PortalHeader`, main content, `PortalFooter`, mobile bottom nav (Home / Menu / Cart), and `CartFab`.
+### Catalog (`backend/crates/dev-seed/src/catalog.rs`)
 
-### Header (`PortalHeader`) — Phase 71C
+| Slug | Name | Notes |
+|------|------|-------|
+| `bebidas` | Bebidas | Sample products |
+| `snacks` | Snacks | Category thumbs on first three |
+| `limpeza` | Limpeza | |
+| `congelados` | Congelados | Includes inactive product demo |
+| `mercearia` | Mercearia | Empty category demo |
 
-| Zone | Behavior |
-|------|----------|
-| Brand | `logoUrl` or `displayName` from settings |
-| Nav | Home (`/`), Menu (`/?category=<first>`), Offers (`/#offers`) |
-| Search | Desktop pill → navigates to menu with `?q=` (client filter) |
-| Locale | `LocaleSwitcher` pill variant |
-| Cart | Black pill with bag icon + formatted cart total |
-| Auth | Red login pill (guest) or account dropdown (orders + logout) |
+### Portal home (`backend/crates/dev-seed/src/portal_content.rs`)
 
-Mobile header: logo + cart + login only; search stays on menu page.
+- 2 hero banners (`portal.banners`) with WebP in object storage
+- 2 promotions (yellow + green) in `portal.promotions`
+- First 3+ products marked `is_featured`
+- Sales totals seeded for popular ranking
 
-### Footer (`PortalFooter`) — Phase 71C
-
-Red `portal-footer` band: newsletter form (stub submit), useful links, contact phone from settings, copyright.
-
-### Home vs menu routing — Phase 71D / 71-OD-004
-
-| URL | View |
-|-----|------|
-| `/` | `CatalogHomePage` (hero, categories, featured, offers, popular) |
-| `/?category=slug` | `CatalogPageContent` (menu catalog) |
-| `/?category=slug&q=term` | Menu with prefilled client search |
-
----
-
-## Home hero banner (Phase 71D)
-
-| Path | Purpose |
-|------|---------|
-| `components/catalog/home/HeroBannerCarousel.tsx` | Swiper carousel, `data-testid="hero-banner"` |
-| `components/catalog/home/CatalogHomePage.tsx` | Home stack (hero first) |
-| `lib/catalog/useHeroBanners.ts` | React Query hook |
-| `lib/api/portal.ts` | `fetchPortalBanners()` |
-
-Fallback order: `GET /v1/public/banners?placement=hero` → `settings.heroBanners` → `/demo/hero-banner.svg`.
-
-Dependency: `swiper` + `swiper/react`.
-
-### Home category row (Phase 71E)
-
-| Component | Role |
-|-----------|------|
-| `HomeCategorySection` | "Our menu" title, View All pill, horizontal category chips |
-| `CategoryBar` variant `home` | `w-32` scroll-snap chips with primary hover tint |
-
-### Product cards (Phase 71F)
-
-| Component | Role |
-|-----------|------|
-| `ProductCardGrid` / `ProductCardList` | FoodKing layout: image, title + info, 2-line description, price + Add pill |
-| `ProductCardAddPill` | `.catalog-add-pill-btn` with bag icon |
-| `ProductCardPrice` | Sale price + optional `compareAtPrice` strikethrough |
-| `ProductInfoDialog` | Native `<dialog>` for description/SKU when info icon clicked |
-| `stripHtml.ts` | Plain-text description from optional HTML |
-
-`PortalProduct` optional fields: `description`, `compareAtPrice`.
-
-### Featured items (Phase 71G)
-
-| Path | Purpose |
-|------|---------|
-| `components/catalog/home/FeaturedItemsSection.tsx` | Grid of featured products, `data-testid="featured-items"` |
-| `lib/catalog/useFeaturedProducts.ts` | React Query hook |
-| `lib/api/portalFeatured.ts` | `fetchPortalFeaturedProducts()` |
-
-Fallback order: `GET /v1/public/products/featured` → first page of catalog products (MVP until Phase 71N).
-
-### Offer banners (Phase 71H)
-
-| Path | Purpose |
-|------|---------|
-| `components/catalog/home/OfferBannersSection.tsx` | Pastel promo cards, `id="offers"`, `data-testid="offer-banners"` |
-| `lib/catalog/usePromotions.ts` | React Query hook |
-| `lib/api/portalPromotions.ts` | `fetchPortalPromotions()` + `PortalPromotion` type |
-
-Fallback: demo yellow/green promo cards with category links until `GET /v1/public/promotions` (Phase 71N).
-
-Component classes: `.catalog-offer-card`, `.catalog-offer-cta`.
-
-### Popular items (Phase 71I)
-
-| Path | Purpose |
-|------|---------|
-| `components/catalog/home/PopularItemsSection.tsx` | List-card grid, `data-testid="popular-items"` |
-| `lib/catalog/usePopularProducts.ts` | React Query hook |
-| `lib/api/portalPopular.ts` | `fetchPortalPopularProducts()` |
-
-Fallback order: `GET /v1/public/products/popular` → first page of catalog products (MVP until Phase 71N).
-
-### Home composition (Phase 71J)
-
-| Path | Purpose |
-|------|---------|
-| `components/catalog/home/CatalogHomePage.tsx` | Stacked home sections (`data-testid="catalog-home-page"`) |
-| `routes/_authenticated/index.tsx` | Home when no `?category=`; menu via `CatalogPageContent` |
-| `lib/catalog/catalogSearch.ts` | `catalogHomeSearch` — clears menu params on Home nav |
-
-Section order: Hero → Categories → Featured → Offers → Popular.
-
-### Menu page polish (Phase 71K)
-
-| Path | Purpose |
-|------|---------|
-| `components/catalog/CatalogPageContent.tsx` | Menu shell: `CategoryBar` variant `menu`, debounced `?q=` sync, back-to-home link |
-| `components/layout/PortalHeaderSearch.tsx` | Header search prefills menu `?q=` and respects active category |
-| `components/catalog/CatalogToolbar.tsx` | Grid/list toggle preserved on menu page |
-
-Menu `CategoryBar` active chip uses `.catalog-category-chip--menu.catalog-category-chip--active` (primary bottom border). Footer renders via `PortalShell` on menu URLs. `data-testid="catalog-menu"` on menu root.
-
-### Admin portal CMS (Phase 71L)
-
-| Path | Purpose |
-|------|---------|
-| `apps/admin/src/routes/_authenticated/portal/index.tsx` | Admin CRUD for hero banners and offer promotions |
-| `apps/admin/src/lib/api/portalContent.ts` | `/v1/portal/banners` and `/v1/portal/promotions` client |
-| `apps/admin/src/components/products/EditProductForm.tsx` | `isFeatured` checkbox on product edit |
-
-RBAC: Admin only (`require_admin` on API; admin route behind authenticated layout). Image upload uses existing media pipeline (`PortalBanner` / `PortalPromotion` entity types).
-
-### Dev seed — portal home (Phase 71M)
-
-| Path | Purpose |
-|------|---------|
-| `backend/crates/dev-seed/src/portal_content.rs` | Seeds 2 hero banners, 2 promotions (yellow/green), 4–8 featured products, sales totals for popular |
-| `apps/portal/public/demo/` | Static banner assets referenced by seed |
-
-Run `pnpm seed:dev` then open portal `/` — home sections populate from `portal.banners`, `portal.promotions`, and `products.is_featured`.
+Re-run: `pnpm seed:dev` (idempotent upsert).
 
 ---
 
 ## Design tokens (Phase 71B)
 
-| Path | Purpose |
-|------|---------|
-| `src/styles/theme.css` | FoodKing-aligned CSS variables and component classes |
-| `src/lib/settings/applyTheme.ts` | `hexToOklch`, `applyThemePrimaryColor`, `bootstrapPortalTheme` |
+| Token | Default | Runtime |
+|-------|---------|---------|
+| `--primary` | `#FE1F00` (oklch) | Overridden from `settings.themePrimaryColor` via `bootstrapPortalTheme()` |
+| `--surface-muted` | `#F7F7FC` | Category chips |
+| `--hairline` | `#EFF0F6` | Borders |
+| Font | Rubik 400–700 | `index.html` Google Fonts |
 
-| Token | Default | Notes |
-|-------|---------|-------|
-| `--primary` | `#FE1F00` (oklch) | Overridden at boot from `settings.themePrimaryColor` when present |
-| `--surface-muted` | `#F7F7FC` | Category chip background |
-| `--hairline` | `#EFF0F6` | Borders, search pill |
-| Font | Rubik 400–700 | Google Fonts in `index.html` |
-
-Component classes: `.portal-header`, `.portal-footer`, `.catalog-add-pill-btn`, `.catalog-product-card-grid` (`rounded-2xl`).
-
-Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DESIGN-SPEC.md`.
+Component classes: `.portal-header`, `.portal-footer`, `.catalog-add-pill-btn`, `.catalog-product-card-grid`, `.catalog-offer-card`.
 
 ---
 
-## i18n keys
+## Admin CMS (Phase 71L)
 
-`catalog.categories`, `catalog.featuredItems`, `catalog.popularItems`, `catalog.orderNow`, `catalog.selectCategory`, `catalog.emptyCategory`, `catalog.viewList`, `catalog.viewGrid`, `catalog.emptyDescription`, `productDetail.*` (+ existing `catalog.*`).
+| Path | Purpose |
+|------|---------|
+| `apps/admin` → `/portal` | CRUD hero banners + offer promotions |
+| Product edit form | `isFeatured` checkbox → `PATCH /v1/products/{id}` |
+
+RBAC: Admin only. Media entity types: `PortalBanner`, `PortalPromotion`.
 
 ---
 
@@ -287,24 +185,38 @@ Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DES
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 | Portal E2E | `pnpm test:e2e:portal` |
-| Visual + a11y | `e2e/portal-home-visual.spec.ts` (Playwright snapshots + axe) |
+| Visual + a11y | `e2e/portal-home-visual.spec.ts` |
+| Backend contracts | `cargo test -p api-http --test public_catalog` |
 
-Key contracts: `tests/catalog/ProductCardGrid.test.tsx`, `tests/catalog/ProductCardList.test.tsx`, `tests/catalog/CatalogHomePage.test.tsx`, `catalogSearch.test.ts`, `catalogHomeSearch.test.ts`, `CatalogPageContent.test.tsx`, Phase 45/71F component tests (`ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `FeaturedItemsSection.test.tsx`, `OfferBannersSection.test.tsx`, `PopularItemsSection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `portal-featured-promotions-api.test.ts`, `portal-popular-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`. Admin: `portal-content-api.test.ts`, `edit-product-validation.test.ts`.
+Key tests: `tests/catalog/*`, `CatalogPageContent.test.tsx`, home section tests, `portal-*-api.test.ts`, `public_catalog.rs`.
 
-Backend integration: `backend/crates/api-http/tests/public_catalog.rs` (public home endpoints with seeded data).
+---
 
-Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (home sections, category URL, search, list/grid, add to cart, product detail carousel).
+## Phase 71 acceptance (71Q)
+
+| Check | Status | How verified |
+|-------|--------|--------------|
+| Home sections render in order | ✅ | `CatalogHomePage.test.tsx`, E2E home test |
+| Menu category navigation + search + cart | ✅ | `portal-catalog.spec.ts`, `portal-order.spec.ts` |
+| Mobile + desktop shell | ✅ | `portal-responsive.spec.ts` |
+| Tenant primary color runtime | ✅ | `applyTheme.test.ts`, `bootstrapPortalTheme` on boot |
+| Guest browse + login + checkout | ✅ | Portal E2E order flow |
+| Hero LCP hints | ✅ | First slide `loading=eager`, `fetchPriority=high`, `sizes` |
+| File size limits (≤200 lines) | ✅ | All `home/*` + `CatalogPageContent` under cap |
+| Visual parity vs FoodKing | ⬜ | **PO review** — side-by-side with DESIGN-SPEC screenshots |
+| WCAG AA brand contrast | ⬜ | Known gap: primary red on white (axe excludes in E2E) |
 
 ---
 
 ## Known gaps
 
-| Gap | Description | Owner |
-|-----|-------------|-------|
-| GAP-062 | Optional `/categories/$slug` path alias | Deferred |
-| GAP-049E | Related products rail on detail page | Phase 49 optional / future |
-| Phase 50 | Enhanced sticky bar actions (quantity stepper) | Phase 50 |
+| Gap | Description |
+|-----|-------------|
+| GAP-071-A11Y | Brand `#FE1F00` on white fails WCAG AA contrast — design debt |
+| GAP-062 | Optional `/categories/$slug` path alias |
+| GAP-049E | Related products rail on detail page |
+| Newsletter | Footer submit stub until dedicated endpoint |
 
 ---
 
-**Updated:** 2026-07-10 (Phase 71N public home APIs + 71O tests/visual regression)
+**Updated:** 2026-07-10 (Phase 71P documentation + 71Q automated acceptance)

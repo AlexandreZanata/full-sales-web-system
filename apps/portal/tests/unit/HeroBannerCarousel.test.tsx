@@ -53,6 +53,11 @@ describe('HeroBannerCarousel — Phase 71D contract', () => {
       'src',
       '/demo/hero-banner.svg',
     );
+    expect(screen.getByRole('img', { name: 'Welcome' })).toHaveAttribute('fetchpriority', 'high');
+    expect(screen.getByRole('img', { name: 'Welcome' })).toHaveAttribute(
+      'sizes',
+      '(min-width: 1152px) 1152px, 100vw',
+    );
   });
 
   it('given_zero_banners_when_loaded_then_hides_section', () => {
