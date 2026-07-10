@@ -85,3 +85,27 @@ Build phases aligned with domain dependencies. Local task breakdown: `.local/pha
 - ICP-Brasil integration (if legally required)
 - Scheduled daily report jobs
 - Payment gateway adapters
+
+---
+
+## Platform SaaS (Phases 1–13) ✅
+
+Local task breakdown: `.local/phases/1-super-admin-rbac/` … `13-integration-e2e/`.
+
+| Phase | Scope | Exit |
+|-------|-------|------|
+| 1 | PlatformAdmin auth, MFA, impersonation, RLS bypass | `platform_auth.rs` |
+| 2 | Tenant provision, lifecycle, suspension gate | `tenant_lifecycle.rs` |
+| 3 | Asaas webhook, idempotency | `billing_webhook.rs` |
+| 4 | Subscription billing, dunning, tenant billing API | `billing_subscription.rs` |
+| 5 | Tenant Asaas connect, portal checkout | `billing_tenant_payments.rs` |
+| 6 | Fraud velocity, blocklist | `platform_fraud.rs` |
+| 7 | Custom domains, DNS verify | `tenant_domains.rs` |
+| 8 | Platform operations (users, support, maintenance) | `platform_operations.rs` |
+| 9 | Health matrix, readiness probes | `health_monitoring.rs` |
+| 10 | Audit trail, LGPD export | `audit_compliance.rs` |
+| 11 | Platform Admin SPA | [features/platform-admin-ui.md](features/platform-admin-ui.md) |
+| 12 | Tenant billing UI (admin) | [features/tenant-billing-ui.md](features/tenant-billing-ui.md) |
+| 13 | Integration E2E, PO acceptance | [features/platform-saas-e2e.md](features/platform-saas-e2e.md) |
+
+**Phase 13 exit gate:** PO signs acceptance checklist; `cargo test -p api-http platform_saas` green in CI.

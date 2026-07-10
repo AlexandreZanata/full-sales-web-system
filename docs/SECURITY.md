@@ -104,6 +104,21 @@ RLS policies filter all tenant-scoped tables. See [ARCHITECTURE.md](ARCHITECTURE
 
 ---
 
+## PlatformAdmin threat table (Phase 13)
+
+| Threat | Vector | Mitigation | Test |
+|--------|--------|------------|------|
+| Cross-tenant data leak via impersonation | Stolen impersonation JWT | Short TTL (15 min); scoped `actingTenantId`; no RLS bypass | `platform_saas/impersonation_audit.rs` |
+| Platform token used on tenant routes | Confused deputy | Platform JWT rejected on `/v1/users` etc. | `platform_auth.rs` |
+| Tenant admin escalates to platform | BOLA on `/v1/platform/*` | Separate auth table + MFA; 401 on tenant JWT | `platform_auth_matrix.rs` |
+| Webhook replay / duplicate billing | Asaas webhook | `asaas_event_id` UNIQUE; constant-time token | `platform_saas/webhook_fraud_domain.rs` |
+| Fraudulent tenant provisioning | Blocklist bypass | Email blocklist check on provision | `platform_fraud.rs` |
+| Suspended tenant continues mutations | Missing gate | `tenant_gate_middleware` → `TENANT_SUSPENDED` | `platform_saas/lifecycle.rs` |
+| Unaudited platform mutations | Missing audit | `record_platform_audit` on suspend, impersonation, export | `audit_compliance.rs` |
+| Health blind spot | Dependency down undetected | `/health/ready`, platform health matrix | `health_monitoring.rs` |
+
+---
+
 ## Threat mapping (initial)
 
 | OWASP | Threat | Mitigation |

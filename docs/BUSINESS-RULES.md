@@ -405,7 +405,7 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 
 ---
 
-## Platform SaaS (proposed — Phases 1–13)
+## Platform SaaS (Phases 1–13)
 
 > Locked in Phase 0. Implement and wire tests per phase. Spec: `.local/phases/0-platform-vision-decisions/_reference/PLATFORM-SAAS-SPEC.md`.
 

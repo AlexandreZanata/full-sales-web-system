@@ -110,6 +110,24 @@ jobs:
       - name: Integration E2E (skips if API unavailable)
         run: pnpm test:e2e:integration
 
+  platform-saas-sandbox:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+      - name: Optional Asaas sandbox smoke
+        env:
+          ASAAS_SANDBOX: "1"
+          ASAAS_API_KEY: ${{ secrets.ASAAS_SANDBOX_API_KEY }}
+        run: cargo test -p api-http platform_saas_sandbox -- --ignored --test-threads=1
+
   kmp:
     runs-on: ubuntu-latest
     defaults:

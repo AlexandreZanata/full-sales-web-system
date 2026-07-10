@@ -44,4 +44,6 @@ Proxies `/v1` and `/health` to the Rust API (`127.0.0.1:8080`).
 
 Contract-first unit tests in `apps/platform-admin/tests/unit/` (JWT, API client, route coverage, tenants query).
 
+Integration E2E (Phase 13): [platform-saas-e2e.md](./platform-saas-e2e.md) — `cargo test -p api-http platform_saas`.
+
 **Implemented:** Phase 11.

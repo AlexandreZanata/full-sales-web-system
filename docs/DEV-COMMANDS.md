@@ -180,3 +180,18 @@ Requires `.env` with `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `ED25519_PRIVATE
 ```bash
 ./scripts/validate-phase0-docs.sh
 ```
+
+---
+
+## Platform SaaS E2E (Phase 13)
+
+```bash
+cd backend && cargo test -p api-http platform_saas -- --test-threads=1
+./scripts/platform-saas-acceptance.sh
+./scripts/platform-saas-payment-e2e.sh   # manual Asaas sandbox steps
+./scripts/platform-saas-domain-e2e.sh    # manual custom domain steps
+```
+
+Optional live sandbox: `ASAAS_SANDBOX=1 cargo test -p api-http platform_saas_sandbox -- --ignored`
+
+See [features/platform-saas-e2e.md](features/platform-saas-e2e.md).

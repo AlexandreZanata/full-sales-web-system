@@ -812,10 +812,11 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 ---
 
-## Platform SaaS (`proposed` → Phase 1–3 partial)
+## Platform SaaS (Phases 1–13)
 
-> **Status:** Phase 1 auth/impersonation + Phase 2 tenant lifecycle + Phase 3 Asaas core + **Phase 4 subscription billing** (plans, subscriptions, invoices, dunning, tenant API).  
-> ADRs: [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md).
+> **Status:** Implemented — auth, lifecycle, billing, fraud, domains, operations, health, audit, UIs, integration suite.  
+> ADRs: [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md).  
+> E2E: [features/platform-saas-e2e.md](features/platform-saas-e2e.md).
 
 ### Platform error codes (additions)
 
