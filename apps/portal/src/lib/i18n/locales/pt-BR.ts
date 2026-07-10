@@ -75,6 +75,7 @@ export const ptBR: Messages = {
     featuredItems: 'Itens em destaque',
     popularItems: 'Itens mais populares',
     orderNow: 'Pedir agora',
+    backToHome: 'Voltar ao início',
     addShort: 'Add',
     noDescription: 'Sem descrição disponível.',
   },

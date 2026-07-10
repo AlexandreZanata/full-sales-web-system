@@ -582,6 +582,7 @@ async fn contract_portal_product_detail_when_inactive_then_not_found() {
             category_id: None,
             unit_of_measure: None,
             description: None,
+            is_featured: None,
         },
     )
     .await

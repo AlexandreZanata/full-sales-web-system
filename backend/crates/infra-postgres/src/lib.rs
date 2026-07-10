@@ -1,5 +1,6 @@
 //! PostgreSQL repository adapters (sqlx) — modular by bounded context.
 
+pub mod portal;
 pub mod audit;
 pub mod commerces;
 pub mod deliveries;

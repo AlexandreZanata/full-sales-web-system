@@ -17,6 +17,7 @@ mod error;
 mod foundation;
 pub mod ids;
 mod orders;
+mod portal_content;
 mod reports;
 mod sales;
 mod site_settings;
@@ -42,6 +43,12 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
             .await
             .map_err(|e| wrap_step("catalog_backfill", e))?;
         catalog::ensure_catalog_storage_objects().await?;
+        let catalog = catalog::CatalogSeed {
+            product_ids: crate::ids::product_ids().to_vec(),
+        };
+        portal_content::ensure_portal_home_content(&pools.app, crate::ids::tenant_id(), &catalog)
+            .await
+            .map_err(|e| wrap_step("portal_content_backfill", e))?;
         return Ok(());
     }
 
@@ -60,6 +67,9 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     let catalog = catalog::seed_catalog(&pools.app, foundation.tenant_id, &users, &commerces)
         .await
         .map_err(|e| wrap_step("catalog", e))?;
+    portal_content::seed_portal_home_content(&pools.app, foundation.tenant_id, &catalog)
+        .await
+        .map_err(|e| wrap_step("portal_content", e))?;
     orders::seed_orders(
         &pools.app,
         foundation.tenant_id,

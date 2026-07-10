@@ -110,9 +110,10 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 | `fetchPortalProductById` | `GET /v1/public/products/{id}` or `/v1/portal/products/{id}` |
 | `fetchSettings` | `GET /v1/public/settings` or `/v1/settings` |
 | `fetchPortalProducts` | `GET /v1/public/products?category=` (fallback) |
-| `fetchPortalFeaturedProducts` | `GET /v1/public/products/featured` (catalog fallback MVP) |
-| `fetchPortalPromotions` | `GET /v1/public/promotions` (demo fallback MVP) |
-| `fetchPortalPopularProducts` | `GET /v1/public/products/popular` (catalog fallback MVP) |
+| `fetchPortalFeaturedProducts` | `GET /v1/public/products/featured` (catalog fallback when empty) |
+| `fetchPortalPromotions` | `GET /v1/public/promotions` (demo fallback when empty) |
+| `fetchPortalPopularProducts` | `GET /v1/public/products/popular` (catalog fallback when empty) |
+| `fetchPortalBanners` | `GET /v1/public/banners?placement=hero` (settings/demo fallback) |
 
 Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalProductDetail` in `src/lib/api/types.ts`.
 
@@ -223,6 +224,35 @@ Fallback order: `GET /v1/public/products/popular` → first page of catalog prod
 
 Section order: Hero → Categories → Featured → Offers → Popular.
 
+### Menu page polish (Phase 71K)
+
+| Path | Purpose |
+|------|---------|
+| `components/catalog/CatalogPageContent.tsx` | Menu shell: `CategoryBar` variant `menu`, debounced `?q=` sync, back-to-home link |
+| `components/layout/PortalHeaderSearch.tsx` | Header search prefills menu `?q=` and respects active category |
+| `components/catalog/CatalogToolbar.tsx` | Grid/list toggle preserved on menu page |
+
+Menu `CategoryBar` active chip uses `.catalog-category-chip--menu.catalog-category-chip--active` (primary bottom border). Footer renders via `PortalShell` on menu URLs. `data-testid="catalog-menu"` on menu root.
+
+### Admin portal CMS (Phase 71L)
+
+| Path | Purpose |
+|------|---------|
+| `apps/admin/src/routes/_authenticated/portal/index.tsx` | Admin CRUD for hero banners and offer promotions |
+| `apps/admin/src/lib/api/portalContent.ts` | `/v1/portal/banners` and `/v1/portal/promotions` client |
+| `apps/admin/src/components/products/EditProductForm.tsx` | `isFeatured` checkbox on product edit |
+
+RBAC: Admin only (`require_admin` on API; admin route behind authenticated layout). Image upload uses existing media pipeline (`PortalBanner` / `PortalPromotion` entity types).
+
+### Dev seed — portal home (Phase 71M)
+
+| Path | Purpose |
+|------|---------|
+| `backend/crates/dev-seed/src/portal_content.rs` | Seeds 2 hero banners, 2 promotions (yellow/green), 4–8 featured products, sales totals for popular |
+| `apps/portal/public/demo/` | Static banner assets referenced by seed |
+
+Run `pnpm seed:dev` then open portal `/` — home sections populate from `portal.banners`, `portal.promotions`, and `products.is_featured`.
+
 ---
 
 ## Design tokens (Phase 71B)
@@ -257,7 +287,9 @@ Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DES
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 
-Key contracts: `catalogSearch.test.ts`, `catalogHomeSearch.test.ts`, `CatalogHomePage.test.tsx`, Phase 45/71F component tests (`ProductCardGrid`, `ProductCardList`, `ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `FeaturedItemsSection.test.tsx`, `OfferBannersSection.test.tsx`, `PopularItemsSection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `portal-featured-promotions-api.test.ts`, `portal-popular-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`.
+Key contracts: `catalogSearch.test.ts`, `catalogHomeSearch.test.ts`, `CatalogHomePage.test.tsx`, `CatalogPageContent.test.tsx`, Phase 45/71F component tests (`ProductCardGrid`, `ProductCardList`, `ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `FeaturedItemsSection.test.tsx`, `OfferBannersSection.test.tsx`, `PopularItemsSection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `portal-featured-promotions-api.test.ts`, `portal-popular-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`. Admin: `portal-content-api.test.ts`, `edit-product-validation.test.ts`.
+
+Backend integration: `backend/crates/api-http/tests/public_catalog.rs` (public home endpoints).
 
 Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
 
@@ -273,4 +305,4 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ---
 
-**Updated:** 2026-07-10 (Phase 71I popular items + 71J home composition)
+**Updated:** 2026-07-10 (Phase 71K menu polish + 71L admin CMS + 71M dev seed)

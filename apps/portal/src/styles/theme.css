@@ -151,6 +151,14 @@ body {
     @apply min-w-[4.5rem] rounded-xl px-2 py-1.5;
   }
 
+  .catalog-category-chip--menu.catalog-category-chip--active {
+    @apply border-2 border-primary bg-surface-muted shadow-sm;
+  }
+
+  .catalog-back-home-link {
+    @apply text-sm font-medium text-primary hover:underline;
+  }
+
   .catalog-category-chip--active {
     @apply border-primary bg-surface-muted shadow-sm;
   }

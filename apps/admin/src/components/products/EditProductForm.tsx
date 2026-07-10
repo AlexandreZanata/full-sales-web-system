@@ -35,6 +35,7 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
     unitOfMeasure: product.unitOfMeasure ?? 'Unit',
     categoryId: product.categoryId ?? '',
     description: product.description ?? '',
+    isFeatured: product.isFeatured ?? false,
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EditProductFormValues, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -131,6 +132,17 @@ export function EditProductForm({ product, onSubmit, onUpdated }: EditProductFor
             setValues((current) => ({ ...current, description: event.target.value }));
           }}
         />
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={values.isFeatured}
+            disabled={!product.active}
+            onChange={(event) => {
+              setValues((current) => ({ ...current, isFeatured: event.target.checked }));
+            }}
+          />
+          {t('portal.featuredProduct')}
+        </label>
         <Button type="submit" disabled={submitting || !product.active}>
           {submitting ? t('products.form.saving') : t('products.form.save')}
         </Button>

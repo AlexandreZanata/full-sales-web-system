@@ -21,3 +21,29 @@ async fn given_no_auth_when_get_public_products_then_200_with_data() {
     assert!(!body["data"].as_array().expect("data").is_empty());
     assert_eq!(body["pagination"]["limit"], 20);
 }
+
+#[tokio::test]
+async fn given_seeded_portal_content_when_public_home_endpoints_then_200() {
+    let tenant_id = TenantId::parse(DEV_SEED_TENANT_ID).expect("dev seed tenant");
+    let env = setup_with_tenant(tenant_id).await;
+
+    let (banner_status, banner_body) =
+        request(&env, "GET", "/v1/public/banners?placement=hero&limit=5", None, None).await;
+    assert_eq!(banner_status, StatusCode::OK);
+    assert!(banner_body["data"].is_array());
+
+    let (promo_status, promo_body) =
+        request(&env, "GET", "/v1/public/promotions?limit=4", None, None).await;
+    assert_eq!(promo_status, StatusCode::OK);
+    assert!(promo_body["data"].is_array());
+
+    let (featured_status, featured_body) =
+        request(&env, "GET", "/v1/public/products/featured?limit=8", None, None).await;
+    assert_eq!(featured_status, StatusCode::OK);
+    assert!(featured_body["data"].is_array());
+
+    let (popular_status, popular_body) =
+        request(&env, "GET", "/v1/public/products/popular?limit=8", None, None).await;
+    assert_eq!(popular_status, StatusCode::OK);
+    assert!(popular_body["data"].is_array());
+}

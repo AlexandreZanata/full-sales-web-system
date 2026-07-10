@@ -20,6 +20,7 @@ export type Messages = {
     reports: string;
     audit: string;
     settings: string;
+    portal: string;
   };
   auth: {
     signIn: string;
@@ -632,6 +633,26 @@ export type Messages = {
       identitySaved: string;
       logoSaved: string;
       contactSaved: string;
+    };
+  };
+  portal: {
+    title: string;
+    description: string;
+    banners: string;
+    promotions: string;
+    bannerImageFileId: string;
+    addBanner: string;
+    promoHeadline: string;
+    promoDiscount: string;
+    promoBackground: string;
+    promoCategorySlug: string;
+    addPromotion: string;
+    featuredProduct: string;
+    toast: {
+      bannerCreated: string;
+      bannerDeleted: string;
+      promotionCreated: string;
+      promotionDeleted: string;
     };
   };
   inventory: {

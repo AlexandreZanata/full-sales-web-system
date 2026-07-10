@@ -14,6 +14,7 @@ describe('edit product validation — Phase 43 contract', () => {
       unitOfMeasure: '   ',
       categoryId: '',
       description: '',
+      isFeatured: false,
     });
 
     expect(errors.unitOfMeasure).toBe('forms.validation.unitOfMeasureRequired');
@@ -27,6 +28,7 @@ describe('edit product validation — Phase 43 contract', () => {
       unitOfMeasure: ' Box ',
       categoryId: 'cat-1',
       description: 'Refreshing drink.',
+      isFeatured: true,
     });
 
     expect(payload).toEqual({
@@ -36,6 +38,7 @@ describe('edit product validation — Phase 43 contract', () => {
       unitOfMeasure: 'Box',
       categoryId: 'cat-1',
       description: 'Refreshing drink.',
+      isFeatured: true,
     });
   });
 
@@ -47,6 +50,7 @@ describe('edit product validation — Phase 43 contract', () => {
       unitOfMeasure: 'Box',
       categoryId: '',
       description: '',
+      isFeatured: false,
     });
 
     expect(payload.categoryId).toBeNull();

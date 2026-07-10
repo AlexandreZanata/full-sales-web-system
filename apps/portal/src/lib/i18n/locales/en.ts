@@ -75,6 +75,7 @@ export const en: Messages = {
     featuredItems: 'Featured items',
     popularItems: 'Most popular items',
     orderNow: 'Order now',
+    backToHome: 'Back to home',
     addShort: 'Add',
     noDescription: 'No description available.',
   },

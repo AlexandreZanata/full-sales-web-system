@@ -17,6 +17,14 @@ export function invalidatePortalCatalogQueries(queryClient: QueryClient): void {
     refetchType: 'active',
   });
   void queryClient.invalidateQueries({
+    queryKey: ['portal', 'promotions'],
+    refetchType: 'active',
+  });
+  void queryClient.invalidateQueries({
+    queryKey: ['portal', 'banners'],
+    refetchType: 'active',
+  });
+  void queryClient.invalidateQueries({
     queryKey: ['portal', 'product'],
     refetchType: 'active',
   });

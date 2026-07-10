@@ -44,6 +44,8 @@ pub struct UpdateProductRequest {
     #[serde(rename = "unitOfMeasure")]
     pub unit_of_measure: Option<String>,
     pub description: Option<Option<String>>,
+    #[serde(rename = "isFeatured")]
+    pub is_featured: Option<bool>,
     #[serde(rename = "category")]
     pub legacy_category: Option<String>,
 }
@@ -193,6 +195,7 @@ pub async fn update_product(
                 .description
                 .as_ref()
                 .map(|value| normalize_description(value.as_deref())),
+            is_featured: body.is_featured,
         },
     )
     .await

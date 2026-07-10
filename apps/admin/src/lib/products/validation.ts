@@ -19,6 +19,7 @@ export type EditProductFormValues = {
   unitOfMeasure: string;
   categoryId: string;
   description: string;
+  isFeatured: boolean;
 };
 
 export type FormErrors<T extends string> = Partial<Record<T, string>>;
@@ -114,5 +115,6 @@ export function toUpdateProductPayload(values: EditProductFormValues) {
     unitOfMeasure: values.unitOfMeasure.trim(),
     categoryId: values.categoryId || null,
     description: normalizeDescription(values.description) ?? null,
+    isFeatured: values.isFeatured,
   };
 }

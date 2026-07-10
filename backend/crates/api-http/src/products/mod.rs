@@ -39,6 +39,8 @@ pub struct ProductResponse {
     pub primary_image_url: Option<String>,
     #[serde(rename = "primaryImageFileId", skip_serializing_if = "Option::is_none")]
     pub primary_image_file_id: Option<uuid::Uuid>,
+    #[serde(rename = "isFeatured")]
+    pub is_featured: bool,
 }
 
 pub(crate) fn product_response_from_row(
@@ -57,6 +59,7 @@ pub(crate) fn product_response_from_row(
         category_slug: row.category_slug.clone(),
         primary_image_url: primary_image.as_ref().and_then(|image| image.url.clone()),
         primary_image_file_id: primary_image.map(|image| image.file_id),
+        is_featured: row.is_featured,
     }
 }
 

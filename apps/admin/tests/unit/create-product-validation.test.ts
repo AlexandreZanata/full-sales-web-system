@@ -84,6 +84,7 @@ describe('validateEditProductForm — Phase 32 contract', () => {
       unitOfMeasure: 'Unit',
       categoryId: '',
       description: '',
+      isFeatured: false,
     });
     expect(errors.price).toBe('forms.validation.priceInvalid');
   });

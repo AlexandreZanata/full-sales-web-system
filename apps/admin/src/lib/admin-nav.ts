@@ -2,6 +2,7 @@ import {
   ClipboardList,
   FileBarChart,
   LayoutDashboard,
+  LayoutTemplate,
   Package,
   ScrollText,
   Settings,
@@ -29,6 +30,7 @@ export const adminNavItems = [
   { to: '/reports', labelKey: 'nav.reports', icon: FileBarChart },
   { to: '/audit', labelKey: 'nav.audit', icon: ScrollText },
   { to: '/settings', labelKey: 'nav.settings', icon: Settings },
+  { to: '/portal', labelKey: 'nav.portal', icon: LayoutTemplate },
 ] as const satisfies ReadonlyArray<{
   to: string;
   labelKey: MessageKey;

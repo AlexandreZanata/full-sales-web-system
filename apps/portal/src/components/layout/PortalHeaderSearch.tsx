@@ -1,27 +1,38 @@
+import { type SubmitEvent, useEffect, useState } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Search, X } from 'lucide-react';
-import { type SubmitEvent, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
 
 import { useI18n } from '@/lib/i18n/context';
 
 type PortalHeaderSearchProps = {
   defaultCategorySlug?: string;
+  activeCategorySlug?: string;
 };
 
-export function PortalHeaderSearch({ defaultCategorySlug }: PortalHeaderSearchProps) {
+export function PortalHeaderSearch({
+  defaultCategorySlug,
+  activeCategorySlug,
+}: PortalHeaderSearchProps) {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [term, setTerm] = useState('');
+  const { q } = useSearch({ strict: false });
+  const [term, setTerm] = useState(q ?? '');
+
+  useEffect(() => {
+    setTerm(q ?? '');
+  }, [q]);
+
+  const targetCategory = activeCategorySlug ?? defaultCategorySlug;
 
   const submitSearch = (event: SubmitEvent) => {
     event.preventDefault();
-    if (!defaultCategorySlug) {
+    if (!targetCategory) {
       return;
     }
     const trimmed = term.trim();
     void navigate({
       to: '/',
-      search: { category: defaultCategorySlug, q: trimmed || undefined },
+      search: { category: targetCategory, q: trimmed || undefined },
     });
   };
 

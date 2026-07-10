@@ -1,15 +1,16 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useCart } from '@/cart/CartProvider';
 import { CatalogEmptyState } from '@/components/catalog/CatalogEmptyState';
-import { CatalogSkeleton } from '@/components/catalog/CatalogSkeleton';
 import { CatalogSearchField } from '@/components/catalog/CatalogSearchField';
+import { CatalogSkeleton } from '@/components/catalog/CatalogSkeleton';
 import { ProductCatalog } from '@/components/catalog/ProductCatalog';
 import { Button } from '@/components/ui/Button';
 import { fetchPortalCategoryBySlug } from '@/lib/api/portal';
 import {
+  catalogHomeSearch,
   filterProductsBySearch,
   resolveActiveCategorySlug,
   resolveDefaultCategorySlug,
@@ -34,6 +35,27 @@ export function CatalogPageContent({ categoryParam, initialSearch }: CatalogPage
   const isUnknownSlug = Boolean(categoryParam && categories.length > 0 && !activeSlug);
   const [searchInput, setSearchInput] = useState(initialSearch ?? '');
   const debouncedSearch = useDebouncedValue(searchInput, 300);
+
+  useEffect(() => {
+    setSearchInput(initialSearch ?? '');
+  }, [initialSearch]);
+
+  useEffect(() => {
+    if (!activeSlug) {
+      return;
+    }
+    const trimmed = debouncedSearch.trim();
+    const nextQuery = trimmed || undefined;
+    const currentQuery = initialSearch?.trim() || undefined;
+    if (nextQuery === currentQuery) {
+      return;
+    }
+    void navigate({
+      to: '/',
+      search: { category: activeSlug, q: nextQuery },
+      replace: true,
+    });
+  }, [activeSlug, debouncedSearch, initialSearch, navigate]);
 
   const categoryQuery = useInfiniteQuery({
     queryKey: ['portal', 'category', activeSlug],
@@ -107,15 +129,23 @@ export function CatalogPageContent({ categoryParam, initialSearch }: CatalogPage
   const showLoadMore = categoryQuery.hasNextPage && !debouncedSearch.trim();
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-foreground">{t('catalog.title')}</h1>
+    <div className="space-y-4" data-testid="catalog-menu">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-foreground">{t('catalog.title')}</h1>
+        <Link to="/" search={catalogHomeSearch} className="catalog-back-home-link">
+          {t('catalog.backToHome')}
+        </Link>
+      </div>
       <ProductCatalog
         categories={categories}
         products={filteredProducts}
         activeCategorySlug={activeSlug}
         categoryTitle={categoryTitle}
         onCategorySelect={(slug) => {
-          void navigate({ to: '/', search: { category: slug } });
+          void navigate({
+            to: '/',
+            search: { category: slug, q: debouncedSearch.trim() || undefined },
+          });
         }}
         onAddToCart={addProduct}
         onOpenDetail={(product) => {
@@ -142,6 +172,7 @@ export function CatalogPageContent({ categoryParam, initialSearch }: CatalogPage
         listViewLabel={t('catalog.viewList')}
         gridViewLabel={t('catalog.viewGrid')}
         categoriesAriaLabel={t('catalog.categories')}
+        categoryBarVariant="menu"
       />
       {showLoadMore ? (
         <div className="flex justify-center">

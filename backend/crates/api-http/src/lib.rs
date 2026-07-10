@@ -13,6 +13,7 @@ mod list_query;
 mod media;
 mod pagination;
 mod portal;
+mod portal_content;
 mod products;
 mod reports;
 mod routes;

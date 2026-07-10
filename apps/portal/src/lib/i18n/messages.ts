@@ -69,6 +69,7 @@ export type Messages = {
     featuredItems: string;
     popularItems: string;
     orderNow: string;
+    backToHome: string;
     addShort: string;
     noDescription: string;
   };
@@ -179,6 +180,7 @@ export type MessageKey =
   | 'catalog.featuredItems'
   | 'catalog.popularItems'
   | 'catalog.orderNow'
+  | 'catalog.backToHome'
   | 'catalog.addShort'
   | 'catalog.noDescription'
   | 'cart.title'

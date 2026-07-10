@@ -5,15 +5,16 @@ use uuid::Uuid;
 use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
+pub mod portal_products;
 pub mod product_categories;
 pub mod product_images;
 pub mod reservations;
 pub mod stock_overview;
 
-const PRODUCT_SELECT: &str =
+pub(crate) const PRODUCT_SELECT: &str =
     "SELECT p.id, p.sku, p.name, p.price_amount, p.price_currency, p.active,
          p.unit_of_measure, p.category_id, c.name AS category_name, c.slug AS category_slug,
-         p.description
+         p.description, p.is_featured
          FROM inventory.products p
          LEFT JOIN inventory.product_categories c
            ON c.id = p.category_id AND c.tenant_id = p.tenant_id";
@@ -107,9 +108,10 @@ pub struct ProductRow {
     pub category_name: Option<String>,
     pub category_slug: Option<String>,
     pub description: Option<String>,
+    pub is_featured: bool,
 }
 
-type ProductDbRow = (
+pub(crate) type ProductDbRow = (
     Uuid,
     String,
     String,
@@ -121,9 +123,10 @@ type ProductDbRow = (
     Option<String>,
     Option<String>,
     Option<String>,
+    bool,
 );
 
-fn map_product_row(
+pub(crate) fn map_product_row(
     (
         id,
         sku,
@@ -136,6 +139,7 @@ fn map_product_row(
         category_name,
         category_slug,
         description,
+        is_featured,
     ): ProductDbRow,
 ) -> ProductRow {
     ProductRow {
@@ -150,6 +154,7 @@ fn map_product_row(
         category_name,
         category_slug,
         description,
+        is_featured,
     }
 }
 
@@ -348,6 +353,7 @@ pub struct ProductUpdate {
     pub category_id: Option<Option<Uuid>>,
     pub unit_of_measure: Option<String>,
     pub description: Option<Option<String>>,
+    pub is_featured: Option<bool>,
 }
 
 pub async fn update_product(
@@ -367,6 +373,7 @@ pub async fn update_product(
            category_id = CASE WHEN $6::bool THEN $7 ELSE category_id END,
            unit_of_measure = COALESCE($8, unit_of_measure),
            description = CASE WHEN $9::bool THEN $10 ELSE description END,
+           is_featured = COALESCE($11, is_featured),
            updated_at = now()
          WHERE id = $1",
     )
@@ -385,6 +392,7 @@ pub async fn update_product(
             .as_ref()
             .and_then(|value| value.as_deref()),
     )
+    .bind(update.is_featured)
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;

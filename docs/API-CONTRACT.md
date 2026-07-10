@@ -203,7 +203,7 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 
 - **Auth:** Seller (BR-CO-010)
 - **Body:** `{ "cnpj", "legalName", "tradeName?", "contact", "deliveryAddress", "registrationMode", "lookupSnapshot?" }`
-- **Response 201:** Commerce registration (`registrationStatus: PendingReview`, `active: false`)
+- **Response 201:** Commerce registration (`registrationStatus: PendingReview`, `active: true` — visible in catalog; admin may reject or deactivate)
 - **409:** `CNPJ_ALREADY_REGISTERED`
 
 ### `GET /v1/commerces/registrations`
@@ -267,8 +267,8 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 ### `PATCH /v1/products/{id}`
 
 - **Auth:** Admin
-- **Body:** `{ "name?", "priceAmount?", "priceCurrency?", "active?", "categoryId?", "unitOfMeasure?" }` — `categoryId: null` clears assignment
-- **Response 200:** Product detail
+- **Body:** `{ "name?", "priceAmount?", "priceCurrency?", "active?", "categoryId?", "unitOfMeasure?", "description?", "isFeatured?" }` — `categoryId: null` clears assignment
+- **Response 200:** Product detail (includes `isFeatured`)
 
 ---
 
@@ -473,6 +473,88 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Auth:** CommerceContact
 - **Query (cursor on nested products):** `limit`, `cursor`
 - **Response 200:** Category + `products[]` + `pagination`
+
+---
+
+## Portal — Home content (Phase 71)
+
+### `GET /v1/public/banners`
+
+- **Auth:** none
+- **Tenant:** `PUBLIC_CATALOG_TENANT_ID` env, or dev seed tenant locally
+- **Query:** `placement?` (default `hero`), `limit?` (default `10`, max `20`)
+- **Response 200:** `{ "data": [{ "id", "imageUrl", "linkUrl?", "altText?" }], "pagination": { "has_more": false, "limit" } }`
+
+### `GET /v1/public/promotions`
+
+- **Auth:** none
+- **Tenant:** same as public product list
+- **Query:** `limit?` (default `4`, max `20`)
+- **Response 200:** `{ "data": [{ "id", "headline", "discountText", "background", "categorySlug?", "linkUrl?", "imageUrl?" }], "pagination": { "has_more": false, "limit" } }` — `background`: `yellow` \| `green`
+
+### `GET /v1/public/products/featured`
+
+- **Auth:** none
+- **Tenant:** same as public product list
+- **Query:** `limit?` (default `12`, max `50`)
+- **Response 200:** Cursor envelope of active products where `is_featured = true`, same fields as public product list
+
+### `GET /v1/public/products/popular`
+
+- **Auth:** none
+- **Tenant:** same as public product list
+- **Query:** `limit?` (default `12`, max `50`)
+- **Response 200:** Cursor envelope of active products ranked by confirmed-sale units; falls back to catalog list order when no sales totals exist
+
+### `GET /v1/portal/banners`
+
+- **Auth:** Admin
+- **Query:** `limit?` (default `50`, max `100`)
+- **Response 200:** `{ "data": [{ "id", "placement", "imageFileId", "linkUrl?", "altText?", "sortOrder", "active" }], "pagination": { "has_more": false, "limit" } }`
+
+### `POST /v1/portal/banners`
+
+- **Auth:** Admin
+- **Body:** `{ "placement?", "imageFileId", "linkUrl?", "altText?", "sortOrder?", "active?" }` — `imageFileId` references `media.files` with `entityType: PortalBanner`
+- **Response 201:** Banner row
+
+### `PATCH /v1/portal/banners/{id}`
+
+- **Auth:** Admin
+- **Body:** partial banner fields (`linkUrl` / `altText` may be set to `null`)
+- **Response 200:** Banner row
+- **Response 404:** `BANNER_NOT_FOUND`
+
+### `DELETE /v1/portal/banners/{id}`
+
+- **Auth:** Admin
+- **Response 204**
+- **Response 404:** `BANNER_NOT_FOUND`
+
+### `GET /v1/portal/promotions`
+
+- **Auth:** Admin
+- **Query:** `limit?` (default `50`, max `100`)
+- **Response 200:** `{ "data": [{ "id", "headline", "discountText", "background", "categorySlug?", "linkUrl?", "imageFileId?", "sortOrder", "active" }], "pagination": { "has_more": false, "limit" } }`
+
+### `POST /v1/portal/promotions`
+
+- **Auth:** Admin
+- **Body:** `{ "headline", "discountText", "background", "categorySlug?", "linkUrl?", "imageFileId?", "sortOrder?", "active?" }` — `background`: `yellow` \| `green`
+- **Response 201:** Promotion row
+
+### `PATCH /v1/portal/promotions/{id}`
+
+- **Auth:** Admin
+- **Body:** partial promotion fields
+- **Response 200:** Promotion row
+- **Response 404:** `PROMOTION_NOT_FOUND`
+
+### `DELETE /v1/portal/promotions/{id}`
+
+- **Auth:** Admin
+- **Response 204**
+- **Response 404:** `PROMOTION_NOT_FOUND`
 
 ---
 

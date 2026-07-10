@@ -74,6 +74,27 @@ pub fn category_image_file_ids() -> [Uuid; 3] {
     ]
 }
 
+pub fn portal_banner_ids() -> [Uuid; 2] {
+    [
+        parse("01900001-0017-7000-8000-000000000001"),
+        parse("01900001-0017-7000-8000-000000000002"),
+    ]
+}
+
+pub fn portal_banner_file_ids() -> [Uuid; 2] {
+    [
+        parse("01900001-0018-7000-8000-000000000001"),
+        parse("01900001-0018-7000-8000-000000000002"),
+    ]
+}
+
+pub fn portal_promotion_ids() -> [Uuid; 2] {
+    [
+        parse("01900001-0019-7000-8000-000000000001"),
+        parse("01900001-0019-7000-8000-000000000002"),
+    ]
+}
+
 pub fn order_ids() -> OrderIds {
     OrderIds {
         pending_portal: parse("01900001-0030-7000-8000-000000000001"),

@@ -88,7 +88,10 @@ export function PortalHeader() {
         </nav>
 
         <div className="hidden items-center justify-end gap-2 lg:flex">
-          <PortalHeaderSearch defaultCategorySlug={defaultCategorySlug} />
+          <PortalHeaderSearch
+            defaultCategorySlug={defaultCategorySlug}
+            activeCategorySlug={category}
+          />
           <LocaleSwitcher variant="pill" />
           <Link to="/cart" className="portal-cart-pill">
             <ShoppingBag className="size-4" aria-hidden />

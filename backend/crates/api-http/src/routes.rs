@@ -29,8 +29,13 @@ use crate::media::{
 use crate::portal::{
     cancel_portal_order, create_portal_order, get_portal_category_by_slug, get_portal_order,
     get_portal_product_by_id, get_public_category_by_slug, get_public_product_by_id,
-    list_portal_categories, list_portal_orders, list_portal_products, list_public_categories,
-    list_public_products, submit_portal_order, update_portal_order,
+    list_portal_categories, list_portal_orders, list_portal_products, list_public_banners,
+    list_public_categories, list_public_featured_products, list_public_popular_products,
+    list_public_products, list_public_promotions, submit_portal_order, update_portal_order,
+};
+use crate::portal_content::{
+    create_admin_banner, create_admin_promotion, delete_admin_banner, delete_admin_promotion,
+    list_admin_banners, list_admin_promotions, update_admin_banner, update_admin_promotion,
 };
 use crate::products::{
     attach_product_image, create_product, delete_product_image, get_product, list_product_images,
@@ -82,7 +87,11 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/auth/login", post(login))
         .route("/v1/auth/refresh", post(refresh))
         .route("/v1/public/products", get(list_public_products))
+        .route("/v1/public/products/featured", get(list_public_featured_products))
+        .route("/v1/public/products/popular", get(list_public_popular_products))
         .route("/v1/public/products/{id}", get(get_public_product_by_id))
+        .route("/v1/public/banners", get(list_public_banners))
+        .route("/v1/public/promotions", get(list_public_promotions))
         .route("/v1/public/categories", get(list_public_categories))
         .route(
             "/v1/public/categories/{slug}",
@@ -144,6 +153,19 @@ pub fn v1_router(state: AppState) -> Router {
                 .delete(delete_category),
         )
         .route("/v1/categories/{id}/image", put(update_category_image))
+        .route("/v1/portal/banners", get(list_admin_banners).post(create_admin_banner))
+        .route(
+            "/v1/portal/banners/{id}",
+            patch(update_admin_banner).delete(delete_admin_banner),
+        )
+        .route(
+            "/v1/portal/promotions",
+            get(list_admin_promotions).post(create_admin_promotion),
+        )
+        .route(
+            "/v1/portal/promotions/{id}",
+            patch(update_admin_promotion).delete(delete_admin_promotion),
+        )
         .route("/v1/products/{id}", get(get_product).patch(update_product))
         .route(
             "/v1/products/{id}/images",

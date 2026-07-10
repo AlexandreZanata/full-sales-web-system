@@ -246,6 +246,7 @@ export type Product = {
   categorySlug?: string;
   unitOfMeasure?: string;
   description?: string;
+  isFeatured?: boolean;
 };
 
 export type ProductSummary = Pick<
@@ -301,6 +302,7 @@ export type UpdateProductRequest = {
   categoryId?: string | null;
   unitOfMeasure?: string;
   description?: string | null;
+  isFeatured?: boolean;
 };
 
 export type ProductImage = {
