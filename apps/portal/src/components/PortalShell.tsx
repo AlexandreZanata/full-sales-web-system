@@ -6,7 +6,7 @@ import { useCart } from '@/cart/CartProvider';
 import { CartFab } from '@/components/CartFab';
 import { PortalFooter } from '@/components/layout/PortalFooter';
 import { PortalHeader } from '@/components/layout/PortalHeader';
-import { resolveDefaultCategorySlug } from '@/lib/catalog/catalogSearch';
+import { resolveDefaultCategorySlug, catalogHomeSearch } from '@/lib/catalog/catalogSearch';
 import { useCatalogCategories } from '@/lib/catalog/useCatalogCategories';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils';
@@ -19,7 +19,7 @@ type MobileNavItem = {
   to: '/' | '/cart';
   labelKey: 'nav.home' | 'nav.menu' | 'nav.cart';
   icon: typeof Home;
-  search?: { category: string };
+  search?: { category: string } | typeof catalogHomeSearch;
   isActive: boolean;
 };
 
@@ -36,6 +36,7 @@ export function PortalShell({ children }: PortalShellProps) {
       to: '/',
       labelKey: 'nav.home',
       icon: Home,
+      search: catalogHomeSearch,
       isActive: pathname === '/' && !category,
     },
     {

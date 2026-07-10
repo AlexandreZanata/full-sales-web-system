@@ -73,6 +73,7 @@ export const en: Messages = {
     ourMenu: 'Our menu',
     viewAll: 'View all',
     featuredItems: 'Featured items',
+    popularItems: 'Most popular items',
     orderNow: 'Order now',
     addShort: 'Add',
     noDescription: 'No description available.',

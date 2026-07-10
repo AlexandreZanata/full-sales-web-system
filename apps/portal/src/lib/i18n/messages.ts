@@ -67,6 +67,7 @@ export type Messages = {
     ourMenu: string;
     viewAll: string;
     featuredItems: string;
+    popularItems: string;
     orderNow: string;
     addShort: string;
     noDescription: string;
@@ -176,6 +177,7 @@ export type MessageKey =
   | 'catalog.ourMenu'
   | 'catalog.viewAll'
   | 'catalog.featuredItems'
+  | 'catalog.popularItems'
   | 'catalog.orderNow'
   | 'catalog.addShort'
   | 'catalog.noDescription'

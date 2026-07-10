@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Mail, Phone } from 'lucide-react';
 import { type SubmitEvent, useState } from 'react';
 
-import { resolveDefaultCategorySlug } from '@/lib/catalog/catalogSearch';
+import { catalogHomeSearch, resolveDefaultCategorySlug } from '@/lib/catalog/catalogSearch';
 import { useCatalogCategories } from '@/lib/catalog/useCatalogCategories';
 import { useI18n } from '@/lib/i18n/context';
 import { useSiteSettings } from '@/lib/settings/useSiteSettings';
@@ -28,7 +28,7 @@ export function PortalFooter() {
     <footer className="portal-footer mt-auto" role="contentinfo">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 md:grid-cols-3 md:gap-8">
         <div>
-          <Link to="/" className="mb-3 inline-block">
+          <Link to="/" search={catalogHomeSearch} className="mb-3 inline-block">
             {logoUrl ? (
               <img src={logoUrl} alt={brandName} className="h-8 w-auto max-w-28 object-contain" />
             ) : (
@@ -60,7 +60,7 @@ export function PortalFooter() {
         <div className="sm:mx-auto sm:w-fit">
           <h3 className="mb-3 text-sm font-semibold capitalize">{t('footer.usefulLinks')}</h3>
           <nav className="flex flex-col items-start gap-2 text-xs">
-            <Link to="/" className="hover:underline">
+            <Link to="/" search={catalogHomeSearch} className="hover:underline">
               {t('nav.home')}
             </Link>
             <Link
@@ -70,7 +70,7 @@ export function PortalFooter() {
             >
               {t('nav.menu')}
             </Link>
-            <Link to="/" hash="offers" className="hover:underline">
+            <Link to="/" hash="offers" search={catalogHomeSearch} className="hover:underline">
               {t('nav.offers')}
             </Link>
           </nav>

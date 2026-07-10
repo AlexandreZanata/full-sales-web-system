@@ -73,6 +73,7 @@ export const ptBR: Messages = {
     ourMenu: 'Nosso cardápio',
     viewAll: 'Ver tudo',
     featuredItems: 'Itens em destaque',
+    popularItems: 'Itens mais populares',
     orderNow: 'Pedir agora',
     addShort: 'Add',
     noDescription: 'Sem descrição disponível.',

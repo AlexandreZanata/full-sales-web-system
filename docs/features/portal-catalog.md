@@ -112,6 +112,7 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 | `fetchPortalProducts` | `GET /v1/public/products?category=` (fallback) |
 | `fetchPortalFeaturedProducts` | `GET /v1/public/products/featured` (catalog fallback MVP) |
 | `fetchPortalPromotions` | `GET /v1/public/promotions` (demo fallback MVP) |
+| `fetchPortalPopularProducts` | `GET /v1/public/products/popular` (catalog fallback MVP) |
 
 Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalProductDetail` in `src/lib/api/types.ts`.
 
@@ -142,7 +143,7 @@ Red `portal-footer` band: newsletter form (stub submit), useful links, contact p
 
 | URL | View |
 |-----|------|
-| `/` | `CatalogHomePage` (hero, categories, featured, offers) |
+| `/` | `CatalogHomePage` (hero, categories, featured, offers, popular) |
 | `/?category=slug` | `CatalogPageContent` (menu catalog) |
 | `/?category=slug&q=term` | Menu with prefilled client search |
 
@@ -202,6 +203,26 @@ Fallback: demo yellow/green promo cards with category links until `GET /v1/publi
 
 Component classes: `.catalog-offer-card`, `.catalog-offer-cta`.
 
+### Popular items (Phase 71I)
+
+| Path | Purpose |
+|------|---------|
+| `components/catalog/home/PopularItemsSection.tsx` | List-card grid, `data-testid="popular-items"` |
+| `lib/catalog/usePopularProducts.ts` | React Query hook |
+| `lib/api/portalPopular.ts` | `fetchPortalPopularProducts()` |
+
+Fallback order: `GET /v1/public/products/popular` → first page of catalog products (MVP until Phase 71N).
+
+### Home composition (Phase 71J)
+
+| Path | Purpose |
+|------|---------|
+| `components/catalog/home/CatalogHomePage.tsx` | Stacked home sections (`data-testid="catalog-home-page"`) |
+| `routes/_authenticated/index.tsx` | Home when no `?category=`; menu via `CatalogPageContent` |
+| `lib/catalog/catalogSearch.ts` | `catalogHomeSearch` — clears menu params on Home nav |
+
+Section order: Hero → Categories → Featured → Offers → Popular.
+
 ---
 
 ## Design tokens (Phase 71B)
@@ -226,7 +247,7 @@ Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DES
 
 ## i18n keys
 
-`catalog.categories`, `catalog.featuredItems`, `catalog.orderNow`, `catalog.selectCategory`, `catalog.emptyCategory`, `catalog.viewList`, `catalog.viewGrid`, `catalog.emptyDescription`, `productDetail.*` (+ existing `catalog.*`).
+`catalog.categories`, `catalog.featuredItems`, `catalog.popularItems`, `catalog.orderNow`, `catalog.selectCategory`, `catalog.emptyCategory`, `catalog.viewList`, `catalog.viewGrid`, `catalog.emptyDescription`, `productDetail.*` (+ existing `catalog.*`).
 
 ---
 
@@ -236,7 +257,7 @@ Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DES
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 
-Key contracts: `catalogSearch.test.ts`, Phase 45/71F component tests (`ProductCardGrid`, `ProductCardList`, `ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `FeaturedItemsSection.test.tsx`, `OfferBannersSection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `portal-featured-promotions-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`.
+Key contracts: `catalogSearch.test.ts`, `catalogHomeSearch.test.ts`, `CatalogHomePage.test.tsx`, Phase 45/71F component tests (`ProductCardGrid`, `ProductCardList`, `ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `FeaturedItemsSection.test.tsx`, `OfferBannersSection.test.tsx`, `PopularItemsSection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `portal-featured-promotions-api.test.ts`, `portal-popular-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`.
 
 Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
 
@@ -252,4 +273,4 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ---
 
-**Updated:** 2026-07-10 (Phase 71G featured items + 71H offer banners)
+**Updated:** 2026-07-10 (Phase 71I popular items + 71J home composition)

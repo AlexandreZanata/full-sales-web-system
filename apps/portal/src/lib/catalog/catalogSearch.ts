@@ -5,6 +5,9 @@ export type CatalogSearchParams = {
   q?: string;
 };
 
+/** Clears menu search params when navigating to the catalog home view. */
+export const catalogHomeSearch: CatalogSearchParams = {};
+
 export function parseCatalogSearch(search: Record<string, unknown>): CatalogSearchParams {
   return {
     category: typeof search.category === 'string' ? search.category : undefined,

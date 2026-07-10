@@ -6,7 +6,7 @@ import { useCart } from '@/cart/CartProvider';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { PortalAccountMenu } from '@/components/layout/PortalAccountMenu';
 import { PortalHeaderSearch } from '@/components/layout/PortalHeaderSearch';
-import { resolveDefaultCategorySlug } from '@/lib/catalog/catalogSearch';
+import { resolveDefaultCategorySlug, catalogHomeSearch } from '@/lib/catalog/catalogSearch';
 import {
   isPortalHomeActive,
   isPortalMenuActive,
@@ -39,7 +39,7 @@ export function PortalHeader() {
     <header className="portal-header">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between lg:py-0">
         <div className="flex items-center justify-between gap-3 lg:justify-start">
-          <Link to="/" className="flex min-w-0 items-center gap-2">
+          <Link to="/" search={catalogHomeSearch} className="flex min-w-0 items-center gap-2">
             {logoUrl ? (
               <img src={logoUrl} alt={brandName} className="h-8 w-auto max-w-32 object-contain" />
             ) : (
@@ -63,7 +63,11 @@ export function PortalHeader() {
         </div>
 
         <nav className="hidden items-center justify-center gap-6 lg:flex" aria-label="Main">
-          <Link to="/" className={navLinkClass(isPortalHomeActive(pathname, category))}>
+          <Link
+            to="/"
+            search={catalogHomeSearch}
+            className={navLinkClass(isPortalHomeActive(pathname, category))}
+          >
             {t('nav.home')}
           </Link>
           <Link
@@ -73,7 +77,12 @@ export function PortalHeader() {
           >
             {t('nav.menu')}
           </Link>
-          <Link to="/" hash="offers" className={navLinkClass(isPortalOffersActive(hash))}>
+          <Link
+            to="/"
+            hash="offers"
+            search={catalogHomeSearch}
+            className={navLinkClass(isPortalOffersActive(hash))}
+          >
             {t('nav.offers')}
           </Link>
         </nav>
