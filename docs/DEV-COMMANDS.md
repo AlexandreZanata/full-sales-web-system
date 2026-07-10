@@ -18,12 +18,13 @@ pnpm lint && pnpm test && pnpm build
 
 | App | Command | URL |
 |-----|---------|-----|
-| **All frontends** | `./scripts/dev-frontends.sh` or `pnpm dev:frontends` | web + admin + portal + field (Vite HMR) |
+| **All frontends** | `./scripts/dev-frontends.sh` or `pnpm dev:frontends` | web + admin + portal + field + platform-admin (Vite HMR) |
 | API | `pnpm dev:api` or `cd backend && cargo run -p api-http` | `http://127.0.0.1:8080/health` |
 | Web | `pnpm dev:web` | `http://127.0.0.1:5173` |
 | Admin | `pnpm dev:admin` | `http://127.0.0.1:5174` |
 | Portal | `pnpm dev:portal` | `http://127.0.0.1:5175` |
 | Field | `pnpm dev:field` | `http://127.0.0.1:5176` |
+| Platform Admin | `pnpm dev:platform-admin` | `http://127.0.0.1:5177` |
 
 Admin quality gates:
 
