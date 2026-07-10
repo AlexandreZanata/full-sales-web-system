@@ -25,6 +25,8 @@ pub struct InvoiceListQuery {
 pub struct SubscriptionResponse {
     pub plan: PlanSummary,
     pub status: String,
+    #[serde(rename = "tenantStatus")]
+    pub tenant_status: String,
     #[serde(rename = "currentPeriodEnd")]
     pub current_period_end: Option<chrono::DateTime<chrono::Utc>>,
     #[serde(rename = "trialEndsAt")]
@@ -107,6 +109,7 @@ pub async fn get_subscription(
             .as_ref()
             .map(|s| s.status.as_str().to_owned())
             .unwrap_or_else(|| "Pending".into()),
+        tenant_status: row.status.as_str().to_owned(),
         current_period_end: sub.as_ref().and_then(|s| s.current_period_end),
         trial_ends_at: row.trial_ends_at,
     }))

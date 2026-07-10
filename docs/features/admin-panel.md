@@ -3,13 +3,13 @@
 > Standalone SPA at `apps/admin` (`@full-sales/admin`).  
 > API contract: [API-CONTRACT.md](../API-CONTRACT.md) · Backend routes: [ROUTE-MATRIX.md](../ROUTE-MATRIX.md)
 
-**Status:** ✅ Complete (Phases 27–36, 44)
+**Status:** ✅ Complete (Phases 27–36, 44, 12)
 
 ---
 
 ## Purpose
 
-Internal operations console for **Admin** role: users, commerces, catalog, categories, inventory, orders, deliveries, sales, signed reports, and audit log.
+Internal operations console for **Admin** role: users, commerces, catalog, categories, inventory, orders, deliveries, sales, signed reports, audit log, and tenant billing/settings.
 
 ---
 
@@ -33,7 +33,7 @@ See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev`
 
 ---
 
-## Routes (25 screens)
+## Routes (28 screens)
 
 | Label | Route | Domain |
 |-------|-------|--------|
@@ -48,6 +48,9 @@ See [DEV-COMMANDS.md](../DEV-COMMANDS.md) for all seed users and `pnpm seed:dev`
 | Sales | `/sales`, `/sales/new`, `/sales/$id` | List + create + confirm/cancel |
 | Reports | `/reports`, `/reports/new`, `/reports/$id` | Signed reports, verify link, PDF/CSV/Excel export |
 | Settings | `/settings` | Tenant site name + logo |
+| Billing | `/settings/billing` | Subscription, invoices, card token |
+| Payments | `/settings/payments` | Asaas connect, checkout toggles, balance |
+| Domains | `/settings/domains` | Custom domains (Pro+) |
 | Audit | `/audit` | Append-only event log |
 
 Full API↔UI matrix: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
@@ -68,7 +71,7 @@ Full locale coverage (`en`, `pt-BR`) with `localStorage` persistence and nested 
 | API error mapping | `errors.*` |
 | Status badges | `status.order.*`, `status.sale.*`, `status.delivery.*`, `status.report.*` |
 | Roles / payment / addresses | `role.*`, `payment.*`, `addressType.*` |
-| Domain screens | `dashboard.*`, `users.*`, `commerces.*`, `products.*`, `categories.*`, `inventory.*`, `orders.*`, `deliveries.*`, `sales.*`, `reports.*`, `audit.*` |
+| Domain screens | `dashboard.*`, `users.*`, `commerces.*`, `products.*`, `categories.*`, `inventory.*`, `orders.*`, `deliveries.*`, `sales.*`, `reports.*`, `audit.*`, `settings.*` |
 | Uploads | `uploads.*` |
 
 Helpers: `apps/admin/src/lib/i18n/labels.ts` (`translateOrderStatus`, filter labels, `formatPaginationSummary`, action error keys).
@@ -126,6 +129,18 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 | 40 | Admin product lifecycle — image gallery hydrate, reactivate, list filters |
 | 41 | Site settings — tenant display name + logo in `/settings` and app shells |
 | 44 | Product categories — admin CRUD, reorder, image, product category picker |
+| 12 | Tenant billing UI — subscription, payments, domains settings |
+
+---
+
+## Tenant billing (Phase 12)
+
+Full doc: [tenant-billing-ui.md](./tenant-billing-ui.md)
+
+- **Routes:** `/settings/billing`, `/settings/payments`, `/settings/domains` (section nav under Settings)
+- **Banner:** PastDue / Suspended billing status in shell → link to billing
+- **Gating:** Starter plan hides online payment settings; upgrade via mailto
+- **APIs:** `/v1/billing/*`, `/v1/settings/payments/*`, `/v1/settings/domains/*`, `/v1/fraud/alerts`
 
 ---
 
@@ -157,4 +172,4 @@ Tokens: `apps/admin/src/styles/admin-theme.css`, `apps/admin/src/lib/admin-token
 
 ---
 
-**Updated:** 2026-07-05 (Phase 44)
+**Updated:** 2026-07-10 (Phase 12)

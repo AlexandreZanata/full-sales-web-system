@@ -1156,7 +1156,7 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `GET /v1/billing/subscription`
 
 - **Auth:** Tenant Admin
-- **Response 200:** `{ "plan", "status", "currentPeriodEnd", "trialEndsAt" }`
+- **Response 200:** `{ "plan", "status", "tenantStatus", "currentPeriodEnd", "trialEndsAt" }`
 - **Response 402:** `SUBSCRIPTION_PAST_DUE`
 
 **Implemented:** Phase 4.

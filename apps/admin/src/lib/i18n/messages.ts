@@ -634,6 +634,61 @@ export type Messages = {
       logoSaved: string;
       contactSaved: string;
     };
+    nav: {
+      aria: string;
+      general: string;
+      billing: string;
+      payments: string;
+      domains: string;
+    };
+    banner: {
+      pastDue: string;
+      suspended: string;
+      updatePayment: string;
+    };
+    billing: {
+      title: string;
+      description: string;
+      plan: string;
+      renewal: string;
+      trialEnds: string;
+      upgrade: string;
+      invoices: string;
+      addCard: string;
+      cardTokenHelp: string;
+      cardToken: string;
+      attachCard: string;
+      pixCopy: string;
+      noInvoices: string;
+    };
+    payments: {
+      title: string;
+      description: string;
+      starterLocked: string;
+      connect: string;
+      disconnect: string;
+      apiKey: string;
+      testConnection: string;
+      enableOnline: string;
+      autoCapture: string;
+      methodPix: string;
+      methodCredit: string;
+      methodBoleto: string;
+      balance: string;
+      transactions: string;
+      fraudAlerts: string;
+      connectedAs: string;
+    };
+    domains: {
+      title: string;
+      description: string;
+      add: string;
+      hostname: string;
+      verify: string;
+      setPrimary: string;
+      dnsInstructions: string;
+      noDomains: string;
+    };
   };
   portal: {
     title: string;

@@ -52,9 +52,7 @@ export async function fetchPortalBanners(): Promise<PortalBanner[]> {
   return response.data;
 }
 
-export async function createPortalBanner(
-  body: CreatePortalBannerRequest,
-): Promise<PortalBanner> {
+export async function createPortalBanner(body: CreatePortalBannerRequest): Promise<PortalBanner> {
   return apiPost<PortalBanner>('/portal/banners', body);
 }
 
@@ -72,7 +70,9 @@ export async function deletePortalBanner(id: string): Promise<void> {
 }
 
 export async function fetchPortalPromotions(): Promise<PortalPromotion[]> {
-  const response = await apiFetch<CursorListResponse<PortalPromotion>>('/portal/promotions?limit=50');
+  const response = await apiFetch<CursorListResponse<PortalPromotion>>(
+    '/portal/promotions?limit=50',
+  );
   return response.data;
 }
 

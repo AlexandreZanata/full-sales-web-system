@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { AdminBrand, AdminNavLinks } from '@/components/AdminNavLinks';
+import { BillingStatusBanner } from '@/components/settings/BillingStatusBanner';
 import { SiteBrand } from '@/components/SiteBrand';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Button } from '@/components/ui/Button';
@@ -89,6 +90,7 @@ export function AdminShell({ children }: AdminShellProps) {
         <AdminNavLinks className="flex-1 p-3" />
       </aside>
       <main className="flex-1 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:col-start-2 md:row-start-2 md:px-6 md:py-6">
+        <BillingStatusBanner />
         {children}
       </main>
 
