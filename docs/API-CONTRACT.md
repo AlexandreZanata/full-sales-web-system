@@ -782,6 +782,221 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 ---
 
+## Platform SaaS (`proposed`)
+
+> **Status:** `proposed` — Phase 0 contract draft. Not implemented until Phases 1–13.  
+> ADRs: [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md).
+
+### Platform error codes (additions)
+
+| Code | HTTP | When |
+|------|------|------|
+| `TENANT_SUSPENDED` | 403 | Tenant suspended — mutating API blocked (BR-PL-001) |
+| `SUBSCRIPTION_PAST_DUE` | 402 | Billing action required before operation |
+| `DOMAIN_NOT_VERIFIED` | 409 | Domain not in `Active` state |
+| `FRAUD_BLOCKED` | 403 | Velocity or blocklist (BR-FR-001, BR-FR-002) |
+
+---
+
+## Platform auth (`/v1/platform/*`)
+
+### `POST /v1/platform/auth/login`
+
+- **Auth:** Public
+- **Body:** `{ "email", "password" }`
+- **Response 200:** `{ "mfaRequired": true, "mfaToken": "..." }` or tokens if MFA already satisfied
+- **Response 401:** Invalid credentials
+
+### `POST /v1/platform/auth/mfa/verify`
+
+- **Auth:** `mfaToken` from login step
+- **Body:** `{ "code" }`
+- **Response 200:** `{ "accessToken", "refreshToken", "expiresIn" }`
+
+---
+
+## Platform tenants
+
+### `GET /v1/platform/tenants`
+
+- **Auth:** PlatformAdmin (RLS bypass — ADR-016)
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[plan_id]`, `filter[display_name][contains]`, `sort=-created_at`
+- **Response 200:** Cursor envelope — tenant summary rows
+
+### `POST /v1/platform/tenants`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "legalName", "displayName", "planId", "adminEmail", "cnpj" }`
+- **Response 201:** Tenant + provisioning job id
+- **Response 403:** Non-PlatformAdmin
+
+### `GET /v1/platform/tenants/{id}`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** Full tenant aggregate
+
+### `PATCH /v1/platform/tenants/{id}`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "status"?, "planId"?, "trialEndsAt"?, "suspendedReason"?, "settings"? }`
+- **Response 200:** Updated tenant
+- **Response 409:** `InvalidTenantTransition`
+
+---
+
+## Platform users
+
+### `GET /v1/platform/users`
+
+- **Auth:** PlatformAdmin
+- **Query (cursor):** `limit`, `cursor`, `filter[tenant_id]`, `filter[role]`, `filter[active]`, `filter[email][contains]`
+- **Response 200:** Cross-tenant user list
+
+### `POST /v1/platform/users/{id}/reset-password`
+
+- **Auth:** PlatformAdmin
+- **Response 202:** Reset email queued
+
+### `POST /v1/platform/users/{id}/disable`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** `{ "active": false }`
+
+---
+
+## Platform impersonation
+
+### `POST /v1/platform/impersonate`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "tenantId", "reason" }`
+- **Response 201:** `{ "impersonationToken", "expiresAt", "tenantId" }` — 15 min TTL (BR-AU-001)
+- **Response 403:** Impersonation disabled or fraud block
+
+---
+
+## Platform operations
+
+### `GET /v1/platform/health/matrix`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** `{ "postgres", "redis", "minio", "asaas", "dns" }` — latency + status per dependency
+
+### `GET /v1/platform/fraud/events`
+
+- **Auth:** PlatformAdmin
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[tenant_id]`, `sort=-created_at`
+- **Response 200:** Fraud review queue
+
+### `POST /v1/platform/fraud/events/{id}/resolve`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "resolution": "blocked" | "whitelisted" | "dismissed", "note" }`
+- **Response 200:** Updated event
+
+### `GET /v1/platform/domains`
+
+- **Auth:** PlatformAdmin
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[tenant_id]`
+- **Response 200:** All tenant domains
+
+### `POST /v1/platform/domains/{id}/force-verify`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** Domain → `Verified` or `Active`
+
+### `GET /v1/platform/audit/events`
+
+- **Auth:** PlatformAdmin
+- **Query (cursor):** `limit`, `cursor`, `filter[tenant_id]`, `filter[actor_id]`, `filter[action]`
+- **Response 200:** Cross-tenant audit log
+
+---
+
+## Billing (`/v1/billing/*`)
+
+### `POST /v1/billing/webhooks/asaas`
+
+- **Auth:** `asaas-access-token` header must match `ASAAS_WEBHOOK_TOKEN` (constant-time compare)
+- **Body:** Asaas event envelope — `{ "id", "event", "payment"?, "subscription"?, "invoice"? }`
+- **Response 200:** `{ "received": true }` — idempotent on `id` (BR-BI-001)
+- **Response 401:** Invalid token
+
+**Handled events (v1):** `PAYMENT_CREATED`, `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`, `PAYMENT_DELETED`, `PAYMENT_REFUNDED`, `SUBSCRIPTION_CREATED`, `SUBSCRIPTION_UPDATED`, `SUBSCRIPTION_DELETED`, `INVOICE_CREATED`, `INVOICE_UPDATED`, `INVOICE_AUTHORIZED`, `INVOICE_CANCELED`
+
+### `GET /v1/billing/subscription`
+
+- **Auth:** Tenant Admin
+- **Response 200:** `{ "plan", "status", "currentPeriodEnd", "trialEndsAt" }`
+- **Response 402:** `SUBSCRIPTION_PAST_DUE`
+
+### `GET /v1/billing/invoices`
+
+- **Auth:** Tenant Admin
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `sort=-due_date`
+- **Response 200:** Invoice history mirrored from Asaas
+
+### `POST /v1/billing/payment-methods`
+
+- **Auth:** Tenant Admin
+- **Body:** `{ "type": "credit_card", "creditCardToken" }` — token from Asaas.js tokenization
+- **Response 201:** Payment method attached
+
+### `POST /v1/billing/subscription/cancel`
+
+- **Auth:** Tenant Admin
+- **Response 202:** Cancel at period end scheduled
+
+---
+
+## Settings — domains and payments
+
+### `GET /v1/settings/domains`
+
+- **Auth:** Tenant Admin
+- **Response 200:** `{ "data": [ TenantDomain ] }`
+
+### `POST /v1/settings/domains`
+
+- **Auth:** Tenant Admin (Pro+ plan)
+- **Body:** `{ "hostname" }`
+- **Response 201:** Domain + DNS TXT challenge
+- **Response 403:** Plan does not include custom domain
+
+### `GET /v1/settings/domains/{id}/verify`
+
+- **Auth:** Tenant Admin
+- **Response 200:** `{ "status", "txtRecord", "txtValue", "verifiedAt" }`
+
+### `DELETE /v1/settings/domains/{id}`
+
+- **Auth:** Tenant Admin
+- **Response 204:** Domain detached
+
+### `GET /v1/settings/payments`
+
+- **Auth:** Tenant Admin
+- **Response 200:** Tenant payment settings + Asaas connection status
+
+### `PUT /v1/settings/payments`
+
+- **Auth:** Tenant Admin (Pro+ for online payments)
+- **Body:** `{ "enabled", "methods": { "pix", "credit", "boleto" }, "autoCapture" }`
+- **Response 200:** Updated settings
+
+### `POST /v1/settings/payments/asaas/connect`
+
+- **Auth:** Tenant Admin
+- **Body:** `{ "apiKey" }` — encrypted at rest (ADR-018)
+- **Response 200:** `{ "connected": true, "accountName" }`
+
+### `DELETE /v1/settings/payments/asaas/connect`
+
+- **Auth:** Tenant Admin
+- **Response 204:** Credentials removed
+
+---
+
 ## OpenAPI
 
 Full schema: [`docs/openapi.yaml`](openapi.yaml) — all implemented `/v1/*` routes (Phases 16–26).

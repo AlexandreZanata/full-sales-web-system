@@ -398,3 +398,90 @@ THEN GET /v1/reports/{id}/verify returns valid: false
 | RN-PAG4 | Report includes non-fiscal disclaimer | 15 | `domain-reports/tests/settlement_payload.rs` |
 | BR-IA-003 | CommerceContact scoped to own commerce | 08, 14 | `domain-identity/tests/commerce_contact.rs` |
 | ~~RN1~~ | ~~Credit limit blocks order~~ | — | **Revoked** (Phase 0d) |
+
+---
+
+## Platform SaaS (proposed — Phases 1–13)
+
+> Locked in Phase 0. Implement and wire tests per phase. Spec: `.local/phases/0-platform-vision-decisions/_reference/PLATFORM-SAAS-SPEC.md`.
+
+### BR-PL-001 — Suspended tenant blocks mutations
+
+```
+GIVEN a Tenant with status Suspended
+WHEN any mutating /v1/* request is made except billing self-service or Asaas webhooks
+THEN the operation is rejected with TENANT_SUSPENDED
+AND no domain data is modified
+```
+
+### BR-PL-002 — PlatformAdmin-only tenant provision
+
+```
+GIVEN an unauthenticated or tenant-scoped JWT
+WHEN POST /v1/platform/tenants is called
+THEN the operation is rejected with Forbidden
+AND no Tenant is created
+```
+
+### BR-BI-001 — Asaas webhook idempotency
+
+```
+GIVEN a PaymentEvent with asaas_event_id X already persisted
+WHEN POST /v1/billing/webhooks/asaas delivers the same event id again
+THEN the handler returns 200 without duplicating side effects
+AND subscription/tenant state is unchanged from first processing
+```
+
+### BR-BI-002 — Trial expiry
+
+```
+GIVEN a Tenant in Trial with trial_ends_at in the past
+WHEN the trial expiry job runs
+THEN the tenant transitions to Suspended OR Active based on payment method on file
+AND no further trial extension occurs without PlatformAdmin action
+```
+
+### BR-BI-003 — Past due grace period
+
+```
+GIVEN a Tenant in PastDue for 7 consecutive days without PAYMENT_CONFIRMED
+WHEN the dunning job runs on day 8
+THEN the tenant transitions to Suspended
+AND mutating APIs are blocked per BR-PL-001
+```
+
+### BR-FR-001 — Payment velocity limit
+
+```
+GIVEN a tenant exceeds configured card/PIX attempts per hour
+WHEN a new payment is initiated
+THEN the operation is rejected with FRAUD_BLOCKED
+AND a FraudEvent is recorded for PlatformAdmin review
+```
+
+### BR-FR-002 — Blocklist rejection
+
+```
+GIVEN a CNPJ or email on the platform blocklist
+WHEN tenant provision or payment is attempted with that identifier
+THEN the operation is rejected with FRAUD_BLOCKED
+AND an audit event is emitted
+```
+
+### BR-DM-001 — One active primary domain
+
+```
+GIVEN a Tenant already has an Active primary TenantDomain
+WHEN another domain is activated as primary
+THEN the previous primary transitions to Detached or non-primary
+AND at most one Active primary domain exists per tenant
+```
+
+### BR-AU-001 — PlatformAdmin audit
+
+```
+GIVEN a PlatformAdmin performs any mutating /v1/platform/* action or starts impersonation
+WHEN the use case completes
+THEN an immutable audit.events row is appended with actor, action, target tenant, correlation id
+AND the event cannot be updated or deleted
+```

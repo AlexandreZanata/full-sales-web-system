@@ -140,6 +140,33 @@ Full catalog: extend in [DOMAIN-MODEL.md](DOMAIN-MODEL.md) as implemented.
 
 ---
 
+## Bounded contexts (Platform SaaS)
+
+| Context | Responsibility | Key crates / schema |
+|---------|----------------|---------------------|
+| **Identity** | Users, roles, PlatformAdmin, impersonation | `domain-identity`, `identity.*` |
+| **Platform** | Cross-tenant ops — tenants, fraud, health | `domain-platform` (TBD), `ops.*`, `fraud.*` |
+| **Billing** | Plans, subscriptions, Asaas sync, tenant payment settings | `domain-billing` (TBD), `billing.*` |
+| **Domains** | Custom hostname verify + routing metadata | `domains.*` |
+| **Commerces** | Business clients (CNPJ) within tenant | `domain-commerces` |
+| **Inventory** | Products, stock | `domain-inventory` |
+| **Sales / Orders / Deliveries** | Field and portal commerce flows | `domain-sales`, `domain-orders`, `domain-deliveries` |
+| **Reports** | Signed period reports | `domain-reports` |
+| **Audit** | Immutable cross-cutting event log | `audit.events` |
+
+Platform SaaS ADRs: [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md).  
+Functional spec: `.local/phases/0-platform-vision-decisions/_reference/PLATFORM-SAAS-SPEC.md`.
+
+---
+
+## PlatformAdmin and RLS bypass
+
+Normal tenant requests set `app.tenant_id` from JWT — RLS applies.  
+PlatformAdmin routes under `/v1/platform/*` may set `app.bypass_rls = true` via middleware only (ADR-016).  
+Impersonation sets target `app.tenant_id` **without** bypass.
+
+---
+
 ## References
 
 - Harness: `agent-rules/AGENT-CORE-PRINCIPLES.md`

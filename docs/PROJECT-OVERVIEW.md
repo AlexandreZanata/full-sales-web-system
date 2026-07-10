@@ -23,6 +23,24 @@ Business complexity (inventory, billing, traceability) lives entirely in the bac
 
 ---
 
+## Platform SaaS (in progress)
+
+The product is evolving from a **single-tenant operator** model (ADR-002) to **multi-tenant SaaS**:
+
+| Capability | Owner |
+|------------|-------|
+| **PlatformAdmin** | Cross-tenant control — tenants, billing, domains, fraud |
+| **Asaas** | Subscription billing + optional tenant payment collection |
+| **Custom domains** | Verified portal/admin hostnames (Pro+) |
+
+**ADRs:** [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md)  
+**Asaas map:** [ASAAS-INTEGRATION-MAP.md](ASAAS-INTEGRATION-MAP.md)  
+**API (proposed):** [API-CONTRACT.md](API-CONTRACT.md) — Platform SaaS section
+
+Local phase plan: `.local/phases/0-platform-vision-decisions/` (Phase 0 complete; Phase 1 next).
+
+---
+
 ## Bounded contexts
 
 | Context | Responsibility |
@@ -54,5 +72,6 @@ Each context is a **crate** in the Rust Cargo workspace — clear boundaries, no
 | [DIGITAL-SIGNATURE.md](DIGITAL-SIGNATURE.md) | Ed25519 vs ICP-Brasil |
 | [ROADMAP.md](ROADMAP.md) | Build phases |
 | [features/admin-panel.md](features/admin-panel.md) | Admin SPA plan (Phases 28–36) |
-| [OPEN-DECISIONS.md](OPEN-DECISIONS.md) | Pending ADRs |
+| [OPEN-DECISIONS.md](OPEN-DECISIONS.md) | Resolved + pending ADRs |
+| [ASAAS-INTEGRATION-MAP.md](ASAAS-INTEGRATION-MAP.md) | Asaas endpoints, webhooks, sandbox setup |
 | [use-cases/](use-cases/) | Actor flows |

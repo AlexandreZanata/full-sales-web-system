@@ -31,6 +31,16 @@ When deciding, create `docs/adr/NNN-short-title.md` using `agent-rules/11-docume
 | [ADR-007](adr/ADR-007-public-report-verify.md) | `GET /v1/reports/{id}/verify` is public (rate limited) | 2026-07-04 |
 | [ADR-010](adr/ADR-010-stock-reservation-tenant-pool.md) | Stock reservations — tenant pool until driver assigned (DE-001) | 2026-07-04 |
 | [ADR-011](adr/ADR-011-object-storage-minio.md) | Self-hosted MinIO for object storage (DE-009) | 2026-07-04 |
+| [ADR-013](adr/ADR-013-platform-admin-identity.md) | PlatformAdmin separate table; MFA required; impersonation audited | 2026-07-10 |
+| [ADR-014](adr/ADR-014-asaas-platform-billing.md) | Single platform Asaas account; webhook token + idempotency | 2026-07-10 |
+| [ADR-015](adr/ADR-015-tenant-lifecycle.md) | PlatformAdmin-only provision; 14-day trial; 90-day retention | 2026-07-10 |
+| [ADR-016](adr/ADR-016-platform-admin-rls-bypass.md) | `app.bypass_rls` session flag for `/v1/platform/*` only | 2026-07-10 |
+| [ADR-017](adr/ADR-017-custom-domain-verification.md) | DNS TXT verify; Caddy TLS; portal+admin only | 2026-07-10 |
+| [ADR-018](adr/ADR-018-tenant-asaas-payments.md) | Pro+ tenant own Asaas key; no platform fee v1 | 2026-07-10 |
+
+### Platform SaaS (0-OD-001 … 0-OD-020)
+
+Full decision log: [.local/phases/0-platform-vision-decisions/documentation/OPEN-DECISIONS.md](../.local/phases/0-platform-vision-decisions/documentation/OPEN-DECISIONS.md)
 
 ### Domain expansion (DE-002…DE-008, DE-010)
 

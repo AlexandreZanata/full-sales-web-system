@@ -146,3 +146,102 @@ Movements are **append-only** — no edits or deletes. Corrections via compensat
 | Confirm by non-assigned driver | — | `DriverNotAssigned` |
 
 **Side effects on `InTransit → Delivered`:** Order → `Delivered` or `PartiallyDelivered` (RN5); sale created; stock deducted; reservations consumed (Phase 12 preview TX).
+
+---
+
+## Tenant (`TenantStatus`)
+
+> ADR-015. Drives API access and billing dunning.
+
+| State | Description |
+|-------|-------------|
+| `Provisioning` | Created; initial setup in progress |
+| `Trial` | Starter trial active (`trial_ends_at` in future) |
+| `Active` | Paid or trial converted; full access |
+| `PastDue` | Subscription payment overdue (grace period) |
+| `Suspended` | Grace expired or manual suspend — hard block mutations |
+| `Offboarding` | Scheduled deletion; read-only export window |
+| `Deleted` | Terminal — PII anonymized; RLS returns zero rows |
+
+### Valid transitions
+
+| From | To | Trigger | Actor |
+|------|-----|---------|-------|
+| — | `Provisioning` | `Tenant.create` | PlatformAdmin |
+| `Provisioning` | `Trial` | attach Starter + set trial | PlatformAdmin / system |
+| `Provisioning` | `Active` | attach paid plan | PlatformAdmin |
+| `Trial` | `Active` | trial converts or paid | Asaas webhook / PlatformAdmin |
+| `Trial` | `Suspended` | trial expired unpaid | system job |
+| `Active` | `PastDue` | `PAYMENT_OVERDUE` webhook | system |
+| `PastDue` | `Active` | `PAYMENT_CONFIRMED` webhook | system |
+| `PastDue` | `Suspended` | grace day 8 or manual | system / PlatformAdmin |
+| `Active` | `Suspended` | manual fraud / abuse | PlatformAdmin |
+| `Suspended` | `Active` | payment cleared or manual reactivate | PlatformAdmin / webhook |
+| `Active` / `Suspended` | `Offboarding` | offboard requested | PlatformAdmin |
+| `Offboarding` | `Deleted` | retention elapsed (90 days) | system job |
+| `Deleted` | — | *(terminal)* | — |
+
+### Invalid transitions (must error)
+
+| From | To | Error |
+|------|-----|-------|
+| `Deleted` | any | `InvalidTenantTransition` |
+| `Offboarding` | `Active` | `InvalidTenantTransition` (must reactivate before offboard) |
+
+**Side effects on `→ Suspended`:** BR-PL-001 — block mutating APIs except billing self-service.
+
+---
+
+## Subscription (`SubscriptionStatus`)
+
+> Mirrors Asaas subscription + local dunning. ADR-014.
+
+| State | Description |
+|-------|-------------|
+| `Pending` | Created locally; Asaas subscription not yet confirmed |
+| `Active` | Current period paid or in good standing |
+| `PastDue` | Overdue charge; tenant in grace |
+| `Cancelled` | End of period or `SUBSCRIPTION_DELETED` |
+| `Expired` | Terminal — no renewal |
+
+### Valid transitions
+
+| From | To | Trigger |
+|------|-----|---------|
+| — | `Pending` | `Subscription.create` |
+| `Pending` | `Active` | first `PAYMENT_CONFIRMED` |
+| `Active` | `PastDue` | `PAYMENT_OVERDUE` |
+| `PastDue` | `Active` | `PAYMENT_CONFIRMED` |
+| `Active` / `PastDue` | `Cancelled` | cancel at period end / webhook |
+| `Cancelled` | `Expired` | period end |
+| `Expired` | — | *(terminal)* |
+
+---
+
+## Domain (`DomainStatus`)
+
+> ADR-017. Custom hostname per tenant.
+
+| State | Description |
+|-------|-------------|
+| `Pending` | Added; DNS challenge issued |
+| `Verifying` | Background job polling DNS |
+| `Verified` | TXT matched; awaiting TLS |
+| `Active` | TLS provisioned; traffic routed |
+| `Failed` | Verification or TLS failed |
+| `Detached` | Removed by tenant or PlatformAdmin |
+
+### Valid transitions
+
+| From | To | Trigger |
+|------|-----|---------|
+| — | `Pending` | `TenantDomain.add` |
+| `Pending` | `Verifying` | challenge issued |
+| `Verifying` | `Verified` | DNS TXT match |
+| `Verifying` | `Failed` | 72 h timeout |
+| `Verified` | `Active` | Caddy TLS ready |
+| `Active` | `Detached` | detach / plan downgrade |
+| `Failed` | `Verifying` | retry verify |
+| `Detached` | — | *(terminal)* |
+
+**Invariant:** BR-DM-001 — at most one `Active` primary domain per tenant.

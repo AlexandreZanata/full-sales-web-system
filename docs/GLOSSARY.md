@@ -292,3 +292,68 @@
 
 **Definition:** User with role `Admin` — full tenant management except crypto key access (infra-only).
 **Code name:** `Admin` (role context)
+
+---
+
+## PlatformAdmin
+
+**Definition:** Platform operator with cross-tenant powers — tenant CRUD, billing override, fraud review, impersonation, system health. Distinct from tenant `Admin` (ADR-013).
+**Not the same as:** `Admin`, `SuperAdmin`
+**Storage:** `identity.platform_users`
+**Code name:** `PlatformAdmin`
+
+---
+
+## TenantStatus
+
+**Definition:** Lifecycle state of a tenant organization on the platform.
+**Enum values:** `Provisioning`, `Trial`, `Active`, `PastDue`, `Suspended`, `Offboarding`, `Deleted`
+**Code name:** `TenantStatus`
+
+---
+
+## SubscriptionPlan
+
+**Definition:** Named SaaS tier with price, limits, and feature flags (`Starter`, `Pro`, `Enterprise`).
+**Storage:** `billing.plans`
+**Code name:** `SubscriptionPlan`
+
+---
+
+## AsaasCustomer
+
+**Definition:** Tenant's customer record on the **platform** Asaas account — used for SaaS subscription billing (`externalReference` = `TenantId`).
+**Not the same as:** Tenant's own Asaas account for portal payments (ADR-018)
+**Code name:** `AsaasCustomer`
+
+---
+
+## TenantDomain
+
+**Definition:** Custom hostname attached to a tenant for portal/admin UI routing.
+**Enum values (`DomainStatus`):** `Pending`, `Verifying`, `Verified`, `Active`, `Failed`, `Detached`
+**Code name:** `TenantDomain`
+
+---
+
+## ImpersonationGrant
+
+**Definition:** Short-lived, audited authorization for PlatformAdmin to act as a tenant `Admin` with scoped JWT.
+**TTL:** 15 minutes (ADR-013)
+**Code name:** `ImpersonationGrant`
+
+---
+
+## FraudEvent
+
+**Definition:** Recorded signal of suspected abuse — velocity breach, blocklist hit, cross-tenant probe, etc.
+**Storage:** `fraud.fraud_events`
+**Code name:** `FraudEvent`
+
+---
+
+## PaymentEvent
+
+**Definition:** Idempotent log entry for an inbound Asaas webhook — `asaas_event_id` UNIQUE (ADR-014).
+**Storage:** `billing.payment_events`
+**Code name:** `PaymentEvent`

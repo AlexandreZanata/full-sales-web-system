@@ -18,3 +18,9 @@ Template: `agent-rules/11-documentation-and-glossary/adr-template.md`
 | [ADR-010](ADR-010-stock-reservation-tenant-pool.md) | Stock reservations — tenant pool until driver assigned | Accepted |
 | [ADR-011](ADR-011-object-storage-minio.md) | Self-hosted MinIO for object storage | Accepted |
 | [ADR-012](ADR-012-commerce-registration-workflow.md) | Seller commerce registration + admin review | Accepted |
+| [ADR-013](ADR-013-platform-admin-identity.md) | PlatformAdmin identity model | Accepted |
+| [ADR-014](ADR-014-asaas-platform-billing.md) | Asaas platform billing + webhooks | Accepted |
+| [ADR-015](ADR-015-tenant-lifecycle.md) | Tenant lifecycle state machine | Accepted |
+| [ADR-016](ADR-016-platform-admin-rls-bypass.md) | RLS bypass for PlatformAdmin | Accepted |
+| [ADR-017](ADR-017-custom-domain-verification.md) | Custom domain verification + routing | Accepted |
+| [ADR-018](ADR-018-tenant-asaas-payments.md) | Tenant payment collection via Asaas | Accepted |
