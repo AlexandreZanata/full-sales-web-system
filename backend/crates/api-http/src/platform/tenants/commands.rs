@@ -51,7 +51,7 @@ pub struct SuspendRequest {
 
 pub async fn create_tenant(
     State(state): State<AppState>,
-    _auth: PlatformAuthUser,
+    auth: PlatformAuthUser,
     Json(body): Json<CreateTenantRequest>,
 ) -> Result<(StatusCode, Json<ProvisionTenantResponse>), ApiError> {
     if !infra_postgres::shared::plan_exists(&state.admin_pool, body.plan_id)
@@ -61,6 +61,18 @@ pub async fn create_tenant(
         return Err(ApiError::bad_request("PLAN_NOT_FOUND", "Subscription plan not found"));
     }
 
+    let admin_email = body.admin_email.trim().to_lowercase();
+    crate::fraud::check_blocklist(
+        &state,
+        Some(&admin_email),
+        body.cnpj.as_deref(),
+        None,
+        None,
+        None,
+    )
+    .await?;
+    crate::fraud::on_provision_attempt(&state, auth.user_id).await?;
+
     let tenant_id = TenantId::generate();
     let admin_user_id = Uuid::now_v7();
     let temp_password = Uuid::now_v7().to_string();
@@ -69,7 +81,7 @@ pub async fn create_tenant(
     let input = application::tenants::ProvisionTenantInput {
         legal_name: body.legal_name.clone(),
         display_name: body.display_name.clone(),
-        admin_email: body.admin_email.trim().to_lowercase(),
+        admin_email: admin_email.clone(),
         plan_id: body.plan_id,
         trial: body.trial.unwrap_or(true),
         seed_demo_catalog: body.seed_demo_catalog.unwrap_or(false),
@@ -95,7 +107,7 @@ pub async fn create_tenant(
             trial_ends_at: None,
             settings: settings.clone(),
             admin_user_id,
-            admin_email: &input.admin_email,
+            admin_email: &admin_email,
             admin_name: "Tenant Admin",
             admin_password_hash: &password_hash,
         },

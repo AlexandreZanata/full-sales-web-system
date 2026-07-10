@@ -12,6 +12,7 @@ use infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS;
 use serde::Serialize;
 
 use crate::auth::AuthUser;
+use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::list_query::{
     CursorListResponse, PORTAL_PRODUCTS_LIST_CONFIG, build_cursor_page, decode_query_pairs,
@@ -54,9 +55,9 @@ pub async fn list_portal_products(
 
 pub async fn list_public_products(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
     RawQuery(query): RawQuery,
 ) -> Result<Json<CursorListResponse<PortalProductResponse>>, Response> {
-    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
     list_products_cursor(&state, tenant_id, query.as_deref())
         .await
         .map(Json)

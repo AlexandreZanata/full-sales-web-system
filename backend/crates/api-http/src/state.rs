@@ -2,12 +2,14 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use application::billing::PaymentGateway;
+use application::domains::DnsTxtResolver;
 use ed25519_dalek::SigningKey;
 use infra_crypto::{CredentialEncryptor, JwtService};
 use infra_postgres::PgPool;
 use infra_redis::{
-    IdempotencyStore, InMemoryIdempotencyStore, InMemoryRateLimiter, RateLimitPolicy, RateLimiter,
-    RefreshTokenStore, CnpjMissCache, InMemoryCnpjMissCache,
+    IdempotencyStore, InMemoryIdempotencyStore, InMemoryRateLimiter, InMemoryVelocityCounter,
+    RateLimitPolicy, RateLimiter, RefreshTokenStore, VelocityCounter, CnpjMissCache,
+    InMemoryCnpjMissCache,
 };
 use infra_storage::{InMemoryObjectStorage, LocalFsObjectStorage, ObjectStorage};
 
@@ -41,6 +43,8 @@ pub struct AppState {
     pub credential_encryptor: Option<Arc<CredentialEncryptor>>,
     pub settlement_cache: Arc<SettlementCache>,
     pub settlement_rate_limit: RateLimitPolicy,
+    pub velocity_counter: Arc<dyn VelocityCounter>,
+    pub dns_resolver: Arc<dyn DnsTxtResolver>,
     /// ponytail: integration tests point tenant Asaas client at wiremock without env mutation.
     pub tenant_asaas_base_url: Option<String>,
 }
@@ -161,5 +165,13 @@ impl AppState {
 
     pub fn test_settlement_cache() -> Arc<SettlementCache> {
         Arc::new(SettlementCache::new(Duration::from_secs(60)))
+    }
+
+    pub fn in_memory_velocity_counter() -> Arc<dyn VelocityCounter> {
+        Arc::new(InMemoryVelocityCounter::new())
+    }
+
+    pub fn empty_dns_resolver() -> Arc<dyn DnsTxtResolver> {
+        Arc::new(crate::domains::EmptyDnsTxtResolver)
     }
 }

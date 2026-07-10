@@ -9,11 +9,12 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::auth::AuthUser;
+use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::state::AppState;
 
 use super::products::{
-    portal_product_from_row, require_commerce_contact, resolve_public_catalog_tenant,
+    portal_product_from_row, require_commerce_contact,
 };
 
 #[derive(Serialize)]
@@ -39,9 +40,9 @@ pub async fn get_portal_product_by_id(
 
 pub async fn get_public_product_by_id(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
     Path(id): Path<Uuid>,
 ) -> Result<Json<PortalProductDetailResponse>, ApiError> {
-    let tenant_id = resolve_public_catalog_tenant()?;
     get_product_detail_for_tenant(&state, tenant_id, id).await
 }
 

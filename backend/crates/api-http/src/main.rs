@@ -4,7 +4,10 @@ use std::sync::Arc;
 use api_http::{AppState, app, full_app, init_tracing, listen_addr};
 use application::REFRESH_TOKEN_TTL;
 use infra_redis::{InMemoryRefreshTokenStore, RedisRefreshTokenStore, RefreshTokenStore};
-use infra_redis::{InMemoryCnpjMissCache, RedisCnpjMissCache, CnpjMissCache};
+use infra_redis::{
+    InMemoryCnpjMissCache, InMemoryVelocityCounter, RedisCnpjMissCache, RedisVelocityCounter,
+    VelocityCounter, CnpjMissCache,
+};
 use tokio::net::TcpListener;
 use tracing::info;
 
@@ -76,6 +79,13 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
             Arc::new(InMemoryCnpjMissCache::new())
         };
 
+    let velocity_counter: Arc<dyn VelocityCounter> =
+        if let Ok(redis_url) = std::env::var("REDIS_URL") {
+            Arc::new(RedisVelocityCounter::connect(&redis_url).await?)
+        } else {
+            Arc::new(InMemoryVelocityCounter::new())
+        };
+
     let state = AppState {
         admin_pool,
         app_pool,
@@ -98,6 +108,8 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         credential_encryptor: AppState::credential_encryptor_from_env(),
         settlement_cache: AppState::test_settlement_cache(),
         settlement_rate_limit: AppState::default_settlement_rate_limit(),
+        velocity_counter,
+        dns_resolver: AppState::empty_dns_resolver(),
         tenant_asaas_base_url: None,
     };
 

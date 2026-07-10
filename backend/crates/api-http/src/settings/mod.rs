@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::auth::{AuthUser, require_admin};
+use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::media;
-use crate::portal::resolve_public_catalog_tenant;
 use crate::state::AppState;
 
 pub mod payments;
@@ -52,8 +52,8 @@ pub async fn get_settings(
 
 pub async fn get_public_settings(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
 ) -> Result<Json<SettingsResponse>, ApiError> {
-    let tenant_id = resolve_public_catalog_tenant()?;
     settings_response(&state, tenant_id).await
 }
 

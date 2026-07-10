@@ -4,10 +4,11 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
+use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::list_query::CursorListResponse;
 use crate::portal::products::{
-    build_portal_product_responses, list_products_cursor, resolve_public_catalog_tenant,
+    build_portal_product_responses, list_products_cursor,
 };
 use crate::state::AppState;
 
@@ -23,9 +24,9 @@ fn default_limit() -> u32 {
 
 pub async fn list_public_featured_products(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
     Query(query): Query<FeaturedPopularQuery>,
 ) -> Result<Json<CursorListResponse<crate::portal::products::PortalProductResponse>>, Response> {
-    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
     let limit = query.limit.clamp(1, 50) as i64;
     let rows = infra_postgres::inventory::portal_products::list_portal_featured_products(
         &state.app_pool,
@@ -46,9 +47,9 @@ pub async fn list_public_featured_products(
 
 pub async fn list_public_popular_products(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
     Query(query): Query<FeaturedPopularQuery>,
 ) -> Result<Json<CursorListResponse<crate::portal::products::PortalProductResponse>>, Response> {
-    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
     let limit = query.limit.clamp(1, 50) as i64;
     let rows = infra_postgres::inventory::portal_products::list_portal_popular_products(
         &state.app_pool,

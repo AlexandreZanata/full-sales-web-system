@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use crate::client_ip::client_ip;
 use crate::error::ApiError;
+use crate::fraud::on_login_failure;
 use super::middleware::PlatformAuthUser;
 use crate::state::AppState;
 
@@ -64,15 +65,21 @@ pub async fn platform_login(
     }
 
     let email = body.email.trim().to_lowercase();
-    let record = infra_postgres::identity::find_platform_user_for_login(&state.admin_pool, &email)
+    let ip = client_ip(&headers);
+    let record = match infra_postgres::identity::find_platform_user_for_login(&state.admin_pool, &email)
         .await
         .map_err(|_| ApiError::internal())?
-        .ok_or_else(|| record_login_failure(&state, &rate_key))?;
+    {
+        Some(record) => record,
+        None => {
+            return Err(record_platform_login_failure(&state, &rate_key, &ip, &email).await);
+        }
+    };
 
     let password_ok = PasswordHasher::verify(&body.password, &record.password_hash)
         .map_err(|_| ApiError::internal())?;
     if !password_ok || !record.active {
-        return Err(record_login_failure(&state, &rate_key));
+        return Err(record_platform_login_failure(&state, &rate_key, &ip, &email).await);
     }
 
     if record.mfa_enrolled && record.mfa_secret.is_some() {
@@ -169,9 +176,19 @@ async fn issue_platform_tokens(state: &AppState, user_id: Uuid) -> Result<TokenR
     })
 }
 
-fn record_login_failure(state: &AppState, rate_key: &str) -> ApiError {
+async fn record_platform_login_failure(
+    state: &AppState,
+    rate_key: &str,
+    ip: &str,
+    email: &str,
+) -> ApiError {
     state
         .rate_limiter
         .record_failure(rate_key, state.login_rate_limit);
+    if let Err(err) = on_login_failure(state, ip, email).await
+        && err.code == "FRAUD_BLOCKED"
+    {
+        return err;
+    }
     ApiError::invalid_credentials()
 }

@@ -79,6 +79,8 @@ async fn setup() -> PortalEnv {
         credential_encryptor: Some(AppState::test_credential_encryptor()),
         settlement_cache: AppState::test_settlement_cache(),
         settlement_rate_limit: AppState::default_settlement_rate_limit(),
+        velocity_counter: AppState::in_memory_velocity_counter(),
+        dns_resolver: AppState::empty_dns_resolver(),
         tenant_asaas_base_url: None,
     };
 

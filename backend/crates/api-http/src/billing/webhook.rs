@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 use crate::billing::webhook_auth::{WEBHOOK_TOKEN_HEADER, validate_webhook_token, webhook_token_from_env};
 use crate::error::ApiError;
+use crate::fraud::{handle_chargeback, on_webhook_processing_failure};
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -72,14 +73,13 @@ pub async fn asaas_webhook(
     .map_err(|_| ApiError::internal())?;
 
     if inserted {
-        if order_id.is_some() {
+        let process_result = if order_id.is_some() {
             crate::settings::payments::process_order_payment_webhook(
                 &state.admin_pool,
                 &payload.event,
                 &body,
             )
             .await
-            .map_err(|_| ApiError::internal())?;
         } else {
             crate::billing::process_asaas_event(
                 &state.admin_pool,
@@ -88,7 +88,20 @@ pub async fn asaas_webhook(
                 &body,
             )
             .await
-            .map_err(|_| ApiError::internal())?;
+        };
+        if process_result.is_err() {
+            let _ = on_webhook_processing_failure(&state, tenant_id).await;
+            return Err(ApiError::internal());
+        }
+        if is_chargeback_event(&payload.event)
+            && let Some(tenant_id) = tenant_id
+        {
+            let payment_id = body
+                .get("payment")
+                .and_then(|v| v.get("id"))
+                .and_then(|v| v.as_str())
+                .unwrap_or_default();
+            handle_chargeback(&state, tenant_id, payment_id, true).await?;
         }
         infra_postgres::billing::mark_payment_event_processed(&state.admin_pool, &payload.id)
             .await
@@ -130,4 +143,8 @@ fn extract_tenant_id(body: &serde_json::Value) -> Option<TenantId> {
         }
     }
     None
+}
+
+fn is_chargeback_event(event_type: &str) -> bool {
+    event_type.contains("CHARGEBACK")
 }

@@ -282,6 +282,14 @@ impl ApiError {
         }
     }
 
+    pub fn fraud_blocked() -> Self {
+        Self {
+            status: StatusCode::FORBIDDEN,
+            code: "FRAUD_BLOCKED",
+            message: "Operation blocked by fraud controls",
+        }
+    }
+
     pub fn tenant_suspended() -> Self {
         Self {
             status: StatusCode::FORBIDDEN,

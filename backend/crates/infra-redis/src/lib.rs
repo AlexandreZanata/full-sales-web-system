@@ -78,6 +78,8 @@ impl RefreshTokenStore for InMemoryRefreshTokenStore {
 
 pub mod redis_store;
 
+pub use redis_store::RedisRefreshTokenStore;
+
 pub mod cnpj_miss_cache;
 pub mod idempotency;
 pub mod rate_limit;
@@ -88,7 +90,11 @@ pub use cnpj_miss_cache::{
 };
 pub use idempotency::{IdempotencyRecord, IdempotencyStore, InMemoryIdempotencyStore};
 pub use rate_limit::{InMemoryRateLimiter, RateLimitPolicy, RateLimiter};
-pub use redis_store::RedisRefreshTokenStore;
+pub mod velocity;
+
+pub use velocity::{
+    InMemoryVelocityCounter, RedisVelocityCounter, VelocityCounter, VelocityError,
+};
 
 #[cfg(test)]
 mod tests {

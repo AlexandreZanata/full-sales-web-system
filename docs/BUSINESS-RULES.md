@@ -478,6 +478,8 @@ THEN the operation is rejected with FRAUD_BLOCKED
 AND a FraudEvent is recorded for PlatformAdmin review
 ```
 
+**Tests:** `api-http/tests/platform_fraud.rs` (`contract_payment_velocity_when_threshold_exceeded_then_fraud_blocked`)
+
 ### BR-FR-002 — Blocklist rejection
 
 ```
@@ -487,6 +489,8 @@ THEN the operation is rejected with FRAUD_BLOCKED
 AND an audit event is emitted
 ```
 
+**Tests:** `domain-fraud/tests/business_rules.rs`, `api-http/tests/platform_fraud.rs` (`contract_blocklist_when_email_blocked_then_provision_rejected`)
+
 ### BR-DM-001 — One active primary domain
 
 ```
@@ -495,6 +499,8 @@ WHEN another domain is activated as primary
 THEN the previous primary transitions to Detached or non-primary
 AND at most one Active primary domain exists per tenant
 ```
+
+**Tests:** `domain-domains/tests/business_rules.rs`, `api-http/tests/tenant_domains.rs` (`contract_set_primary_when_second_domain_then_first_detached`)
 
 ### BR-AU-001 — PlatformAdmin audit
 

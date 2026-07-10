@@ -11,10 +11,10 @@ use crate::audit::list_audit_events;
 use crate::billing::asaas_webhook;
 use crate::billing::{attach_payment_method, get_invoice, get_subscription, list_invoices};
 use crate::platform::{
-    create_tenant, end_impersonation, get_tenant, list_platform_tenants, list_platform_users,
-    offboard_tenant, patch_tenant, platform_login, platform_logout, platform_mfa_verify,
-    platform_refresh, reactivate_tenant, run_dunning_job, run_offboarding_job, start_impersonation,
-    suspend_tenant,
+    add_blocklist_entry, create_tenant, delete_blocklist_entry, end_impersonation, get_tenant,
+    list_fraud_events, list_platform_tenants, list_platform_users, offboard_tenant, patch_tenant,
+    platform_login, platform_logout, platform_mfa_verify, platform_refresh, reactivate_tenant,
+    resolve_fraud_event, run_dunning_job, run_offboarding_job, start_impersonation, suspend_tenant,
 };
 use crate::platform::auth::platform_auth_middleware;
 use crate::auth::{auth_middleware, login, logout, refresh};
@@ -32,6 +32,12 @@ use crate::commerces::{
 use crate::deliveries::{
     confirm_delivery, create_order_delivery, get_delivery, list_deliveries, start_delivery_transit,
 };
+use crate::domains::{
+    create_domain, delete_domain, force_verify_platform_domain, get_domain_verify, host_tenant_middleware,
+    list_domains, list_platform_domains, patch_platform_domain, run_domain_verification_job_handler,
+    set_primary_domain,
+};
+use crate::fraud::list_fraud_alerts;
 use crate::inventory::{get_stock_balance, list_movements, list_stock_balances, record_movement};
 use crate::media::{
     get_media_content, get_media_url, get_public_product_media_content, upload_media,
@@ -119,6 +125,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/public/settings", get(get_public_settings))
         .route("/v1/reports/{id}/verify", get(verify_report))
         .route("/v1/billing/webhooks/asaas", post(asaas_webhook))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            host_tenant_middleware,
+        ))
         .with_state(state.clone());
 
     let protected = Router::new()
@@ -242,6 +252,16 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/media/{id}/content", get(get_media_content))
         .route("/v1/settings", get(get_settings).patch(patch_settings))
         .route("/v1/settings/logo", put(update_site_logo))
+        .route("/v1/settings/domains", get(list_domains).post(create_domain))
+        .route(
+            "/v1/settings/domains/{id}/verify",
+            get(get_domain_verify),
+        )
+        .route(
+            "/v1/settings/domains/{id}/set-primary",
+            post(set_primary_domain),
+        )
+        .route("/v1/settings/domains/{id}", delete(delete_domain))
         .route(
             "/v1/settings/payments",
             get(get_payment_settings).put(update_payment_settings),
@@ -259,6 +279,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/reports/{id}", get(get_report))
         .route("/v1/reports/{id}/export", get(export_report))
         .route("/v1/audit/events", get(list_audit_events))
+        .route("/v1/fraud/alerts", get(list_fraud_alerts))
         .route("/v1/billing/subscription", get(get_subscription))
         .route("/v1/billing/invoices", get(list_invoices))
         .route("/v1/billing/invoices/{id}", get(get_invoice))
@@ -292,8 +313,28 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/platform/tenants/{id}/offboard", post(offboard_tenant))
         .route("/v1/platform/jobs/offboarding", post(run_offboarding_job))
         .route("/v1/platform/jobs/dunning", post(run_dunning_job))
+        .route(
+            "/v1/platform/jobs/domain-verification",
+            post(run_domain_verification_job_handler),
+        )
         .route("/v1/platform/impersonate", post(start_impersonation))
         .route("/v1/platform/impersonate/end", post(end_impersonation))
+        .route("/v1/platform/fraud/events", get(list_fraud_events))
+        .route(
+            "/v1/platform/fraud/events/{id}/resolve",
+            post(resolve_fraud_event),
+        )
+        .route("/v1/platform/domains", get(list_platform_domains))
+        .route(
+            "/v1/platform/domains/{id}",
+            patch(patch_platform_domain),
+        )
+        .route(
+            "/v1/platform/domains/{id}/force-verify",
+            post(force_verify_platform_domain),
+        )
+        .route("/v1/platform/blocklist", post(add_blocklist_entry))
+        .route("/v1/platform/blocklist/{id}", delete(delete_blocklist_entry))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             platform_auth_middleware,

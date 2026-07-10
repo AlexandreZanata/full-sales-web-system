@@ -1,3 +1,5 @@
+mod domains;
+mod fraud;
 mod billing;
 mod admin_orders;
 mod audit;
@@ -37,6 +39,7 @@ use tower_http::{
 };
 use tracing::Level;
 
+pub use domains::{EmptyDnsTxtResolver, MockDnsTxtResolver, PublicTenantId};
 pub use error::ApiError;
 pub use list_query::{
     CursorListResponse, CursorPaginationMeta, ListQueryApiError, RouteListConfig,

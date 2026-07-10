@@ -86,6 +86,8 @@ dependencies = [
  "domain-billing",
  "domain-commerces",
  "domain-deliveries",
+ "domain-domains",
+ "domain-fraud",
  "domain-identity",
  "domain-inventory",
  "domain-media",
@@ -107,6 +109,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "sqlx",
  "subtle",
  "testcontainers",
  "testcontainers-modules",
@@ -129,6 +132,7 @@ dependencies = [
  "domain-billing",
  "domain-commerces",
  "domain-deliveries",
+ "domain-fraud",
  "domain-identity",
  "domain-inventory",
  "domain-media",
@@ -136,6 +140,8 @@ dependencies = [
  "domain-platform",
  "domain-sales",
  "domain-shared",
+ "serde",
+ "serde_json",
  "thiserror",
  "uuid",
 ]
@@ -1447,6 +1453,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain-domains"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "domain-shared",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
+name = "domain-fraud"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "domain-shared",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
 name = "domain-identity"
 version = "0.1.0"
 dependencies = [
@@ -2505,6 +2533,8 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "domain-billing",
+ "domain-domains",
+ "domain-fraud",
  "domain-inventory",
  "domain-platform",
  "domain-shared",

@@ -125,9 +125,9 @@ pub async fn presign_object(
 
 pub async fn get_public_product_media_content(
     State(state): State<AppState>,
+    crate::domains::PublicTenantId(tenant_id): crate::domains::PublicTenantId,
     Path(id): Path<Uuid>,
 ) -> Result<Response, ApiError> {
-    let tenant_id = crate::portal::resolve_public_catalog_tenant()?;
     let row = resolve_public_catalog_media(&state.app_pool, tenant_id, id)
         .await?
         .ok_or_else(ApiError::media_not_found)?;

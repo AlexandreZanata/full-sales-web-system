@@ -8,9 +8,9 @@ use axum::{
 use infra_storage::object_storage::DEFAULT_PRESIGN_TTL_SECS;
 use serde::{Deserialize, Serialize};
 
+use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::list_query::{CursorListResponse, CursorPaginationMeta};
-use crate::portal::products::resolve_public_catalog_tenant;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -40,9 +40,9 @@ pub struct PortalPromotionResponse {
 
 pub async fn list_public_promotions(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
     Query(query): Query<PublicPromotionsQuery>,
 ) -> Result<Json<CursorListResponse<PortalPromotionResponse>>, Response> {
-    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
     let limit = query.limit.clamp(1, 20) as i64;
     let rows = infra_postgres::portal::promotions::list_active_promotions(
         &state.app_pool,

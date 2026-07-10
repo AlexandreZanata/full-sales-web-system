@@ -7,3 +7,4 @@ pub use commands::{
     run_offboarding_job, suspend_tenant,
 };
 pub use list::list_platform_tenants;
+pub use types::row_to_tenant;

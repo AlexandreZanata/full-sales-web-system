@@ -771,6 +771,15 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Response 200:** `{ "data": [...], "pagination": { "next_cursor", "has_more", "limit" } }` — append-only audit events (`audit.events`), newest first
 - **Response 403:** Non-admin roles
 
+### `GET /v1/fraud/alerts`
+
+- **Auth:** Admin
+- **Query:** `limit` (default 20, max 50)
+- **Response 200:** Recent fraud flags for the tenant (RLS-scoped array)
+- **Response 403:** Non-admin roles
+
+**Implemented:** Phase 6 — high-severity alerts emit log-only email stub.
+
 ---
 
 ## Health
@@ -906,8 +915,10 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `GET /v1/platform/fraud/events`
 
 - **Auth:** PlatformAdmin
-- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[tenant_id]`, `sort=-created_at`
-- **Response 200:** Fraud review queue
+- **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[severity]`, `filter[tenant_id]`
+- **Response 200:** `{ "data": [FraudEvent], "pagination": { ... } }`
+
+**Implemented:** Phase 6.
 
 ### `POST /v1/platform/fraud/events/{id}/resolve`
 
@@ -915,16 +926,55 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Body:** `{ "resolution": "blocked" | "whitelisted" | "dismissed", "note" }`
 - **Response 200:** Updated event
 
+**Implemented:** Phase 6.
+
+### `POST /v1/platform/blocklist`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "email"?, "cnpj"?, "ip"?, "cardFingerprint"?, "reason", "expiresAt"? }`
+- **Response 201:** Blocklist entry
+
+**Implemented:** Phase 6.
+
+### `DELETE /v1/platform/blocklist/{id}`
+
+- **Auth:** PlatformAdmin
+- **Response 204:** Entry removed
+- **Response 404:** Entry not found
+
+**Implemented:** Phase 6.
+
 ### `GET /v1/platform/domains`
 
 - **Auth:** PlatformAdmin
 - **Query (cursor):** `limit`, `cursor`, `filter[status]`, `filter[tenant_id]`
 - **Response 200:** All tenant domains
 
+**Implemented:** Phase 7.
+
+### `PATCH /v1/platform/domains/{id}`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "status"?: "Active" | "Detached", "isPrimary"?: true }`
+- **Response 200:** Updated domain
+- **Audit:** `domain.patch`
+
+**Implemented:** Phase 7.
+
 ### `POST /v1/platform/domains/{id}/force-verify`
 
 - **Auth:** PlatformAdmin
-- **Response 200:** Domain → `Verified` or `Active`
+- **Response 200:** Domain → `Verified` then `Active`
+- **Audit:** `domain.force_verify`
+
+**Implemented:** Phase 7.
+
+### `POST /v1/platform/jobs/domain-verification`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** `{ "verified": [ domainId ], "failed": [ domainId ] }` — DNS TXT poll for all `Verifying` domains
+
+**Implemented:** Phase 7 — schedule every 5 min (ADR-017).
 
 ### `GET /v1/platform/audit/events`
 
@@ -997,22 +1047,40 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Auth:** Tenant Admin
 - **Response 200:** `{ "data": [ TenantDomain ] }`
 
+**Implemented:** Phase 7.
+
 ### `POST /v1/settings/domains`
 
 - **Auth:** Tenant Admin (Pro+ plan)
 - **Body:** `{ "hostname" }`
-- **Response 201:** Domain + DNS TXT challenge
-- **Response 403:** Plan does not include custom domain
+- **Response 201:** Domain + DNS TXT challenge (`txtRecord`, `txtValue`)
+- **Response 403:** `PLAN_FEATURE_UNAVAILABLE` — plan does not include custom domain
+- **Response 400:** `RESERVED_HOSTNAME`, `HOSTNAME_TAKEN`, `VALIDATION_ERROR`
+
+**Implemented:** Phase 7 — TXT at `_fullsales-verify.<hostname>` (ADR-017).
 
 ### `GET /v1/settings/domains/{id}/verify`
 
 - **Auth:** Tenant Admin
 - **Response 200:** `{ "status", "txtRecord", "txtValue", "verifiedAt" }`
 
+**Implemented:** Phase 7.
+
 ### `DELETE /v1/settings/domains/{id}`
 
 - **Auth:** Tenant Admin
 - **Response 204:** Domain detached
+
+**Implemented:** Phase 7.
+
+### `POST /v1/settings/domains/{id}/set-primary`
+
+- **Auth:** Tenant Admin
+- **Body:** none
+- **Response 200:** Updated domain — activates if `Verified`, sets `isPrimary`; previous primary detached (BR-DM-001)
+- **Response 400:** `INVALID_TRANSITION` when domain is not verified/active
+
+**Implemented:** Phase 7.
 
 ### `GET /v1/settings/payments`
 

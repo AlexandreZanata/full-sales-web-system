@@ -7,6 +7,7 @@ use uuid::Uuid;
 use crate::auth::middleware::AuthUser;
 use crate::client_ip::client_ip;
 use crate::error::ApiError;
+use crate::fraud::on_login_failure;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -45,33 +46,44 @@ pub async fn login(
     }
 
     let email = body.email.trim().to_lowercase();
-    let record = infra_postgres::identity::find_user_for_login(&state.admin_pool, &email)
+    let ip = client_ip(&headers);
+    let record = match infra_postgres::identity::find_user_for_login(&state.admin_pool, &email)
         .await
         .map_err(|_| ApiError::internal())?
-        .ok_or_else(|| {
+    {
+        Some(record) => record,
+        None => {
             state
                 .rate_limiter
                 .record_failure(&rate_key, state.login_rate_limit);
-            ApiError::invalid_credentials()
-        })?;
+            record_login_fraud(&state, &ip, &email).await?;
+            return Err(ApiError::invalid_credentials());
+        }
+    };
 
     let password_ok = PasswordHasher::verify(&body.password, &record.password_hash)
         .map_err(|_| ApiError::internal())?;
 
-    let auth =
-        application::auth::authenticate_login(&to_app_record(record), &body.password, password_ok)
-            .map_err(|err| {
-                if matches!(
-                    err,
-                    AppError::InvalidCredentials
-                        | AppError::Identity(domain_identity::IdentityError::InactiveUser)
-                ) {
-                    state
-                        .rate_limiter
-                        .record_failure(&rate_key, state.login_rate_limit);
-                }
-                map_app_error(err)
-            })?;
+    if !password_ok {
+        state
+            .rate_limiter
+            .record_failure(&rate_key, state.login_rate_limit);
+        record_login_fraud(&state, &ip, &email).await?;
+        return Err(ApiError::invalid_credentials());
+    }
+
+    let auth = match application::auth::authenticate_login(&to_app_record(record), &body.password, true)
+    {
+        Ok(auth) => auth,
+        Err(AppError::Identity(domain_identity::IdentityError::InactiveUser)) => {
+            state
+                .rate_limiter
+                .record_failure(&rate_key, state.login_rate_limit);
+            record_login_fraud(&state, &ip, &email).await?;
+            return Err(ApiError::invalid_credentials());
+        }
+        Err(err) => return Err(map_app_error(err)),
+    };
 
     issue_tokens(&state, auth).await
 }
@@ -163,4 +175,13 @@ fn to_app_record(
         active: record.active,
         commerce_id: record.commerce_id,
     }
+}
+
+async fn record_login_fraud(state: &AppState, ip: &str, email: &str) -> Result<(), ApiError> {
+    if let Err(err) = on_login_failure(state, ip, email).await
+        && err.code == "FRAUD_BLOCKED"
+    {
+        return Err(err);
+    }
+    Ok(())
 }

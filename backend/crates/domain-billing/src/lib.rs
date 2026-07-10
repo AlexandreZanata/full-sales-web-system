@@ -15,7 +15,7 @@ pub use error::BillingError;
 pub use invoice::Invoice;
 pub use invoice_status::{InvoiceStatus, can_transition_invoice};
 pub use payment_method_toggles::PaymentMethodToggles;
-pub use plan_features::plan_allows_online_payments;
+pub use plan_features::{plan_allows_custom_domain, plan_allows_online_payments};
 pub use subscription::Subscription;
 pub use subscription_plan::SubscriptionPlan;
 pub use subscription_status::{SubscriptionStatus, can_transition_subscription};

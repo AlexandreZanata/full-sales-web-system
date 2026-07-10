@@ -9,13 +9,14 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::auth::AuthUser;
+use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::list_query::{
     CursorListResponse, PORTAL_CATEGORIES_LIST_CONFIG, build_cursor_page, decode_query_pairs,
     parse_list_query,
 };
 use crate::portal::products::{
-    PortalProductResponse, build_portal_product_responses, resolve_public_catalog_tenant,
+    PortalProductResponse, build_portal_product_responses,
 };
 use crate::state::AppState;
 
@@ -47,9 +48,9 @@ pub struct CategoryWithProductsResponse {
 
 pub async fn list_public_categories(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
     RawQuery(query): RawQuery,
 ) -> Result<Json<CursorListResponse<CategoryResponse>>, Response> {
-    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
     list_categories_cursor(&state, tenant_id, query.as_deref())
         .await
         .map(Json)
@@ -58,10 +59,10 @@ pub async fn list_public_categories(
 
 pub async fn get_public_category_by_slug(
     State(state): State<AppState>,
+    PublicTenantId(tenant_id): PublicTenantId,
     Path(slug): Path<String>,
     RawQuery(query): RawQuery,
 ) -> Result<Json<CategoryWithProductsResponse>, Response> {
-    let tenant_id = resolve_public_catalog_tenant().map_err(IntoResponse::into_response)?;
     category_with_products(&state, tenant_id, &slug, query.as_deref())
         .await
         .map(Json)

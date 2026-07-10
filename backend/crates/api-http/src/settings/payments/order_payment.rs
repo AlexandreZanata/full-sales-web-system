@@ -4,6 +4,9 @@ use application::billing::{
 use uuid::Uuid;
 
 use crate::error::ApiError;
+use crate::fraud::{
+    check_amount_anomaly, check_payment_velocity, ensure_checkout_allowed,
+};
 use crate::state::AppState;
 
 use super::support::{load_settings, map_billing_api, tenant_asaas_client};
@@ -38,6 +41,9 @@ pub async fn create_order_payment(
             "Online payments are not enabled",
         ));
     }
+    ensure_checkout_allowed(state, tenant_id).await?;
+    check_payment_velocity(state, tenant_id).await?;
+    check_amount_anomaly(state, tenant_id, total_minor).await?;
     let client = tenant_asaas_client(state, tenant_id).await?;
     let value = total_minor as f64 / 100.0;
     let billing_type = primary_billing_type(settings.methods);
