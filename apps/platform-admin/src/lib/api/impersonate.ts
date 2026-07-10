@@ -11,7 +11,7 @@ export async function startImpersonation(body: {
     expiresAt: string;
     tenantId: string;
   }>('/platform/impersonate', body);
-  setStoredImpersonation({ tenantId: response.tenantId });
+  setStoredImpersonation({ tenantId: response.tenantId, grantId: undefined });
   return response;
 }
 

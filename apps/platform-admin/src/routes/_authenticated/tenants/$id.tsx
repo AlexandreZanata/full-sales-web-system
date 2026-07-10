@@ -10,11 +10,19 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Input } from '@/components/ui/Input';
+import { JsonBlock } from '@/components/ui/JsonBlock';
 import { Tabs } from '@/components/ui/Tabs';
 import { Textarea } from '@/components/ui/Textarea';
 import { fetchPlatformAuditEvents } from '@/lib/api/audit';
 import { fetchPlatformDomains } from '@/lib/api/domains';
-import { fetchTenant, offboardTenant, reactivateTenant, suspendTenant } from '@/lib/api/tenants';
+import {
+  fetchTenant,
+  offboardTenant,
+  patchTenant,
+  reactivateTenant,
+  suspendTenant,
+} from '@/lib/api/tenants';
 import { fetchTenantStats, fetchTenantWorkforce } from '@/lib/api/users';
 import type { PlatformUser } from '@/lib/api/types';
 import { formatDateTime } from '@/lib/formatDateTime';
@@ -34,6 +42,7 @@ function TenantDetailPage() {
   const [tab, setTab] = useState('overview');
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [reason, setReason] = useState('');
+  const [planId, setPlanId] = useState('');
 
   const tenant = useQuery({ queryKey: ['tenant', id], queryFn: () => fetchTenant(id) });
   const stats = useQuery({
@@ -67,6 +76,13 @@ function TenantDetailPage() {
     mutationFn: () => reactivateTenant(id),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['tenant', id] }),
   });
+  const changePlan = useMutation({
+    mutationFn: () => patchTenant(id, { planId }),
+    onSuccess: () => {
+      toast.success('Plan updated');
+      void queryClient.invalidateQueries({ queryKey: ['tenant', id] });
+    },
+  });
   const offboard = useMutation({
     mutationFn: () => offboardTenant(id),
     onSuccess: () => {
@@ -92,6 +108,7 @@ function TenantDetailPage() {
     { id: 'overview', label: t('tenants.overview') },
     { id: 'users', label: t('tenants.workforce') },
     { id: 'billing', label: t('tenants.billing') },
+    { id: 'settings', label: t('tenants.settings') },
     { id: 'domains', label: t('tenants.domains') },
     { id: 'audit', label: t('tenants.audit') },
   ];
@@ -143,11 +160,29 @@ function TenantDetailPage() {
           </Card>
         ) : null}
         {tab === 'billing' && stats.data ? (
-          <Card className="p-4 text-sm">
+          <Card className="space-y-3 p-4 text-sm">
             <p>MRR: {formatMoneyMinor(stats.data.mrrMinor, stats.data.mrrCurrency)}</p>
             <p>Orders: {stats.data.orders}</p>
+            <div className="flex flex-wrap items-end gap-2">
+              <Input
+                label={t('tenants.changePlan')}
+                value={planId || tenant.data.planId || ''}
+                onChange={(e) => {
+                  setPlanId(e.target.value);
+                }}
+              />
+              <Button
+                onClick={() => {
+                  changePlan.mutate();
+                }}
+                disabled={!planId.trim()}
+              >
+                {t('common.save')}
+              </Button>
+            </div>
           </Card>
         ) : null}
+        {tab === 'settings' ? <JsonBlock value={tenant.data.settings} /> : null}
         {tab === 'users' && workforce.data ? (
           <DataTable columns={userColumns} rows={workforce.data.data} getRowKey={(row) => row.id} />
         ) : null}
