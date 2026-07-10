@@ -45,6 +45,7 @@ pub struct AppState {
     pub settlement_rate_limit: RateLimitPolicy,
     pub velocity_counter: Arc<dyn VelocityCounter>,
     pub dns_resolver: Arc<dyn DnsTxtResolver>,
+    pub health_config: crate::health_config::HealthConfig,
     /// ponytail: integration tests point tenant Asaas client at wiremock without env mutation.
     pub tenant_asaas_base_url: Option<String>,
 }
@@ -169,6 +170,10 @@ impl AppState {
 
     pub fn in_memory_velocity_counter() -> Arc<dyn VelocityCounter> {
         Arc::new(InMemoryVelocityCounter::new())
+    }
+
+    pub fn health_config_from_env() -> crate::health_config::HealthConfig {
+        crate::health_config::HealthConfig::from_env()
     }
 
     pub fn empty_dns_resolver() -> Arc<dyn DnsTxtResolver> {

@@ -110,8 +110,11 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         settlement_rate_limit: AppState::default_settlement_rate_limit(),
         velocity_counter,
         dns_resolver: AppState::empty_dns_resolver(),
+        health_config: AppState::health_config_from_env(),
         tenant_asaas_base_url: None,
     };
+
+    tokio::spawn(api_http::health::run_health_worker(state.clone()));
 
     Ok(full_app(state))
 }

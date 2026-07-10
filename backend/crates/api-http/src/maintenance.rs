@@ -60,7 +60,10 @@ pub async fn maintenance_middleware(
 
 fn skip_maintenance_check(uri: &Uri) -> bool {
     let path = uri.path();
-    path == "/health" || path.starts_with("/v1/platform")
+    path == "/health"
+        || path == "/health/ready"
+        || path == "/v1/status"
+        || path.starts_with("/v1/platform")
 }
 
 fn allows_settings_read(method: &http::Method, uri: &Uri) -> bool {

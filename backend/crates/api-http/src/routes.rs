@@ -10,11 +10,12 @@ use crate::admin_orders::{
 use crate::audit::list_audit_events;
 use crate::billing::asaas_webhook;
 use crate::billing::{attach_payment_method, get_invoice, get_subscription, list_invoices};
+use crate::health::readiness;
 use crate::maintenance::maintenance_middleware;
 use crate::platform::{
     add_blocklist_entry, create_tenant, delete_blocklist_entry, disable_platform_user,
     enable_platform_user, end_impersonation, get_platform_user, get_tenant, get_tenant_stats,
-    list_fraud_events, list_platform_tenants, list_platform_users, list_tenant_orders_support,
+    health_history, health_matrix, list_fraud_events, list_platform_tenants, list_platform_users, list_tenant_orders_support,
     list_tenant_products_support, list_tenant_sales_support, list_tenant_workforce,
     offboard_tenant, patch_platform_user, patch_tenant, patch_tenant_features,
     platform_login, platform_logout, platform_mfa_verify, platform_refresh, reactivate_tenant,
@@ -71,6 +72,7 @@ use crate::settings::{
     get_settings, get_public_settings, list_payment_transactions, patch_settings,
     update_payment_settings, update_site_logo,
 };
+use crate::status::public_status;
 use crate::state::AppState;
 use crate::users::{
     create_user, deactivate_user, get_user, list_users, upsert_driver_profile,
@@ -101,7 +103,15 @@ async fn v1_root() -> Json<V1RootResponse> {
     })
 }
 
-pub fn health_router() -> Router {
+pub fn health_router(state: AppState) -> Router {
+    Router::new()
+        .route("/health", get(health))
+        .route("/health/ready", get(readiness))
+        .route("/v1/", get(v1_root))
+        .with_state(state)
+}
+
+pub fn health_router_liveness_only() -> Router {
     Router::new()
         .route("/health", get(health))
         .route("/v1/", get(v1_root))
@@ -128,6 +138,7 @@ pub fn v1_router(state: AppState) -> Router {
         )
         .route("/v1/public/catalog/events", get(stream_catalog_events))
         .route("/v1/public/settings", get(get_public_settings))
+        .route("/v1/status", get(public_status))
         .route("/v1/reports/{id}/verify", get(verify_report))
         .route("/v1/billing/webhooks/asaas", post(asaas_webhook))
         .layer(axum::middleware::from_fn_with_state(
@@ -335,6 +346,8 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/platform/tenants/{id}/sales", get(list_tenant_sales_support))
         .route("/v1/platform/tenants/{id}/products", get(list_tenant_products_support))
         .route("/v1/platform/maintenance", post(schedule_maintenance))
+        .route("/v1/platform/health/matrix", get(health_matrix))
+        .route("/v1/platform/health/history", get(health_history))
         .route("/v1/platform/tenants/{id}/suspend", post(suspend_tenant))
         .route("/v1/platform/tenants/{id}/reactivate", post(reactivate_tenant))
         .route("/v1/platform/tenants/{id}/offboard", post(offboard_tenant))
@@ -375,9 +388,9 @@ pub fn v1_router(state: AppState) -> Router {
 }
 
 pub fn router() -> Router {
-    health_router()
+    health_router_liveness_only()
 }
 
 pub fn app_with_state(state: AppState) -> Router {
-    health_router().merge(v1_router(state))
+    health_router(state.clone()).merge(v1_router(state))
 }

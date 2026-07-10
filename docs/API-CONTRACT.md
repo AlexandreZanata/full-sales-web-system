@@ -789,6 +789,23 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Auth:** None
 - **Response 200:** `{ "status": "ok" }`
 
+### `GET /health/ready`
+
+- **Auth:** None
+- **Response 200:** `{ "status": "ready", "components": { "postgres", "redis", "minio" } }` — each with `status`, optional `latencyMs`, optional `details`
+- **Response 503:** `{ "status": "not_ready", ... }` when any configured critical dependency is down
+- **Critical deps:** Postgres always; Redis when `REDIS_URL` set; MinIO when `STORAGE_*` set
+
+**Implemented:** Phase 9.
+
+### `GET /v1/status`
+
+- **Auth:** None (public aggregated status — no secrets)
+- **Response 200:** `{ "status": "operational" | "degraded", "components": { "api", "portal", "payments", "storage" } }`
+- **Response 503:** Overall `status: "down"`
+
+**Implemented:** Phase 9.
+
 ---
 
 ## Platform SaaS (`proposed` → Phase 1–3 partial)
@@ -1004,7 +1021,17 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `GET /v1/platform/health/matrix`
 
 - **Auth:** PlatformAdmin
-- **Response 200:** `{ "postgres", "redis", "minio", "asaas", "dns" }` — latency + status per dependency
+- **Response 200:** `{ "probes": { "postgres", "redis", "minio", "asaas", "dns", "webhook_queue" } }` — each with `status`, `latencyMs`, `checkedAt`, `uptime24hPct`, optional `details`
+
+**Implemented:** Phase 9.
+
+### `GET /v1/platform/health/history`
+
+- **Auth:** PlatformAdmin
+- **Query:** `probe` (required), `since` (RFC3339, required)
+- **Response 200:** `{ "probe", "data": [{ "status", "latencyMs", "checkedAt", "details" }] }`
+
+**Implemented:** Phase 9.
 
 ### `GET /v1/platform/fraud/events`
 

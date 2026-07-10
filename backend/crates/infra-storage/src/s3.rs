@@ -118,3 +118,15 @@ impl ObjectStorage for S3ObjectStorage {
         Ok((bytes, content_type))
     }
 }
+
+impl S3ObjectStorage {
+    pub async fn head_bucket(&self, bucket: &str) -> Result<(), StorageError> {
+        self.client
+            .head_bucket()
+            .bucket(bucket)
+            .send()
+            .await
+            .map_err(|err| StorageError::Operation(err.to_string()))?;
+        Ok(())
+    }
+}

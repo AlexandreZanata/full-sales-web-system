@@ -1,3 +1,5 @@
+pub mod health;
+mod health_config;
 mod maintenance;
 mod domains;
 mod fraud;
@@ -28,6 +30,7 @@ mod sales;
 mod session;
 mod settings;
 mod state;
+mod status;
 mod users;
 mod validation;
 
@@ -46,7 +49,8 @@ pub use list_query::{
     CursorListResponse, CursorPaginationMeta, ListQueryApiError, RouteListConfig,
     build_cursor_page, parse_list_query,
 };
-pub use routes::{app_with_state, health_router, router};
+pub use health::{AlertConfig, run_health_worker, run_probe_cycle};
+pub use routes::{app_with_state, health_router, health_router_liveness_only, router};
 pub use state::AppState;
 
 /// Builds the HTTP router with request-id propagation and tracing (health only).

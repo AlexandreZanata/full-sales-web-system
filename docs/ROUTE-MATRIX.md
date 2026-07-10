@@ -23,6 +23,8 @@ Admin UI coverage: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 | Method | Path | Auth | Status | Migrations | Task |
 |--------|------|------|--------|------------|------|
 | GET | `/health` | 🔒 | ✅ | — | — |
+| GET | `/health/ready` | 🔒 | ✅ | `ops.health_probe_results` | Phase 9 |
+| GET | `/v1/status` | 🔒 | ✅ | — | Phase 9 |
 | GET | `/v1/` | 🔒 | ✅ | — | — |
 
 ---

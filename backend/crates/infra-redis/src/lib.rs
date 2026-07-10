@@ -76,8 +76,10 @@ impl RefreshTokenStore for InMemoryRefreshTokenStore {
     }
 }
 
+pub mod health;
 pub mod redis_store;
 
+pub use health::ping_redis;
 pub use redis_store::RedisRefreshTokenStore;
 
 pub mod cnpj_miss_cache;
