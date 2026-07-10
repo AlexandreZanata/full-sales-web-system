@@ -1,3 +1,4 @@
+mod billing;
 mod admin_orders;
 mod audit;
 mod auth;

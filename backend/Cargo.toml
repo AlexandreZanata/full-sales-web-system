@@ -11,11 +11,13 @@ members = [
     "crates/domain-deliveries",
     "crates/domain-reports",
     "crates/domain-platform",
+    "crates/domain-billing",
     "crates/application",
     "crates/infra-postgres",
     "crates/infra-redis",
     "crates/infra-crypto",
     "crates/infra-storage",
+    "crates/infra-asaas",
     "crates/api-http",
     "crates/dev-seed",
 ]
@@ -59,8 +61,10 @@ domain-sales = { path = "crates/domain-sales" }
 domain-orders = { path = "crates/domain-orders" }
 domain-deliveries = { path = "crates/domain-deliveries" }
 domain-platform = { path = "crates/domain-platform" }
+domain-billing = { path = "crates/domain-billing" }
 domain-reports = { path = "crates/domain-reports" }
 domain-shared = { path = "crates/domain-shared" }
+infra-asaas = { path = "crates/infra-asaas" }
 infra-crypto = { path = "crates/infra-crypto" }
 infra-postgres = { path = "crates/infra-postgres" }
 infra-redis = { path = "crates/infra-redis" }

@@ -145,10 +145,14 @@ async fn insert_tenant_row(
     tx: &mut Transaction<'_, Postgres>,
     params: &ProvisionTenantParams<'_>,
 ) -> Result<(), PostgresError> {
+    let active = matches!(
+        params.status,
+        TenantStatus::Trial | TenantStatus::Active | TenantStatus::PastDue
+    );
     sqlx::query(
         "INSERT INTO shared.tenants
          (id, name, legal_name, display_name, status, plan_id, trial_ends_at, settings, active)
-         VALUES ($1, $2, $2, $3, $4, $5, $6, $7, true)",
+         VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8)",
     )
     .bind(params.id.as_uuid())
     .bind(params.legal_name)
@@ -157,6 +161,7 @@ async fn insert_tenant_row(
     .bind(params.plan_id)
     .bind(params.trial_ends_at)
     .bind(&params.settings)
+    .bind(active)
     .execute(&mut **tx)
     .await?;
     Ok(())
@@ -174,7 +179,10 @@ pub async fn update_tenant_lifecycle(
     display_name: Option<&str>,
     settings: Option<serde_json::Value>,
 ) -> Result<bool, PostgresError> {
-    let active = !matches!(status, TenantStatus::Deleted | TenantStatus::Suspended);
+    let active = matches!(
+        status,
+        TenantStatus::Trial | TenantStatus::Active | TenantStatus::PastDue
+    );
     let result = sqlx::query(
         "UPDATE shared.tenants SET
             status = $2,

@@ -39,6 +39,15 @@ async fn contract_provision_tenant_when_valid_then_created_with_admin() {
     assert_eq!(resp["status"], "Trial");
     assert!(resp["adminTemporaryPassword"].is_string());
     assert!(resp["trialEndsAt"].is_string());
+
+    let tenant_uuid = resp["tenantId"].as_str().expect("tenantId");
+    let customer_id = infra_postgres::billing::find_asaas_customer_id(
+        &env.admin_pool,
+        domain_shared::TenantId::from_uuid(uuid::Uuid::parse_str(tenant_uuid).expect("uuid")),
+    )
+    .await
+    .expect("lookup");
+    assert!(customer_id.expect("asaas id").starts_with("cus_mock_"));
 }
 
 #[tokio::test]

@@ -69,6 +69,16 @@ Middleware: `tenant_gate_middleware` after `auth_middleware` on protected tenant
 
 **Tests:** `backend/crates/api-http/tests/tenant_lifecycle.rs`.
 
+### Asaas webhook (Phase 3 — ADR-014, BR-BI-001)
+
+| Control | Implementation |
+|---------|----------------|
+| Auth | `asaas-access-token` header — constant-time compare vs `ASAAS_WEBHOOK_TOKEN` |
+| Idempotency | `billing.payment_events.asaas_event_id` UNIQUE — duplicate → 200 no-op |
+| PII in logs | API keys masked via `infra-asaas::sanitize` |
+
+**Tests:** `backend/crates/api-http/tests/billing_webhook.rs`, `infra-asaas/tests/asaas_client.rs`.
+
 ---
 
 ## JWT + refresh flow

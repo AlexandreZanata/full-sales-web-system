@@ -2,6 +2,7 @@
 
 pub mod portal;
 pub mod audit;
+pub mod billing;
 pub mod commerces;
 pub mod deliveries;
 pub mod error;

@@ -29,6 +29,7 @@ pub struct CreateTenantRequest {
     pub trial: Option<bool>,
     #[serde(rename = "seedDemoCatalog")]
     pub seed_demo_catalog: Option<bool>,
+    pub cnpj: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -69,8 +70,8 @@ pub async fn create_tenant(
         seed_demo_catalog: body.seed_demo_catalog.unwrap_or(false),
     };
 
-    let (tenant, trial_ends) =
-        application::tenants::build_provision_tenant(tenant_id, &input).map_err(map_platform_patch_error)?;
+    let mut tenant =
+        application::tenants::build_staging_tenant(tenant_id, &input).map_err(map_platform_patch_error)?;
 
     let mut settings = tenant.settings.clone();
     if input.seed_demo_catalog {
@@ -86,8 +87,8 @@ pub async fn create_tenant(
             display_name: &body.display_name,
             status: tenant.status,
             plan_id: tenant.plan_id,
-            trial_ends_at: tenant.trial_ends_at,
-            settings,
+            trial_ends_at: None,
+            settings: settings.clone(),
             admin_user_id,
             admin_email: &input.admin_email,
             admin_name: "Tenant Admin",
@@ -96,6 +97,58 @@ pub async fn create_tenant(
     )
     .await
     .map_err(|_| ApiError::internal())?;
+
+    let cpf_cnpj = body
+        .cnpj
+        .clone()
+        .unwrap_or_else(|| "11222333000181".to_owned());
+    let customer_req = application::billing::CreateCustomerRequest {
+        name: body.legal_name.clone(),
+        cpf_cnpj,
+        email: input.admin_email.clone(),
+        external_reference: tenant_id.as_uuid().to_string(),
+    };
+
+    let mut trial_ends = None;
+    match state.payment_gateway.create_customer(customer_req).await {
+        Ok(customer) => {
+            infra_postgres::billing::set_tenant_asaas_customer(
+                &state.admin_pool,
+                tenant_id,
+                &customer.id,
+            )
+            .await
+            .map_err(|_| ApiError::internal())?;
+            trial_ends = application::tenants::finalize_provision_tenant(&mut tenant, &input)
+                .map_err(map_platform_patch_error)?;
+            infra_postgres::shared::update_tenant_lifecycle(
+                &state.admin_pool,
+                tenant_id,
+                tenant.status,
+                tenant.plan_id,
+                tenant.trial_ends_at,
+                None,
+                None,
+                None,
+                None,
+                Some(settings),
+            )
+            .await
+            .map_err(|_| ApiError::internal())?;
+        }
+        Err(err) => {
+            let code = application::billing::map_billing_error(err);
+            infra_postgres::billing::insert_provisioning_dead_letter(
+                &state.admin_pool,
+                tenant_id,
+                &code,
+                "Asaas customer provisioning failed",
+                serde_json::json!({ "adminEmail": input.admin_email }),
+            )
+            .await
+            .map_err(|_| ApiError::internal())?;
+        }
+    }
 
     Ok((
         StatusCode::CREATED,

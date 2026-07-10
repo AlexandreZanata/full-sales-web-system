@@ -7,6 +7,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 pub mod auth;
+pub mod billing;
 pub mod categories;
 pub mod commerce_registrations;
 pub mod commerces;

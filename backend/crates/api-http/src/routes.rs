@@ -8,6 +8,7 @@ use crate::admin_orders::{
     approve_order, cancel_order, get_order, list_orders, reject_order_handler, start_picking,
 };
 use crate::audit::list_audit_events;
+use crate::billing::asaas_webhook;
 use crate::platform::{
     create_tenant, end_impersonation, get_tenant, list_platform_tenants, list_platform_users,
     offboard_tenant, patch_tenant, platform_login, platform_logout, platform_mfa_verify,
@@ -111,6 +112,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/public/catalog/events", get(stream_catalog_events))
         .route("/v1/public/settings", get(get_public_settings))
         .route("/v1/reports/{id}/verify", get(verify_report))
+        .route("/v1/billing/webhooks/asaas", post(asaas_webhook))
         .with_state(state.clone());
 
     let protected = Router::new()

@@ -62,6 +62,7 @@ dependencies = [
  "futures-util",
  "hex",
  "http 1.4.2",
+ "infra-asaas",
  "infra-crypto",
  "infra-postgres",
  "infra-redis",
@@ -69,6 +70,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "subtle",
  "testcontainers",
  "testcontainers-modules",
  "tokio",
@@ -85,7 +87,9 @@ dependencies = [
 name = "application"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
+ "domain-billing",
  "domain-commerces",
  "domain-deliveries",
  "domain-identity",
@@ -1350,6 +1354,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain-billing"
+version = "0.1.0"
+dependencies = [
+ "thiserror",
+]
+
+[[package]]
 name = "domain-commerces"
 version = "0.1.0"
 dependencies = [
@@ -2380,6 +2391,24 @@ dependencies = [
  "hashbrown 0.17.1",
  "serde",
  "serde_core",
+]
+
+[[package]]
+name = "infra-asaas"
+version = "0.1.0"
+dependencies = [
+ "application",
+ "async-trait",
+ "chrono",
+ "domain-billing",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "uuid",
+ "wiremock",
 ]
 
 [[package]]

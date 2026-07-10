@@ -66,6 +66,14 @@ impl ApiError {
         }
     }
 
+    pub fn webhook_unauthorized() -> Self {
+        Self {
+            status: StatusCode::UNAUTHORIZED,
+            code: "WEBHOOK_UNAUTHORIZED",
+            message: "Invalid or missing Asaas webhook token",
+        }
+    }
+
     pub fn invalid_cnpj() -> Self {
         Self {
             status: StatusCode::BAD_REQUEST,

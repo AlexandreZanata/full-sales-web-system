@@ -93,6 +93,8 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         catalog_events: AppState::default_catalog_events(),
         cnpj_lookup: api_http::cnpj_lookup::default_cnpj_lookup_provider(),
         cnpj_miss_cache,
+        payment_gateway: AppState::payment_gateway_from_env(),
+        asaas_webhook_token: AppState::asaas_webhook_token_from_env(),
     };
 
     Ok(full_app(state))

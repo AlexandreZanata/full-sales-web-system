@@ -69,6 +69,8 @@ async fn setup() -> TestEnv {
         cnpj_lookup_rate_limit: AppState::default_cnpj_lookup_rate_limit(),
         cnpj_lookup: AppState::mock_cnpj_lookup(),
         cnpj_miss_cache: AppState::in_memory_cnpj_miss_cache(),
+        payment_gateway: AppState::mock_payment_gateway(),
+        asaas_webhook_token: None,
     };
 
     let driver_id = seed_user(&app_pool, tenant_id, "driver@test.com", "Driver").await;

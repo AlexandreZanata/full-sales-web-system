@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use application::billing::PaymentGateway;
 use ed25519_dalek::SigningKey;
 use infra_crypto::JwtService;
 use infra_postgres::PgPool;
@@ -34,6 +35,8 @@ pub struct AppState {
     pub catalog_events: Arc<CatalogEventHub>,
     pub cnpj_lookup: Arc<dyn CnpjLookupProvider>,
     pub cnpj_miss_cache: Arc<dyn CnpjMissCache>,
+    pub payment_gateway: Arc<dyn PaymentGateway>,
+    pub asaas_webhook_token: Option<String>,
 }
 
 impl AppState {
@@ -73,6 +76,18 @@ impl AppState {
 
     pub fn mock_cnpj_lookup() -> Arc<dyn CnpjLookupProvider> {
         Arc::new(crate::cnpj_lookup::MockCnpjLookup)
+    }
+
+    pub fn mock_payment_gateway() -> Arc<dyn PaymentGateway> {
+        Arc::new(infra_asaas::MockPaymentGateway)
+    }
+
+    pub fn payment_gateway_from_env() -> Arc<dyn PaymentGateway> {
+        infra_asaas::gateway_from_env()
+    }
+
+    pub fn asaas_webhook_token_from_env() -> Option<String> {
+        crate::billing::webhook_token_from_env()
     }
 
     pub fn in_memory_cnpj_miss_cache() -> Arc<dyn CnpjMissCache> {

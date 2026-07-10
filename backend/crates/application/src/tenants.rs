@@ -32,6 +32,39 @@ pub fn ensure_tenant_active(status: TenantStatus) -> Result<(), AppError> {
         .ok_or(AppError::TenantSuspended)
 }
 
+pub fn build_staging_tenant(
+    tenant_id: TenantId,
+    input: &ProvisionTenantInput,
+) -> Result<Tenant, AppError> {
+    let mut tenant = Tenant::new_provisioning(
+        tenant_id,
+        input.legal_name.clone(),
+        input.display_name.clone(),
+    )
+    .map_err(map_platform_error)?;
+    tenant.plan_id = Some(input.plan_id);
+    Ok(tenant)
+}
+
+pub fn finalize_provision_tenant(
+    tenant: &mut Tenant,
+    input: &ProvisionTenantInput,
+) -> Result<Option<chrono::DateTime<Utc>>, AppError> {
+    let trial_ends = if input.trial {
+        let ends = Utc::now() + Duration::days(TRIAL_DAYS);
+        tenant
+            .activate_trial(input.plan_id, ends)
+            .map_err(map_platform_error)?;
+        Some(ends)
+    } else {
+        tenant
+            .activate_paid(input.plan_id)
+            .map_err(map_platform_error)?;
+        None
+    };
+    Ok(trial_ends)
+}
+
 pub fn build_provision_tenant(
     tenant_id: TenantId,
     input: &ProvisionTenantInput,
