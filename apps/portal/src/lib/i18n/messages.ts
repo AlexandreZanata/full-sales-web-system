@@ -64,6 +64,10 @@ export type Messages = {
     selectCategory: string;
     emptyCategory: string;
     emptyDescription: string;
+    ourMenu: string;
+    viewAll: string;
+    addShort: string;
+    noDescription: string;
   };
   cart: {
     title: string;
@@ -106,6 +110,7 @@ export type Messages = {
     placeOrder: string;
     contactSeller: string;
     contactUnavailable: string;
+    productInfo: string;
   };
 };
 
@@ -166,6 +171,10 @@ export type MessageKey =
   | 'catalog.selectCategory'
   | 'catalog.emptyCategory'
   | 'catalog.emptyDescription'
+  | 'catalog.ourMenu'
+  | 'catalog.viewAll'
+  | 'catalog.addShort'
+  | 'catalog.noDescription'
   | 'cart.title'
   | 'cart.checkout'
   | 'cart.submitOrder'
@@ -201,4 +210,5 @@ export type MessageKey =
   | 'productDetail.addToCart'
   | 'productDetail.placeOrder'
   | 'productDetail.contactSeller'
-  | 'productDetail.contactUnavailable';
+  | 'productDetail.contactUnavailable'
+  | 'productDetail.productInfo';

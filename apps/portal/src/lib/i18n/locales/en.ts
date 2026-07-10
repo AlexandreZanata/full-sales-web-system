@@ -70,6 +70,10 @@ export const en: Messages = {
     selectCategory: 'Choose a category',
     emptyCategory: 'This category was not found.',
     emptyDescription: 'Try another category or search term.',
+    ourMenu: 'Our menu',
+    viewAll: 'View all',
+    addShort: 'Add',
+    noDescription: 'No description available.',
   },
   cart: {
     title: 'Cart',
@@ -123,5 +127,6 @@ export const en: Messages = {
     placeOrder: 'Place order',
     contactSeller: 'Contact seller',
     contactUnavailable: 'Sales contact phone is not configured',
+    productInfo: 'Product information',
   },
 };

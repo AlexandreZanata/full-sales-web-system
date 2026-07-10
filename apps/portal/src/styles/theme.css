@@ -127,7 +127,24 @@ body {
   }
 
   .catalog-category-chip--home {
-    @apply min-w-[8rem] bg-surface-muted;
+    @apply w-32 snap-start border-transparent p-3 bg-surface-muted hover:border-primary/20;
+    background-color: var(--surface-muted);
+  }
+
+  .catalog-category-chip--home:hover {
+    background: color-mix(in oklch, var(--primary) 8%, white);
+  }
+
+  .catalog-category-row--home {
+    @apply flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  }
+
+  .catalog-view-all-pill {
+    @apply inline-flex shrink-0 items-center rounded-3xl bg-primary/10 px-3 py-1.5 text-xs font-medium capitalize text-primary transition-colors hover:bg-primary/15;
+  }
+
+  .catalog-product-card-grid-image {
+    @apply aspect-[4/3] w-full rounded-t-2xl;
   }
 
   .catalog-category-chip--menu {

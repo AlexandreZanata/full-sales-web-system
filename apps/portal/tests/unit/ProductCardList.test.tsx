@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ProductCardList } from '@/components/catalog/ProductCardList';
@@ -12,10 +12,11 @@ const product: PortalProduct = {
   categoryName: 'Bebidas',
   priceAmount: 250_000,
   priceCurrency: 'BRL',
+  description: 'Cold beverage',
 };
 
-describe('ProductCardList — mobile list card contract', () => {
-  it('renders prominent price, combined metadata, and triggers onAddToCart', () => {
+describe('ProductCardList — Phase 71F contract', () => {
+  it('renders_description_pill_add_and_prominent_price', () => {
     const onAddToCart = vi.fn();
     renderWithI18n(
       <ProductCardList
@@ -27,13 +28,15 @@ describe('ProductCardList — mobile list card contract', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Premium Widget' })).toBeInTheDocument();
-    expect(screen.getByText('SKU: SEED-001 · Bebidas')).toBeInTheDocument();
+    expect(screen.getByText('Cold beverage')).toBeInTheDocument();
     expect(screen.getByText('R$ 2.500,00')).toHaveClass('catalog-price--prominent');
-    screen.getByRole('button', { name: 'Add to cart' }).click();
+    const addButton = screen.getByRole('button', { name: 'Add to cart' });
+    expect(addButton).toHaveClass('catalog-add-pill-btn');
+    addButton.click();
     expect(onAddToCart).toHaveBeenCalledWith(product);
   });
 
-  it('opens product detail when title is clicked', () => {
+  it('opens_product_detail_when_title_is_clicked', () => {
     const onOpenDetail = vi.fn();
     renderWithI18n(
       <ProductCardList
@@ -45,22 +48,9 @@ describe('ProductCardList — mobile list card contract', () => {
       />,
     );
 
-    screen.getByRole('heading', { name: 'Premium Widget' }).click();
+    within(screen.getByRole('heading', { name: 'Premium Widget' }))
+      .getByRole('button')
+      .click();
     expect(onOpenDetail).toHaveBeenCalledWith(product);
-  });
-
-  it('renders SKU-only metadata when category is missing', () => {
-    const { categoryName: _category, ...productWithoutCategory } = product;
-    renderWithI18n(
-      <ProductCardList
-        product={productWithoutCategory}
-        onAddToCart={vi.fn()}
-        addToCartLabel="Add to cart"
-        skuLabel="SKU"
-      />,
-    );
-
-    expect(screen.getByText('SKU: SEED-001')).toBeInTheDocument();
-    expect(screen.queryByText(/Bebidas/)).not.toBeInTheDocument();
   });
 });

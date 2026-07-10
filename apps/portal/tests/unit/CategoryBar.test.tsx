@@ -28,4 +28,20 @@ describe('CategoryBar — Phase 45 contract', () => {
     screen.getByRole('tab', { name: /snacks/i }).click();
     expect(onSelect).toHaveBeenCalledWith('snacks');
   });
+
+  it('given_home_variant_when_rendered_then_uses_home_row_and_chip_classes', () => {
+    renderWithI18n(
+      <CategoryBar
+        categories={categories}
+        variant="home"
+        onSelect={vi.fn()}
+        ariaLabel="Categories"
+      />,
+    );
+
+    expect(screen.getByRole('tablist')).toHaveClass('catalog-category-row--home');
+    expect(screen.getByRole('tab', { name: /bebidas/i })).toHaveClass(
+      'catalog-category-chip--home',
+    );
+  });
 });

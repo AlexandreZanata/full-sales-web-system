@@ -29,6 +29,8 @@ export type PortalProduct = {
   categoryName?: string;
   categorySlug?: string;
   primaryImageUrl?: string;
+  description?: string;
+  compareAtPrice?: number;
 };
 
 export type PortalProductDetail = PortalProduct & {

@@ -159,6 +159,25 @@ Fallback order: `GET /v1/public/banners?placement=hero` → `settings.heroBanner
 
 Dependency: `swiper` + `swiper/react`.
 
+### Home category row (Phase 71E)
+
+| Component | Role |
+|-----------|------|
+| `HomeCategorySection` | "Our menu" title, View All pill, horizontal category chips |
+| `CategoryBar` variant `home` | `w-32` scroll-snap chips with primary hover tint |
+
+### Product cards (Phase 71F)
+
+| Component | Role |
+|-----------|------|
+| `ProductCardGrid` / `ProductCardList` | FoodKing layout: image, title + info, 2-line description, price + Add pill |
+| `ProductCardAddPill` | `.catalog-add-pill-btn` with bag icon |
+| `ProductCardPrice` | Sale price + optional `compareAtPrice` strikethrough |
+| `ProductInfoDialog` | Native `<dialog>` for description/SKU when info icon clicked |
+| `stripHtml.ts` | Plain-text description from optional HTML |
+
+`PortalProduct` optional fields: `description`, `compareAtPrice`.
+
 ---
 
 ## Design tokens (Phase 71B)
@@ -193,7 +212,7 @@ Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DES
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 
-Key contracts: `catalogSearch.test.ts` (redirect + filter + `q` param), Phase 45 component tests, `ProductCardList.test.tsx`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`.
+Key contracts: `catalogSearch.test.ts`, Phase 45/71F component tests (`ProductCardGrid`, `ProductCardList`, `ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`.
 
 Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
 
@@ -209,4 +228,4 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ---
 
-**Updated:** 2026-07-10 (Phase 71C shell + 71D hero)
+**Updated:** 2026-07-10 (Phase 71E home categories + 71F product cards)

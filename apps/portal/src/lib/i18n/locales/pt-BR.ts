@@ -70,6 +70,10 @@ export const ptBR: Messages = {
     selectCategory: 'Escolha uma categoria',
     emptyCategory: 'Esta categoria não foi encontrada.',
     emptyDescription: 'Tente outra categoria ou termo de busca.',
+    ourMenu: 'Nosso cardápio',
+    viewAll: 'Ver tudo',
+    addShort: 'Add',
+    noDescription: 'Sem descrição disponível.',
   },
   cart: {
     title: 'Carrinho',
@@ -123,5 +127,6 @@ export const ptBR: Messages = {
     placeOrder: 'Fazer pedido',
     contactSeller: 'Falar com vendedor',
     contactUnavailable: 'Telefone comercial não configurado',
+    productInfo: 'Informações do produto',
   },
 };

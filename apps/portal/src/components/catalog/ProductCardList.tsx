@@ -1,20 +1,20 @@
-import { Button } from '@/components/ui/Button';
+import { ProductCardAddPill } from '@/components/catalog/ProductCardAddPill';
+import { ProductCardPrice } from '@/components/catalog/ProductCardPrice';
+import { ProductCardTitleRow } from '@/components/catalog/ProductCardTitleRow';
 import type { ProductCardProps } from '@/components/catalog/productCardProps';
 import { ProductImage } from '@/components/catalog/ProductImage';
-import { formatMoney } from '@/lib/products/formatPrice';
-
-function productMetaLine(product: ProductCardProps['product'], skuLabel: string): string {
-  const sku = `${skuLabel}: ${product.sku}`;
-  return product.categoryName ? `${sku} · ${product.categoryName}` : sku;
-}
+import { productCardDescription } from '@/lib/catalog/stripHtml';
+import { useI18n } from '@/lib/i18n/context';
 
 export function ProductCardList({
   product,
   onAddToCart,
   onOpenDetail,
   addToCartLabel,
-  skuLabel,
 }: ProductCardProps) {
+  const { t } = useI18n();
+  const description = productCardDescription(product.description);
+
   const openDetail = () => {
     onOpenDetail?.(product);
   };
@@ -30,33 +30,28 @@ export function ProductCardList({
       >
         <ProductImage product={product} className="size-28 rounded-lg sm:size-32" />
       </button>
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:gap-3">
-        <div className="min-w-0">
-          <button
-            type="button"
-            className="w-full text-left focus-visible:outline-none"
-            onClick={openDetail}
-            disabled={!onOpenDetail}
-          >
-            <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground">
-              {product.name}
-            </h3>
-          </button>
-          <p className="mt-1 text-xs text-muted-foreground">{productMetaLine(product, skuLabel)}</p>
-        </div>
-        <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          <p className="catalog-price catalog-price--prominent">
-            {formatMoney(product.priceAmount, product.priceCurrency)}
-          </p>
-          <Button
-            className="w-full sm:w-auto sm:shrink-0"
-            variant="secondary"
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <ProductCardTitleRow
+          product={product}
+          onOpenDetail={onOpenDetail}
+          titleClassName="text-base font-semibold leading-snug"
+        />
+        {description ? (
+          <p className="line-clamp-2 text-xs text-muted-foreground">{description}</p>
+        ) : null}
+        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+          <ProductCardPrice
+            priceAmount={product.priceAmount}
+            priceCurrency={product.priceCurrency}
+            compareAtPrice={product.compareAtPrice}
+          />
+          <ProductCardAddPill
+            label={t('catalog.addShort')}
+            ariaLabel={addToCartLabel}
             onClick={() => {
               onAddToCart(product);
             }}
-          >
-            {addToCartLabel}
-          </Button>
+          />
         </div>
       </div>
     </article>
