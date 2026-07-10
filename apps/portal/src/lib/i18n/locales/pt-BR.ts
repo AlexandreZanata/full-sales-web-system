@@ -72,6 +72,8 @@ export const ptBR: Messages = {
     emptyDescription: 'Tente outra categoria ou termo de busca.',
     ourMenu: 'Nosso cardápio',
     viewAll: 'Ver tudo',
+    featuredItems: 'Itens em destaque',
+    orderNow: 'Pedir agora',
     addShort: 'Add',
     noDescription: 'Sem descrição disponível.',
   },

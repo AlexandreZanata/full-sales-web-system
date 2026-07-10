@@ -178,4 +178,28 @@ body {
   .catalog-price--prominent {
     @apply text-base font-bold;
   }
+
+  .catalog-offer-card {
+    @apply relative flex min-h-40 items-stretch overflow-hidden rounded-2xl p-5 sm:min-h-44 sm:p-6;
+  }
+
+  .catalog-offer-card--yellow {
+    background-color: #fff9e6;
+  }
+
+  .catalog-offer-card--green {
+    background-color: #e8f8ef;
+  }
+
+  .catalog-offer-card__content {
+    @apply relative z-10 flex max-w-[60%] flex-col justify-center;
+  }
+
+  .catalog-offer-card__image {
+    @apply absolute bottom-0 right-0 h-full max-h-full w-auto max-w-[45%] object-contain object-bottom;
+  }
+
+  .catalog-offer-cta {
+    @apply mt-4 inline-flex w-fit items-center rounded-3xl bg-surface px-4 py-2 text-xs font-semibold capitalize text-foreground shadow-sm transition-shadow hover:shadow-md sm:text-sm;
+  }
 }

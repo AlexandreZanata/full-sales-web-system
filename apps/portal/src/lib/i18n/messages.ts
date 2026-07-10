@@ -66,6 +66,8 @@ export type Messages = {
     emptyDescription: string;
     ourMenu: string;
     viewAll: string;
+    featuredItems: string;
+    orderNow: string;
     addShort: string;
     noDescription: string;
   };
@@ -173,6 +175,8 @@ export type MessageKey =
   | 'catalog.emptyDescription'
   | 'catalog.ourMenu'
   | 'catalog.viewAll'
+  | 'catalog.featuredItems'
+  | 'catalog.orderNow'
   | 'catalog.addShort'
   | 'catalog.noDescription'
   | 'cart.title'

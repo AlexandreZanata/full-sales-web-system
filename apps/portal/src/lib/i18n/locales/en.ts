@@ -72,6 +72,8 @@ export const en: Messages = {
     emptyDescription: 'Try another category or search term.',
     ourMenu: 'Our menu',
     viewAll: 'View all',
+    featuredItems: 'Featured items',
+    orderNow: 'Order now',
     addShort: 'Add',
     noDescription: 'No description available.',
   },
