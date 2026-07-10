@@ -34,6 +34,12 @@ pub struct CancelSubscriptionRequest {
     pub subscription_id: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct AttachPaymentMethodRequest {
+    pub customer_id: String,
+    pub credit_card_token: String,
+}
+
 #[async_trait]
 pub trait PaymentGateway: Send + Sync {
     async fn create_customer(
@@ -50,7 +56,8 @@ pub trait PaymentGateway: Send + Sync {
 
     async fn cancel_subscription(&self, req: CancelSubscriptionRequest) -> Result<(), BillingError>;
 
-    /// Lightweight reachability probe (Phase 9 health deps).
+    async fn attach_payment_method(&self, req: AttachPaymentMethodRequest) -> Result<(), BillingError>;
+
     async fn ping(&self) -> Result<(), BillingError>;
 }
 
@@ -63,5 +70,8 @@ pub fn map_billing_error(err: BillingError) -> String {
         BillingError::UpstreamUnavailable => "upstream_unavailable".into(),
         BillingError::CircuitOpen => "circuit_open".into(),
         BillingError::InvalidRequest(code) => code,
+        BillingError::SubscriptionNotFound => "subscription_not_found".into(),
+        BillingError::InvoiceNotFound => "invoice_not_found".into(),
+        _ => "billing_error".into(),
     }
 }

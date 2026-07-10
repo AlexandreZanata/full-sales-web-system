@@ -3,6 +3,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
+use domain_billing::{BillingInterval, SubscriptionStatus};
 use domain_shared::TenantId;
 use infra_crypto::PasswordHasher;
 use serde::Deserialize;
@@ -36,6 +37,10 @@ pub struct CreateTenantRequest {
 pub struct PatchTenantRequest {
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
+    #[serde(rename = "planId")]
+    pub plan_id: Option<Uuid>,
+    #[serde(rename = "graceExtendedUntil")]
+    pub grace_extended_until: Option<chrono::DateTime<chrono::Utc>>,
     pub settings: Option<serde_json::Value>,
 }
 
@@ -119,6 +124,42 @@ pub async fn create_tenant(
             )
             .await
             .map_err(|_| ApiError::internal())?;
+
+            if let Some(plan) = infra_postgres::billing::find_plan(&state.admin_pool, body.plan_id)
+                .await
+                .map_err(|_| ApiError::internal())?
+            {
+                let interval = BillingInterval::parse(&plan.billing_interval)
+                    .map_err(|_| ApiError::internal())?;
+                let sub_result = application::billing::provision_subscription(
+                    state.payment_gateway.as_ref(),
+                    &application::billing::ProvisionSubscriptionInput {
+                        tenant_id,
+                        plan_id: plan.id,
+                        customer_id: customer.id.clone(),
+                        plan_name: plan.name.clone(),
+                        price_minor: plan.price_minor,
+                        billing_interval: interval,
+                    },
+                )
+                .await
+                .map_err(|_| ApiError::internal())?;
+
+                infra_postgres::billing::insert_subscription(
+                    &state.admin_pool,
+                    infra_postgres::billing::SubscriptionInsert {
+                        id: sub_result.subscription_id,
+                        tenant_id,
+                        plan_id: plan.id,
+                        asaas_subscription_id: Some(sub_result.asaas_subscription_id),
+                        status: SubscriptionStatus::Pending,
+                        current_period_end: None,
+                    },
+                )
+                .await
+                .map_err(|_| ApiError::internal())?;
+            }
+
             trial_ends = application::tenants::finalize_provision_tenant(&mut tenant, &input)
                 .map_err(map_platform_patch_error)?;
             infra_postgres::shared::update_tenant_lifecycle(
@@ -188,11 +229,23 @@ pub async fn patch_tenant(
     let row = load_row(&state, tenant_id).await?;
     let tenant = row_to_tenant(&row);
 
+    if let Some(plan_id) = body.plan_id {
+        crate::billing::change_tenant_plan(&state.admin_pool, tenant_id, plan_id)
+            .await
+            .map_err(|_| ApiError::bad_request("PLAN_NOT_FOUND", "Subscription plan not found"))?;
+    }
+    if let Some(until) = body.grace_extended_until {
+        infra_postgres::shared::set_grace_extended_until(&state.admin_pool, tenant_id, until)
+            .await
+            .map_err(|_| ApiError::internal())?;
+    }
+
+    let plan_id = body.plan_id.or(tenant.plan_id);
     let updated = infra_postgres::shared::update_tenant_lifecycle(
         &state.admin_pool,
         tenant_id,
         tenant.status,
-        tenant.plan_id,
+        plan_id,
         tenant.trial_ends_at,
         tenant.suspended_at,
         tenant.suspended_reason.as_deref(),
@@ -252,6 +305,16 @@ pub async fn run_offboarding_job(
         processed.push(tenant_id.as_uuid());
     }
     Ok(Json(serde_json::json!({ "processed": processed, "lgpdExport": "stub" })))
+}
+
+pub async fn run_dunning_job(
+    State(state): State<AppState>,
+    _auth: PlatformAuthUser,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    let processed = crate::billing::run_dunning_job(&state.admin_pool)
+        .await
+        .map_err(|_| ApiError::internal())?;
+    Ok(Json(serde_json::json!({ "processed": processed, "emailNotifications": "stub" })))
 }
 
 async fn persist_transition(

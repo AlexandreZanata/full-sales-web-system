@@ -47,6 +47,7 @@ dependencies = [
  "axum",
  "chrono",
  "dev-seed",
+ "domain-billing",
  "domain-commerces",
  "domain-deliveries",
  "domain-identity",
@@ -1357,7 +1358,12 @@ dependencies = [
 name = "domain-billing"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "domain-shared",
+ "serde",
+ "serde_json",
  "thiserror",
+ "uuid",
 ]
 
 [[package]]
@@ -2429,6 +2435,7 @@ name = "infra-postgres"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "domain-billing",
  "domain-inventory",
  "domain-platform",
  "domain-shared",

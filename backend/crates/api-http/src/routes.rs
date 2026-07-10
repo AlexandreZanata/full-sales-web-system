@@ -9,10 +9,12 @@ use crate::admin_orders::{
 };
 use crate::audit::list_audit_events;
 use crate::billing::asaas_webhook;
+use crate::billing::{attach_payment_method, get_invoice, get_subscription, list_invoices};
 use crate::platform::{
     create_tenant, end_impersonation, get_tenant, list_platform_tenants, list_platform_users,
     offboard_tenant, patch_tenant, platform_login, platform_logout, platform_mfa_verify,
-    platform_refresh, reactivate_tenant, run_offboarding_job, start_impersonation, suspend_tenant,
+    platform_refresh, reactivate_tenant, run_dunning_job, run_offboarding_job, start_impersonation,
+    suspend_tenant,
 };
 use crate::platform::auth::platform_auth_middleware;
 use crate::auth::{auth_middleware, login, logout, refresh};
@@ -240,6 +242,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/reports/{id}", get(get_report))
         .route("/v1/reports/{id}/export", get(export_report))
         .route("/v1/audit/events", get(list_audit_events))
+        .route("/v1/billing/subscription", get(get_subscription))
+        .route("/v1/billing/invoices", get(list_invoices))
+        .route("/v1/billing/invoices/{id}", get(get_invoice))
+        .route("/v1/billing/payment-methods", post(attach_payment_method))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             tenant_gate_middleware,
@@ -268,6 +274,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/platform/tenants/{id}/reactivate", post(reactivate_tenant))
         .route("/v1/platform/tenants/{id}/offboard", post(offboard_tenant))
         .route("/v1/platform/jobs/offboarding", post(run_offboarding_job))
+        .route("/v1/platform/jobs/dunning", post(run_dunning_job))
         .route("/v1/platform/impersonate", post(start_impersonation))
         .route("/v1/platform/impersonate/end", post(end_impersonation))
         .layer(axum::middleware::from_fn_with_state(

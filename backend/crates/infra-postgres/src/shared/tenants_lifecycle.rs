@@ -257,6 +257,88 @@ pub async fn plan_exists(pool: &PgPool, plan_id: Uuid) -> Result<bool, PostgresE
     Ok(exists)
 }
 
+pub async fn mark_tenant_past_due(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    status: TenantStatus,
+) -> Result<bool, PostgresError> {
+    let result = sqlx::query(
+        "UPDATE shared.tenants SET
+            status = $2,
+            past_due_at = COALESCE(past_due_at, now()),
+            active = true,
+            updated_at = now()
+         WHERE id = $1",
+    )
+    .bind(tenant_id.as_uuid())
+    .bind(status.as_str())
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
+pub async fn mark_tenant_payment_cleared(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    status: TenantStatus,
+) -> Result<bool, PostgresError> {
+    let result = sqlx::query(
+        "UPDATE shared.tenants SET
+            status = $2,
+            past_due_at = NULL,
+            trial_ends_at = NULL,
+            active = true,
+            updated_at = now()
+         WHERE id = $1",
+    )
+    .bind(tenant_id.as_uuid())
+    .bind(status.as_str())
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
+pub async fn set_grace_extended_until(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    until: DateTime<Utc>,
+) -> Result<bool, PostgresError> {
+    let result = sqlx::query(
+        "UPDATE shared.tenants SET grace_extended_until = $2, updated_at = now() WHERE id = $1",
+    )
+    .bind(tenant_id.as_uuid())
+    .bind(until)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
+pub async fn find_dunning_candidates(pool: &PgPool) -> Result<Vec<TenantId>, PostgresError> {
+    let ids = sqlx::query_scalar::<_, Uuid>(
+        "SELECT id FROM shared.tenants
+         WHERE status = 'PastDue'
+           AND past_due_at IS NOT NULL
+           AND now() >= COALESCE(grace_extended_until, past_due_at + interval '7 days')",
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(ids.into_iter().map(TenantId::from_uuid).collect())
+}
+
+/// Test/admin helper — backdate past-due timestamp for dunning contract tests.
+pub async fn backdate_past_due_at(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    at: DateTime<Utc>,
+) -> Result<(), PostgresError> {
+    sqlx::query("UPDATE shared.tenants SET past_due_at = $2 WHERE id = $1")
+        .bind(tenant_id.as_uuid())
+        .bind(at)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
 #[derive(sqlx::FromRow)]
 struct LifecycleRecord {
     id: Uuid,

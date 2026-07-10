@@ -8,8 +8,8 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use application::billing::{
-    CancelSubscriptionRequest, CreateCustomerRequest, CreateSubscriptionRequest, CustomerResponse,
-    PaymentGateway, SubscriptionResponse,
+    AttachPaymentMethodRequest, CancelSubscriptionRequest, CreateCustomerRequest,
+    CreateSubscriptionRequest, CustomerResponse, PaymentGateway, SubscriptionResponse,
 };
 
 use crate::circuit_breaker::CircuitBreaker;
@@ -198,6 +198,17 @@ impl PaymentGateway for AsaasClient {
         let path = format!("/subscriptions/{}", req.subscription_id);
         self.send_with_retry(|| self.authed(reqwest::Method::DELETE, &path))
             .await?;
+        Ok(())
+    }
+
+    async fn attach_payment_method(&self, req: AttachPaymentMethodRequest) -> Result<(), BillingError> {
+        let path = format!("/customers/{}", req.customer_id);
+        let body = serde_json::json!({ "creditCardToken": req.credit_card_token });
+        self.send_with_retry(|| {
+            self.authed(reqwest::Method::POST, &path)
+                .json(&body)
+        })
+        .await?;
         Ok(())
     }
 

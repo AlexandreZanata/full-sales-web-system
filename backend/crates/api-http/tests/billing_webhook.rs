@@ -6,7 +6,7 @@ mod support;
 use http::StatusCode;
 use serde_json::json;
 
-use support::{request, setup};
+use support::{platform_access_token, request, seed_platform_admin, setup};
 
 const WEBHOOK_TOKEN: &str = "test-webhook-token-phase3";
 
@@ -84,6 +84,37 @@ async fn contract_webhook_when_duplicate_event_then_200_no_duplicate_row() {
     let (status, resp) = webhook_request(&env, Some(WEBHOOK_TOKEN), Some(body)).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(resp["duplicate"], true);
+    let count = infra_postgres::billing::count_payment_events(&env.admin_pool)
+        .await
+        .expect("count");
+    assert_eq!(count, 1);
+}
+
+#[tokio::test]
+async fn contract_webhook_when_payment_confirmed_twice_then_idempotent_tenant_state() {
+    let env = setup().await;
+    seed_platform_admin(&env).await;
+    let token = platform_access_token(&env).await;
+    let body = json!({
+        "legalName": "Idempotent Co",
+        "displayName": "Idem",
+        "adminEmail": "idem@test.com",
+        "planId": "01900002-0001-7000-8000-000000000001",
+        "trial": true,
+        "cnpj": "11222333000181"
+    })
+    .to_string();
+    let (status, resp) = request(&env, "POST", "/v1/platform/tenants", Some(&token), Some(body)).await;
+    assert_eq!(status, StatusCode::CREATED, "{resp}");
+    let tenant_id = resp["tenantId"].as_str().expect("id");
+
+    let webhook_body = sample_event("evt_idem_pay", tenant_id);
+    let (status, _) = webhook_request(&env, Some(WEBHOOK_TOKEN), Some(webhook_body.clone())).await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, resp) = webhook_request(&env, Some(WEBHOOK_TOKEN), Some(webhook_body)).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(resp["duplicate"], true);
+
     let count = infra_postgres::billing::count_payment_events(&env.admin_pool)
         .await
         .expect("count");

@@ -55,11 +55,25 @@ pub async fn asaas_webhook(
             asaas_event_id: payload.id.clone(),
             event_type: payload.event.clone(),
             tenant_id,
-            payload: body,
+            payload: body.clone(),
         },
     )
     .await
     .map_err(|_| ApiError::internal())?;
+
+    if inserted {
+        crate::billing::process_asaas_event(
+            &state.admin_pool,
+            &payload.event,
+            tenant_id,
+            &body,
+        )
+        .await
+        .map_err(|_| ApiError::internal())?;
+        infra_postgres::billing::mark_payment_event_processed(&state.admin_pool, &payload.id)
+            .await
+            .map_err(|_| ApiError::internal())?;
+    }
 
     Ok((
         StatusCode::OK,

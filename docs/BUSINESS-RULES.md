@@ -26,6 +26,9 @@
 | BR-SA-002 | `packages/domain/src/value-objects/money.test.ts`, `packages/domain/src/sales/sale-item.test.ts`, `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-003 | `packages/domain/src/sales/sale.test.ts` |
 | BR-SA-004 | `backend/crates/api-http/tests/sales.rs` (`contract_top_selling_products_after_confirm_then_lists_product`) |
+| BR-BI-001 | `backend/crates/api-http/tests/billing_webhook.rs` |
+| BR-BI-002 | `backend/crates/domain-billing/tests/business_rules.rs`, `backend/crates/api-http/tests/billing_subscription.rs` |
+| BR-BI-003 | `backend/crates/api-http/tests/billing_subscription.rs` |
 
 ---
 

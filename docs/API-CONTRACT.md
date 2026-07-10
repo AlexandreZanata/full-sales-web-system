@@ -784,7 +784,7 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 ## Platform SaaS (`proposed` → Phase 1–3 partial)
 
-> **Status:** Phase 1 auth/impersonation + Phase 2 tenant lifecycle + Phase 3 Asaas core (webhook + customer sync). Subscription UI routes still `proposed`.  
+> **Status:** Phase 1 auth/impersonation + Phase 2 tenant lifecycle + Phase 3 Asaas core + **Phase 4 subscription billing** (plans, subscriptions, invoices, dunning, tenant API).  
 > ADRs: [ADR-013](adr/ADR-013-platform-admin-identity.md) … [ADR-018](adr/ADR-018-tenant-asaas-payments.md).
 
 ### Platform error codes (additions)
@@ -838,7 +838,7 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `PATCH /v1/platform/tenants/{id}`
 
 - **Auth:** PlatformAdmin
-- **Body:** `{ "status"?, "planId"?, "trialEndsAt"?, "suspendedReason"?, "settings"? }`
+- **Body:** `{ "status"?, "planId"?, "trialEndsAt"?, "graceExtendedUntil"?, "suspendedReason"?, "settings"? }`
 - **Response 200:** Updated tenant
 - **Response 409:** `InvalidTenantTransition`
 
@@ -943,7 +943,7 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Response 200:** `{ "received": true }` or `{ "received": true, "duplicate": true }` — idempotent on `id` (BR-BI-001)
 - **Response 401:** `WEBHOOK_UNAUTHORIZED`
 
-**Implemented:** Phase 3 — persists to `billing.payment_events`; side-effect handlers in Phase 4+.
+**Implemented:** Phase 4 — persists to `billing.payment_events`; applies tenant/subscription/invoice side effects for `PAYMENT_CONFIRMED`, `PAYMENT_OVERDUE`, `SUBSCRIPTION_DELETED`.
 
 **Handled events (v1):** `PAYMENT_CREATED`, `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`, `PAYMENT_DELETED`, `PAYMENT_REFUNDED`, `SUBSCRIPTION_CREATED`, `SUBSCRIPTION_UPDATED`, `SUBSCRIPTION_DELETED`, `INVOICE_CREATED`, `INVOICE_UPDATED`, `INVOICE_AUTHORIZED`, `INVOICE_CANCELED`
 
@@ -953,17 +953,35 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Response 200:** `{ "plan", "status", "currentPeriodEnd", "trialEndsAt" }`
 - **Response 402:** `SUBSCRIPTION_PAST_DUE`
 
+**Implemented:** Phase 4.
+
 ### `GET /v1/billing/invoices`
 
 - **Auth:** Tenant Admin
 - **Query (cursor):** `limit`, `cursor`, `filter[status]`, `sort=-due_date`
 - **Response 200:** Invoice history mirrored from Asaas
 
+**Implemented:** Phase 4 — cursor list with RLS.
+
+### `GET /v1/billing/invoices/{id}`
+
+- **Auth:** Tenant Admin
+- **Response 200:** `{ "id", "amountMinor", "currency", "dueDate", "status", "paidAt", "pdfUrl"? }`
+
+**Implemented:** Phase 4.
+
 ### `POST /v1/billing/payment-methods`
 
 - **Auth:** Tenant Admin
 - **Body:** `{ "type": "credit_card", "creditCardToken" }` — token from Asaas.js tokenization
 - **Response 201:** Payment method attached
+
+**Implemented:** Phase 4 — attaches token to Asaas customer.
+
+### `POST /v1/platform/jobs/dunning`
+
+- **Auth:** PlatformAdmin
+- **Response 200:** `{ "processed": [...], "emailNotifications": "stub" }` — suspends `PastDue` tenants after 7-day grace (BR-BI-003, ADR-014)
 
 ### `POST /v1/billing/subscription/cancel`
 

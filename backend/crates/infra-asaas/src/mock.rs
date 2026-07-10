@@ -3,8 +3,8 @@ use domain_billing::BillingError;
 use uuid::Uuid;
 
 use application::billing::{
-    CancelSubscriptionRequest, CreateCustomerRequest, CreateSubscriptionRequest, CustomerResponse,
-    PaymentGateway, SubscriptionResponse,
+    AttachPaymentMethodRequest, CancelSubscriptionRequest, CreateCustomerRequest,
+    CreateSubscriptionRequest, CustomerResponse, PaymentGateway, SubscriptionResponse,
 };
 
 #[derive(Debug, Default)]
@@ -46,6 +46,14 @@ impl PaymentGateway for MockPaymentGateway {
         }
     }
 
+    async fn attach_payment_method(&self, req: AttachPaymentMethodRequest) -> Result<(), BillingError> {
+        if req.customer_id.starts_with("cus_") && !req.credit_card_token.is_empty() {
+            Ok(())
+        } else {
+            Err(BillingError::InvalidRequest("invalid_payment_method".into()))
+        }
+    }
+
     async fn ping(&self) -> Result<(), BillingError> {
         Ok(())
     }
@@ -76,6 +84,10 @@ impl PaymentGateway for FailingPaymentGateway {
     }
 
     async fn cancel_subscription(&self, _req: CancelSubscriptionRequest) -> Result<(), BillingError> {
+        Err(BillingError::UpstreamUnavailable)
+    }
+
+    async fn attach_payment_method(&self, _req: AttachPaymentMethodRequest) -> Result<(), BillingError> {
         Err(BillingError::UpstreamUnavailable)
     }
 

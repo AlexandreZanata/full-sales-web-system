@@ -148,6 +148,7 @@ fn map_app_error(err: AppError) -> ApiError {
         AppError::Platform(_) => ApiError::bad_request("INVALID_INPUT", "Invalid platform request"),
         AppError::Identity(_) => ApiError::bad_request("INVALID_INPUT", "Invalid request"),
         AppError::Commerce(_) => ApiError::invalid_cnpj(),
+        AppError::Billing(_) => ApiError::bad_request("BILLING_ERROR", "Billing operation failed"),
     }
 }
 

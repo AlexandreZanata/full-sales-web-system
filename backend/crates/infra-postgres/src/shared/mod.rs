@@ -4,8 +4,9 @@ pub mod tenants_lifecycle;
 pub use offboarding::{anonymize_tenant_pii, find_offboarding_candidates};
 pub use tenants_lifecycle::{
     ProvisionTenantParams, TenantCounts, TenantLifecycleRow, TenantListRow, find_tenant_lifecycle,
-    find_tenant_status, list_tenants_platform, plan_exists, provision_tenant, tenant_counts,
-    update_tenant_lifecycle,
+    find_tenant_status, find_dunning_candidates, list_tenants_platform, mark_tenant_past_due,
+    mark_tenant_payment_cleared, plan_exists, provision_tenant, set_grace_extended_until,
+    backdate_past_due_at, tenant_counts, update_tenant_lifecycle,
 };
 
 use domain_shared::TenantId;

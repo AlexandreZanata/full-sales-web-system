@@ -22,4 +22,28 @@ pub enum BillingError {
 
     #[error("invalid request: {0}")]
     InvalidRequest(String),
+
+    #[error("invalid subscription status")]
+    InvalidSubscriptionStatus,
+
+    #[error("invalid invoice status")]
+    InvalidInvoiceStatus,
+
+    #[error("invalid billing interval")]
+    InvalidBillingInterval,
+
+    #[error("invalid plan code")]
+    InvalidPlanCode,
+
+    #[error("invalid subscription transition from {from} to {to}")]
+    InvalidSubscriptionTransition { from: String, to: String },
+
+    #[error("invalid invoice transition from {from} to {to}")]
+    InvalidInvoiceTransition { from: String, to: String },
+
+    #[error("subscription not found")]
+    SubscriptionNotFound,
+
+    #[error("invoice not found")]
+    InvoiceNotFound,
 }

@@ -81,6 +81,26 @@ impl Tenant {
         Ok(())
     }
 
+    pub fn mark_past_due(&mut self) -> Result<(), PlatformError> {
+        self.transition_to(TenantStatus::PastDue)
+    }
+
+    /// Trial or PastDue → Active after successful payment (BR-BI-002, STATE-MACHINES).
+    pub fn restore_from_payment(&mut self) -> Result<(), PlatformError> {
+        match self.status {
+            TenantStatus::Trial | TenantStatus::PastDue => {
+                self.transition_to(TenantStatus::Active)?;
+                self.trial_ends_at = None;
+                Ok(())
+            }
+            TenantStatus::Active => Ok(()),
+            other => Err(PlatformError::InvalidTenantTransition {
+                from: other.as_str().to_owned(),
+                to: TenantStatus::Active.as_str().to_owned(),
+            }),
+        }
+    }
+
     pub fn begin_offboarding(&mut self, at: DateTime<Utc>) -> Result<(), PlatformError> {
         self.transition_to(TenantStatus::Offboarding)?;
         self.offboarding_scheduled_at = Some(at);

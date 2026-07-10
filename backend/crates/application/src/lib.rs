@@ -46,6 +46,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Platform(#[from] domain_platform::PlatformError),
+
+    #[error(transparent)]
+    Billing(#[from] domain_billing::BillingError),
 }
 
 /// Authenticated principal returned after successful login.
