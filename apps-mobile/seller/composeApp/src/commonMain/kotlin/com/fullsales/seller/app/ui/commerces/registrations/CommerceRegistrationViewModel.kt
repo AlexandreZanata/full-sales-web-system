@@ -60,7 +60,8 @@ class CommerceRegistrationViewModel(
     }
 
     fun applyLookupResult(result: CnpjLookupResult) {
-        val snapshot = json.encodeToString(result)
+        val snapshot = result.upstreamSnapshot?.let { json.encodeToString(it) }
+            ?: json.encodeToString(result)
         val draft = draftFromLookup(result, snapshot)
         draftStore.write(draft)
         _state.update {

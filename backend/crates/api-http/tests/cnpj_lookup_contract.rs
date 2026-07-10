@@ -37,11 +37,18 @@ impl CnpjLookupProvider for CountingCnpjLookup {
                 address: api_http::cnpj_lookup::CnpjLookupAddress {
                     street: "Rua Example".into(),
                     number: "100".into(),
+                    complement: None,
                     district: "Centro".into(),
                     city: "São Paulo".into(),
                     state: "SP".into(),
                     postal_code: "01001000".into(),
                 },
+                phone: None,
+                email: None,
+                registration_status: None,
+                main_cnae: None,
+                partners: None,
+                upstream_snapshot: None,
                 provider: "mock".into(),
                 fetched_at: chrono::Utc::now(),
             })

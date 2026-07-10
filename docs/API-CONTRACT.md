@@ -192,7 +192,7 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 
 - **Auth:** Seller (submit), Admin / users with review privilege
 - **Query:** `cnpj` (digits, validated BR-CO-001)
-- **Response 200:** Normalized lookup payload (`cnpj`, `legalName`, `tradeName`, `address`, `provider`, `fetchedAt`)
+- **Response 200:** Normalized lookup payload (`cnpj`, `legalName`, `tradeName`, `address`, optional `phone`, `email`, `registrationStatus`, `mainCnae`, `partners`, `upstreamSnapshot`, `provider`, `fetchedAt`)
 - **Upstream:** Configurable via `CNPJ_LOOKUP_PROVIDER` (`brasilapi` default, `opencnpj`, `mock` for tests). Response shape unchanged.
 - **400:** `INVALID_CNPJ`
 - **404:** `CNPJ_NOT_FOUND`

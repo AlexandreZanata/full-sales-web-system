@@ -53,9 +53,23 @@ data class CommerceRegistration(
 )
 
 @Serializable
+data class CnpjLookupCnae(
+    val code: String,
+    val description: String,
+)
+
+@Serializable
+data class CnpjLookupPartner(
+    val name: String,
+    val role: String? = null,
+    @SerialName("joinedAt") val joinedAt: String? = null,
+)
+
+@Serializable
 data class CnpjLookupAddress(
     val street: String,
     val number: String,
+    val complement: String? = null,
     val district: String,
     val city: String,
     val state: String,
@@ -68,6 +82,12 @@ data class CnpjLookupResult(
     @SerialName("legalName") val legalName: String,
     @SerialName("tradeName") val tradeName: String,
     val address: CnpjLookupAddress,
+    val phone: String? = null,
+    val email: String? = null,
+    @SerialName("registrationStatus") val registrationStatus: String? = null,
+    @SerialName("mainCnae") val mainCnae: CnpjLookupCnae? = null,
+    val partners: List<CnpjLookupPartner>? = null,
+    @SerialName("upstreamSnapshot") val upstreamSnapshot: JsonElement? = null,
     val provider: String,
     @SerialName("fetchedAt") val fetchedAt: String,
 )

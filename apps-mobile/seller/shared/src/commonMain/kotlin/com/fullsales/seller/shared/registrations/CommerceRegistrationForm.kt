@@ -30,6 +30,8 @@ fun draftFromLookup(result: CnpjLookupResult, snapshotJson: String): CommerceReg
         cnpj = result.cnpj,
         legalName = result.legalName,
         tradeName = result.tradeName,
+        phone = result.phone.orEmpty(),
+        email = result.email.orEmpty(),
         street = result.address.street,
         number = result.address.number,
         district = result.address.district,

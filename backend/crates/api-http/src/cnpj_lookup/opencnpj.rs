@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use chrono::Utc;
 use uuid::Uuid;
 
-use super::{CnpjLookupAddress, CnpjLookupError, CnpjLookupProvider, CnpjLookupResult};
+use super::{CnpjLookupError, CnpjLookupProvider, CnpjLookupResult};
+use super::opencnpj_map::{PublicCnpjResponse, map_opencnpj_response};
 
 pub(crate) const DEFAULT_BASE_URL: &str = "https://api.comerc.app.br";
 const TIMEOUT_SECS: u64 = 8;
@@ -12,26 +12,6 @@ pub struct OpenCnpjLookup {
     client: reqwest::Client,
     base_url: String,
     api_key: String,
-}
-
-#[derive(serde::Deserialize)]
-struct OpenCnpjEndereco {
-    logradouro: Option<String>,
-    numero: Option<String>,
-    bairro: Option<String>,
-    municipio: Option<String>,
-    uf: Option<String>,
-    cep: Option<String>,
-}
-
-#[derive(serde::Deserialize)]
-struct PublicCnpjResponse {
-    cnpj: String,
-    razao_social: String,
-    nome_fantasia: Option<String>,
-    uf: Option<String>,
-    municipio: Option<String>,
-    endereco: Option<OpenCnpjEndereco>,
 }
 
 #[derive(serde::Deserialize)]
@@ -80,54 +60,6 @@ impl OpenCnpjLookup {
         }
     }
 
-    fn map_response(body: PublicCnpjResponse) -> CnpjLookupResult {
-        let legal_name = body.razao_social;
-        let trade_name = body
-            .nome_fantasia
-            .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| legal_name.clone());
-        let endereco = body.endereco;
-        let city = endereco
-            .as_ref()
-            .and_then(|addr| addr.municipio.clone())
-            .or(body.municipio)
-            .unwrap_or_default();
-        let state = endereco
-            .as_ref()
-            .and_then(|addr| addr.uf.clone())
-            .or(body.uf)
-            .unwrap_or_default();
-        let postal_code = endereco
-            .as_ref()
-            .and_then(|addr| addr.cep.clone())
-            .unwrap_or_default()
-            .replace(['-', '.'], "");
-        CnpjLookupResult {
-            cnpj: body.cnpj,
-            legal_name: legal_name.clone(),
-            trade_name,
-            address: CnpjLookupAddress {
-                street: endereco
-                    .as_ref()
-                    .and_then(|addr| addr.logradouro.clone())
-                    .unwrap_or_default(),
-                number: endereco
-                    .as_ref()
-                    .and_then(|addr| addr.numero.clone())
-                    .unwrap_or_else(|| "S/N".into()),
-                district: endereco
-                    .as_ref()
-                    .and_then(|addr| addr.bairro.clone())
-                    .unwrap_or_default(),
-                city,
-                state,
-                postal_code,
-            },
-            provider: "opencnpj".into(),
-            fetched_at: Utc::now(),
-        }
-    }
-
     fn classify_failure(status: reqwest::StatusCode, error_code: Option<&str>) -> FetchFailure {
         if status == reqwest::StatusCode::GATEWAY_TIMEOUT {
             return FetchFailure::GatewayTimeout;
@@ -154,11 +86,15 @@ impl OpenCnpjLookup {
             .map_err(|_| FetchFailure::Unavailable)?;
         let status = response.status();
         if status.is_success() {
-            let body: PublicCnpjResponse = response
-                .json()
+            let bytes = response
+                .bytes()
                 .await
                 .map_err(|_| FetchFailure::Unavailable)?;
-            return Ok(Self::map_response(body));
+            let snapshot: serde_json::Value =
+                serde_json::from_slice(&bytes).map_err(|_| FetchFailure::Unavailable)?;
+            let body: PublicCnpjResponse =
+                serde_json::from_slice(&bytes).map_err(|_| FetchFailure::Unavailable)?;
+            return Ok(map_opencnpj_response(body, snapshot));
         }
         let error_code = response
             .json::<ErrorResponse>()

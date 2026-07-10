@@ -4,13 +4,31 @@ use serde::Serialize;
 
 pub mod brasil_api;
 pub mod opencnpj;
+mod opencnpj_map;
 
 use brasil_api::cnpj_lookup_from_env;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct CnpjLookupCnae {
+    pub code: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct CnpjLookupPartner {
+    pub name: String,
+    #[serde(rename = "role", skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(rename = "joinedAt", skip_serializing_if = "Option::is_none")]
+    pub joined_at: Option<String>,
+}
 
 #[derive(Debug, Clone, Serialize)]
 pub struct CnpjLookupAddress {
     pub street: String,
     pub number: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub complement: Option<String>,
     pub district: String,
     pub city: String,
     pub state: String,
@@ -26,6 +44,18 @@ pub struct CnpjLookupResult {
     #[serde(rename = "tradeName")]
     pub trade_name: String,
     pub address: CnpjLookupAddress,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub phone: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+    #[serde(rename = "registrationStatus", skip_serializing_if = "Option::is_none")]
+    pub registration_status: Option<String>,
+    #[serde(rename = "mainCnae", skip_serializing_if = "Option::is_none")]
+    pub main_cnae: Option<CnpjLookupCnae>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub partners: Option<Vec<CnpjLookupPartner>>,
+    #[serde(rename = "upstreamSnapshot", skip_serializing_if = "Option::is_none")]
+    pub upstream_snapshot: Option<serde_json::Value>,
     pub provider: String,
     #[serde(rename = "fetchedAt")]
     pub fetched_at: DateTime<Utc>,
@@ -55,6 +85,7 @@ impl CnpjLookupProvider for MockCnpjLookup {
                 address: CnpjLookupAddress {
                     street: "Rua Example".into(),
                     number: "100".into(),
+                    complement: None,
                     district: "Centro".into(),
                     city: "São Paulo".into(),
                     state: "SP".into(),
@@ -62,6 +93,12 @@ impl CnpjLookupProvider for MockCnpjLookup {
                 },
                 provider: "mock".into(),
                 fetched_at: Utc::now(),
+                phone: None,
+                email: None,
+                registration_status: None,
+                main_cnae: None,
+                partners: None,
+                upstream_snapshot: None,
             })
         } else {
             Err(CnpjLookupError::NotFound)

@@ -68,11 +68,18 @@ impl CnpjLookupProvider for BrasilApiCnpjLookup {
             address: CnpjLookupAddress {
                 street: body.logradouro.unwrap_or_default(),
                 number: body.numero.unwrap_or_else(|| "S/N".into()),
+                complement: None,
                 district: body.bairro.unwrap_or_default(),
                 city: body.municipio.unwrap_or_default(),
                 state: body.uf.unwrap_or_default(),
                 postal_code: body.cep.unwrap_or_default().replace(['-', '.'], ""),
             },
+            phone: None,
+            email: None,
+            registration_status: None,
+            main_cnae: None,
+            partners: None,
+            upstream_snapshot: None,
             provider: "brasilapi".into(),
             fetched_at: Utc::now(),
         })

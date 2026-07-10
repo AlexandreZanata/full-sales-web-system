@@ -62,6 +62,7 @@ async fn contract_opencnpj_when_200_then_normalized_result() {
     assert_eq!(ok.address.street, "SAUN QUADRA 5 BLOCO B TORRE I");
     assert_eq!(ok.address.postal_code, "70040912");
     assert_eq!(ok.provider, "opencnpj");
+    assert!(ok.upstream_snapshot.is_some());
 }
 
 #[tokio::test]
