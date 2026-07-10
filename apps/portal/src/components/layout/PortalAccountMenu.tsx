@@ -40,7 +40,7 @@ export function PortalAccountMenu({ email, onLogout }: PortalAccountMenuProps) {
           setOpen((current) => !current);
         }}
       >
-        <User className="size-4" aria-hidden />
+        <User className="size-5" aria-hidden />
         <span className="hidden sm:inline">{t('nav.account')}</span>
         <ChevronDown className="size-3.5" aria-hidden />
       </button>

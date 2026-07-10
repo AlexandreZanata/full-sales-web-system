@@ -64,7 +64,7 @@ impl Commerce {
                 trade_name: input.trade_name,
                 tenant_id: input.tenant_id,
             },
-            false,
+            true,
             RegistrationStatus::PendingReview,
             Some(input.submitted_by_user_id),
             None,

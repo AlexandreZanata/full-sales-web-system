@@ -76,6 +76,34 @@ pub async fn list_active_banners_with_files(
     Ok(rows)
 }
 
+pub async fn find_active_banner_media(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    file_id: Uuid,
+) -> Result<Option<crate::inventory::product_images::PublicProductMediaRow>, PostgresError> {
+    use crate::inventory::product_images::PublicProductMediaRow;
+
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (String, String, String)>(
+        "SELECT mf.bucket, mf.object_key, mf.mime_type
+         FROM media.files mf
+         JOIN portal.banners b ON b.image_file_id = mf.id
+         WHERE mf.id = $1 AND mf.entity_type = 'PortalBanner' AND b.active = true",
+    )
+    .bind(file_id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(
+        row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
+            bucket,
+            object_key,
+            mime_type,
+        }),
+    )
+}
+
 pub async fn list_banners(
     pool: &PgPool,
     tenant_id: TenantId,

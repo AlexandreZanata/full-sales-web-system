@@ -37,32 +37,32 @@ export function PortalHeader() {
 
   return (
     <header className="portal-header">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between lg:py-0">
-        <div className="flex items-center justify-between gap-3 lg:justify-start">
-          <Link to="/" search={catalogHomeSearch} className="flex min-w-0 items-center gap-2">
+      <div className="portal-header-inner">
+        <div className="flex items-center justify-between gap-4 lg:justify-start lg:gap-6">
+          <Link to="/" search={catalogHomeSearch} className="flex min-w-0 items-center gap-3">
             {logoUrl ? (
-              <img src={logoUrl} alt={brandName} className="h-8 w-auto max-w-32 object-contain" />
+              <img src={logoUrl} alt={brandName} className="portal-header-logo" />
             ) : (
-              <span className="truncate text-lg font-semibold text-foreground">{brandName}</span>
+              <span className="portal-header-brand">{brandName}</span>
             )}
           </Link>
-          <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center gap-2.5 lg:hidden">
             <Link to="/cart" className="portal-cart-pill" aria-label={t('nav.cart')}>
-              <ShoppingBag className="size-4" aria-hidden />
+              <ShoppingBag className="size-5" aria-hidden />
               <span className="tabular-nums">{cartLabel}</span>
             </Link>
             {user ? (
               <PortalAccountMenu email={user.email} onLogout={() => void logout()} />
             ) : (
               <Link to="/login" className="portal-login-pill">
-                <LogIn className="size-4" aria-hidden />
+                <LogIn className="size-5" aria-hidden />
                 <span>{t('auth.signIn')}</span>
               </Link>
             )}
           </div>
         </div>
 
-        <nav className="hidden items-center justify-center gap-6 lg:flex" aria-label="Main">
+        <nav className="hidden items-center justify-center gap-8 lg:flex" aria-label="Main">
           <Link
             to="/"
             search={catalogHomeSearch}
@@ -87,21 +87,21 @@ export function PortalHeader() {
           </Link>
         </nav>
 
-        <div className="hidden items-center justify-end gap-2 lg:flex">
+        <div className="hidden items-center justify-end gap-3 lg:flex">
           <PortalHeaderSearch
             defaultCategorySlug={defaultCategorySlug}
             activeCategorySlug={category}
           />
           <LocaleSwitcher variant="pill" />
           <Link to="/cart" className="portal-cart-pill">
-            <ShoppingBag className="size-4" aria-hidden />
+            <ShoppingBag className="size-5" aria-hidden />
             <span className="tabular-nums">{cartLabel}</span>
           </Link>
           {user ? (
             <PortalAccountMenu email={user.email} onLogout={() => void logout()} />
           ) : (
             <Link to="/login" className="portal-login-pill">
-              <LogIn className="size-4" aria-hidden />
+              <LogIn className="size-5" aria-hidden />
               <span>{t('auth.signIn')}</span>
             </Link>
           )}

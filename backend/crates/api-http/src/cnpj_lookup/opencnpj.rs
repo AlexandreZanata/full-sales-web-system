@@ -5,7 +5,7 @@ use super::{CnpjLookupError, CnpjLookupProvider, CnpjLookupResult};
 use super::opencnpj_map::{PublicCnpjResponse, map_opencnpj_response};
 
 pub(crate) const DEFAULT_BASE_URL: &str = "https://api.comerc.app.br";
-const TIMEOUT_SECS: u64 = 8;
+const TIMEOUT_SECS: u64 = 15;
 const RETRY_BACKOFF_MS: u64 = 500;
 
 pub struct OpenCnpjLookup {

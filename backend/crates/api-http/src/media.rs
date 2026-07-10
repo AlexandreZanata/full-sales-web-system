@@ -130,26 +130,46 @@ pub async fn get_public_product_media_content(
     Path(id): Path<Uuid>,
 ) -> Result<Response, ApiError> {
     let tenant_id = crate::portal::resolve_public_catalog_tenant()?;
-    let row = match infra_postgres::inventory::product_images::find_active_product_media(
-        &state.app_pool,
-        tenant_id,
-        id,
+    let row = resolve_public_catalog_media(&state.app_pool, tenant_id, id)
+        .await?
+        .ok_or_else(ApiError::media_not_found)?;
+
+    stream_public_media(&state, row.bucket, row.object_key, row.mime_type).await
+}
+
+async fn resolve_public_catalog_media(
+    pool: &infra_postgres::PgPool,
+    tenant_id: domain_shared::TenantId,
+    file_id: uuid::Uuid,
+) -> Result<
+    Option<infra_postgres::inventory::product_images::PublicProductMediaRow>,
+    ApiError,
+> {
+    if let Some(row) =
+        infra_postgres::inventory::product_images::find_active_product_media(pool, tenant_id, file_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+    {
+        return Ok(Some(row));
+    }
+    if let Some(row) = infra_postgres::inventory::product_categories::find_active_category_media(
+        pool, tenant_id, file_id,
     )
     .await
     .map_err(|_| ApiError::internal())?
     {
-        Some(row) => row,
-        None => infra_postgres::inventory::product_categories::find_active_category_media(
-            &state.app_pool,
-            tenant_id,
-            id,
-        )
+        return Ok(Some(row));
+    }
+    if let Some(row) =
+        infra_postgres::portal::banners::find_active_banner_media(pool, tenant_id, file_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+    {
+        return Ok(Some(row));
+    }
+    infra_postgres::portal::promotions::find_active_promotion_media(pool, tenant_id, file_id)
         .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::media_not_found)?,
-    };
-
-    stream_public_media(&state, row.bucket, row.object_key, row.mime_type).await
+        .map_err(|_| ApiError::internal())
 }
 
 async fn stream_public_media(

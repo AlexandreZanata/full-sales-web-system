@@ -180,6 +180,37 @@ pub async fn list_files_by_entity(
         .collect())
 }
 
+pub struct FileStorageUpdate {
+    pub object_key: String,
+    pub mime_type: String,
+    pub size_bytes: i64,
+    pub sha256: String,
+}
+
+pub async fn update_file_storage(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+    update: FileStorageUpdate,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query(
+        "UPDATE media.files
+         SET object_key = $2, mime_type = $3, size_bytes = $4, sha256 = $5
+         WHERE id = $1",
+    )
+    .bind(id)
+    .bind(update.object_key)
+    .bind(update.mime_type)
+    .bind(update.size_bytes)
+    .bind(update.sha256)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}
+
 pub async fn list_file_ids(pool: &PgPool, tenant_id: TenantId) -> Result<Vec<Uuid>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;

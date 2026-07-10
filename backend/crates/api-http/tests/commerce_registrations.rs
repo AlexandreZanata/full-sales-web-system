@@ -41,7 +41,41 @@ async fn br_co_010_given_seller_when_submit_registration_then_pending() {
 
     assert_eq!(status, StatusCode::CREATED);
     assert_eq!(body["registrationStatus"], "PendingReview");
-    assert_eq!(body["active"], false);
+    assert_eq!(body["active"], true);
+}
+
+#[tokio::test]
+async fn br_co_010_given_seller_submit_when_list_active_commerces_then_visible() {
+    let env = setup().await;
+    let (_seller_id, token) = support::seed_seller(&env, "seller-reg-list@test.com").await;
+
+    let (create_status, created) = request(
+        &env,
+        "POST",
+        "/v1/commerces/registrations",
+        Some(&token),
+        Some(registration_payload("11222333000181").to_string()),
+    )
+    .await;
+    assert_eq!(create_status, StatusCode::CREATED);
+    let id = created["id"].as_str().expect("id");
+
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/commerces?limit=50&filter[active]=true",
+        Some(&token),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let ids: Vec<_> = body["data"]
+        .as_array()
+        .expect("data")
+        .iter()
+        .filter_map(|row| row["id"].as_str())
+        .collect();
+    assert!(ids.contains(&id), "pending registration must appear in active commerce list");
 }
 
 #[tokio::test]

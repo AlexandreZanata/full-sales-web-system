@@ -58,6 +58,7 @@ class SellerViewModelFactory(
             CommerceRegistrationViewModel(
                 container.apiClient,
                 container.networkMonitor,
+                container.syncCoordinator,
                 CommerceRegistrationDraftStore(),
             ) as T
         MyRegistrationsViewModel::class ->

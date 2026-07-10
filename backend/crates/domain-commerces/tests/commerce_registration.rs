@@ -16,7 +16,7 @@ fn valid_cnpj() -> Cnpj {
 }
 
 #[test]
-fn br_co_010_given_seller_submit_when_created_then_pending_inactive() {
+fn br_co_010_given_seller_submit_when_created_then_pending_active() {
     let seller_id = Uuid::now_v7();
     let commerce = Commerce::submit_registration(SubmitCommerceRegistrationInput {
         id: CommerceId::generate(),
@@ -31,7 +31,7 @@ fn br_co_010_given_seller_submit_when_created_then_pending_inactive() {
         commerce.registration_status(),
         RegistrationStatus::PendingReview
     );
-    assert!(!commerce.is_active());
+    assert!(commerce.is_active());
     assert_eq!(commerce.submitted_by_user_id(), Some(seller_id));
 }
 

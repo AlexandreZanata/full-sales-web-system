@@ -13,6 +13,7 @@ import com.fullsales.seller.shared.registrations.CommerceRegistrationFormErrors
 import com.fullsales.seller.shared.registrations.buildSubmitRegistrationRequest
 import com.fullsales.seller.shared.registrations.draftFromLookup
 import com.fullsales.seller.shared.registrations.validateCommerceRegistrationForm
+import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +37,7 @@ data class CommerceRegistrationUiState(
 class CommerceRegistrationViewModel(
     private val apiClient: SellerApiClient,
     private val networkMonitor: NetworkMonitor,
+    private val syncCoordinator: SellerSyncCoordinator,
     private val draftStore: CommerceRegistrationDraftStore,
 ) : ViewModel() {
     private val json = Json { ignoreUnknownKeys = true }
@@ -104,6 +106,7 @@ class CommerceRegistrationViewModel(
             runCatching {
                 apiClient.submitRegistration(buildSubmitRegistrationRequest(draft))
             }.onSuccess {
+                runCatching { syncCoordinator.syncPullAndPush() }
                 draftStore.clear()
                 _state.update { it.copy(submitting = false, snackbarCode = "SUBMITTED") }
             }.onFailure { err ->

@@ -3,35 +3,77 @@
 use domain_shared::TenantId;
 use infra_postgres::PgPool;
 use infra_postgres::inventory::portal_products::{seed_product_sales_total, set_product_featured};
-use infra_postgres::media::{self, FileInsert};
 use infra_postgres::portal::banners::{self, BannerInsert};
 use infra_postgres::portal::promotions::{self, PromotionInsert};
-use infra_storage::{LocalFsObjectStorage, ObjectStorage};
-use uuid::Uuid;
 
 use crate::catalog::CatalogSeed;
 use crate::error::DevSeedResult;
-use crate::ids::{admin_user_id, portal_banner_file_ids, portal_banner_ids, portal_promotion_ids};
-use crate::media_bytes::{DEV_MEDIA_BUCKET, minimal_webp_bytes};
+use crate::ids::{
+    admin_user_id, portal_banner_file_ids, portal_banner_ids, portal_promotion_file_ids,
+    portal_promotion_ids,
+};
+use crate::seed_assets::{ensure_media_file, ensure_storage_bytes};
+
+const BANNER_SPECS: [(&str, &str, &str, i32); 3] = [
+    (
+        "banners/hero-burger.png",
+        "portal/banners/hero-burger.png",
+        "Combo burger — peça agora",
+        0,
+    ),
+    (
+        "banners/hero-fresh-food.png",
+        "portal/banners/hero-fresh-food.png",
+        "Ingredientes frescos todos os dias",
+        1,
+    ),
+    (
+        "banners/hero-breakfast.png",
+        "portal/banners/hero-breakfast.png",
+        "Café da manhã especial",
+        2,
+    ),
+];
+
+const PROMO_SPECS: [(&str, &str, &str, &str, &str, i32); 2] = [
+    (
+        "promotions/promo-burger.png",
+        "portal/promotions/promo-burger.png",
+        "Combo Burger",
+        "30% OFF",
+        "yellow",
+        0,
+    ),
+    (
+        "promotions/promo-drinks.png",
+        "portal/promotions/promo-drinks.png",
+        "Bebidas Geladas",
+        "15% OFF",
+        "green",
+        1,
+    ),
+];
 
 pub async fn seed_portal_home_content(
     app_pool: &PgPool,
+    admin_pool: &PgPool,
     tenant: TenantId,
     catalog: &CatalogSeed,
 ) -> DevSeedResult<()> {
     seed_featured_products(app_pool, tenant, catalog).await?;
     seed_popular_metrics(app_pool, tenant, catalog).await?;
-    seed_hero_banners(app_pool, tenant).await?;
-    seed_promotions(app_pool, tenant).await?;
+    seed_hero_banners(app_pool, admin_pool, tenant).await?;
+    seed_promotions(app_pool, admin_pool, tenant).await?;
     Ok(())
 }
 
 pub async fn ensure_portal_home_content(
     app_pool: &PgPool,
+    admin_pool: &PgPool,
     tenant: TenantId,
     catalog: &CatalogSeed,
 ) -> DevSeedResult<()> {
-    seed_portal_home_content(app_pool, tenant, catalog).await
+    seed_portal_home_content(app_pool, admin_pool, tenant, catalog).await
 }
 
 async fn seed_featured_products(
@@ -39,7 +81,7 @@ async fn seed_featured_products(
     tenant: TenantId,
     catalog: &CatalogSeed,
 ) -> DevSeedResult<()> {
-    for product_id in catalog.product_ids.iter().take(3) {
+    for product_id in catalog.product_ids.iter().take(6) {
         set_product_featured(app_pool, tenant, *product_id, true).await?;
     }
     Ok(())
@@ -50,25 +92,33 @@ async fn seed_popular_metrics(
     tenant: TenantId,
     catalog: &CatalogSeed,
 ) -> DevSeedResult<()> {
-    let weights = [120_i64, 85, 60, 25];
+    let weights = [180_i64, 150, 120, 95, 80, 70, 55, 40, 30, 25, 20, 15];
     for (product_id, units) in catalog.product_ids.iter().zip(weights) {
         seed_product_sales_total(app_pool, tenant, *product_id, units).await?;
     }
     Ok(())
 }
 
-async fn seed_hero_banners(app_pool: &PgPool, tenant: TenantId) -> DevSeedResult<()> {
+async fn seed_hero_banners(app_pool: &PgPool, admin_pool: &PgPool, tenant: TenantId) -> DevSeedResult<()> {
     let banner_ids = portal_banner_ids();
     let file_ids = portal_banner_file_ids();
-    let specs = [
-        ("portal/banners/hero-1.webp", "Welcome to our menu", 0_i32),
-        ("portal/banners/hero-2.webp", "Fresh deals every day", 1_i32),
-    ];
+    let uploader = admin_user_id();
 
-    for (index, (object_key, alt_text, sort_order)) in specs.iter().enumerate() {
+    for (index, (asset, object_key, alt_text, sort_order)) in BANNER_SPECS.iter().enumerate() {
         let banner_id = banner_ids[index];
         let file_id = file_ids[index];
-        insert_banner_file(app_pool, tenant, file_id, banner_id, object_key).await?;
+        ensure_media_file(
+            app_pool,
+            admin_pool,
+            tenant,
+            file_id,
+            "PortalBanner",
+            banner_id,
+            object_key,
+            asset,
+            uploader,
+        )
+        .await?;
         if banners::find_banner_by_id(app_pool, tenant, banner_id)
             .await?
             .is_some()
@@ -90,31 +140,34 @@ async fn seed_hero_banners(app_pool: &PgPool, tenant: TenantId) -> DevSeedResult
         )
         .await?;
     }
+    ensure_portal_banner_storage().await?;
     Ok(())
 }
 
-async fn seed_promotions(app_pool: &PgPool, tenant: TenantId) -> DevSeedResult<()> {
+async fn seed_promotions(app_pool: &PgPool, admin_pool: &PgPool, tenant: TenantId) -> DevSeedResult<()> {
     let promotion_ids = portal_promotion_ids();
-    let specs = [
-        (
-            promotion_ids[0],
-            "Tasty Burger",
-            "30% OFF",
-            "yellow",
-            Some("snacks"),
-            0_i32,
-        ),
-        (
-            promotion_ids[1],
-            "Fresh Salad",
-            "15% OFF",
-            "green",
-            Some("bebidas"),
-            1_i32,
-        ),
-    ];
+    let file_ids = portal_promotion_file_ids();
+    let uploader = admin_user_id();
+    let category_slugs = ["snacks", "bebidas"];
 
-    for (id, headline, discount_text, background, category_slug, sort_order) in specs {
+    for (index, (asset, object_key, headline, discount, background, sort_order)) in
+        PROMO_SPECS.iter().enumerate()
+    {
+        let id = promotion_ids[index];
+        let file_id = file_ids[index];
+        ensure_media_file(
+            app_pool,
+            admin_pool,
+            tenant,
+            file_id,
+            "PortalPromotion",
+            id,
+            object_key,
+            asset,
+            uploader,
+        )
+        .await?;
+
         if promotions::find_promotion_by_id(app_pool, tenant, id)
             .await?
             .is_some()
@@ -126,73 +179,36 @@ async fn seed_promotions(app_pool: &PgPool, tenant: TenantId) -> DevSeedResult<(
             tenant,
             PromotionInsert {
                 id,
-                headline: headline.into(),
-                discount_text: discount_text.into(),
-                background: background.into(),
-                category_slug: category_slug.map(str::to_string),
+                headline: (*headline).into(),
+                discount_text: (*discount).into(),
+                background: (*background).into(),
+                category_slug: Some(category_slugs[index].into()),
                 link_url: None,
-                image_file_id: None,
-                sort_order,
+                image_file_id: Some(file_id),
+                sort_order: *sort_order,
                 active: true,
             },
         )
         .await?;
     }
+    ensure_portal_promotion_storage().await?;
     Ok(())
 }
 
-async fn insert_banner_file(
-    app_pool: &PgPool,
-    tenant: TenantId,
-    file_id: Uuid,
-    banner_id: Uuid,
-    object_key: &str,
-) -> DevSeedResult<()> {
-    if media::find_file_by_id(app_pool, tenant, file_id)
-        .await?
-        .is_some()
-    {
-        ensure_storage_object(object_key).await?;
-        return Ok(());
+async fn ensure_portal_banner_storage() -> DevSeedResult<()> {
+    use crate::seed_assets::read_asset_or_placeholder;
+    for (asset, object_key, _, _) in BANNER_SPECS {
+        let (bytes, mime) = read_asset_or_placeholder(asset);
+        ensure_storage_bytes(object_key, &bytes, mime).await?;
     }
-    let bytes = minimal_webp_bytes();
-    media::insert_file(
-        app_pool,
-        tenant,
-        FileInsert {
-            id: file_id,
-            entity_type: "PortalBanner".into(),
-            entity_id: banner_id,
-            bucket: DEV_MEDIA_BUCKET.into(),
-            object_key: object_key.into(),
-            mime_type: "image/webp".into(),
-            size_bytes: bytes.len() as i64,
-            sha256: format!("dev-seed-{object_key}"),
-            uploaded_by_user_id: admin_user_id(),
-        },
-    )
-    .await?;
-    ensure_storage_object(object_key).await?;
     Ok(())
 }
 
-async fn ensure_storage_object(object_key: &str) -> DevSeedResult<()> {
-    let Some(storage) = open_dev_storage() else {
-        return Ok(());
-    };
-    let bytes = minimal_webp_bytes();
-    storage
-        .put_object(DEV_MEDIA_BUCKET, object_key, &bytes, "image/webp")
-        .await
-        .map_err(|err| crate::error::DevSeedError::Aborted(format!("storage put: {err}")))?;
-    Ok(())
-}
-
-fn open_dev_storage() -> Option<LocalFsObjectStorage> {
-    if let Ok(path) = std::env::var("MEDIA_LOCAL_PATH") {
-        if let Ok(storage) = LocalFsObjectStorage::new(path) {
-            return Some(storage);
-        }
+async fn ensure_portal_promotion_storage() -> DevSeedResult<()> {
+    use crate::seed_assets::read_asset_or_placeholder;
+    for (asset, object_key, _, _, _, _) in PROMO_SPECS {
+        let (bytes, mime) = read_asset_or_placeholder(asset);
+        ensure_storage_bytes(object_key, &bytes, mime).await?;
     }
-    LocalFsObjectStorage::new(".local/object-storage").ok()
+    Ok(())
 }

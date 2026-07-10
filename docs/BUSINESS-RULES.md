@@ -89,7 +89,8 @@ AND new Sales referencing this Commerce are rejected
 ```
 GIVEN a User with role Seller
 WHEN they POST a valid registration to /v1/commerces/registrations
-THEN a Commerce is created with registrationStatus PendingReview and active false
+THEN a Commerce is created with registrationStatus PendingReview and active true
+AND the commerce appears in the seller commerce catalog until admin rejects or deactivates
 AND submittedByUserId is set
 AND a Delivery address is persisted
 ```

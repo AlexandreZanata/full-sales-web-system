@@ -21,7 +21,7 @@ export function LocaleSwitcher({ variant = 'default' }: LocaleSwitcherProps) {
         <select
           value={locale}
           aria-label={t('shell.locale')}
-          className="bg-transparent text-sm font-medium capitalize text-foreground outline-none"
+          className="bg-transparent text-sm font-semibold capitalize text-foreground outline-none"
           onChange={(event) => {
             setLocale(event.target.value as Locale);
           }}

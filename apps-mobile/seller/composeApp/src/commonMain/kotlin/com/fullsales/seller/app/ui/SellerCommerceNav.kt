@@ -75,8 +75,10 @@ internal fun NavGraphBuilder.commerceRoutes(
             CommerceRegistrationFormScreen(
                 viewModel = registrationViewModel,
                 onSubmitted = {
-                    navController.navigate(SellerRoutes.COMMERCE_REGISTRATIONS) {
-                        popUpTo(SellerRoutes.COMMERCE_REGISTRATION_MODE) { inclusive = false }
+                    commerceViewModel.refresh()
+                    navController.navigate(SellerRoutes.COMMERCES) {
+                        popUpTo(SellerRoutes.COMMERCE_REGISTRATION_MODE) { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
                 onBack = { navController.popBackStack() },

@@ -208,3 +208,31 @@ pub async fn delete_promotion(
     tx.commit().await?;
     Ok(result.rows_affected() == 1)
 }
+
+pub async fn find_active_promotion_media(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    file_id: Uuid,
+) -> Result<Option<crate::inventory::product_images::PublicProductMediaRow>, PostgresError> {
+    use crate::inventory::product_images::PublicProductMediaRow;
+
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (String, String, String)>(
+        "SELECT mf.bucket, mf.object_key, mf.mime_type
+         FROM media.files mf
+         JOIN portal.promotions p ON p.image_file_id = mf.id
+         WHERE mf.id = $1 AND mf.entity_type = 'PortalPromotion' AND p.active = true",
+    )
+    .bind(file_id)
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(
+        row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
+            bucket,
+            object_key,
+            mime_type,
+        }),
+    )
+}

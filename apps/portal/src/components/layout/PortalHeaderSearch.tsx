@@ -43,7 +43,7 @@ export function PortalHeaderSearch({
         className="shrink-0 text-muted-foreground"
         aria-label={t('common.search')}
       >
-        <Search className="size-4" aria-hidden />
+        <Search className="size-5" aria-hidden />
       </button>
       <input
         type="search"
@@ -64,7 +64,7 @@ export function PortalHeaderSearch({
             setTerm('');
           }}
         >
-          <X className="size-4" aria-hidden />
+          <X className="size-5" aria-hidden />
         </button>
       ) : null}
     </form>

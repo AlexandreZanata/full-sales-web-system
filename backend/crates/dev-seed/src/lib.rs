@@ -12,6 +12,8 @@ pub mod media_bytes;
 mod audit;
 mod catalog;
 mod commerces;
+mod demo_catalog;
+mod demo_products;
 mod deliveries;
 mod error;
 mod foundation;
@@ -20,6 +22,7 @@ mod orders;
 mod portal_content;
 mod reports;
 mod sales;
+mod seed_assets;
 mod site_settings;
 mod users;
 
@@ -39,14 +42,18 @@ pub struct SeedPools {
 pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     if is_already_seeded(&pools.admin, &pools.app).await? {
         tracing::info!("dev seed already applied — ensuring catalog backfill");
-        catalog::ensure_catalog_categories(&pools.app, crate::ids::tenant_id())
+        catalog::ensure_catalog_categories(&pools.app, &pools.admin, crate::ids::tenant_id())
             .await
             .map_err(|e| wrap_step("catalog_backfill", e))?;
-        catalog::ensure_catalog_storage_objects().await?;
         let catalog = catalog::CatalogSeed {
             product_ids: crate::ids::product_ids().to_vec(),
         };
-        portal_content::ensure_portal_home_content(&pools.app, crate::ids::tenant_id(), &catalog)
+        portal_content::ensure_portal_home_content(
+            &pools.app,
+            &pools.admin,
+            crate::ids::tenant_id(),
+            &catalog,
+        )
             .await
             .map_err(|e| wrap_step("portal_content_backfill", e))?;
         return Ok(());
@@ -64,10 +71,21 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     let commerces = commerces::seed_commerces(&pools.app, foundation.tenant_id)
         .await
         .map_err(|e| wrap_step("commerces", e))?;
-    let catalog = catalog::seed_catalog(&pools.app, foundation.tenant_id, &users, &commerces)
+    let catalog = catalog::seed_catalog(
+        &pools.app,
+        &pools.admin,
+        foundation.tenant_id,
+        &users,
+        &commerces,
+    )
         .await
         .map_err(|e| wrap_step("catalog", e))?;
-    portal_content::seed_portal_home_content(&pools.app, foundation.tenant_id, &catalog)
+    portal_content::seed_portal_home_content(
+        &pools.app,
+        &pools.admin,
+        foundation.tenant_id,
+        &catalog,
+    )
         .await
         .map_err(|e| wrap_step("portal_content", e))?;
     orders::seed_orders(

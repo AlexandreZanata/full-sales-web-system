@@ -13,7 +13,7 @@
 1. **Submit vs approve privileges** — Replace single `can_register_commerce()` with:
    - `can_submit_commerce()` → `Seller` only
    - `can_review_commerce()` → `Admin` OR user flag `can_review_commerce` on `identity.users`
-2. **Data model (69-OD-002 A)** — Extend `commerces.commerces` with `registration_status` (`Active` | `PendingReview` | `Rejected`), audit columns, optional `lookup_snapshot` JSONB. Pending rows have `active = false`.
+2. **Data model (69-OD-002 A)** — Extend `commerces.commerces` with `registration_status` (`Active` | `PendingReview` | `Rejected`), audit columns, optional `lookup_snapshot` JSONB. Pending rows have `active = true` (provisional catalog visibility); admin reject or deactivate sets `active = false`.
 3. **Routes** — Explicit `/v1/commerces/registrations/*`; keep `POST /v1/commerces` for Admin direct create (auto-`Active`).
 4. **CNPJ lookup (69-OD-001 A)** — Backend proxy to BrasilAPI with cache + rate limit; `GET /v1/commerces/cnpj-lookup?cnpj=`.
 5. **Duplicates (69-OD-006 A)** — Reject submit when CNPJ already exists in tenant (`CNPJ_ALREADY_REGISTERED`).
@@ -28,7 +28,7 @@
 
 - Clear workflow without breaking Admin direct-create path
 - External API hidden behind backend; rate limits enforced
-- Sellers see only active commerces in sales picker (`filter[active]=true`)
+- Sellers see active commerces in sales picker (`filter[active]=true`), including `PendingReview` until admin rejects or deactivates
 
 ### Negative
 
