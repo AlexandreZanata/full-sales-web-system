@@ -7,6 +7,7 @@ import {
   handlePortalCatalogRoutes,
   fulfillPortalApiNotFound,
 } from './fixtures/portal-catalog-mock';
+import { loginPortal } from './fixtures/portal-api-mock';
 
 test.describe('Portal order flow', () => {
   test('given_catalog_when_add_to_cart_and_submit_then_order_detail', async ({ page }) => {
@@ -119,18 +120,16 @@ test.describe('Portal order flow', () => {
       await fulfillPortalApiNotFound(route, method, path);
     });
 
-    await page.goto('/');
-    await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
-    await page.getByRole('button', { name: 'Adicionar ao carrinho' }).first().click();
-    await page.getByRole('link', { name: /Carrinho/ }).click();
-    await page.getByRole('button', { name: 'Entrar para enviar', exact: true }).click();
+    await loginPortal(page);
 
-    await expect(page).toHaveURL(/\/login/);
-    await page.getByLabel('E-mail').fill('portal@seed-store.com');
-    await page.getByLabel('Senha').fill('secret123');
-    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await page.getByLabel('Main').getByRole('link', { name: 'Cardápio', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
+    await expect(page.getByTestId('catalog-menu')).toBeVisible();
+    await page.getByTestId('catalog-menu').getByRole('button', { name: 'Adicionar ao carrinho' }).first().click();
+    await page.locator('a.portal-cart-pill').filter({ visible: true }).click();
 
     await expect(page).toHaveURL('/cart');
+    await expect(page.getByText(MOCK_PRODUCT.name)).toBeVisible();
     await page.getByRole('button', { name: 'Enviar pedido' }).click();
 
     await expect(page).toHaveURL(new RegExp(`/orders/${orderId}`));

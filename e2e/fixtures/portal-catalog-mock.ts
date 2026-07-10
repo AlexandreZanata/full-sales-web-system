@@ -17,6 +17,37 @@ export const MOCK_PRODUCT = {
   categoryId: MOCK_CATEGORY.id,
   categoryName: MOCK_CATEGORY.name,
   categorySlug: MOCK_CATEGORY.slug,
+  description: 'Crispy seeded snack for portal E2E.',
+};
+
+export const MOCK_FEATURED_PRODUCT = {
+  ...MOCK_PRODUCT,
+  id: '01900001-0020-7000-8000-000000000002',
+  name: 'Featured Burger',
+  sku: 'FEAT-001',
+  description: 'Chef special featured item.',
+};
+
+export const MOCK_POPULAR_PRODUCT = {
+  ...MOCK_PRODUCT,
+  id: '01900001-0020-7000-8000-000000000003',
+  name: 'Popular Soda',
+  sku: 'POP-001',
+  description: 'Best-selling cold drink.',
+};
+
+export const MOCK_BANNER = {
+  id: '01900001-0030-7000-8000-000000000001',
+  imageUrl: 'https://cdn.example/hero-banner.jpg',
+  altText: 'Welcome to our menu',
+};
+
+export const MOCK_PROMOTION = {
+  id: '01900001-0030-7000-8000-000000000002',
+  headline: 'Tasty Burger',
+  discountText: '30% OFF',
+  background: 'yellow',
+  categorySlug: MOCK_CATEGORY.slug,
 };
 
 export const MOCK_PRODUCT_DETAIL = {
@@ -42,7 +73,12 @@ export function isProductsList(path: string, method: string): boolean {
 }
 
 export function isProductById(path: string, method: string): boolean {
-  return method === 'GET' && /^\/(portal|public)\/products\/[^/]+$/.test(path);
+  return (
+    method === 'GET' &&
+    /^\/(portal|public)\/products\/[^/]+$/.test(path) &&
+    !path.endsWith('/featured') &&
+    !path.endsWith('/popular')
+  );
 }
 
 export function isCatalogEvents(path: string, method: string): boolean {
@@ -110,6 +146,66 @@ export function isPublicSettings(path: string, method: string): boolean {
   return method === 'GET' && path === '/public/settings';
 }
 
+export function isPublicBanners(path: string, method: string): boolean {
+  return method === 'GET' && path.startsWith('/public/banners');
+}
+
+export function isPublicPromotions(path: string, method: string): boolean {
+  return method === 'GET' && path.startsWith('/public/promotions');
+}
+
+export function isPublicFeaturedProducts(path: string, method: string): boolean {
+  return method === 'GET' && path.startsWith('/public/products/featured');
+}
+
+export function isPublicPopularProducts(path: string, method: string): boolean {
+  return method === 'GET' && path.startsWith('/public/products/popular');
+}
+
+export async function fulfillPublicBanners(route: Route): Promise<void> {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      data: [MOCK_BANNER],
+      pagination: { next_cursor: null, has_more: false, limit: 5 },
+    }),
+  });
+}
+
+export async function fulfillPublicPromotions(route: Route): Promise<void> {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      data: [MOCK_PROMOTION],
+      pagination: { next_cursor: null, has_more: false, limit: 4 },
+    }),
+  });
+}
+
+export async function fulfillPublicFeaturedProducts(route: Route): Promise<void> {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      data: [MOCK_FEATURED_PRODUCT],
+      pagination: { next_cursor: null, has_more: false, limit: 12 },
+    }),
+  });
+}
+
+export async function fulfillPublicPopularProducts(route: Route): Promise<void> {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      data: [MOCK_POPULAR_PRODUCT],
+      pagination: { next_cursor: null, has_more: false, limit: 12 },
+    }),
+  });
+}
+
 export async function fulfillPortalApiNotFound(route: Route, method: string, path: string): Promise<void> {
   await route.fulfill({
     status: 404,
@@ -138,6 +234,16 @@ export async function handlePortalCatalogRoutes(route: Route): Promise<boolean> 
     return true;
   }
 
+  if (isPublicFeaturedProducts(path, method)) {
+    await fulfillPublicFeaturedProducts(route);
+    return true;
+  }
+
+  if (isPublicPopularProducts(path, method)) {
+    await fulfillPublicPopularProducts(route);
+    return true;
+  }
+
   if (isProductById(path, method)) {
     await fulfillProductById(route);
     return true;
@@ -150,6 +256,16 @@ export async function handlePortalCatalogRoutes(route: Route): Promise<boolean> 
 
   if (isPublicSettings(path, method)) {
     await fulfillPublicSettings(route);
+    return true;
+  }
+
+  if (isPublicBanners(path, method)) {
+    await fulfillPublicBanners(route);
+    return true;
+  }
+
+  if (isPublicPromotions(path, method)) {
+    await fulfillPublicPromotions(route);
     return true;
   }
 

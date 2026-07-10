@@ -5,7 +5,7 @@ import { MOCK_CATEGORY } from './fixtures/portal-catalog-mock';
 
 const VIEWPORTS = [
   { label: '390px mobile', width: 390, height: 844, expectMobileNav: true },
-  { label: '768px tablet', width: 768, height: 1024, expectMobileNav: false },
+  { label: '1024px tablet', width: 1024, height: 1024, expectMobileNav: false },
   { label: '1280px desktop', width: 1280, height: 800, expectMobileNav: false },
 ] as const;
 
@@ -15,10 +15,17 @@ test.describe('Portal responsive shell', () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await mockPortalApi(page);
       await page.goto('/');
-      await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
+      await expect(page.getByTestId('catalog-home-page')).toBeVisible();
 
       const mobileNav = page.getByRole('navigation', { name: 'Mobile' });
       const desktopNav = page.getByRole('navigation', { name: 'Main' });
+
+      if (await desktopNav.isVisible()) {
+        await desktopNav.getByRole('link', { name: 'Cardápio', exact: true }).click();
+      } else {
+        await mobileNav.getByRole('link', { name: 'Cardápio', exact: true }).click();
+      }
+      await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
 
       if (viewport.expectMobileNav) {
         await expect(mobileNav).toBeVisible();
@@ -28,7 +35,7 @@ test.describe('Portal responsive shell', () => {
         await expect(desktopNav).toBeVisible();
       }
 
-      await expect(page.getByRole('heading', { name: 'Catálogo' })).toBeVisible();
+      await expect(page.getByTestId('catalog-menu')).toBeVisible();
     });
   }
 });

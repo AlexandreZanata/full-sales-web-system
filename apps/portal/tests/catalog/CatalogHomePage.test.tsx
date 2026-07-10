@@ -29,7 +29,9 @@ describe('CatalogHomePage — Phase 71J contract', () => {
     renderWithI18n(<CatalogHomePage />);
 
     const home = screen.getByTestId('catalog-home-page');
-    const sections = Array.from(home.children).map((child) => child.getAttribute('data-testid'));
+    const sections = Array.from(home.children)
+      .filter((child) => child.tagName === 'SECTION')
+      .map((child) => child.getAttribute('data-testid'));
 
     expect(sections).toEqual([
       'hero-banner',

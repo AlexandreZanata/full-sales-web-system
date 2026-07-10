@@ -529,3 +529,107 @@ pub async fn upload_multipart(
     };
     (status, json)
 }
+
+pub struct PortalHomeSeed {
+    pub featured_product_id: Uuid,
+    pub popular_product_id: Uuid,
+    pub banner_id: Uuid,
+    pub promotion_id: Uuid,
+}
+
+pub async fn seed_portal_home_content(env: &TestEnv) -> PortalHomeSeed {
+    let featured_product_id = seed_product(env, "FEAT-001", "Featured Burger", 1_500).await;
+    let popular_product_id = seed_product(env, "POP-001", "Popular Soda", 800).await;
+
+    infra_postgres::inventory::portal_products::set_product_featured(
+        &env.app_pool,
+        env.tenant_id,
+        featured_product_id,
+        true,
+    )
+    .await
+    .expect("set featured");
+
+    infra_postgres::inventory::portal_products::seed_product_sales_total(
+        &env.app_pool,
+        env.tenant_id,
+        popular_product_id,
+        50,
+    )
+    .await
+    .expect("seed sales total");
+
+    let file_id = Uuid::now_v7();
+    let banner_id = Uuid::now_v7();
+    let object_key = "portal/banners/test-hero.webp";
+    env.state
+        .storage
+        .put_object(
+            "catalog",
+            object_key,
+            &minimal_webp_bytes(),
+            "image/webp",
+        )
+        .await
+        .expect("banner object");
+
+    infra_postgres::media::insert_file(
+        &env.app_pool,
+        env.tenant_id,
+        infra_postgres::media::FileInsert {
+            id: file_id,
+            entity_type: "PortalBanner".into(),
+            entity_id: banner_id,
+            bucket: "catalog".into(),
+            object_key: object_key.into(),
+            mime_type: "image/webp".into(),
+            size_bytes: minimal_webp_bytes().len() as i64,
+            sha256: "portal-banner-test".into(),
+            uploaded_by_user_id: Uuid::now_v7(),
+        },
+    )
+    .await
+    .expect("banner file");
+
+    infra_postgres::portal::banners::insert_banner(
+        &env.app_pool,
+        env.tenant_id,
+        infra_postgres::portal::banners::BannerInsert {
+            id: banner_id,
+            placement: "hero".into(),
+            image_file_id: file_id,
+            link_url: None,
+            alt_text: Some("Welcome hero".into()),
+            sort_order: 0,
+            active: true,
+        },
+    )
+    .await
+    .expect("banner");
+
+    let promotion_id = Uuid::now_v7();
+    infra_postgres::portal::promotions::insert_promotion(
+        &env.app_pool,
+        env.tenant_id,
+        infra_postgres::portal::promotions::PromotionInsert {
+            id: promotion_id,
+            headline: "Tasty Burger".into(),
+            discount_text: "30% OFF".into(),
+            background: "yellow".into(),
+            category_slug: Some("snacks".into()),
+            link_url: None,
+            image_file_id: None,
+            sort_order: 0,
+            active: true,
+        },
+    )
+    .await
+    .expect("promotion");
+
+    PortalHomeSeed {
+        featured_product_id,
+        popular_product_id,
+        banner_id,
+        promotion_id,
+    }
+}

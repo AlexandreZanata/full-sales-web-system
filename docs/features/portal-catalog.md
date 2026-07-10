@@ -286,12 +286,14 @@ Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DES
 | Layer | Command |
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
+| Portal E2E | `pnpm test:e2e:portal` |
+| Visual + a11y | `e2e/portal-home-visual.spec.ts` (Playwright snapshots + axe) |
 
-Key contracts: `catalogSearch.test.ts`, `catalogHomeSearch.test.ts`, `CatalogHomePage.test.tsx`, `CatalogPageContent.test.tsx`, Phase 45/71F component tests (`ProductCardGrid`, `ProductCardList`, `ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `FeaturedItemsSection.test.tsx`, `OfferBannersSection.test.tsx`, `PopularItemsSection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `portal-featured-promotions-api.test.ts`, `portal-popular-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`. Admin: `portal-content-api.test.ts`, `edit-product-validation.test.ts`.
+Key contracts: `tests/catalog/ProductCardGrid.test.tsx`, `tests/catalog/ProductCardList.test.tsx`, `tests/catalog/CatalogHomePage.test.tsx`, `catalogSearch.test.ts`, `catalogHomeSearch.test.ts`, `CatalogPageContent.test.tsx`, Phase 45/71F component tests (`ProductInfoDialog` via grid), `HomeCategorySection.test.tsx`, `FeaturedItemsSection.test.tsx`, `OfferBannersSection.test.tsx`, `PopularItemsSection.test.tsx`, `CategoryBar.test.tsx` (home variant), `stripHtml.test.ts`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `portal-featured-promotions-api.test.ts`, `portal-popular-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`. Admin: `portal-content-api.test.ts`, `edit-product-validation.test.ts`.
 
-Backend integration: `backend/crates/api-http/tests/public_catalog.rs` (public home endpoints).
+Backend integration: `backend/crates/api-http/tests/public_catalog.rs` (public home endpoints with seeded data).
 
-Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
+Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (home sections, category URL, search, list/grid, add to cart, product detail carousel).
 
 ---
 
@@ -305,4 +307,4 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ---
 
-**Updated:** 2026-07-10 (Phase 71K menu polish + 71L admin CMS + 71M dev seed)
+**Updated:** 2026-07-10 (Phase 71N public home APIs + 71O tests/visual regression)

@@ -5,11 +5,12 @@ const PORTAL_URL = `http://127.0.0.1:${PORTAL_PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['portal-order.spec.ts', 'portal-responsive.spec.ts', 'portal-catalog.spec.ts'],
+  testMatch: ['portal-order.spec.ts', 'portal-responsive.spec.ts', 'portal-catalog.spec.ts', 'portal-home-visual.spec.ts'],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
+  snapshotPathTemplate: '{testDir}/portal-home-visual.spec.ts-snapshots/{arg}{ext}',
   use: {
     baseURL: PORTAL_URL,
     trace: 'on-first-retry',

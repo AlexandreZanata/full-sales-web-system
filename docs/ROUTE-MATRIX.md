@@ -79,7 +79,7 @@ Admin UI coverage: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 | POST | `/v1/products` | Admin | ✅ | `203`, `228` | active catalog | 19 |
 | GET | `/v1/products` | Admin, Driver, Seller | ✅ | `203` | pagination + `active?` filter | 40 |
 | GET | `/v1/products/{id}` | Admin, Driver, Seller | ✅ | `203` | — | 19 |
-| PATCH | `/v1/products/{id}` | Admin | ✅ | `203`, `228` | deactivate / reactivate | 40 |
+| PATCH | `/v1/products/{id}` | Admin | ✅ | `203`, `228`, `portal_home_content` | deactivate / reactivate / `isFeatured` | 40, 71 |
 | GET | `/v1/products/{id}/images` | Admin | ✅ | `229` | list gallery | 40 |
 | POST | `/v1/products/{id}/images` | Admin | ✅ | `229` | one primary | 19 |
 | DELETE | `/v1/products/{id}/images/{imageId}` | Admin | ✅ | `229` | — | 19 |
@@ -137,6 +137,10 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 |--------|------|------|--------|------------|-------|------|
 | GET | `/v1/public/products` | Public | ✅ | `228`, `229` | BR-IA-003 | — |
 | GET | `/v1/public/products/{id}` | Public | ✅ | `product_description` | Gallery detail | 48 |
+| GET | `/v1/public/products/featured` | Public | ✅ | `portal_home_content` | `is_featured` products | 71 |
+| GET | `/v1/public/products/popular` | Public | ✅ | `portal_home_content`, `product_sales_totals` | sales rank fallback | 71 |
+| GET | `/v1/public/banners` | Public | ✅ | `portal_home_content` | `placement` query | 71 |
+| GET | `/v1/public/promotions` | Public | ✅ | `portal_home_content` | offer cards | 71 |
 | GET | `/v1/portal/products` | CommerceContact | ✅ | `228`, `229` | BR-IA-003 | — |
 | GET | `/v1/portal/products/{id}` | CommerceContact | ✅ | `product_description` | Gallery detail | 48 |
 | GET | `/v1/portal/orders` | CommerceContact | ✅ | `231` | RLS | — |
@@ -145,6 +149,21 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 | PUT | `/v1/portal/orders/{id}` | CommerceContact | ✅ | `231` | Draft only | — |
 | DELETE | `/v1/portal/orders/{id}` | CommerceContact | ✅ | `231` | Draft cancel | — |
 | POST | `/v1/portal/orders/{id}/submit` | CommerceContact | ✅ | `231` | — | — |
+
+---
+
+## Portal home content — Admin CMS (Phase 71)
+
+| Method | Path | Auth | Status | Migrations | Rules | Task |
+|--------|------|------|--------|------------|-------|------|
+| GET | `/v1/portal/banners` | Admin | ✅ | `portal_home_content` | tenant RLS | 71 |
+| POST | `/v1/portal/banners` | Admin | ✅ | `portal_home_content` | media `PortalBanner` | 71 |
+| PATCH | `/v1/portal/banners/{id}` | Admin | ✅ | `portal_home_content` | — | 71 |
+| DELETE | `/v1/portal/banners/{id}` | Admin | ✅ | `portal_home_content` | — | 71 |
+| GET | `/v1/portal/promotions` | Admin | ✅ | `portal_home_content` | tenant RLS | 71 |
+| POST | `/v1/portal/promotions` | Admin | ✅ | `portal_home_content` | `background` enum | 71 |
+| PATCH | `/v1/portal/promotions/{id}` | Admin | ✅ | `portal_home_content` | — | 71 |
+| DELETE | `/v1/portal/promotions/{id}` | Admin | ✅ | `portal_home_content` | — | 71 |
 
 ---
 
