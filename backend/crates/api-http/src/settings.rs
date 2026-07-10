@@ -157,7 +157,7 @@ async fn resolve_logo_url(
         return Ok(None);
     };
     match media::presign_object(state, &file.bucket, &file.object_key).await {
-        Ok(presigned) => Ok(Some(media::authenticated_media_content_url(
+        Ok(presigned) => Ok(Some(media::catalog_image_url(
             file_id,
             &presigned.url,
         ))),

@@ -80,7 +80,28 @@ pub async fn attach_product_image(
     require_can_write_products(&auth)?;
     super::catalog::ensure_product(&state, auth.tenant_id, product_id).await?;
 
-    if body.is_primary {
+    let file = infra_postgres::media::find_file_by_id(&state.app_pool, auth.tenant_id, body.file_id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::media_not_found)?;
+    if file.entity_type != "Product" || file.entity_id != product_id {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "fileId does not belong to this product",
+        ));
+    }
+
+    let existing = infra_postgres::inventory::product_images::list_product_images(
+        &state.app_pool,
+        auth.tenant_id,
+        product_id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
+    let has_primary = existing.iter().any(|row| row.is_primary);
+    let is_primary = body.is_primary || !has_primary;
+
+    if is_primary {
         infra_postgres::inventory::product_images::clear_primary_for_product(
             &state.app_pool,
             auth.tenant_id,
@@ -99,7 +120,7 @@ pub async fn attach_product_image(
             product_id,
             file_id: body.file_id,
             sort_order: body.sort_order.unwrap_or(0),
-            is_primary: body.is_primary,
+            is_primary,
         },
     )
     .await

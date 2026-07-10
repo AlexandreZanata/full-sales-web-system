@@ -2,21 +2,45 @@
 
 use domain_shared::TenantId;
 use infra_postgres::PgPool;
-use infra_postgres::media::{self, FileInsert};
-use infra_storage::{LocalFsObjectStorage, ObjectStorage};
 use uuid::Uuid;
 
-use crate::error::{DevSeedError, DevSeedResult};
+use crate::error::DevSeedResult;
 use crate::ids::admin_user_id;
-use crate::media_bytes::{DEV_MEDIA_BUCKET, minimal_webp_bytes};
+use crate::seed_assets;
 
 const DEV_SITE_LOGO_FILE_ID: &str = "01900001-0010-7000-8000-000000000098";
+const SITE_LOGO_OBJECT_KEY: &str = "tenants/site-logo.png";
+const SITE_LOGO_ASSET: &str = "tenants/site-logo.png";
+const DEV_SITE_DISPLAY_NAME: &str = "Burger Delicious";
 
-pub async fn seed_tenant_site_settings(app_pool: &PgPool, tenant: TenantId) -> DevSeedResult<()> {
+pub async fn seed_tenant_site_settings(
+    app_pool: &PgPool,
+    admin_pool: &PgPool,
+    tenant: TenantId,
+) -> DevSeedResult<()> {
+    ensure_tenant_site_settings(app_pool, admin_pool, tenant).await
+}
+
+pub async fn ensure_tenant_site_settings(
+    app_pool: &PgPool,
+    admin_pool: &PgPool,
+    tenant: TenantId,
+) -> DevSeedResult<()> {
     let logo_file_id = Uuid::parse_str(DEV_SITE_LOGO_FILE_ID).expect("site logo id");
-    seed_site_logo_file(app_pool, tenant, logo_file_id).await?;
+    seed_assets::ensure_media_file(
+        app_pool,
+        admin_pool,
+        tenant,
+        logo_file_id,
+        "Tenant",
+        tenant.as_uuid(),
+        SITE_LOGO_OBJECT_KEY,
+        SITE_LOGO_ASSET,
+        admin_user_id(),
+    )
+    .await?;
 
-    infra_postgres::shared::update_tenant_display_name(app_pool, tenant, "Dev Sales Platform")
+    infra_postgres::shared::update_tenant_display_name(app_pool, tenant, DEV_SITE_DISPLAY_NAME)
         .await?;
     infra_postgres::shared::update_tenant_logo(app_pool, tenant, Some(logo_file_id)).await?;
     infra_postgres::shared::update_tenant_sales_contact_phone(
@@ -27,58 +51,4 @@ pub async fn seed_tenant_site_settings(app_pool: &PgPool, tenant: TenantId) -> D
     .await?;
 
     Ok(())
-}
-
-const SITE_LOGO_OBJECT_KEY: &str = "tenants/dev-site-logo.webp";
-
-async fn seed_site_logo_file(
-    app_pool: &PgPool,
-    tenant: TenantId,
-    file_id: Uuid,
-) -> DevSeedResult<()> {
-    let bytes = minimal_webp_bytes();
-    if media::find_file_by_id(app_pool, tenant, file_id)
-        .await?
-        .is_none()
-    {
-        media::insert_file(
-            app_pool,
-            tenant,
-            FileInsert {
-                id: file_id,
-                entity_type: "Tenant".into(),
-                entity_id: tenant.as_uuid(),
-                bucket: DEV_MEDIA_BUCKET.into(),
-                object_key: SITE_LOGO_OBJECT_KEY.into(),
-                mime_type: "image/webp".into(),
-                size_bytes: bytes.len() as i64,
-                sha256: "dev-seed-site-logo-sha256".into(),
-                uploaded_by_user_id: admin_user_id(),
-            },
-        )
-        .await?;
-    }
-
-    ensure_site_logo_blob(&bytes).await?;
-    Ok(())
-}
-
-async fn ensure_site_logo_blob(bytes: &[u8]) -> DevSeedResult<()> {
-    let Some(storage) = open_dev_storage() else {
-        return Ok(());
-    };
-    storage
-        .put_object(DEV_MEDIA_BUCKET, SITE_LOGO_OBJECT_KEY, bytes, "image/webp")
-        .await
-        .map_err(|err| DevSeedError::Aborted(format!("site logo storage put: {err}")))?;
-    Ok(())
-}
-
-fn open_dev_storage() -> Option<LocalFsObjectStorage> {
-    if let Ok(path) = std::env::var("MEDIA_LOCAL_PATH") {
-        if let Ok(storage) = LocalFsObjectStorage::new(path) {
-            return Some(storage);
-        }
-    }
-    LocalFsObjectStorage::new(".local/object-storage").ok()
 }

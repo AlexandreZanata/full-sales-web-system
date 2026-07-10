@@ -7,7 +7,7 @@ use http::StatusCode;
 use serde_json::json;
 
 use support::{
-    minimal_webp_bytes, request, seed_admin, setup, setup_with_tenant, upload_multipart,
+    minimal_webp_bytes, request, request_bytes, seed_admin, setup, setup_with_tenant, upload_multipart,
 };
 
 const DEV_SEED_TENANT_ID: &str = "01900001-0000-7000-8000-000000000001";
@@ -131,10 +131,53 @@ async fn contract_put_site_logo_when_valid_file_then_logo_file_id_set() {
     assert!(
         put_body["logoUrl"]
             .as_str()
-            .is_some_and(|url| url.starts_with("/v1/media/")),
-        "expected browser-loadable logo URL, got {:?}",
+            .is_some_and(|url| url.starts_with("/v1/public/media/")),
+        "expected public browser-loadable logo URL, got {:?}",
         put_body["logoUrl"]
     );
 
     let _ = admin_id;
+}
+
+#[tokio::test]
+async fn contract_public_settings_logo_when_seeded_then_public_media_url_loads() {
+    let tenant_id = domain_shared::TenantId::parse(DEV_SEED_TENANT_ID).expect("tenant id");
+    let env = setup_with_tenant(tenant_id).await;
+    let (_, admin_token) = seed_admin(&env).await;
+    let tenant_uuid = env.tenant_id.as_uuid();
+    let webp = minimal_webp_bytes();
+
+    let (upload_status, upload_body) = upload_multipart(
+        &env,
+        &admin_token,
+        "site-logo.webp",
+        "image/webp",
+        &webp,
+        "Tenant",
+        tenant_uuid,
+    )
+    .await;
+    assert_eq!(upload_status, StatusCode::OK);
+    let file_id = upload_body["id"].as_str().expect("file id");
+
+    let (put_status, _) = request(
+        &env,
+        "PUT",
+        "/v1/settings/logo",
+        Some(&admin_token),
+        Some(json!({ "fileId": file_id }).to_string()),
+    )
+    .await;
+    assert_eq!(put_status, StatusCode::OK);
+
+    let (settings_status, settings_body) =
+        request(&env, "GET", "/v1/public/settings", None, None).await;
+    assert_eq!(settings_status, StatusCode::OK);
+    let logo_url = settings_body["logoUrl"]
+        .as_str()
+        .expect("public logoUrl");
+    assert!(logo_url.starts_with("/v1/public/media/"));
+
+    let (media_status, _) = request_bytes(&env, "GET", logo_url, None).await;
+    assert_eq!(media_status, StatusCode::OK);
 }

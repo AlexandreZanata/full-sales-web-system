@@ -23,7 +23,7 @@ export function PortalHeader() {
   const { totalAmount, currency } = useCart();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { category } = useSearch({ strict: false });
-  const settings = useSiteSettings(Boolean(user));
+  const settings = useSiteSettings(true);
   const categoriesQuery = useCatalogCategories();
   const defaultCategorySlug = resolveDefaultCategorySlug(categoriesQuery.data ?? []);
   const brandName = settings.data?.displayName ?? t('auth.portalLabel');

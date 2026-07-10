@@ -73,6 +73,36 @@ pub async fn update_tenant_logo(
     Ok(result.rows_affected() == 1)
 }
 
+pub async fn find_tenant_site_logo_media(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    file_id: Uuid,
+) -> Result<Option<crate::inventory::product_images::PublicProductMediaRow>, PostgresError> {
+    use crate::inventory::product_images::PublicProductMediaRow;
+    use crate::rls::apply_tenant_context;
+
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let row = sqlx::query_as::<_, (String, String, String)>(
+        "SELECT mf.bucket, mf.object_key, mf.mime_type
+         FROM media.files mf
+         JOIN shared.tenants t ON t.logo_file_id = mf.id
+         WHERE mf.id = $1 AND mf.entity_type = 'Tenant' AND t.id = $2 AND t.active = true",
+    )
+    .bind(file_id)
+    .bind(tenant_id.as_uuid())
+    .fetch_optional(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(
+        row.map(|(bucket, object_key, mime_type)| PublicProductMediaRow {
+            bucket,
+            object_key,
+            mime_type,
+        }),
+    )
+}
+
 pub async fn update_tenant_sales_contact_phone(
     pool: &PgPool,
     tenant_id: TenantId,

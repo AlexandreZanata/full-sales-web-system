@@ -165,13 +165,15 @@ const DEMO_HERO_BANNERS: PortalBanner[] = [
 export async function fetchPortalBanners(placement = 'hero'): Promise<PortalBanner[]> {
   try {
     const query = new URLSearchParams({ placement, limit: '10' });
-    const { path, init } = portalAuthPath(`/portal/banners?${query}`, `/public/banners?${query}`);
-    const response = await apiFetch<CursorListResponse<PortalBanner>>(path, init);
+    const response = await apiFetch<CursorListResponse<PortalBanner>>(
+      `/public/banners?${query}`,
+      { skipAuth: true },
+    );
     if (response.data.length > 0) {
       return response.data;
     }
   } catch {
-    // MVP: API lands in Phase 71N — fall through to settings/demo banners.
+    // MVP: fall through to settings/demo banners when public catalog is unavailable.
   }
 
   try {

@@ -123,6 +123,20 @@ async fn seed_hero_banners(app_pool: &PgPool, admin_pool: &PgPool, tenant: Tenan
             .await?
             .is_some()
         {
+            banners::update_banner(
+                app_pool,
+                tenant,
+                banner_id,
+                &banners::BannerUpdate {
+                    placement: None,
+                    image_file_id: Some(file_id),
+                    link_url: None,
+                    alt_text: Some(Some((*alt_text).into())),
+                    sort_order: Some(*sort_order),
+                    active: Some(true),
+                },
+            )
+            .await?;
             continue;
         }
         banners::insert_banner(

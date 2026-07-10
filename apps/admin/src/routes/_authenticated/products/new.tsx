@@ -25,7 +25,11 @@ function NewProductPage() {
       <CreateProductForm
         onSubmit={createProduct}
         onSuccess={(product) => {
-          void navigate({ to: '/products/$id', params: { id: product.id } });
+          void navigate({
+            to: '/products/$id',
+            params: { id: product.id },
+            search: { tab: 'images' },
+          });
         }}
       />
     </div>

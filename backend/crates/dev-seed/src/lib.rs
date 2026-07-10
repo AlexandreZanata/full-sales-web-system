@@ -42,6 +42,13 @@ pub struct SeedPools {
 pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     if is_already_seeded(&pools.admin, &pools.app).await? {
         tracing::info!("dev seed already applied — ensuring catalog backfill");
+        site_settings::ensure_tenant_site_settings(
+            &pools.app,
+            &pools.admin,
+            crate::ids::tenant_id(),
+        )
+        .await
+        .map_err(|e| wrap_step("site_settings_backfill", e))?;
         catalog::ensure_catalog_categories(&pools.app, &pools.admin, crate::ids::tenant_id())
             .await
             .map_err(|e| wrap_step("catalog_backfill", e))?;
@@ -62,7 +69,7 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
     let foundation = foundation::seed_foundation(&pools.admin, &pools.app)
         .await
         .map_err(|e| wrap_step("foundation", e))?;
-    site_settings::seed_tenant_site_settings(&pools.app, foundation.tenant_id)
+    site_settings::seed_tenant_site_settings(&pools.app, &pools.admin, foundation.tenant_id)
         .await
         .map_err(|e| wrap_step("site_settings", e))?;
     let users = users::seed_users(&pools.admin, &pools.app, foundation.tenant_id)

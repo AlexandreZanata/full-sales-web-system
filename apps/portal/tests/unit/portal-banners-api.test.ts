@@ -44,4 +44,17 @@ describe('fetchPortalBanners — Phase 71D contract', () => {
     const banners = await fetchPortalBanners('hero');
     expect(banners[0]?.imageUrl).toBe('/custom.svg');
   });
+
+  it('given_fetch_when_success_then_uses_public_banners_route', async () => {
+    apiFetch.mockResolvedValueOnce({
+      data: [{ id: 'b1', imageUrl: '/v1/public/media/b1/content', altText: 'FoodKing hero' }],
+    });
+
+    const banners = await fetchPortalBanners('hero');
+
+    expect(apiFetch).toHaveBeenCalledWith('/public/banners?placement=hero&limit=10', {
+      skipAuth: true,
+    });
+    expect(banners[0]?.imageUrl).toBe('/v1/public/media/b1/content');
+  });
 });

@@ -471,3 +471,69 @@ async fn contract_list_stock_balances_when_products_seeded_then_returns_data() {
     assert_eq!(item["balanceTotal"].as_i64(), Some(25));
     assert_eq!(item["available"].as_i64(), Some(25));
 }
+
+#[tokio::test]
+async fn contract_attach_first_image_without_primary_flag_then_portal_shows_thumbnail() {
+    let env = setup().await;
+    let admin_token = seed_admin(&env).await.1;
+
+    let (create_status, created) = request(
+        &env,
+        "POST",
+        "/v1/products",
+        Some(&admin_token),
+        Some(
+            json!({
+                "name": "Photo Widget",
+                "sku": "IMG-NOPRIM",
+                "priceAmount": 1200
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(create_status, StatusCode::CREATED);
+    let product_id = created["id"].as_str().expect("id");
+
+    let webp = minimal_webp_bytes();
+    let (upload_status, upload_body) = upload_multipart(
+        &env,
+        &admin_token,
+        "photo.webp",
+        "image/webp",
+        &webp,
+        "Product",
+        Uuid::parse_str(product_id).expect("uuid"),
+    )
+    .await;
+    assert_eq!(upload_status, StatusCode::OK);
+    let file_id = upload_body["id"].as_str().expect("file id");
+
+    let (attach_status, attach_body) = request(
+        &env,
+        "POST",
+        &format!("/v1/products/{product_id}/images"),
+        Some(&admin_token),
+        Some(json!({ "fileId": file_id }).to_string()),
+    )
+    .await;
+    assert_eq!(attach_status, StatusCode::CREATED);
+    assert_eq!(attach_body["isPrimary"], true);
+
+    let (list_status, list_body) = request(
+        &env,
+        "GET",
+        "/v1/products?limit=50",
+        Some(&admin_token),
+        None,
+    )
+    .await;
+    assert_eq!(list_status, StatusCode::OK);
+    let product = list_body["data"]
+        .as_array()
+        .expect("data")
+        .iter()
+        .find(|item| item["id"].as_str() == Some(product_id))
+        .expect("product in admin catalog");
+    assert!(product["primaryImageUrl"].as_str().is_some());
+}

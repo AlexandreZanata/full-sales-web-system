@@ -14,9 +14,7 @@ use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::state::AppState;
 
-pub use support::{
-    MediaUploadResponse, MediaUrlResponse, authenticated_media_content_url, catalog_image_url,
-};
+pub use support::{MediaUploadResponse, MediaUrlResponse, catalog_image_url};
 
 pub async fn upload_media(
     State(state): State<AppState>,
@@ -162,6 +160,13 @@ async fn resolve_public_catalog_media(
     }
     if let Some(row) =
         infra_postgres::portal::banners::find_active_banner_media(pool, tenant_id, file_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+    {
+        return Ok(Some(row));
+    }
+    if let Some(row) =
+        infra_postgres::shared::find_tenant_site_logo_media(pool, tenant_id, file_id)
             .await
             .map_err(|_| ApiError::internal())?
     {

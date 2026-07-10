@@ -210,10 +210,12 @@ pub async fn find_primary_images_for_products(
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let rows = sqlx::query_as::<_, (Uuid, Uuid, String, String)>(
-        "SELECT pi.product_id, mf.id, mf.bucket, mf.object_key
+        "SELECT DISTINCT ON (pi.product_id)
+                pi.product_id, mf.id, mf.bucket, mf.object_key
          FROM inventory.product_images pi
          JOIN media.files mf ON mf.id = pi.file_id
-         WHERE pi.is_primary = true AND pi.product_id = ANY($1)",
+         WHERE pi.product_id = ANY($1)
+         ORDER BY pi.product_id, pi.is_primary DESC, pi.sort_order ASC, pi.id ASC",
     )
     .bind(product_ids)
     .fetch_all(&mut *tx)
