@@ -1,8 +1,12 @@
 export type Messages = {
   nav: {
     catalog: string;
+    home: string;
+    menu: string;
+    offers: string;
     cart: string;
     orders: string;
+    account: string;
   };
   auth: {
     signIn: string;
@@ -20,6 +24,14 @@ export type Messages = {
     openNav: string;
     closeNav: string;
   };
+  footer: {
+    newsletterHint: string;
+    emailPlaceholder: string;
+    subscribe: string;
+    usefulLinks: string;
+    contact: string;
+    copyright: string;
+  };
   common: {
     cancel: string;
     confirm: string;
@@ -31,6 +43,7 @@ export type Messages = {
     unexpectedError: string;
     pageNotFound: string;
     search: string;
+    clearSearch: string;
     addToCart: string;
     quantity: string;
     total: string;
@@ -98,8 +111,12 @@ export type Messages = {
 
 export type MessageKey =
   | 'nav.catalog'
+  | 'nav.home'
+  | 'nav.menu'
+  | 'nav.offers'
   | 'nav.cart'
   | 'nav.orders'
+  | 'nav.account'
   | 'auth.signIn'
   | 'auth.signingIn'
   | 'auth.signInTitle'
@@ -112,6 +129,12 @@ export type MessageKey =
   | 'shell.locale'
   | 'shell.openNav'
   | 'shell.closeNav'
+  | 'footer.newsletterHint'
+  | 'footer.emailPlaceholder'
+  | 'footer.subscribe'
+  | 'footer.usefulLinks'
+  | 'footer.contact'
+  | 'footer.copyright'
   | 'common.cancel'
   | 'common.confirm'
   | 'common.working'
@@ -122,6 +145,7 @@ export type MessageKey =
   | 'common.unexpectedError'
   | 'common.pageNotFound'
   | 'common.search'
+  | 'common.clearSearch'
   | 'common.addToCart'
   | 'common.quantity'
   | 'common.total'

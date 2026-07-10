@@ -2,11 +2,13 @@ import type { PortalCategory, PortalProduct } from '@/lib/api/types';
 
 export type CatalogSearchParams = {
   category?: string;
+  q?: string;
 };
 
 export function parseCatalogSearch(search: Record<string, unknown>): CatalogSearchParams {
   return {
     category: typeof search.category === 'string' ? search.category : undefined,
+    q: typeof search.q === 'string' ? search.q : undefined,
   };
 }
 

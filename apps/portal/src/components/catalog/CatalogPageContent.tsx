@@ -3,7 +3,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 
 import { useCart } from '@/cart/CartProvider';
-import { CartFab } from '@/components/CartFab';
 import { CatalogEmptyState } from '@/components/catalog/CatalogEmptyState';
 import { CatalogSkeleton } from '@/components/catalog/CatalogSkeleton';
 import { CatalogSearchField } from '@/components/catalog/CatalogSearchField';
@@ -21,9 +20,10 @@ import { useI18n } from '@/lib/i18n/context';
 
 type CatalogPageContentProps = {
   categoryParam?: string;
+  initialSearch?: string;
 };
 
-export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
+export function CatalogPageContent({ categoryParam, initialSearch }: CatalogPageContentProps) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { addProduct } = useCart();
@@ -32,7 +32,7 @@ export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
   const activeSlug = resolveActiveCategorySlug(categoryParam, categories);
   const defaultSlug = resolveDefaultCategorySlug(categories);
   const isUnknownSlug = Boolean(categoryParam && categories.length > 0 && !activeSlug);
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState(initialSearch ?? '');
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
   const categoryQuery = useInfiniteQuery({
@@ -156,7 +156,6 @@ export function CatalogPageContent({ categoryParam }: CatalogPageContentProps) {
           </Button>
         </div>
       ) : null}
-      <CartFab />
     </div>
   );
 }

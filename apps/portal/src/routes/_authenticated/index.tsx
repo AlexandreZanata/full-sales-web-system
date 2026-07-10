@@ -1,30 +1,20 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
+import { CatalogHomePage } from '@/components/catalog/home/CatalogHomePage';
 import { CatalogPageContent } from '@/components/catalog/CatalogPageContent';
-import { fetchPortalCategories } from '@/lib/api/portal';
-import { parseCatalogSearch, resolveDefaultCategorySlug } from '@/lib/catalog/catalogSearch';
-import { catalogCategoriesQueryKey } from '@/lib/catalog/useCatalogCategories';
+import { parseCatalogSearch } from '@/lib/catalog/catalogSearch';
 
 export const Route = createFileRoute('/_authenticated/')({
   validateSearch: parseCatalogSearch,
-  beforeLoad: async ({ search, context }) => {
-    if (search.category) {
-      return;
-    }
-    const categories = await context.queryClient.ensureQueryData({
-      queryKey: catalogCategoriesQueryKey(),
-      queryFn: fetchPortalCategories,
-    });
-    const defaultSlug = resolveDefaultCategorySlug(categories);
-    if (defaultSlug) {
-      // eslint-disable-next-line @typescript-eslint/only-throw-error
-      throw redirect({ to: '/', search: { category: defaultSlug } });
-    }
-  },
   component: CatalogPage,
 });
 
 function CatalogPage() {
-  const { category } = Route.useSearch();
-  return <CatalogPageContent categoryParam={category} />;
+  const { category, q } = Route.useSearch();
+
+  if (!category) {
+    return <CatalogHomePage />;
+  }
+
+  return <CatalogPageContent categoryParam={category} initialSearch={q} />;
 }

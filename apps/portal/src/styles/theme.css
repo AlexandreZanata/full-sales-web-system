@@ -78,6 +78,46 @@ body {
     @apply bg-primary text-primary-foreground;
   }
 
+  .portal-footer-subscribe-btn {
+    @apply shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium capitalize text-primary-foreground;
+  }
+
+  .portal-nav-link {
+    @apply text-sm font-medium capitalize text-foreground transition-colors hover:text-primary;
+  }
+
+  .portal-nav-link--active {
+    @apply text-primary;
+  }
+
+  .portal-header-search {
+    @apply h-8 w-52 items-center gap-2 rounded-3xl border border-hairline bg-hairline px-2 transition-colors focus-within:border-primary focus-within:bg-surface;
+  }
+
+  .portal-header-search-field {
+    @apply h-full w-full bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground;
+  }
+
+  .portal-cart-pill {
+    @apply inline-flex h-8 items-center gap-1.5 rounded-3xl bg-foreground px-3 text-sm font-medium text-surface;
+  }
+
+  .portal-login-pill {
+    @apply inline-flex h-8 items-center gap-1.5 rounded-3xl bg-primary px-3 text-sm font-medium text-primary-foreground;
+  }
+
+  .portal-locale-pill {
+    @apply inline-flex h-8 items-center rounded-3xl border border-hairline bg-surface px-3;
+  }
+
+  .hero-banner-swiper .swiper-pagination-bullet {
+    @apply bg-surface/70 opacity-100;
+  }
+
+  .hero-banner-swiper .swiper-pagination-bullet-active {
+    @apply bg-primary;
+  }
+
   .catalog-add-pill-btn {
     @apply inline-flex items-center gap-1.5 rounded-3xl border border-hairline bg-surface px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }

@@ -1,141 +1,85 @@
-import { Link, useRouterState } from '@tanstack/react-router';
-import { LayoutGrid, LogIn, LogOut, Package, ShoppingCart } from 'lucide-react';
+import { Link, useRouterState, useSearch } from '@tanstack/react-router';
+import { Home, LayoutGrid, ShoppingCart } from 'lucide-react';
 import { type ReactNode } from 'react';
 
-import { usePortalAuth } from '@/auth/usePortalAuth';
 import { useCart } from '@/cart/CartProvider';
-import { LocaleSwitcher } from '@/components/LocaleSwitcher';
-import { Button } from '@/components/ui/Button';
+import { CartFab } from '@/components/CartFab';
+import { PortalFooter } from '@/components/layout/PortalFooter';
+import { PortalHeader } from '@/components/layout/PortalHeader';
 import { resolveDefaultCategorySlug } from '@/lib/catalog/catalogSearch';
 import { useCatalogCategories } from '@/lib/catalog/useCatalogCategories';
 import { useI18n } from '@/lib/i18n/context';
-import { useSiteSettings } from '@/lib/settings/useSiteSettings';
 import { cn } from '@/lib/utils';
 
 type PortalShellProps = {
   children: ReactNode;
 };
 
-type NavItem = {
-  to: '/' | '/cart' | '/orders';
-  labelKey: 'nav.catalog' | 'nav.cart' | 'nav.orders';
-  icon: typeof LayoutGrid;
+type MobileNavItem = {
+  to: '/' | '/cart';
+  labelKey: 'nav.home' | 'nav.menu' | 'nav.cart';
+  icon: typeof Home;
   search?: { category: string };
+  isActive: boolean;
 };
-
-function isNavActive(pathname: string, to: NavItem['to']): boolean {
-  if (pathname === to) {
-    return true;
-  }
-  if (to === '/' && pathname.startsWith('/products/')) {
-    return true;
-  }
-  return to !== '/' && pathname.startsWith(to);
-}
 
 export function PortalShell({ children }: PortalShellProps) {
   const { t } = useI18n();
-  const { logout, user } = usePortalAuth();
   const { itemCount } = useCart();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const settings = useSiteSettings(Boolean(user));
+  const { category } = useSearch({ strict: false });
   const categoriesQuery = useCatalogCategories();
   const defaultCategorySlug = resolveDefaultCategorySlug(categoriesQuery.data ?? []);
-  const headerTitle = settings.data?.displayName ?? t('auth.portalLabel');
-  const headerLogoUrl = settings.data?.logoUrl;
 
-  const navItems: NavItem[] = [
+  const mobileNavItems: MobileNavItem[] = [
     {
       to: '/',
-      labelKey: 'nav.catalog',
+      labelKey: 'nav.home',
+      icon: Home,
+      isActive: pathname === '/' && !category,
+    },
+    {
+      to: '/',
+      labelKey: 'nav.menu',
       icon: LayoutGrid,
       search: defaultCategorySlug ? { category: defaultCategorySlug } : undefined,
+      isActive: Boolean(category) || pathname.startsWith('/products/'),
     },
-    { to: '/cart', labelKey: 'nav.cart', icon: ShoppingCart },
-    { to: '/orders', labelKey: 'nav.orders', icon: Package },
+    {
+      to: '/cart',
+      labelKey: 'nav.cart',
+      icon: ShoppingCart,
+      isActive: pathname === '/cart',
+    },
   ];
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="portal-header">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-          <div className="flex items-center gap-3">
-            {headerLogoUrl ? (
-              <img
-                src={headerLogoUrl}
-                alt={headerTitle}
-                className="size-8 shrink-0 rounded-md border border-hairline object-cover"
-              />
-            ) : null}
-            <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
-              {navItems.map(({ to, labelKey, icon: Icon, search }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  search={search}
-                  className={cn(
-                    'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                    pathname === to || isNavActive(pathname, to)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-surface-muted hover:text-foreground',
-                  )}
-                >
-                  <Icon className="size-4" aria-hidden />
-                  {t(labelKey)}
-                  {to === '/cart' && itemCount > 0 ? (
-                    <span className="rounded-full bg-accent px-1.5 text-xs text-primary-foreground">
-                      {itemCount}
-                    </span>
-                  ) : null}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-2">
-            <LocaleSwitcher />
-            {user ? (
-              <>
-                <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
-                <Button variant="ghost" className="h-9 px-2" onClick={() => void logout()}>
-                  <LogOut className="size-4" aria-hidden />
-                  <span className="sr-only md:not-sr-only md:ml-2">{t('auth.logout')}</span>
-                </Button>
-              </>
-            ) : (
-              <Link to="/login">
-                <Button variant="ghost" className="h-9 px-2">
-                  <LogIn className="size-4" aria-hidden />
-                  <span className="sr-only md:not-sr-only md:ml-2">{t('auth.signIn')}</span>
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+      <PortalHeader />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 md:pb-6">{children}</main>
+
+      <PortalFooter />
 
       <nav
         className="fixed inset-x-0 bottom-0 z-20 border-t border-hairline bg-surface md:hidden"
         aria-label="Mobile"
       >
         <div className="mx-auto grid max-w-6xl grid-cols-3">
-          {navItems.map(({ to, labelKey, icon: Icon, search }) => (
+          {mobileNavItems.map(({ to, labelKey, icon: Icon, search, isActive }) => (
             <Link
-              key={to}
+              key={labelKey}
               to={to}
               search={search}
               className={cn(
                 'flex flex-col items-center gap-1 py-2 text-xs font-medium',
-                pathname === to || isNavActive(pathname, to)
-                  ? 'text-foreground'
-                  : 'text-muted-foreground',
+                isActive ? 'text-primary' : 'text-muted-foreground',
               )}
             >
               <span className="relative">
                 <Icon className="size-5" aria-hidden />
                 {to === '/cart' && itemCount > 0 ? (
-                  <span className="absolute -right-2 -top-1 rounded-full bg-accent px-1 text-[10px] text-primary-foreground">
+                  <span className="absolute -right-2 -top-1 rounded-full bg-primary px-1 text-[10px] text-primary-foreground">
                     {itemCount}
                   </span>
                 ) : null}
@@ -145,6 +89,8 @@ export function PortalShell({ children }: PortalShellProps) {
           ))}
         </div>
       </nav>
+
+      <CartFab />
     </div>
   );
 }

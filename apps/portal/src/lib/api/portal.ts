@@ -1,4 +1,5 @@
 import { ApiError, apiDelete, apiFetch, apiPost, apiPut } from '@/lib/api/client';
+import { fetchSettings } from '@/lib/api/settings';
 import { getAccessToken } from '@/lib/auth/tokens';
 import type {
   CreatePortalOrderRequest,
@@ -10,6 +11,13 @@ import type {
   PortalProduct,
   PortalProductDetail,
 } from '@/lib/api/types';
+
+export type PortalBanner = {
+  id: string;
+  imageUrl: string;
+  linkUrl?: string;
+  altText?: string;
+};
 
 export type PortalProductsParams = {
   limit?: number;
@@ -144,6 +152,38 @@ export async function updatePortalOrder(
 
 export async function deletePortalOrder(id: string): Promise<void> {
   await apiDelete(`/portal/orders/${id}`);
+}
+
+const DEMO_HERO_BANNERS: PortalBanner[] = [
+  {
+    id: 'demo-hero-1',
+    imageUrl: '/demo/hero-banner.svg',
+    altText: 'Welcome',
+  },
+];
+
+export async function fetchPortalBanners(placement = 'hero'): Promise<PortalBanner[]> {
+  try {
+    const query = new URLSearchParams({ placement, limit: '10' });
+    const { path, init } = portalAuthPath(`/portal/banners?${query}`, `/public/banners?${query}`);
+    const response = await apiFetch<CursorListResponse<PortalBanner>>(path, init);
+    if (response.data.length > 0) {
+      return response.data;
+    }
+  } catch {
+    // MVP: API lands in Phase 71N — fall through to settings/demo banners.
+  }
+
+  try {
+    const settings = await fetchSettings();
+    if (settings.heroBanners?.length) {
+      return settings.heroBanners;
+    }
+  } catch {
+    // Keep demo asset when settings are unavailable.
+  }
+
+  return DEMO_HERO_BANNERS;
 }
 
 export async function submitPortalOrder(id: string): Promise<PortalOrderDetail> {

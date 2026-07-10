@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { PortalCategory, PortalProduct } from '@/lib/api/types';
 import {
   filterProductsBySearch,
+  parseCatalogSearch,
   resolveActiveCategorySlug,
   resolveDefaultCategorySlug,
   shouldRedirectToDefaultCategory,
@@ -74,5 +75,12 @@ describe('catalogSearch — Phase 46 contract', () => {
     expect(filterProductsBySearch(products, 'cola')).toEqual([products[0]]);
     expect(filterProductsBySearch(products, 'snk-010')).toEqual([products[1]]);
     expect(filterProductsBySearch(products, '  ')).toEqual(products);
+  });
+
+  it('given_q_search_param_when_parsed_then_returns_query_string', () => {
+    expect(parseCatalogSearch({ category: 'snacks', q: 'cola' })).toEqual({
+      category: 'snacks',
+      q: 'cola',
+    });
   });
 });

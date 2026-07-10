@@ -37,8 +37,9 @@ Seed source: `backend/crates/dev-seed/src/catalog.rs` — upserts categories by 
 
 | Step | Behavior |
 |------|----------|
-| 1 | User opens `/` → redirects to `/?category=<first-active-slug>` |
-| 2 | `CategoryBar` loads from `useCatalogCategories()` |
+| 1 | User opens `/` → **home** with hero banner (`CatalogHomePage`) |
+| 2 | User opens Menu nav or `/?category=<slug>` → category catalog |
+| 3 | `CategoryBar` loads from `useCatalogCategories()` |
 | 3 | Products load via `fetchPortalCategoryBySlug(slug)` |
 | 4 | Client search filters within category (debounced) |
 | 5 | List/grid toggle persisted in `localStorage` |
@@ -116,9 +117,47 @@ Types: `PortalCategory`, `PortalCategoryWithProducts`, `PortalProduct`, `PortalP
 
 ## Portal shell
 
-`PortalShell` prefetches categories and links **Catalog** to `/?category=<firstSlug>` (desktop nav + mobile bottom bar). Catalog nav stays active on `/products/$id` routes (GAP-061).
+`PortalShell` composes `PortalHeader`, main content, `PortalFooter`, mobile bottom nav (Home / Menu / Cart), and `CartFab`.
 
-Header uses `.portal-header` (Phase 71B). Full FoodKing-style nav (search pill, cart total, login pill) lands in Phase 71C.
+### Header (`PortalHeader`) — Phase 71C
+
+| Zone | Behavior |
+|------|----------|
+| Brand | `logoUrl` or `displayName` from settings |
+| Nav | Home (`/`), Menu (`/?category=<first>`), Offers (`/#offers`) |
+| Search | Desktop pill → navigates to menu with `?q=` (client filter) |
+| Locale | `LocaleSwitcher` pill variant |
+| Cart | Black pill with bag icon + formatted cart total |
+| Auth | Red login pill (guest) or account dropdown (orders + logout) |
+
+Mobile header: logo + cart + login only; search stays on menu page.
+
+### Footer (`PortalFooter`) — Phase 71C
+
+Red `portal-footer` band: newsletter form (stub submit), useful links, contact phone from settings, copyright.
+
+### Home vs menu routing — Phase 71D / 71-OD-004
+
+| URL | View |
+|-----|------|
+| `/` | `CatalogHomePage` (hero + future sections) |
+| `/?category=slug` | `CatalogPageContent` (menu catalog) |
+| `/?category=slug&q=term` | Menu with prefilled client search |
+
+---
+
+## Home hero banner (Phase 71D)
+
+| Path | Purpose |
+|------|---------|
+| `components/catalog/home/HeroBannerCarousel.tsx` | Swiper carousel, `data-testid="hero-banner"` |
+| `components/catalog/home/CatalogHomePage.tsx` | Home stack (hero first) |
+| `lib/catalog/useHeroBanners.ts` | React Query hook |
+| `lib/api/portal.ts` | `fetchPortalBanners()` |
+
+Fallback order: `GET /v1/public/banners?placement=hero` → `settings.heroBanners` → `/demo/hero-banner.svg`.
+
+Dependency: `swiper` + `swiper/react`.
 
 ---
 
@@ -154,7 +193,7 @@ Spec appendix: `.local/phases/71-portal-catalog-foodking-redesign/_reference/DES
 |-------|---------|
 | Unit + component | `pnpm --filter @full-sales/portal test` |
 
-Key contracts: `catalogSearch.test.ts` (redirect + filter), Phase 45 component tests, `ProductCardList.test.tsx` (list card hierarchy + metadata), `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `applyTheme.test.ts` (brand color runtime).
+Key contracts: `catalogSearch.test.ts` (redirect + filter + `q` param), Phase 45 component tests, `ProductCardList.test.tsx`, `useCatalogRealtime.test.ts`, `gallerySlides.test.ts`, `portal-product-detail-api.test.ts`, `applyTheme.test.ts`, `PortalFooter.test.tsx`, `HeroBannerCarousel.test.tsx`, `portal-banners-api.test.ts`, `portalHeaderNav.test.ts`.
 
 Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category URL, search, list/grid, add to cart, product detail carousel).
 
@@ -170,4 +209,4 @@ Optional E2E: `pnpm test:e2e:portal` — `e2e/portal-catalog.spec.ts` (category 
 
 ---
 
-**Updated:** 2026-07-10 (Phase 71B design tokens)
+**Updated:** 2026-07-10 (Phase 71C shell + 71D hero)

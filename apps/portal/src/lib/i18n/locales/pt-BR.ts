@@ -3,8 +3,12 @@ import type { Messages } from '@/lib/i18n/messages';
 export const ptBR: Messages = {
   nav: {
     catalog: 'Catálogo',
+    home: 'Início',
+    menu: 'Cardápio',
+    offers: 'Ofertas',
     cart: 'Carrinho',
     orders: 'Pedidos',
+    account: 'Conta',
   },
   auth: {
     signIn: 'Entrar',
@@ -22,6 +26,14 @@ export const ptBR: Messages = {
     openNav: 'Abrir menu',
     closeNav: 'Fechar menu',
   },
+  footer: {
+    newsletterHint: 'Assine para receber ofertas e novidades.',
+    emailPlaceholder: 'Seu e-mail',
+    subscribe: 'Assinar',
+    usefulLinks: 'Links úteis',
+    contact: 'Contato',
+    copyright: '© {year} {brand}. Todos os direitos reservados.',
+  },
   common: {
     cancel: 'Cancelar',
     confirm: 'Confirmar',
@@ -33,6 +45,7 @@ export const ptBR: Messages = {
     unexpectedError: 'Ocorreu um erro inesperado.',
     pageNotFound: 'Esta página não existe.',
     search: 'Buscar',
+    clearSearch: 'Limpar busca',
     addToCart: 'Adicionar ao carrinho',
     quantity: 'Quantidade',
     total: 'Total',

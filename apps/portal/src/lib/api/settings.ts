@@ -8,6 +8,13 @@ export type SiteSettings = {
   salesContactPhone?: string;
   /** Tenant brand color (hex). Applied at runtime via `applyThemePrimaryColor`. */
   themePrimaryColor?: string;
+  /** MVP hero slides until `GET /v1/public/banners` (Phase 71N). */
+  heroBanners?: Array<{
+    id: string;
+    imageUrl: string;
+    linkUrl?: string;
+    altText?: string;
+  }>;
 };
 
 export async function fetchSettings(): Promise<SiteSettings> {

@@ -3,8 +3,12 @@ import type { Messages } from '@/lib/i18n/messages';
 export const en: Messages = {
   nav: {
     catalog: 'Catalog',
+    home: 'Home',
+    menu: 'Menu',
+    offers: 'Offers',
     cart: 'Cart',
     orders: 'Orders',
+    account: 'Account',
   },
   auth: {
     signIn: 'Sign in',
@@ -22,6 +26,14 @@ export const en: Messages = {
     openNav: 'Open menu',
     closeNav: 'Close menu',
   },
+  footer: {
+    newsletterHint: 'Subscribe for offers and news.',
+    emailPlaceholder: 'Your email address',
+    subscribe: 'Subscribe',
+    usefulLinks: 'Useful links',
+    contact: 'Contact',
+    copyright: '© {year} {brand}. All rights reserved.',
+  },
   common: {
     cancel: 'Cancel',
     confirm: 'Confirm',
@@ -33,6 +45,7 @@ export const en: Messages = {
     unexpectedError: 'An unexpected error occurred.',
     pageNotFound: 'This page does not exist.',
     search: 'Search',
+    clearSearch: 'Clear search',
     addToCart: 'Add to cart',
     quantity: 'Quantity',
     total: 'Total',

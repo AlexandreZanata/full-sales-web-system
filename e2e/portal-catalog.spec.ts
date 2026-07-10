@@ -8,6 +8,7 @@ test.describe('Portal catalog flow', () => {
     await mockPortalApi(page);
     await page.goto('/');
 
+    await page.getByRole('link', { name: 'Cardápio', exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
     await expect(page.getByRole('tab', { name: MOCK_CATEGORY.name })).toHaveAttribute(
       'aria-current',
@@ -33,6 +34,9 @@ test.describe('Portal catalog flow', () => {
   test('given_product_with_gallery_when_open_detail_then_carousel_visible', async ({ page }) => {
     await mockPortalApi(page);
     await page.goto('/');
+
+    await page.getByRole('link', { name: 'Cardápio', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
 
     await page.getByRole('button', { name: MOCK_PRODUCT.name }).click();
     await expect(page).toHaveURL(
