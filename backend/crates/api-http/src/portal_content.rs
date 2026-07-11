@@ -25,8 +25,10 @@ fn default_admin_limit() -> u32 {
 pub struct AdminBannerResponse {
     pub id: Uuid,
     pub placement: String,
-    #[serde(rename = "imageFileId")]
-    pub image_file_id: Uuid,
+    #[serde(rename = "imageFileId", skip_serializing_if = "Option::is_none")]
+    pub image_file_id: Option<Uuid>,
+    #[serde(rename = "imageUrl", skip_serializing_if = "Option::is_none")]
+    pub image_url: Option<String>,
     #[serde(rename = "linkUrl", skip_serializing_if = "Option::is_none")]
     pub link_url: Option<String>,
     #[serde(rename = "altText", skip_serializing_if = "Option::is_none")]
@@ -41,7 +43,9 @@ pub struct CreateBannerRequest {
     #[serde(default = "default_placement")]
     pub placement: String,
     #[serde(rename = "imageFileId")]
-    pub image_file_id: Uuid,
+    pub image_file_id: Option<Uuid>,
+    #[serde(rename = "imageUrl")]
+    pub image_url: Option<String>,
     #[serde(rename = "linkUrl")]
     pub link_url: Option<String>,
     #[serde(rename = "altText")]
@@ -59,7 +63,9 @@ fn default_placement() -> String {
 pub struct UpdateBannerRequest {
     pub placement: Option<String>,
     #[serde(rename = "imageFileId")]
-    pub image_file_id: Option<Uuid>,
+    pub image_file_id: Option<Option<Uuid>>,
+    #[serde(rename = "imageUrl")]
+    pub image_url: Option<Option<String>>,
     #[serde(rename = "linkUrl")]
     pub link_url: Option<Option<String>>,
     #[serde(rename = "altText")]
@@ -74,6 +80,10 @@ fn banner_response(row: infra_postgres::portal::banners::BannerRow) -> AdminBann
         id: row.id,
         placement: row.placement,
         image_file_id: row.image_file_id,
+        image_url: row.image_url.or_else(|| {
+            row.image_file_id
+                .map(|file_id| format!("/v1/public/media/{file_id}/content"))
+        }),
         link_url: row.link_url,
         alt_text: row.alt_text,
         sort_order: row.sort_order,
@@ -110,6 +120,7 @@ pub async fn create_admin_banner(
     Json(body): Json<CreateBannerRequest>,
 ) -> Result<(StatusCode, Json<AdminBannerResponse>), ApiError> {
     require_admin(&auth)?;
+    validate_banner_image_source(body.image_file_id, body.image_url.as_deref())?;
     let id = Uuid::now_v7();
     infra_postgres::portal::banners::insert_banner(
         &state.app_pool,
@@ -118,6 +129,7 @@ pub async fn create_admin_banner(
             id,
             placement: body.placement,
             image_file_id: body.image_file_id,
+            image_url: normalize_optional_text(body.image_url),
             link_url: body.link_url,
             alt_text: body.alt_text,
             sort_order: body.sort_order.unwrap_or(0),
@@ -126,6 +138,7 @@ pub async fn create_admin_banner(
     )
     .await
     .map_err(|_| ApiError::internal())?;
+    crate::catalog_events::notify_banner_changed(&state.catalog_events, "created", id);
     let row =
         infra_postgres::portal::banners::find_banner_by_id(&state.app_pool, auth.tenant_id, id)
             .await
@@ -148,6 +161,10 @@ pub async fn update_admin_banner(
         &infra_postgres::portal::banners::BannerUpdate {
             placement: body.placement,
             image_file_id: body.image_file_id,
+            image_url: body
+                .image_url
+                .as_ref()
+                .map(|value| normalize_optional_text(value.clone())),
             link_url: body.link_url,
             alt_text: body.alt_text,
             sort_order: body.sort_order,
@@ -162,6 +179,7 @@ pub async fn update_admin_banner(
             "Banner not found",
         ));
     }
+    crate::catalog_events::notify_banner_changed(&state.catalog_events, "updated", id);
     let row =
         infra_postgres::portal::banners::find_banner_by_id(&state.app_pool, auth.tenant_id, id)
             .await
@@ -186,6 +204,7 @@ pub async fn delete_admin_banner(
             "Banner not found",
         ));
     }
+    crate::catalog_events::notify_banner_changed(&state.catalog_events, "deleted", id);
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -387,4 +406,25 @@ fn validate_promotion_background(background: &str) -> Result<(), ApiError> {
         "VALIDATION_ERROR",
         "background must be yellow or green",
     ))
+}
+
+fn validate_banner_image_source(
+    image_file_id: Option<Uuid>,
+    image_url: Option<&str>,
+) -> Result<(), ApiError> {
+    let has_file = image_file_id.is_some();
+    let has_url = image_url.map(str::trim).is_some_and(|value| !value.is_empty());
+    if has_file == has_url {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Provide either imageFileId or imageUrl",
+        ));
+    }
+    Ok(())
+}
+
+fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value
+        .map(|item| item.trim().to_owned())
+        .filter(|item| !item.is_empty())
 }

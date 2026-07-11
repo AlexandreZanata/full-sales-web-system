@@ -65,9 +65,3 @@ pub async fn ensure_platform_admin(admin_pool: &PgPool) -> DevSeedResult<()> {
     .await?;
     Ok(())
 }
-
-pub fn dev_mfa_code() -> DevSeedResult<String> {
-    let verifier = infra_crypto::TotpVerifier::from_base32_secret(DEV_MFA_SECRET)
-        .map_err(|e| DevSeedError::Aborted(e.to_string()))?;
-    Ok(verifier.current_code())
-}

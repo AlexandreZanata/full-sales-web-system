@@ -1,17 +1,13 @@
-//! Portal home content seed — hero banners, promotions, featured flags, popular metrics.
+//! Portal home content seed — hero banners, featured flags, popular metrics.
 
 use domain_shared::TenantId;
 use infra_postgres::PgPool;
 use infra_postgres::inventory::portal_products::{seed_product_sales_total, set_product_featured};
 use infra_postgres::portal::banners::{self, BannerInsert};
-use infra_postgres::portal::promotions::{self, PromotionInsert};
 
 use crate::catalog::CatalogSeed;
 use crate::error::DevSeedResult;
-use crate::ids::{
-    admin_user_id, portal_banner_file_ids, portal_banner_ids, portal_promotion_file_ids,
-    portal_promotion_ids,
-};
+use crate::ids::{admin_user_id, portal_banner_file_ids, portal_banner_ids};
 use crate::seed_assets::{ensure_media_file, ensure_storage_bytes};
 
 const BANNER_SPECS: [(&str, &str, &str, i32); 3] = [
@@ -35,25 +31,6 @@ const BANNER_SPECS: [(&str, &str, &str, i32); 3] = [
     ),
 ];
 
-const PROMO_SPECS: [(&str, &str, &str, &str, &str, i32); 2] = [
-    (
-        "promotions/promo-burger.png",
-        "portal/promotions/promo-burger.png",
-        "Combo Burger",
-        "30% OFF",
-        "yellow",
-        0,
-    ),
-    (
-        "promotions/promo-drinks.png",
-        "portal/promotions/promo-drinks.png",
-        "Bebidas Geladas",
-        "15% OFF",
-        "green",
-        1,
-    ),
-];
-
 pub async fn seed_portal_home_content(
     app_pool: &PgPool,
     admin_pool: &PgPool,
@@ -63,7 +40,6 @@ pub async fn seed_portal_home_content(
     seed_featured_products(app_pool, tenant, catalog).await?;
     seed_popular_metrics(app_pool, tenant, catalog).await?;
     seed_hero_banners(app_pool, admin_pool, tenant).await?;
-    seed_promotions(app_pool, admin_pool, tenant).await?;
     Ok(())
 }
 
@@ -133,7 +109,8 @@ async fn seed_hero_banners(
                 banner_id,
                 &banners::BannerUpdate {
                     placement: None,
-                    image_file_id: Some(file_id),
+                    image_file_id: Some(Some(file_id)),
+                    image_url: Some(None),
                     link_url: None,
                     alt_text: Some(Some((*alt_text).into())),
                     sort_order: Some(*sort_order),
@@ -149,7 +126,8 @@ async fn seed_hero_banners(
             BannerInsert {
                 id: banner_id,
                 placement: "hero".into(),
-                image_file_id: file_id,
+                image_file_id: Some(file_id),
+                image_url: None,
                 link_url: None,
                 alt_text: Some((*alt_text).into()),
                 sort_order: *sort_order,
@@ -162,73 +140,9 @@ async fn seed_hero_banners(
     Ok(())
 }
 
-async fn seed_promotions(
-    app_pool: &PgPool,
-    admin_pool: &PgPool,
-    tenant: TenantId,
-) -> DevSeedResult<()> {
-    let promotion_ids = portal_promotion_ids();
-    let file_ids = portal_promotion_file_ids();
-    let uploader = admin_user_id();
-    let category_slugs = ["snacks", "bebidas"];
-
-    for (index, (asset, object_key, headline, discount, background, sort_order)) in
-        PROMO_SPECS.iter().enumerate()
-    {
-        let id = promotion_ids[index];
-        let file_id = file_ids[index];
-        ensure_media_file(
-            app_pool,
-            admin_pool,
-            tenant,
-            file_id,
-            "PortalPromotion",
-            id,
-            object_key,
-            asset,
-            uploader,
-        )
-        .await?;
-
-        if promotions::find_promotion_by_id(app_pool, tenant, id)
-            .await?
-            .is_some()
-        {
-            continue;
-        }
-        promotions::insert_promotion(
-            app_pool,
-            tenant,
-            PromotionInsert {
-                id,
-                headline: (*headline).into(),
-                discount_text: (*discount).into(),
-                background: (*background).into(),
-                category_slug: Some(category_slugs[index].into()),
-                link_url: None,
-                image_file_id: Some(file_id),
-                sort_order: *sort_order,
-                active: true,
-            },
-        )
-        .await?;
-    }
-    ensure_portal_promotion_storage().await?;
-    Ok(())
-}
-
 async fn ensure_portal_banner_storage() -> DevSeedResult<()> {
     use crate::seed_assets::read_asset_or_placeholder;
     for (asset, object_key, _, _) in BANNER_SPECS {
-        let (bytes, mime) = read_asset_or_placeholder(asset);
-        ensure_storage_bytes(object_key, &bytes, mime).await?;
-    }
-    Ok(())
-}
-
-async fn ensure_portal_promotion_storage() -> DevSeedResult<()> {
-    use crate::seed_assets::read_asset_or_placeholder;
-    for (asset, object_key, _, _, _, _) in PROMO_SPECS {
         let (bytes, mime) = read_asset_or_placeholder(asset);
         ensure_storage_bytes(object_key, &bytes, mime).await?;
     }

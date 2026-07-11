@@ -12,7 +12,7 @@ pub mod reservations;
 pub mod stock_overview;
 
 pub(crate) const PRODUCT_SELECT: &str =
-    "SELECT p.id, p.sku, p.name, p.price_amount, p.price_currency, p.active,
+    "SELECT p.id, p.sku, p.name, p.price_amount, p.price_currency, p.compare_at_price, p.active,
          p.unit_of_measure, p.category_id, c.name AS category_name, c.slug AS category_slug,
          p.description, p.is_featured
          FROM inventory.products p
@@ -25,6 +25,7 @@ pub struct ProductInsert {
     pub name: String,
     pub price_amount: i64,
     pub price_currency: String,
+    pub compare_at_price: Option<i64>,
     pub category_id: Option<Uuid>,
     pub unit_of_measure: String,
     pub description: Option<String>,
@@ -48,6 +49,7 @@ pub async fn insert_product(
             name: name.to_owned(),
             price_amount,
             price_currency: price_currency.to_owned(),
+            compare_at_price: None,
             category_id: None,
             unit_of_measure: "Unit".to_owned(),
             description: None,
@@ -65,8 +67,8 @@ pub async fn insert_product_with_catalog(
     apply_tenant_context(&mut tx, tenant_id).await?;
     sqlx::query(
         "INSERT INTO inventory.products
-         (id, tenant_id, sku, name, price_amount, price_currency, category_id, unit_of_measure, description)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+         (id, tenant_id, sku, name, price_amount, price_currency, compare_at_price, category_id, unit_of_measure, description)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
     )
     .bind(product.id)
     .bind(tenant_id.as_uuid())
@@ -74,6 +76,7 @@ pub async fn insert_product_with_catalog(
     .bind(product.name)
     .bind(product.price_amount)
     .bind(product.price_currency)
+    .bind(product.compare_at_price)
     .bind(product.category_id)
     .bind(product.unit_of_measure)
     .bind(product.description.as_deref())
@@ -102,6 +105,7 @@ pub struct ProductRow {
     pub name: String,
     pub price_amount: i64,
     pub price_currency: String,
+    pub compare_at_price: Option<i64>,
     pub active: bool,
     pub unit_of_measure: String,
     pub category_id: Option<Uuid>,
@@ -117,6 +121,7 @@ pub(crate) type ProductDbRow = (
     String,
     i64,
     String,
+    Option<i64>,
     bool,
     String,
     Option<Uuid>,
@@ -133,6 +138,7 @@ pub(crate) fn map_product_row(
         name,
         price_amount,
         price_currency,
+        compare_at_price,
         active,
         unit_of_measure,
         category_id,
@@ -148,6 +154,7 @@ pub(crate) fn map_product_row(
         name,
         price_amount,
         price_currency,
+        compare_at_price,
         active,
         unit_of_measure,
         category_id,
@@ -349,6 +356,7 @@ pub struct ProductUpdate {
     pub name: Option<String>,
     pub price_amount: Option<i64>,
     pub price_currency: Option<String>,
+    pub compare_at_price: Option<Option<i64>>,
     pub active: Option<bool>,
     pub category_id: Option<Option<Uuid>>,
     pub unit_of_measure: Option<String>,
@@ -369,11 +377,12 @@ pub async fn update_product(
            name = COALESCE($2, name),
            price_amount = COALESCE($3, price_amount),
            price_currency = COALESCE($4, price_currency),
-           active = COALESCE($5, active),
-           category_id = CASE WHEN $6::bool THEN $7 ELSE category_id END,
-           unit_of_measure = COALESCE($8, unit_of_measure),
-           description = CASE WHEN $9::bool THEN $10 ELSE description END,
-           is_featured = COALESCE($11, is_featured),
+           compare_at_price = CASE WHEN $5::bool THEN $6 ELSE compare_at_price END,
+           active = COALESCE($7, active),
+           category_id = CASE WHEN $8::bool THEN $9 ELSE category_id END,
+           unit_of_measure = COALESCE($10, unit_of_measure),
+           description = CASE WHEN $11::bool THEN $12 ELSE description END,
+           is_featured = COALESCE($13, is_featured),
            updated_at = now()
          WHERE id = $1",
     )
@@ -381,6 +390,8 @@ pub async fn update_product(
     .bind(update.name.as_deref())
     .bind(update.price_amount)
     .bind(update.price_currency.as_deref())
+    .bind(update.compare_at_price.is_some())
+    .bind(update.compare_at_price.as_ref().and_then(|value| *value))
     .bind(update.active)
     .bind(update.category_id.is_some())
     .bind(update.category_id.as_ref().and_then(|value| *value))

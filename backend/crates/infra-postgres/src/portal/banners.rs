@@ -10,7 +10,8 @@ use crate::rls::apply_tenant_context;
 pub struct BannerRow {
     pub id: Uuid,
     pub placement: String,
-    pub image_file_id: Uuid,
+    pub image_file_id: Option<Uuid>,
+    pub image_url: Option<String>,
     pub link_url: Option<String>,
     pub alt_text: Option<String>,
     pub sort_order: i32,
@@ -23,9 +24,10 @@ pub struct BannerRow {
 pub struct BannerFileRow {
     pub id: Uuid,
     pub placement: String,
-    pub image_file_id: Uuid,
-    pub bucket: String,
-    pub object_key: String,
+    pub image_file_id: Option<Uuid>,
+    pub image_url: Option<String>,
+    pub bucket: Option<String>,
+    pub object_key: Option<String>,
     pub link_url: Option<String>,
     pub alt_text: Option<String>,
     pub sort_order: i32,
@@ -34,7 +36,8 @@ pub struct BannerFileRow {
 pub struct BannerInsert {
     pub id: Uuid,
     pub placement: String,
-    pub image_file_id: Uuid,
+    pub image_file_id: Option<Uuid>,
+    pub image_url: Option<String>,
     pub link_url: Option<String>,
     pub alt_text: Option<String>,
     pub sort_order: i32,
@@ -43,7 +46,8 @@ pub struct BannerInsert {
 
 pub struct BannerUpdate {
     pub placement: Option<String>,
-    pub image_file_id: Option<Uuid>,
+    pub image_file_id: Option<Option<Uuid>>,
+    pub image_url: Option<Option<String>>,
     pub link_url: Option<Option<String>>,
     pub alt_text: Option<Option<String>>,
     pub sort_order: Option<i32>,
@@ -59,10 +63,10 @@ pub async fn list_active_banners_with_files(
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let rows = sqlx::query_as::<_, BannerFileRow>(
-        "SELECT b.id, b.placement, b.image_file_id, f.bucket, f.object_key,
+        "SELECT b.id, b.placement, b.image_file_id, b.image_url, f.bucket, f.object_key,
                 b.link_url, b.alt_text, b.sort_order
          FROM portal.banners b
-         INNER JOIN media.files f ON f.id = b.image_file_id AND f.tenant_id = b.tenant_id
+         LEFT JOIN media.files f ON f.id = b.image_file_id AND f.tenant_id = b.tenant_id
          WHERE b.tenant_id = $1 AND b.placement = $2 AND b.active = true
          ORDER BY b.sort_order ASC, b.created_at ASC
          LIMIT $3",
@@ -112,7 +116,7 @@ pub async fn list_banners(
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let rows = sqlx::query_as::<_, BannerRow>(
-        "SELECT id, placement, image_file_id, link_url, alt_text, sort_order, active, created_at, updated_at
+        "SELECT id, placement, image_file_id, image_url, link_url, alt_text, sort_order, active, created_at, updated_at
          FROM portal.banners
          WHERE tenant_id = $1
          ORDER BY sort_order ASC, created_at ASC
@@ -134,7 +138,7 @@ pub async fn find_banner_by_id(
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let row = sqlx::query_as::<_, BannerRow>(
-        "SELECT id, placement, image_file_id, link_url, alt_text, sort_order, active, created_at, updated_at
+        "SELECT id, placement, image_file_id, image_url, link_url, alt_text, sort_order, active, created_at, updated_at
          FROM portal.banners WHERE tenant_id = $1 AND id = $2",
     )
     .bind(tenant_id.as_uuid())
@@ -154,13 +158,14 @@ pub async fn insert_banner(
     apply_tenant_context(&mut tx, tenant_id).await?;
     sqlx::query(
         "INSERT INTO portal.banners
-         (id, tenant_id, placement, image_file_id, link_url, alt_text, sort_order, active)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+         (id, tenant_id, placement, image_file_id, image_url, link_url, alt_text, sort_order, active)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
     )
     .bind(banner.id)
     .bind(tenant_id.as_uuid())
     .bind(banner.placement)
     .bind(banner.image_file_id)
+    .bind(banner.image_url)
     .bind(banner.link_url)
     .bind(banner.alt_text)
     .bind(banner.sort_order)
@@ -182,18 +187,22 @@ pub async fn update_banner(
     let result = sqlx::query(
         "UPDATE portal.banners SET
            placement = COALESCE($3, placement),
-           image_file_id = COALESCE($4, image_file_id),
-           link_url = CASE WHEN $5::bool THEN $6 ELSE link_url END,
-           alt_text = CASE WHEN $7::bool THEN $8 ELSE alt_text END,
-           sort_order = COALESCE($9, sort_order),
-           active = COALESCE($10, active),
+           image_file_id = CASE WHEN $4::bool THEN $5 ELSE image_file_id END,
+           image_url = CASE WHEN $6::bool THEN $7 ELSE image_url END,
+           link_url = CASE WHEN $8::bool THEN $9 ELSE link_url END,
+           alt_text = CASE WHEN $10::bool THEN $11 ELSE alt_text END,
+           sort_order = COALESCE($12, sort_order),
+           active = COALESCE($13, active),
            updated_at = now()
          WHERE tenant_id = $1 AND id = $2",
     )
     .bind(tenant_id.as_uuid())
     .bind(id)
     .bind(update.placement.as_deref())
-    .bind(update.image_file_id)
+    .bind(update.image_file_id.is_some())
+    .bind(update.image_file_id.as_ref().and_then(|value| *value))
+    .bind(update.image_url.is_some())
+    .bind(update.image_url.as_ref().and_then(|value| value.as_deref()))
     .bind(update.link_url.is_some())
     .bind(update.link_url.as_ref().and_then(|value| value.as_deref()))
     .bind(update.alt_text.is_some())

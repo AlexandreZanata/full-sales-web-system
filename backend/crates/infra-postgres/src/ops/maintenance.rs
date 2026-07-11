@@ -4,7 +4,6 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::PostgresError;
-use crate::rls::apply_bypass_rls;
 
 #[derive(Debug, Clone)]
 pub struct MaintenanceWindowRow {

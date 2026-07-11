@@ -1,4 +1,3 @@
-use domain_shared::TenantId;
 use sqlx::PgPool;
 use uuid::Uuid;
 

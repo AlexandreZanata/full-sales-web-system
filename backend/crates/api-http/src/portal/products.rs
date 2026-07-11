@@ -31,6 +31,8 @@ pub struct PortalProductResponse {
     pub price_amount: i64,
     #[serde(rename = "priceCurrency")]
     pub price_currency: String,
+    #[serde(rename = "compareAtPrice", skip_serializing_if = "Option::is_none")]
+    pub compare_at_price: Option<i64>,
     #[serde(rename = "categoryId", skip_serializing_if = "Option::is_none")]
     pub category_id: Option<uuid::Uuid>,
     #[serde(rename = "categoryName", skip_serializing_if = "Option::is_none")]
@@ -145,6 +147,7 @@ pub(crate) fn portal_product_from_row(
         sku: row.sku.clone(),
         price_amount: row.price_amount,
         price_currency: row.price_currency.clone(),
+        compare_at_price: row.compare_at_price,
         category_id: row.category_id,
         category_name: row.category_name.clone(),
         category_slug: row.category_slug.clone(),

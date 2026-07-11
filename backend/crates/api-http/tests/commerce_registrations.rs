@@ -26,7 +26,7 @@ fn registration_payload(cnpj: &str) -> Value {
 }
 
 #[tokio::test]
-async fn br_co_010_given_seller_when_submit_registration_then_pending() {
+async fn br_co_010_given_seller_when_submit_registration_then_active() {
     let env = setup().await;
     let (_seller_id, token) = support::seed_seller(&env, "seller-reg@test.com").await;
 
@@ -40,7 +40,7 @@ async fn br_co_010_given_seller_when_submit_registration_then_pending() {
     .await;
 
     assert_eq!(status, StatusCode::CREATED);
-    assert_eq!(body["registrationStatus"], "PendingReview");
+    assert_eq!(body["registrationStatus"], "Active");
     assert_eq!(body["active"], true);
 }
 
@@ -109,12 +109,12 @@ async fn br_co_011_given_seller_when_approve_registration_then_forbidden() {
 }
 
 #[tokio::test]
-async fn contract_admin_when_approve_registration_then_active() {
+async fn contract_seller_submit_is_active_without_admin_approve() {
     let env = setup().await;
     let (_seller_id, seller_token) = support::seed_seller(&env, "seller-approve@test.com").await;
     let (_admin_id, admin_token) = support::seed_admin(&env).await;
 
-    let (_, created) = request(
+    let (create_status, created) = request(
         &env,
         "POST",
         "/v1/commerces/registrations",
@@ -122,9 +122,11 @@ async fn contract_admin_when_approve_registration_then_active() {
         Some(registration_payload("11222333000181").to_string()),
     )
     .await;
+    assert_eq!(create_status, StatusCode::CREATED);
+    assert_eq!(created["registrationStatus"], "Active");
     let id = created["id"].as_str().expect("id");
 
-    let (status, body) = request(
+    let (status, _) = request(
         &env,
         "POST",
         &format!("/v1/commerces/registrations/{id}/approve"),
@@ -132,9 +134,7 @@ async fn contract_admin_when_approve_registration_then_active() {
         Some("{}".into()),
     )
     .await;
-    assert_eq!(status, StatusCode::OK);
-    assert_eq!(body["registrationStatus"], "Active");
-    assert_eq!(body["active"], true);
+    assert_eq!(status, StatusCode::CONFLICT);
 }
 
 #[tokio::test]

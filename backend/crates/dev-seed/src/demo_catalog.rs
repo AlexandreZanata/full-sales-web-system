@@ -41,6 +41,7 @@ async fn upsert_demo_product(
     product: &DemoProduct,
     category_id: Uuid,
 ) -> DevSeedResult<()> {
+    let compare_at_price = demo_compare_at_price(product.price, product.sku);
     if inventory::find_product_by_id(app_pool, tenant, product.id)
         .await?
         .is_some()
@@ -53,6 +54,7 @@ async fn upsert_demo_product(
                 name: Some(product.name.into()),
                 price_amount: Some(product.price),
                 price_currency: Some("BRL".into()),
+                compare_at_price: Some(compare_at_price),
                 active: Some(product.active),
                 category_id: Some(Some(category_id)),
                 unit_of_measure: Some(product.unit.into()),
@@ -72,6 +74,7 @@ async fn upsert_demo_product(
             name: product.name.into(),
             price_amount: product.price,
             price_currency: "BRL".into(),
+            compare_at_price,
             category_id: Some(category_id),
             unit_of_measure: product.unit.into(),
             description: Some(product.description.into()),
@@ -87,6 +90,7 @@ async fn upsert_demo_product(
                 name: None,
                 price_amount: None,
                 price_currency: None,
+                compare_at_price: None,
                 active: Some(false),
                 category_id: None,
                 unit_of_measure: None,
@@ -203,4 +207,11 @@ pub async fn ensure_demo_storage_objects() -> DevSeedResult<()> {
         ensure_storage_bytes(object_key, &bytes, mime).await?;
     }
     Ok(())
+}
+
+fn demo_compare_at_price(price: i64, sku: &str) -> Option<i64> {
+    if sku.ends_with('1') || sku.ends_with('3') || sku.ends_with('5') {
+        return None;
+    }
+    Some(((price as f64) * 1.22).round() as i64)
 }

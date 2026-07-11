@@ -19,6 +19,8 @@ pub struct CreateProductRequest {
     pub price_amount: i64,
     #[serde(rename = "priceCurrency", default = "default_currency")]
     pub price_currency: String,
+    #[serde(rename = "compareAtPrice")]
+    pub compare_at_price: Option<i64>,
     #[serde(rename = "categoryId")]
     pub category_id: Option<Uuid>,
     #[serde(rename = "unitOfMeasure", default = "default_uom")]
@@ -35,6 +37,8 @@ pub struct UpdateProductRequest {
     pub price_amount: Option<i64>,
     #[serde(rename = "priceCurrency")]
     pub price_currency: Option<String>,
+    #[serde(rename = "compareAtPrice")]
+    pub compare_at_price: Option<Option<i64>>,
     pub active: Option<bool>,
     #[serde(rename = "categoryId")]
     pub category_id: Option<Option<Uuid>>,
@@ -90,6 +94,7 @@ pub async fn create_product(
     if let Some(description) = body.description.as_deref() {
         validate_description(description)?;
     }
+    validate_compare_at_price(body.price_amount, body.compare_at_price)?;
 
     let product_id = Uuid::now_v7();
     let _ = application::products::restore_product(
@@ -114,6 +119,7 @@ pub async fn create_product(
             name: body.name,
             price_amount: body.price_amount,
             price_currency: body.price_currency.clone(),
+            compare_at_price: body.compare_at_price,
             category_id: body.category_id,
             unit_of_measure: body.unit_of_measure.clone(),
             description: normalize_description(body.description.as_deref()),
@@ -174,6 +180,18 @@ pub async fn update_product(
         validate_description(description)?;
     }
 
+    let existing = infra_postgres::inventory::find_product_by_id(&state.app_pool, auth.tenant_id, id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::product_not_found)?;
+    let next_price = body.price_amount.unwrap_or(existing.price_amount);
+    let next_compare = if body.compare_at_price.is_some() {
+        body.compare_at_price.as_ref().and_then(|value| *value)
+    } else {
+        existing.compare_at_price
+    };
+    validate_compare_at_price(next_price, next_compare)?;
+
     let updated = infra_postgres::inventory::update_product(
         &state.app_pool,
         auth.tenant_id,
@@ -182,6 +200,7 @@ pub async fn update_product(
             name: body.name,
             price_amount: body.price_amount,
             price_currency: body.price_currency,
+            compare_at_price: body.compare_at_price,
             active: body.active,
             category_id: body.category_id,
             unit_of_measure: body.unit_of_measure,
@@ -257,6 +276,18 @@ fn product_detail_from_row(
         unit_of_measure: row.unit_of_measure.clone(),
         description: row.description.clone(),
     }
+}
+
+fn validate_compare_at_price(price_amount: i64, compare_at_price: Option<i64>) -> Result<(), ApiError> {
+    if let Some(compare_at) = compare_at_price {
+        if compare_at <= price_amount {
+            return Err(ApiError::bad_request(
+                "VALIDATION_ERROR",
+                "compareAtPrice must be greater than priceAmount",
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn validate_description(description: &str) -> Result<(), ApiError> {

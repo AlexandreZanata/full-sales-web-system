@@ -58,14 +58,30 @@ pub async fn list_public_banners(
     let ttl = Duration::from_secs(DEFAULT_PRESIGN_TTL_SECS);
     let mut data = Vec::with_capacity(rows.len());
     for row in rows {
-        let presigned = state
-            .storage
-            .presigned_get(&row.bucket, &row.object_key, ttl)
-            .await
-            .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+        let image_url = if let Some(url) = row
+            .image_url
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+        {
+            url.to_owned()
+        } else if let (Some(file_id), Some(bucket), Some(object_key)) = (
+            row.image_file_id,
+            row.bucket.as_deref(),
+            row.object_key.as_deref(),
+        ) {
+            let presigned = state
+                .storage
+                .presigned_get(bucket, object_key, ttl)
+                .await
+                .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+            crate::media::catalog_image_url(file_id, &presigned.url)
+        } else {
+            continue;
+        };
         data.push(PortalBannerResponse {
             id: row.id,
-            image_url: crate::media::catalog_image_url(row.image_file_id, &presigned.url),
+            image_url,
             link_url: row.link_url,
             alt_text: row.alt_text,
         });
