@@ -84,6 +84,9 @@ Guard: set `ALLOW_DEV_SEED=1` (the script sets it). Never use in production.
 | Driver B | `driver-b@test.com` | `secret123` |
 | Seller | `seller@test.com` | `secret123` |
 | Commerce contact | `portal@seed-store.com` | `secret123` |
+| **Platform Admin** | `platform@test.com` | `secret123` (MFA off when `PLATFORM_MFA_DISABLED=1`) |
+
+Platform Admin UI: http://127.0.0.1:5177 (or `5178` if port busy). Brand: **Lajanta** orange theme.
 
 Re-running is idempotent (skips when seed data is already present). Conflicting dev emails in other tenants are removed on seed.
 

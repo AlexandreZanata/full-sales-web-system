@@ -20,6 +20,4 @@ pub use subscription::Subscription;
 pub use subscription_plan::SubscriptionPlan;
 pub use subscription_status::{SubscriptionStatus, can_transition_subscription};
 pub use tenant_asaas_credentials::TenantAsaasCredentials;
-pub use tenant_payment_settings::{
-    TenantPaymentSettings, ensure_online_payments_allowed,
-};
+pub use tenant_payment_settings::{TenantPaymentSettings, ensure_online_payments_allowed};

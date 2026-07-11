@@ -65,10 +65,7 @@ pub async fn list_fraud_events(
     _auth: PlatformAuthUser,
     Query(query): Query<FraudEventsQuery>,
 ) -> Result<Json<crate::list_query::CursorListResponse<FraudEventResponse>>, ApiError> {
-    let limit = query
-        .limit
-        .unwrap_or(DEFAULT_LIMIT)
-        .clamp(1, MAX_LIMIT);
+    let limit = query.limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
     let filters = infra_postgres::fraud::FraudEventFilters {
         status: query.filter_status,
         severity: query.filter_severity,

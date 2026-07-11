@@ -15,11 +15,14 @@ pub async fn run_domain_verification_job(state: &AppState) -> Result<serde_json:
 
     for row in rows {
         let mut domain = row_to_domain(&row);
-        let challenge = infra_postgres::domains::find_active_challenge(&state.admin_pool, domain.id)
-            .await
-            .map_err(|_| ApiError::internal())?;
+        let challenge =
+            infra_postgres::domains::find_active_challenge(&state.admin_pool, domain.id)
+                .await
+                .map_err(|_| ApiError::internal())?;
         let Some(challenge) = challenge else {
-            domain.mark_failed(Utc::now()).map_err(|_| ApiError::internal())?;
+            domain
+                .mark_failed(Utc::now())
+                .map_err(|_| ApiError::internal())?;
             persist_domain(&state.admin_pool, &domain, true).await?;
             failed.push(domain.id);
             continue;
@@ -32,15 +35,21 @@ pub async fn run_domain_verification_job(state: &AppState) -> Result<serde_json:
             .await
             .unwrap_or_default();
         if values.iter().any(|v| v.trim() == challenge.token) {
-            domain.mark_verified(Utc::now()).map_err(|_| ApiError::internal())?;
-            domain.activate(Utc::now()).map_err(|_| ApiError::internal())?;
+            domain
+                .mark_verified(Utc::now())
+                .map_err(|_| ApiError::internal())?;
+            domain
+                .activate(Utc::now())
+                .map_err(|_| ApiError::internal())?;
             persist_domain(&state.admin_pool, &domain, true).await?;
             verified.push(domain.id);
             continue;
         }
 
         if challenge.expires_at <= Utc::now() {
-            domain.mark_failed(Utc::now()).map_err(|_| ApiError::internal())?;
+            domain
+                .mark_failed(Utc::now())
+                .map_err(|_| ApiError::internal())?;
             persist_domain(&state.admin_pool, &domain, true).await?;
             infra_postgres::domains::expire_challenges(&state.admin_pool, domain.id)
                 .await
@@ -67,7 +76,10 @@ pub async fn force_verify_domain(state: &AppState, domain_id: uuid::Uuid) -> Res
             domain.retry_verification(now).map_err(map_domain_err)?;
         }
         domain_domains::DomainStatus::Detached => {
-            return Err(ApiError::bad_request("INVALID_TRANSITION", "Domain is detached"));
+            return Err(ApiError::bad_request(
+                "INVALID_TRANSITION",
+                "Domain is detached",
+            ));
         }
         _ => {}
     }

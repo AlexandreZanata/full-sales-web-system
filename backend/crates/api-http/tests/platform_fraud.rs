@@ -11,11 +11,13 @@ use support::{platform_access_token, request, seed_admin, seed_user, setup};
 const PRO_PLAN: &str = "01900002-0001-7000-8000-000000000002";
 
 async fn set_fraud_threshold(env: &support::TestEnv, patch: serde_json::Value) {
-    sqlx::query("UPDATE fraud.platform_settings SET thresholds = thresholds || $1::jsonb WHERE id = 1")
-        .bind(patch)
-        .execute(&env.admin_pool)
-        .await
-        .expect("thresholds");
+    sqlx::query(
+        "UPDATE fraud.platform_settings SET thresholds = thresholds || $1::jsonb WHERE id = 1",
+    )
+    .bind(patch)
+    .execute(&env.admin_pool)
+    .await
+    .expect("thresholds");
 }
 
 #[tokio::test]
@@ -35,14 +37,7 @@ async fn contract_login_velocity_when_threshold_exceeded_then_fraud_blocked_and_
     .await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 
-    let (status, resp) = request(
-        &env,
-        "POST",
-        "/v1/auth/login",
-        None,
-        Some(login_body),
-    )
-    .await;
+    let (status, resp) = request(&env, "POST", "/v1/auth/login", None, Some(login_body)).await;
     assert_eq!(status, StatusCode::FORBIDDEN, "{resp}");
     assert_eq!(resp["error"]["code"], "FRAUD_BLOCKED");
 
@@ -192,14 +187,7 @@ async fn contract_tenant_admin_when_fraud_alerts_then_lists_tenant_events() {
     .await
     .expect("seed fraud event");
 
-    let (status, alerts) = request(
-        &env,
-        "GET",
-        "/v1/fraud/alerts",
-        Some(&admin_token),
-        None,
-    )
-    .await;
+    let (status, alerts) = request(&env, "GET", "/v1/fraud/alerts", Some(&admin_token), None).await;
     assert_eq!(status, StatusCode::OK, "{alerts}");
     let items = alerts.as_array().expect("alerts array");
     assert!(

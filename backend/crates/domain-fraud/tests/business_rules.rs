@@ -49,7 +49,11 @@ fn given_open_event_when_resolve_blocked_then_blocked_status() {
         serde_json::json!({}),
     );
     let resolved = event
-        .resolve(Uuid::now_v7(), FraudResolution::Blocked, Some("confirmed".into()))
+        .resolve(
+            Uuid::now_v7(),
+            FraudResolution::Blocked,
+            Some("confirmed".into()),
+        )
         .expect("resolve");
     assert_eq!(resolved.status, FraudEventStatus::Blocked);
 }

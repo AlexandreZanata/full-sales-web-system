@@ -57,12 +57,10 @@ pub async fn find_active_challenge(
 }
 
 pub async fn expire_challenges(pool: &PgPool, domain_id: Uuid) -> Result<(), PostgresError> {
-    sqlx::query(
-        "DELETE FROM domains.domain_verification_challenges WHERE domain_id = $1",
-    )
-    .bind(domain_id)
-    .execute(pool)
-    .await?;
+    sqlx::query("DELETE FROM domains.domain_verification_challenges WHERE domain_id = $1")
+        .bind(domain_id)
+        .execute(pool)
+        .await?;
     Ok(())
 }
 

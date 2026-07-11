@@ -2,9 +2,7 @@ use chrono::Utc;
 use serde::Deserialize;
 use serde_json::Value;
 
-use super::{
-    CnpjLookupAddress, CnpjLookupCnae, CnpjLookupPartner, CnpjLookupResult,
-};
+use super::{CnpjLookupAddress, CnpjLookupCnae, CnpjLookupPartner, CnpjLookupResult};
 
 #[derive(Deserialize)]
 struct OpenCnpjEndereco {
@@ -45,7 +43,10 @@ pub(crate) struct PublicCnpjResponse {
     socios: Option<Vec<OpenCnpjSocio>>,
 }
 
-pub fn map_opencnpj_response(body: PublicCnpjResponse, upstream_snapshot: Value) -> CnpjLookupResult {
+pub fn map_opencnpj_response(
+    body: PublicCnpjResponse,
+    upstream_snapshot: Value,
+) -> CnpjLookupResult {
     let legal_name = body.razao_social;
     let trade_name = body
         .nome_fantasia
@@ -122,7 +123,7 @@ pub fn map_opencnpj_response(body: PublicCnpjResponse, upstream_snapshot: Value)
 
 #[cfg(test)]
 mod tests {
-    use super::{map_opencnpj_response, PublicCnpjResponse};
+    use super::{PublicCnpjResponse, map_opencnpj_response};
     use serde_json::json;
 
     #[test]
@@ -153,7 +154,10 @@ mod tests {
         assert_eq!(mapped.phone.as_deref(), Some("(66) 35127000"));
         assert_eq!(mapped.email.as_deref(), Some("ESCRITORIO@DELMORO.COM.BR"));
         assert_eq!(mapped.registration_status.as_deref(), Some("02"));
-        assert_eq!(mapped.main_cnae.as_ref().map(|c| c.code.as_str()), Some("4711302"));
+        assert_eq!(
+            mapped.main_cnae.as_ref().map(|c| c.code.as_str()),
+            Some("4711302")
+        );
         assert_eq!(mapped.partners.as_ref().map(|p| p.len()), Some(1));
         assert!(mapped.upstream_snapshot.is_some());
     }

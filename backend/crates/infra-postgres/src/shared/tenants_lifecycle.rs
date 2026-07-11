@@ -72,12 +72,10 @@ pub async fn find_tenant_status(
     pool: &PgPool,
     tenant_id: TenantId,
 ) -> Result<Option<TenantStatus>, PostgresError> {
-    let status = sqlx::query_scalar::<_, String>(
-        "SELECT status FROM shared.tenants WHERE id = $1",
-    )
-    .bind(tenant_id.as_uuid())
-    .fetch_optional(pool)
-    .await?;
+    let status = sqlx::query_scalar::<_, String>("SELECT status FROM shared.tenants WHERE id = $1")
+        .bind(tenant_id.as_uuid())
+        .fetch_optional(pool)
+        .await?;
     match status {
         None => Ok(None),
         Some(raw) => TenantStatus::parse(&raw)
@@ -221,24 +219,22 @@ pub async fn tenant_counts(
     sqlx::query("SELECT set_config('app.role', 'Admin', true)")
         .execute(&mut *tx)
         .await?;
-    let users = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM identity.users WHERE tenant_id = $1",
-    )
-    .bind(tenant_id.as_uuid())
-    .fetch_one(&mut *tx)
-    .await?;
+    let users =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM identity.users WHERE tenant_id = $1")
+            .bind(tenant_id.as_uuid())
+            .fetch_one(&mut *tx)
+            .await?;
     let commerces = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM commerces.commerces WHERE tenant_id = $1",
     )
     .bind(tenant_id.as_uuid())
     .fetch_one(&mut *tx)
     .await?;
-    let orders = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM orders.orders WHERE tenant_id = $1",
-    )
-    .bind(tenant_id.as_uuid())
-    .fetch_one(&mut *tx)
-    .await?;
+    let orders =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM orders.orders WHERE tenant_id = $1")
+            .bind(tenant_id.as_uuid())
+            .fetch_one(&mut *tx)
+            .await?;
     tx.commit().await?;
     Ok(TenantCounts {
         users,

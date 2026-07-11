@@ -38,7 +38,9 @@ impl BlocklistEntry {
         }
         Ok(Self {
             id,
-            email: email.map(|v| v.trim().to_lowercase()).filter(|v| !v.is_empty()),
+            email: email
+                .map(|v| v.trim().to_lowercase())
+                .filter(|v| !v.is_empty()),
             cnpj: cnpj.map(|v| v.chars().filter(|c| c.is_ascii_digit()).collect()),
             ip: ip.map(|v| v.trim().to_owned()).filter(|v| !v.is_empty()),
             card_fingerprint: card_fingerprint

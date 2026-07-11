@@ -27,10 +27,7 @@ pub struct NewDomainRow {
     pub verification_token: String,
 }
 
-pub async fn insert_tenant_domain(
-    pool: &PgPool,
-    row: NewDomainRow,
-) -> Result<(), PostgresError> {
+pub async fn insert_tenant_domain(pool: &PgPool, row: NewDomainRow) -> Result<(), PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, row.tenant_id).await?;
     sqlx::query(
@@ -260,7 +257,11 @@ pub async fn clear_primary_for_tenant_admin(
     Ok(())
 }
 
-pub async fn delete_domain(pool: &PgPool, tenant_id: TenantId, id: Uuid) -> Result<bool, PostgresError> {
+pub async fn delete_domain(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    id: Uuid,
+) -> Result<bool, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
     let result = sqlx::query("DELETE FROM domains.tenant_domains WHERE id = $1")

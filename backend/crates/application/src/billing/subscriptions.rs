@@ -4,8 +4,8 @@ use domain_platform::{Tenant, TenantStatus};
 use domain_shared::TenantId;
 use uuid::Uuid;
 
-use crate::billing::gateway::{CreateSubscriptionRequest, PaymentGateway};
 use crate::AppError;
+use crate::billing::gateway::{CreateSubscriptionRequest, PaymentGateway};
 
 pub const GRACE_DAYS: i64 = 7;
 
@@ -49,11 +49,15 @@ pub async fn provision_subscription<G: PaymentGateway + ?Sized>(
 }
 
 pub fn apply_payment_confirmed(tenant: &mut Tenant) -> Result<(), AppError> {
-    tenant.restore_from_payment().map_err(crate::tenants::map_platform_error)
+    tenant
+        .restore_from_payment()
+        .map_err(crate::tenants::map_platform_error)
 }
 
 pub fn apply_payment_overdue(tenant: &mut Tenant) -> Result<(), AppError> {
-    tenant.mark_past_due().map_err(crate::tenants::map_platform_error)
+    tenant
+        .mark_past_due()
+        .map_err(crate::tenants::map_platform_error)
 }
 
 pub fn apply_subscription_deleted(tenant: &mut Tenant) -> Result<(), AppError> {
@@ -62,7 +66,10 @@ pub fn apply_subscription_deleted(tenant: &mut Tenant) -> Result<(), AppError> {
         .map_err(crate::tenants::map_platform_error)
 }
 
-pub fn grace_expired(past_due_at: DateTime<Utc>, grace_extended_until: Option<DateTime<Utc>>) -> bool {
+pub fn grace_expired(
+    past_due_at: DateTime<Utc>,
+    grace_extended_until: Option<DateTime<Utc>>,
+) -> bool {
     let deadline = grace_extended_until.unwrap_or_else(|| past_due_at + Duration::days(GRACE_DAYS));
     Utc::now() >= deadline
 }

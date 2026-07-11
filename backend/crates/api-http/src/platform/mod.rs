@@ -2,8 +2,8 @@ pub mod audit;
 pub mod auth;
 pub mod export;
 mod export_job;
-pub mod features;
 pub mod feature_support;
+pub mod features;
 pub mod fraud;
 pub mod health;
 pub mod impersonate;
@@ -17,7 +17,9 @@ pub use audit::list_platform_audit_events;
 pub use auth::{platform_login, platform_logout, platform_mfa_verify, platform_refresh};
 pub use export::{get_tenant_export, start_tenant_export};
 pub use features::patch_tenant_features;
-pub use fraud::{add_blocklist_entry, delete_blocklist_entry, list_fraud_events, resolve_fraud_event};
+pub use fraud::{
+    add_blocklist_entry, delete_blocklist_entry, list_fraud_events, resolve_fraud_event,
+};
 pub use health::{health_history, health_matrix};
 pub use impersonate::{end_impersonation, start_impersonation};
 pub use maintenance::schedule_maintenance;

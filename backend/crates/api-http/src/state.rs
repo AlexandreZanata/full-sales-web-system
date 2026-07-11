@@ -7,9 +7,9 @@ use ed25519_dalek::SigningKey;
 use infra_crypto::{CredentialEncryptor, JwtService};
 use infra_postgres::PgPool;
 use infra_redis::{
-    IdempotencyStore, InMemoryIdempotencyStore, InMemoryRateLimiter, InMemoryVelocityCounter,
-    RateLimitPolicy, RateLimiter, RefreshTokenStore, VelocityCounter, CnpjMissCache,
-    InMemoryCnpjMissCache,
+    CnpjMissCache, IdempotencyStore, InMemoryCnpjMissCache, InMemoryIdempotencyStore,
+    InMemoryRateLimiter, InMemoryVelocityCounter, RateLimitPolicy, RateLimiter, RefreshTokenStore,
+    VelocityCounter,
 };
 use infra_storage::{InMemoryObjectStorage, LocalFsObjectStorage, ObjectStorage};
 
@@ -148,10 +148,7 @@ impl AppState {
         Some(SigningKey::from_bytes(&array))
     }
 
-    pub fn in_memory_refresh_stores() -> (
-        Arc<dyn RefreshTokenStore>,
-        Arc<dyn RefreshTokenStore>,
-    ) {
+    pub fn in_memory_refresh_stores() -> (Arc<dyn RefreshTokenStore>, Arc<dyn RefreshTokenStore>) {
         let store = Arc::new(infra_redis::InMemoryRefreshTokenStore::new());
         (store.clone(), store)
     }

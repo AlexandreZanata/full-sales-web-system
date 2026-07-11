@@ -74,8 +74,9 @@ impl AsaasClient {
                     self.metrics.record_success(started);
                     return Ok(resp);
                 }
-                Ok(resp) if resp.status() == reqwest::StatusCode::TOO_MANY_REQUESTS
-                    || resp.status().is_server_error() =>
+                Ok(resp)
+                    if resp.status() == reqwest::StatusCode::TOO_MANY_REQUESTS
+                        || resp.status().is_server_error() =>
                 {
                     attempt += 1;
                     if attempt > self.config.max_retries {
@@ -194,21 +195,24 @@ impl PaymentGateway for AsaasClient {
         Ok(SubscriptionResponse { id: parsed.id })
     }
 
-    async fn cancel_subscription(&self, req: CancelSubscriptionRequest) -> Result<(), BillingError> {
+    async fn cancel_subscription(
+        &self,
+        req: CancelSubscriptionRequest,
+    ) -> Result<(), BillingError> {
         let path = format!("/subscriptions/{}", req.subscription_id);
         self.send_with_retry(|| self.authed(reqwest::Method::DELETE, &path))
             .await?;
         Ok(())
     }
 
-    async fn attach_payment_method(&self, req: AttachPaymentMethodRequest) -> Result<(), BillingError> {
+    async fn attach_payment_method(
+        &self,
+        req: AttachPaymentMethodRequest,
+    ) -> Result<(), BillingError> {
         let path = format!("/customers/{}", req.customer_id);
         let body = serde_json::json!({ "creditCardToken": req.credit_card_token });
-        self.send_with_retry(|| {
-            self.authed(reqwest::Method::POST, &path)
-                .json(&body)
-        })
-        .await?;
+        self.send_with_retry(|| self.authed(reqwest::Method::POST, &path).json(&body))
+            .await?;
         Ok(())
     }
 

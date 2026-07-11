@@ -9,7 +9,9 @@ use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::billing::webhook_auth::{WEBHOOK_TOKEN_HEADER, validate_webhook_token, webhook_token_from_env};
+use crate::billing::webhook_auth::{
+    WEBHOOK_TOKEN_HEADER, validate_webhook_token, webhook_token_from_env,
+};
 use crate::error::ApiError;
 use crate::fraud::{handle_chargeback, on_webhook_processing_failure};
 use crate::state::AppState;
@@ -81,13 +83,8 @@ pub async fn asaas_webhook(
             )
             .await
         } else {
-            crate::billing::process_asaas_event(
-                &state.admin_pool,
-                &payload.event,
-                tenant_id,
-                &body,
-            )
-            .await
+            crate::billing::process_asaas_event(&state.admin_pool, &payload.event, tenant_id, &body)
+                .await
         };
         if process_result.is_err() {
             let _ = on_webhook_processing_failure(&state, tenant_id).await;

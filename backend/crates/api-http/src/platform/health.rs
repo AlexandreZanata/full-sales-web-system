@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
-use axum::extract::{Query, State};
 use axum::Json;
+use axum::extract::{Query, State};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -45,7 +45,11 @@ pub async fn health_matrix(
                     status: probe.status.as_str().to_owned(),
                     latency_ms: probe.latency_ms,
                     checked_at: Some(Utc::now().to_rfc3339()),
-                    uptime_24h_pct: if probe.status.is_healthy() { 100.0 } else { 0.0 },
+                    uptime_24h_pct: if probe.status.is_healthy() {
+                        100.0
+                    } else {
+                        0.0
+                    },
                     details: probe.details,
                 },
             );
@@ -99,13 +103,9 @@ pub async fn health_history(
     if !is_valid_probe(&query.probe) {
         return Err(ApiError::bad_request("INVALID_PROBE", "invalid probe name"));
     }
-    let rows = infra_postgres::ops::probe_history(
-        &state.admin_pool,
-        &query.probe,
-        query.since,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?;
+    let rows = infra_postgres::ops::probe_history(&state.admin_pool, &query.probe, query.since)
+        .await
+        .map_err(|_| ApiError::internal())?;
     let data = rows
         .into_iter()
         .map(|row| HealthHistoryPoint {
@@ -124,11 +124,6 @@ pub async fn health_history(
 fn is_valid_probe(name: &str) -> bool {
     matches!(
         name,
-        PROBE_POSTGRES
-            | PROBE_REDIS
-            | PROBE_MINIO
-            | PROBE_ASAAS
-            | PROBE_DNS
-            | PROBE_WEBHOOK_QUEUE
+        PROBE_POSTGRES | PROBE_REDIS | PROBE_MINIO | PROBE_ASAAS | PROBE_DNS | PROBE_WEBHOOK_QUEUE
     )
 }

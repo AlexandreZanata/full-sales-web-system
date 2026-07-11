@@ -3,10 +3,10 @@ use domain_billing::{InvoiceStatus, SubscriptionStatus};
 use domain_shared::TenantId;
 use uuid::Uuid;
 
+use application::AppError;
 use application::billing::{
     apply_payment_confirmed, apply_payment_overdue, apply_subscription_deleted,
 };
-use application::AppError;
 
 use super::support::row_to_tenant;
 

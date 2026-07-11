@@ -69,8 +69,12 @@ pub fn build_provision_tenant(
     tenant_id: TenantId,
     input: &ProvisionTenantInput,
 ) -> Result<(Tenant, Option<chrono::DateTime<Utc>>), AppError> {
-    let mut tenant = Tenant::new_provisioning(tenant_id, input.legal_name.clone(), input.display_name.clone())
-        .map_err(map_platform_error)?;
+    let mut tenant = Tenant::new_provisioning(
+        tenant_id,
+        input.legal_name.clone(),
+        input.display_name.clone(),
+    )
+    .map_err(map_platform_error)?;
     let trial_ends = if input.trial {
         let ends = Utc::now() + Duration::days(TRIAL_DAYS);
         tenant

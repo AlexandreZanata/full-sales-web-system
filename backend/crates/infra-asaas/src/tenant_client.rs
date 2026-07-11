@@ -57,39 +57,40 @@ pub struct TenantAsaasClient {
 
 impl TenantAsaasClient {
     pub fn new(api_key: String, base_url: Option<String>) -> Result<Self, String> {
-    let base = base_url.unwrap_or_else(|| {
-        std::env::var("ASAAS_BASE_URL").unwrap_or_else(|_| crate::config::DEFAULT_BASE_URL.into())
-    });
-    let timeout_secs = std::env::var("ASAAS_TIMEOUT_SECS")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(crate::config::DEFAULT_TIMEOUT_SECS);
-    let max_retries = std::env::var("ASAAS_MAX_RETRIES")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(crate::config::DEFAULT_MAX_RETRIES);
-    let circuit_threshold = std::env::var("ASAAS_CIRCUIT_THRESHOLD")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(crate::config::DEFAULT_CIRCUIT_THRESHOLD);
-    let client = Client::builder()
-        .timeout(std::time::Duration::from_secs(timeout_secs))
-        .build()
-        .map_err(|err| format!("failed to build tenant Asaas client: {err}"))?;
-    tracing::info!(
-        base_url = %base,
-        api_key = %mask_api_key(&api_key),
-        "tenant Asaas client configured"
-    );
-    Ok(Self {
-        client,
-        api_key,
-        base_url: base,
-        circuit: Arc::new(CircuitBreaker::new(circuit_threshold)),
-        metrics: Arc::new(AsaasMetrics::default()),
-        max_retries,
-    })
-}
+        let base = base_url.unwrap_or_else(|| {
+            std::env::var("ASAAS_BASE_URL")
+                .unwrap_or_else(|_| crate::config::DEFAULT_BASE_URL.into())
+        });
+        let timeout_secs = std::env::var("ASAAS_TIMEOUT_SECS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(crate::config::DEFAULT_TIMEOUT_SECS);
+        let max_retries = std::env::var("ASAAS_MAX_RETRIES")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(crate::config::DEFAULT_MAX_RETRIES);
+        let circuit_threshold = std::env::var("ASAAS_CIRCUIT_THRESHOLD")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(crate::config::DEFAULT_CIRCUIT_THRESHOLD);
+        let client = Client::builder()
+            .timeout(std::time::Duration::from_secs(timeout_secs))
+            .build()
+            .map_err(|err| format!("failed to build tenant Asaas client: {err}"))?;
+        tracing::info!(
+            base_url = %base,
+            api_key = %mask_api_key(&api_key),
+            "tenant Asaas client configured"
+        );
+        Ok(Self {
+            client,
+            api_key,
+            base_url: base,
+            circuit: Arc::new(CircuitBreaker::new(circuit_threshold)),
+            metrics: Arc::new(AsaasMetrics::default()),
+            max_retries,
+        })
+    }
 
     fn url(&self, path: &str) -> String {
         format!("{}{}", self.base_url, path)
@@ -128,8 +129,9 @@ impl TenantAsaasClient {
                     self.metrics.record_error(started);
                     return Err(BillingError::InvalidCredentials);
                 }
-                Ok(resp) if resp.status() == reqwest::StatusCode::TOO_MANY_REQUESTS
-                    || resp.status().is_server_error() =>
+                Ok(resp)
+                    if resp.status() == reqwest::StatusCode::TOO_MANY_REQUESTS
+                        || resp.status().is_server_error() =>
                 {
                     attempt += 1;
                     if attempt > self.max_retries {
@@ -192,9 +194,7 @@ impl TenantAsaasClient {
             "externalReference": external_reference,
         });
         let response = self
-            .send(|| {
-                self.authed(reqwest::Method::POST, "/payments").json(&body)
-            })
+            .send(|| self.authed(reqwest::Method::POST, "/payments").json(&body))
             .await?;
         response
             .json()

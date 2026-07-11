@@ -174,16 +174,12 @@ async fn contract_maintenance_when_tenant_active_then_settings_banner() {
     .await;
     assert_eq!(status, StatusCode::CREATED);
 
-    let (status, settings) = request(
-        &env,
-        "GET",
-        "/v1/settings",
-        Some(&admin_token),
-        None,
-    )
-    .await;
+    let (status, settings) = request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
     assert_eq!(status, StatusCode::OK, "{settings}");
-    assert_eq!(settings["maintenanceBanner"]["message"], "Tenant maintenance window");
+    assert_eq!(
+        settings["maintenanceBanner"]["message"],
+        "Tenant maintenance window"
+    );
 }
 
 #[tokio::test]

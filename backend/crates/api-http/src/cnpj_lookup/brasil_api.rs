@@ -86,9 +86,7 @@ impl CnpjLookupProvider for BrasilApiCnpjLookup {
     }
 }
 
-pub fn build_cnpj_lookup_provider(
-    provider: &str,
-) -> Result<Arc<dyn CnpjLookupProvider>, String> {
+pub fn build_cnpj_lookup_provider(provider: &str) -> Result<Arc<dyn CnpjLookupProvider>, String> {
     match provider {
         "mock" => Ok(Arc::new(super::MockCnpjLookup)),
         "opencnpj" => Ok(Arc::new(super::opencnpj::OpenCnpjLookup::from_env()?)),

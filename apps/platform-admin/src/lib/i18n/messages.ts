@@ -65,13 +65,23 @@ export type Messages = {
   };
   dashboard: {
     title: string;
+    subtitle: string;
     activeTenants: string;
     trialTenants: string;
     pastDue: string;
     suspended: string;
     mrr: string;
     healthMatrix: string;
+    healthMatrixHint: string;
+    healthUptime: string;
+    healthUptimeHint: string;
+    tenantDistribution: string;
+    tenantDistributionHint: string;
+    totalTenants: string;
+    uptime24h: string;
     recentFraud: string;
+    fraudHint: string;
+    events: string;
     createTenant: string;
     viewHealth: string;
   };
@@ -114,10 +124,14 @@ export type Messages = {
   };
   health: {
     title: string;
+    subtitle: string;
     history: string;
+    historyHint: string;
   };
   maintenance: {
     title: string;
+    description: string;
+    scopeHint: string;
     schedule: string;
     message: string;
     startsAt: string;

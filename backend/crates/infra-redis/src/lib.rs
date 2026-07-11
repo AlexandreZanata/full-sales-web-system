@@ -94,9 +94,7 @@ pub use idempotency::{IdempotencyRecord, IdempotencyStore, InMemoryIdempotencySt
 pub use rate_limit::{InMemoryRateLimiter, RateLimitPolicy, RateLimiter};
 pub mod velocity;
 
-pub use velocity::{
-    InMemoryVelocityCounter, RedisVelocityCounter, VelocityCounter, VelocityError,
-};
+pub use velocity::{InMemoryVelocityCounter, RedisVelocityCounter, VelocityCounter, VelocityError};
 
 #[cfg(test)]
 mod tests {

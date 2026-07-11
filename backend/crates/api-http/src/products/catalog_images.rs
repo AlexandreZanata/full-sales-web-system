@@ -80,10 +80,11 @@ pub async fn attach_product_image(
     require_can_write_products(&auth)?;
     super::catalog::ensure_product(&state, auth.tenant_id, product_id).await?;
 
-    let file = infra_postgres::media::find_file_by_id(&state.app_pool, auth.tenant_id, body.file_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::media_not_found)?;
+    let file =
+        infra_postgres::media::find_file_by_id(&state.app_pool, auth.tenant_id, body.file_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::media_not_found)?;
     if file.entity_type != "Product" || file.entity_id != product_id {
         return Err(ApiError::bad_request(
             "VALIDATION_ERROR",

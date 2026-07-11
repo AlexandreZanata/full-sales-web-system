@@ -1,9 +1,12 @@
+use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::Json;
 use serde::Serialize;
 
-use crate::health::{self, ProbeOutcome, ProbeStatus, PROBE_ASAAS, PROBE_DNS, PROBE_MINIO, PROBE_POSTGRES, PROBE_REDIS, PROBE_WEBHOOK_QUEUE};
+use crate::health::{
+    self, PROBE_ASAAS, PROBE_DNS, PROBE_MINIO, PROBE_POSTGRES, PROBE_REDIS, PROBE_WEBHOOK_QUEUE,
+    ProbeOutcome, ProbeStatus,
+};
 use crate::state::AppState;
 
 #[derive(Serialize)]
@@ -45,7 +48,9 @@ pub async fn public_status(
             status: overall,
             components: PublicComponents {
                 api: PublicComponentStatus { status: api.status },
-                portal: PublicComponentStatus { status: portal.status },
+                portal: PublicComponentStatus {
+                    status: portal.status,
+                },
                 payments: PublicComponentStatus {
                     status: payments.status,
                 },

@@ -14,10 +14,6 @@ pub use driver_profiles::{
     DriverProfileInsert, DriverProfileRow, find_driver_profile_by_user_id, insert_driver_profile,
     upsert_driver_profile,
 };
-pub use seller_profiles::{
-    SellerProfileInsert, SellerProfileRow, find_seller_profile_by_user_id, insert_seller_profile,
-    upsert_seller_profile,
-};
 pub use platform::{
     ImpersonationGrantInsert, InsertPlatformUserParams, PlatformLoginRecord,
     find_platform_user_by_id, find_platform_user_for_login, find_tenant_admin_user,
@@ -27,6 +23,10 @@ pub use platform_users::{
     CrossTenantUserDetailRow, CrossTenantUserFilters, UserSort, count_active_admins,
     find_user_cross_tenant, list_tenant_users, list_users_cross_tenant, set_user_active,
     touch_last_login, update_user_password, update_user_role,
+};
+pub use seller_profiles::{
+    SellerProfileInsert, SellerProfileRow, find_seller_profile_by_user_id, insert_seller_profile,
+    upsert_seller_profile,
 };
 
 /// Row persisted in `identity.users`.

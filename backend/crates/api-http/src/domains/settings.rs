@@ -101,14 +101,8 @@ pub async fn create_domain(
     let id = Uuid::now_v7();
     let token = verification_token();
     let now = Utc::now();
-    let mut domain = TenantDomain::add(
-        id,
-        auth.tenant_id,
-        &body.hostname,
-        token.clone(),
-        now,
-    )
-    .map_err(map_domain_err)?;
+    let mut domain = TenantDomain::add(id, auth.tenant_id, &body.hostname, token.clone(), now)
+        .map_err(map_domain_err)?;
     domain.start_verifying(now).map_err(map_domain_err)?;
 
     infra_postgres::domains::insert_tenant_domain(
@@ -206,9 +200,13 @@ pub async fn set_primary_domain(
         persist_domain(&state.app_pool, &prev, false).await?;
     }
 
-    infra_postgres::domains::clear_primary_for_tenant(&state.app_pool, auth.tenant_id, Some(domain.id))
-        .await
-        .map_err(|_| ApiError::internal())?;
+    infra_postgres::domains::clear_primary_for_tenant(
+        &state.app_pool,
+        auth.tenant_id,
+        Some(domain.id),
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
     domain.set_primary(now).map_err(map_domain_err)?;
     persist_domain(&state.app_pool, &domain, false).await?;
     Ok(Json(domain_response_entity(&domain)))
@@ -234,12 +232,14 @@ fn map_domain_err(err: DomainError) -> ApiError {
         DomainError::InvalidHostname | DomainError::ReservedHostname => {
             ApiError::bad_request("VALIDATION_ERROR", "Invalid hostname")
         }
-        DomainError::NotVerified => {
-            ApiError::bad_request("INVALID_TRANSITION", "Domain must be verified before activation")
-        }
-        DomainError::CannotSetPrimary => {
-            ApiError::bad_request("INVALID_TRANSITION", "Primary domain must be verified or active")
-        }
+        DomainError::NotVerified => ApiError::bad_request(
+            "INVALID_TRANSITION",
+            "Domain must be verified before activation",
+        ),
+        DomainError::CannotSetPrimary => ApiError::bad_request(
+            "INVALID_TRANSITION",
+            "Primary domain must be verified or active",
+        ),
         DomainError::InvalidTransition { .. } => {
             ApiError::bad_request("INVALID_TRANSITION", "Invalid domain status transition")
         }

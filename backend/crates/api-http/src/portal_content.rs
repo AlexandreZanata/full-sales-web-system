@@ -126,10 +126,11 @@ pub async fn create_admin_banner(
     )
     .await
     .map_err(|_| ApiError::internal())?;
-    let row = infra_postgres::portal::banners::find_banner_by_id(&state.app_pool, auth.tenant_id, id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::internal)?;
+    let row =
+        infra_postgres::portal::banners::find_banner_by_id(&state.app_pool, auth.tenant_id, id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::internal)?;
     Ok((StatusCode::CREATED, Json(banner_response(row))))
 }
 
@@ -156,12 +157,16 @@ pub async fn update_admin_banner(
     .await
     .map_err(|_| ApiError::internal())?;
     if !updated {
-        return Err(ApiError::not_found_with_code("BANNER_NOT_FOUND", "Banner not found"));
+        return Err(ApiError::not_found_with_code(
+            "BANNER_NOT_FOUND",
+            "Banner not found",
+        ));
     }
-    let row = infra_postgres::portal::banners::find_banner_by_id(&state.app_pool, auth.tenant_id, id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::internal)?;
+    let row =
+        infra_postgres::portal::banners::find_banner_by_id(&state.app_pool, auth.tenant_id, id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::internal)?;
     Ok(Json(banner_response(row)))
 }
 
@@ -171,11 +176,15 @@ pub async fn delete_admin_banner(
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
     require_admin(&auth)?;
-    let deleted = infra_postgres::portal::banners::delete_banner(&state.app_pool, auth.tenant_id, id)
-        .await
-        .map_err(|_| ApiError::internal())?;
+    let deleted =
+        infra_postgres::portal::banners::delete_banner(&state.app_pool, auth.tenant_id, id)
+            .await
+            .map_err(|_| ApiError::internal())?;
     if !deleted {
-        return Err(ApiError::not_found_with_code("BANNER_NOT_FOUND", "Banner not found"));
+        return Err(ApiError::not_found_with_code(
+            "BANNER_NOT_FOUND",
+            "Banner not found",
+        ));
     }
     Ok(StatusCode::NO_CONTENT)
 }
@@ -232,7 +241,9 @@ pub struct UpdatePromotionRequest {
     pub active: Option<bool>,
 }
 
-fn promotion_response(row: infra_postgres::portal::promotions::PromotionRow) -> AdminPromotionResponse {
+fn promotion_response(
+    row: infra_postgres::portal::promotions::PromotionRow,
+) -> AdminPromotionResponse {
     AdminPromotionResponse {
         id: row.id,
         headline: row.headline,
@@ -294,11 +305,14 @@ pub async fn create_admin_promotion(
     )
     .await
     .map_err(|_| ApiError::internal())?;
-    let row =
-        infra_postgres::portal::promotions::find_promotion_by_id(&state.app_pool, auth.tenant_id, id)
-            .await
-            .map_err(|_| ApiError::internal())?
-            .ok_or_else(ApiError::internal)?;
+    let row = infra_postgres::portal::promotions::find_promotion_by_id(
+        &state.app_pool,
+        auth.tenant_id,
+        id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?
+    .ok_or_else(ApiError::internal)?;
     Ok((StatusCode::CREATED, Json(promotion_response(row))))
 }
 
@@ -335,11 +349,14 @@ pub async fn update_admin_promotion(
             "Promotion not found",
         ));
     }
-    let row =
-        infra_postgres::portal::promotions::find_promotion_by_id(&state.app_pool, auth.tenant_id, id)
-            .await
-            .map_err(|_| ApiError::internal())?
-            .ok_or_else(ApiError::internal)?;
+    let row = infra_postgres::portal::promotions::find_promotion_by_id(
+        &state.app_pool,
+        auth.tenant_id,
+        id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?
+    .ok_or_else(ApiError::internal)?;
     Ok(Json(promotion_response(row)))
 }
 

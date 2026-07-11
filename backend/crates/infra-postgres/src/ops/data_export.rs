@@ -121,7 +121,10 @@ pub async fn mark_export_failed(
     Ok(())
 }
 
-pub async fn tenant_has_legal_hold(pool: &PgPool, tenant_id: TenantId) -> Result<bool, PostgresError> {
+pub async fn tenant_has_legal_hold(
+    pool: &PgPool,
+    tenant_id: TenantId,
+) -> Result<bool, PostgresError> {
     let held = sqlx::query_scalar::<_, bool>(
         "SELECT COALESCE((settings->>'legalHold')::boolean, false)
          FROM shared.tenants WHERE id = $1",

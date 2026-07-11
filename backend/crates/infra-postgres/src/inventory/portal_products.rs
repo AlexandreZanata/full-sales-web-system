@@ -2,7 +2,7 @@ use domain_shared::TenantId;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use super::{ProductDbRow, ProductRow, map_product_row, PRODUCT_SELECT};
+use super::{PRODUCT_SELECT, ProductDbRow, ProductRow, map_product_row};
 use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 

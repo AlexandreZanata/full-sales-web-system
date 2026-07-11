@@ -3,11 +3,11 @@ use std::sync::Arc;
 
 use api_http::{AppState, app, full_app, init_tracing, listen_addr};
 use application::REFRESH_TOKEN_TTL;
-use infra_redis::{InMemoryRefreshTokenStore, RedisRefreshTokenStore, RefreshTokenStore};
 use infra_redis::{
-    InMemoryCnpjMissCache, InMemoryVelocityCounter, RedisCnpjMissCache, RedisVelocityCounter,
-    VelocityCounter, CnpjMissCache,
+    CnpjMissCache, InMemoryCnpjMissCache, InMemoryVelocityCounter, RedisCnpjMissCache,
+    RedisVelocityCounter, VelocityCounter,
 };
+use infra_redis::{InMemoryRefreshTokenStore, RedisRefreshTokenStore, RefreshTokenStore};
 use tokio::net::TcpListener;
 use tracing::info;
 
@@ -72,12 +72,12 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
             Arc::new(InMemoryRefreshTokenStore::new())
         };
 
-    let cnpj_miss_cache: Arc<dyn CnpjMissCache> =
-        if let Ok(redis_url) = std::env::var("REDIS_URL") {
-            Arc::new(RedisCnpjMissCache::connect(&redis_url).await?)
-        } else {
-            Arc::new(InMemoryCnpjMissCache::new())
-        };
+    let cnpj_miss_cache: Arc<dyn CnpjMissCache> = if let Ok(redis_url) = std::env::var("REDIS_URL")
+    {
+        Arc::new(RedisCnpjMissCache::connect(&redis_url).await?)
+    } else {
+        Arc::new(InMemoryCnpjMissCache::new())
+    };
 
     let velocity_counter: Arc<dyn VelocityCounter> =
         if let Ok(redis_url) = std::env::var("REDIS_URL") {

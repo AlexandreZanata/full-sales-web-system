@@ -1,4 +1,7 @@
-use axum::{Json, extract::{Path, Query, State}};
+use axum::{
+    Json,
+    extract::{Path, Query, State},
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -46,10 +49,7 @@ pub async fn list_tenant_workforce(
     )
     .await
     .map_err(|_| ApiError::internal())?;
-    let items: Vec<PlatformUserItem> = rows
-        .into_iter()
-        .map(super::users::to_item)
-        .collect();
+    let items: Vec<PlatformUserItem> = rows.into_iter().map(super::users::to_item).collect();
     Ok(Json(build_cursor_page(items, limit, |item| item.id)))
 }
 

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { PlatformLoginError } from '@/lib/auth/authErrors';
-import { PLATFORM_APP_TITLE } from '@/lib/brand';
+import { PLATFORM_APP_TAGLINE, PLATFORM_APP_TITLE, PLATFORM_BRAND_NAME } from '@/lib/brand';
 import { useI18n } from '@/lib/i18n/context';
 
 export const Route = createFileRoute('/login')({
@@ -69,21 +69,25 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-surface-muted px-4">
-      <Card className="w-full max-w-md">
-        <div className="mb-4 flex justify-end">
+    <div className="platform-login-screen flex min-h-dvh items-center justify-center px-4 py-8">
+      <Card className="platform-login-card w-full max-w-md border bg-surface/95 backdrop-blur-sm">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <BrandMark
+            size="lg"
+            variant="login"
+            className="!bg-primary !text-primary-foreground !ring-0"
+          />
           <LocaleSwitcher />
         </div>
         <div className="mb-6">
-          <BrandMark size="lg" className="mb-4" />
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            {PLATFORM_APP_TITLE}
+          <p className="platform-login-kicker text-xs font-bold uppercase tracking-[0.25em]">
+            {PLATFORM_BRAND_NAME}
           </p>
-          <h1 className="mt-2 text-2xl font-semibold">
-            {mfaToken ? t('auth.mfaTitle') : t('auth.signInTitle')}
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            {mfaToken ? t('auth.mfaTitle') : PLATFORM_APP_TITLE}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mfaToken ? t('auth.mfaDescription') : t('auth.signInDescription')}
+            {mfaToken ? t('auth.mfaDescription') : PLATFORM_APP_TAGLINE}
           </p>
         </div>
 
@@ -127,7 +131,11 @@ function LoginPage() {
               }}
             />
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button
+              type="submit"
+              className="w-full shadow-md shadow-primary/25"
+              disabled={submitting}
+            >
               {submitting ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>

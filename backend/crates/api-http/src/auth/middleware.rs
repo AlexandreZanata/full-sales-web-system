@@ -60,13 +60,8 @@ pub async fn auth_middleware(
         return Err(ApiError::unauthorized());
     }
 
-    let tenant_id = claims
-        .acting_tenant_id
-        .ok_or_else(ApiError::unauthorized)?;
-    let acting_role = claims
-        .acting_role
-        .as_deref()
-        .unwrap_or("Admin");
+    let tenant_id = claims.acting_tenant_id.ok_or_else(ApiError::unauthorized)?;
+    let acting_role = claims.acting_role.as_deref().unwrap_or("Admin");
     let role = Role::parse(acting_role).map_err(|_| ApiError::unauthorized())?;
     let user_id = claims.acting_user_id.unwrap_or(claims.sub);
 

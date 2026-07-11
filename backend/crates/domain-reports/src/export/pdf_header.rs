@@ -3,9 +3,7 @@
 use printpdf::PdfLayerReference;
 
 use crate::export::format::{format_date_pt_br, format_money_brl};
-use crate::export::pdf_draw::{
-    self, CONTENT_W, Font, LINE, MARGIN_X, PAGE_H, PAGE_W, TOP_Y,
-};
+use crate::export::pdf_draw::{self, CONTENT_W, Font, LINE, MARGIN_X, PAGE_H, PAGE_W, TOP_Y};
 use crate::export::view::{ExportBranding, ExportMeta, ReportExportView};
 
 pub fn draw_header(
@@ -59,7 +57,15 @@ pub fn draw_meta(
     ];
     for (label, value) in rows {
         pdf_draw::text(layer, bold, 9.0, MARGIN_X, y, pdf_draw::ink(), label);
-        pdf_draw::text(layer, font, 9.0, MARGIN_X + 32.0, y, pdf_draw::ink(), &value);
+        pdf_draw::text(
+            layer,
+            font,
+            9.0,
+            MARGIN_X + 32.0,
+            y,
+            pdf_draw::ink(),
+            &value,
+        );
         y -= LINE;
     }
     y - LINE * 0.5
@@ -99,8 +105,24 @@ pub fn draw_kpis(
     ];
     for (x, value, label) in cards {
         pdf_draw::fill_rect(layer, x, bottom, x + card_w, y, pdf_draw::header_bg());
-        pdf_draw::text(layer, bold, 12.0, x + 3.0, y - 6.0, pdf_draw::brand(), &value);
-        pdf_draw::text(layer, font, 8.0, x + 3.0, y - 12.0, pdf_draw::muted(), label);
+        pdf_draw::text(
+            layer,
+            bold,
+            12.0,
+            x + 3.0,
+            y - 6.0,
+            pdf_draw::brand(),
+            &value,
+        );
+        pdf_draw::text(
+            layer,
+            font,
+            8.0,
+            x + 3.0,
+            y - 12.0,
+            pdf_draw::muted(),
+            label,
+        );
     }
     bottom - LINE
 }

@@ -41,7 +41,9 @@ pub async fn insert_maintenance_window(
     Ok(())
 }
 
-pub async fn find_active_global(pool: &PgPool) -> Result<Option<MaintenanceWindowRow>, PostgresError> {
+pub async fn find_active_global(
+    pool: &PgPool,
+) -> Result<Option<MaintenanceWindowRow>, PostgresError> {
     let row = sqlx::query_as::<_, MaintenanceRecord>(
         "SELECT id, tenant_id, message, starts_at, ends_at
          FROM ops.maintenance_windows

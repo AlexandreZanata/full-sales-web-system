@@ -91,9 +91,7 @@ impl RedisCnpjMissCache {
 impl CnpjMissCache for RedisCnpjMissCache {
     async fn is_negative(&self, cnpj: &str) -> bool {
         let mut conn = self.client.clone();
-        conn.exists(miss_key(cnpj))
-            .await
-            .unwrap_or(false)
+        conn.exists(miss_key(cnpj)).await.unwrap_or(false)
     }
 
     async fn record_negative(&self, cnpj: &str) -> Result<(), MissCacheError> {

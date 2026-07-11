@@ -38,9 +38,7 @@ pub async fn get_tenant_fraud_score(
     Ok(score)
 }
 
-pub async fn get_platform_thresholds(
-    pool: &PgPool,
-) -> Result<serde_json::Value, PostgresError> {
+pub async fn get_platform_thresholds(pool: &PgPool) -> Result<serde_json::Value, PostgresError> {
     let value = sqlx::query_scalar::<_, serde_json::Value>(
         "SELECT thresholds FROM fraud.platform_settings WHERE id = 1",
     )

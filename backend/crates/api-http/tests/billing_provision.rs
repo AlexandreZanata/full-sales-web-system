@@ -52,8 +52,9 @@ async fn contract_provision_when_asaas_fails_then_stays_provisioning_with_dead_l
         .expect("lookup");
     assert!(customer.is_none());
 
-    let count = infra_postgres::billing::count_provisioning_dead_letters(&env.admin_pool, tenant_id)
-        .await
-        .expect("dead letter count");
+    let count =
+        infra_postgres::billing::count_provisioning_dead_letters(&env.admin_pool, tenant_id)
+            .await
+            .expect("dead letter count");
     assert_eq!(count, 1);
 }

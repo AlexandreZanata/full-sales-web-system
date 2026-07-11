@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use sqlx::Row;
 use sqlx::PgPool;
+use sqlx::Row;
 use uuid::Uuid;
 
 use crate::PostgresError;

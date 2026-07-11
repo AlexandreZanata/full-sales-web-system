@@ -56,20 +56,20 @@ pub async fn start_impersonation(
         .await
         .map_err(|_| ApiError::internal())?
     {
-        return Err(ApiError::not_found_with_code("TENANT_NOT_FOUND", "Tenant not found"));
+        return Err(ApiError::not_found_with_code(
+            "TENANT_NOT_FOUND",
+            "Tenant not found",
+        ));
     }
 
     let tenant_id = TenantId::from_uuid(body.tenant_id);
-    let acting_user_id = infra_postgres::identity::find_tenant_admin_user(
-        &state.app_pool,
-        tenant_id,
-        body.user_id,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?
-    .ok_or_else(|| {
-        ApiError::not_found_with_code("USER_NOT_FOUND", "Tenant admin user not found")
-    })?;
+    let acting_user_id =
+        infra_postgres::identity::find_tenant_admin_user(&state.app_pool, tenant_id, body.user_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(|| {
+                ApiError::not_found_with_code("USER_NOT_FOUND", "Tenant admin user not found")
+            })?;
 
     let grant_id = Uuid::now_v7();
     let expires_at = Utc::now() + ChronoDuration::seconds(IMPERSONATION_TTL.as_secs() as i64);
@@ -124,12 +124,10 @@ pub async fn end_impersonation(
     ctx: AuditRequestContext,
     Json(body): Json<EndImpersonationRequest>,
 ) -> Result<http::StatusCode, ApiError> {
-    let revoked = infra_postgres::identity::revoke_impersonation_grant(
-        &state.admin_pool,
-        body.grant_id,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?;
+    let revoked =
+        infra_postgres::identity::revoke_impersonation_grant(&state.admin_pool, body.grant_id)
+            .await
+            .map_err(|_| ApiError::internal())?;
 
     if !revoked {
         return Err(ApiError::not_found());

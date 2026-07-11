@@ -26,10 +26,7 @@ pub async fn list_platform_tenants(
     _auth: PlatformAuthUser,
     Query(query): Query<TenantsQuery>,
 ) -> Result<Json<crate::list_query::CursorListResponse<TenantListItem>>, ApiError> {
-    let limit = query
-        .limit
-        .unwrap_or(DEFAULT_LIMIT)
-        .clamp(1, MAX_LIMIT);
+    let limit = query.limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
 
     let rows = infra_postgres::shared::list_tenants_platform(
         &state.app_pool,

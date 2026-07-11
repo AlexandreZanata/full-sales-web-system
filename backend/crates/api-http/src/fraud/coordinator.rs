@@ -1,7 +1,5 @@
 use application::fraud::FraudThresholds;
-use domain_fraud::{
-    FraudEvent, FraudEventType, FraudResolution, FraudSeverity,
-};
+use domain_fraud::{FraudEvent, FraudEventType, FraudResolution, FraudSeverity};
 use domain_shared::TenantId;
 use infra_redis::VelocityCounter;
 use uuid::Uuid;
@@ -16,10 +14,7 @@ pub async fn load_thresholds(state: &AppState) -> Result<FraudThresholds, ApiErr
     Ok(FraudThresholds::from_json(&json))
 }
 
-pub async fn record_event(
-    state: &AppState,
-    event: FraudEvent,
-) -> Result<(), ApiError> {
+pub async fn record_event(state: &AppState, event: FraudEvent) -> Result<(), ApiError> {
     infra_postgres::fraud::insert_fraud_event(
         &state.admin_pool,
         infra_postgres::fraud::NewFraudEvent {
@@ -94,10 +89,7 @@ pub async fn ensure_checkout_allowed(
     Ok(())
 }
 
-pub async fn check_payment_velocity(
-    state: &AppState,
-    tenant_id: TenantId,
-) -> Result<(), ApiError> {
+pub async fn check_payment_velocity(state: &AppState, tenant_id: TenantId) -> Result<(), ApiError> {
     let thresholds = load_thresholds(state).await?;
     let key = format!("fraud:velocity:payment:{}", tenant_id.as_uuid());
     let count = state
@@ -120,11 +112,7 @@ pub async fn check_payment_velocity(
     Ok(())
 }
 
-pub async fn on_login_failure(
-    state: &AppState,
-    ip: &str,
-    email: &str,
-) -> Result<(), ApiError> {
+pub async fn on_login_failure(state: &AppState, ip: &str, email: &str) -> Result<(), ApiError> {
     let thresholds = load_thresholds(state).await?;
     let ip_key = format!("fraud:velocity:login:ip:{ip}");
     let email_key = format!("fraud:velocity:login:email:{email}");
@@ -138,8 +126,8 @@ pub async fn on_login_failure(
         .increment(&email_key, thresholds.login_failure_window)
         .await
         .map_err(|_| ApiError::internal())?;
-    let breached = ip_count > thresholds.login_failure_max
-        || email_count > thresholds.login_failure_max;
+    let breached =
+        ip_count > thresholds.login_failure_max || email_count > thresholds.login_failure_max;
     if breached {
         let event = FraudEvent::new_open(
             Uuid::now_v7(),
@@ -187,7 +175,9 @@ pub async fn on_webhook_processing_failure(
     let thresholds = load_thresholds(state).await?;
     let key = format!(
         "fraud:velocity:webhook:{}",
-        tenant_id.map(|t| t.as_uuid().to_string()).unwrap_or_else(|| "platform".into())
+        tenant_id
+            .map(|t| t.as_uuid().to_string())
+            .unwrap_or_else(|| "platform".into())
     );
     let count = state
         .velocity_counter
@@ -216,7 +206,10 @@ pub fn restore_fraud_event(row: &infra_postgres::fraud::FraudEventRow) -> FraudE
         event_type: parse_event_type(&row.event_type),
         severity: parse_severity(&row.severity),
         status: parse_status(&row.status),
-        resolution: row.resolution.as_deref().and_then(|v| FraudResolution::parse(v).ok()),
+        resolution: row
+            .resolution
+            .as_deref()
+            .and_then(|v| FraudResolution::parse(v).ok()),
         resolution_note: row.resolution_note.clone(),
         metadata: row.metadata.clone(),
         reviewed_by: row.reviewed_by,

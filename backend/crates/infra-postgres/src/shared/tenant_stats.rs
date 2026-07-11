@@ -30,12 +30,11 @@ pub async fn tenant_workforce_stats(
     .bind(tenant_id.as_uuid())
     .fetch_one(&mut *tx)
     .await?;
-    let orders = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM orders.orders WHERE tenant_id = $1",
-    )
-    .bind(tenant_id.as_uuid())
-    .fetch_one(&mut *tx)
-    .await?;
+    let orders =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM orders.orders WHERE tenant_id = $1")
+            .bind(tenant_id.as_uuid())
+            .fetch_one(&mut *tx)
+            .await?;
     let mrr = sqlx::query_as::<_, MrrRecord>(
         "SELECT COALESCE(p.price_minor, 0) AS price_minor, COALESCE(p.price_currency, 'BRL') AS price_currency
          FROM billing.subscriptions s

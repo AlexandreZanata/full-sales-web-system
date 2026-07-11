@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use super::{CnpjLookupError, CnpjLookupProvider, CnpjLookupResult};
 use super::opencnpj_map::{PublicCnpjResponse, map_opencnpj_response};
+use super::{CnpjLookupError, CnpjLookupProvider, CnpjLookupResult};
 
 pub(crate) const DEFAULT_BASE_URL: &str = "https://api.comerc.app.br";
 const TIMEOUT_SECS: u64 = 15;
@@ -30,8 +30,7 @@ impl OpenCnpjLookup {
         let api_key = std::env::var("CNPJ_LOOKUP_API_KEY").map_err(|_| {
             "CNPJ_LOOKUP_API_KEY is required when CNPJ_LOOKUP_PROVIDER=opencnpj".to_string()
         })?;
-        let base_url =
-            std::env::var("CNPJ_LOOKUP_URL").unwrap_or_else(|_| DEFAULT_BASE_URL.into());
+        let base_url = std::env::var("CNPJ_LOOKUP_URL").unwrap_or_else(|_| DEFAULT_BASE_URL.into());
         Self::from_config(base_url, api_key)
     }
 
@@ -121,9 +120,7 @@ impl CnpjLookupProvider for OpenCnpjLookup {
             Ok(result) => Ok(result),
             Err(FetchFailure::GatewayTimeout) => {
                 tokio::time::sleep(std::time::Duration::from_millis(RETRY_BACKOFF_MS)).await;
-                self.fetch_once(cnpj)
-                    .await
-                    .map_err(Self::map_fetch_failure)
+                self.fetch_once(cnpj).await.map_err(Self::map_fetch_failure)
             }
             Err(other) => Err(Self::map_fetch_failure(other)),
         }

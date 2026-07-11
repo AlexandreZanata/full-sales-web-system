@@ -38,19 +38,29 @@ impl PaymentGateway for MockPaymentGateway {
         })
     }
 
-    async fn cancel_subscription(&self, req: CancelSubscriptionRequest) -> Result<(), BillingError> {
+    async fn cancel_subscription(
+        &self,
+        req: CancelSubscriptionRequest,
+    ) -> Result<(), BillingError> {
         if req.subscription_id.starts_with("sub_") {
             Ok(())
         } else {
-            Err(BillingError::InvalidRequest("subscription_not_found".into()))
+            Err(BillingError::InvalidRequest(
+                "subscription_not_found".into(),
+            ))
         }
     }
 
-    async fn attach_payment_method(&self, req: AttachPaymentMethodRequest) -> Result<(), BillingError> {
+    async fn attach_payment_method(
+        &self,
+        req: AttachPaymentMethodRequest,
+    ) -> Result<(), BillingError> {
         if req.customer_id.starts_with("cus_") && !req.credit_card_token.is_empty() {
             Ok(())
         } else {
-            Err(BillingError::InvalidRequest("invalid_payment_method".into()))
+            Err(BillingError::InvalidRequest(
+                "invalid_payment_method".into(),
+            ))
         }
     }
 
@@ -83,11 +93,17 @@ impl PaymentGateway for FailingPaymentGateway {
         Err(BillingError::UpstreamUnavailable)
     }
 
-    async fn cancel_subscription(&self, _req: CancelSubscriptionRequest) -> Result<(), BillingError> {
+    async fn cancel_subscription(
+        &self,
+        _req: CancelSubscriptionRequest,
+    ) -> Result<(), BillingError> {
         Err(BillingError::UpstreamUnavailable)
     }
 
-    async fn attach_payment_method(&self, _req: AttachPaymentMethodRequest) -> Result<(), BillingError> {
+    async fn attach_payment_method(
+        &self,
+        _req: AttachPaymentMethodRequest,
+    ) -> Result<(), BillingError> {
         Err(BillingError::UpstreamUnavailable)
     }
 

@@ -11,7 +11,8 @@ use support::{platform_access_token, request, seed_admin, seed_driver, setup};
 async fn auth_matrix_driver_cannot_platform_login_with_tenant_credentials() {
     let env = setup().await;
     let (_, driver_token) = seed_driver(&env, "driver-platform@test.com").await;
-    let (status, body) = request(&env, "GET", "/v1/platform/users", Some(&driver_token), None).await;
+    let (status, body) =
+        request(&env, "GET", "/v1/platform/users", Some(&driver_token), None).await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
     assert_eq!(body["error"]["code"], "UNAUTHORIZED");
 }

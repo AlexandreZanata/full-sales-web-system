@@ -29,7 +29,7 @@ impl TotpVerifier {
             Some("FullSales".to_owned()),
             "platform".to_owned(),
         )
-            .map_err(|_| TotpError::InvalidSecret)?;
+        .map_err(|_| TotpError::InvalidSecret)?;
         Ok(Self { inner })
     }
 

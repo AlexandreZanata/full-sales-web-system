@@ -1,6 +1,6 @@
+use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::Json;
 use serde::Serialize;
 use std::collections::BTreeMap;
 
@@ -34,7 +34,9 @@ pub async fn readiness(State(state): State<AppState>) -> (StatusCode, Json<Readi
     )
 }
 
-pub fn components_from_probes(outcomes: &[ProbeOutcome]) -> BTreeMap<&'static str, ComponentStatus> {
+pub fn components_from_probes(
+    outcomes: &[ProbeOutcome],
+) -> BTreeMap<&'static str, ComponentStatus> {
     outcomes
         .iter()
         .map(|probe| (probe.name, ComponentStatus::from(probe)))

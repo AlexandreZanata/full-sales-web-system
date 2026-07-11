@@ -1,8 +1,8 @@
+use axum::Json;
 use axum::extract::State;
 use axum::http::{Request, StatusCode, Uri};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
 use serde::Serialize;
 
 use crate::auth::AuthUser;
@@ -77,10 +77,7 @@ fn tenant_from_request(request: &Request<axum::body::Body>) -> Option<domain_sha
     if let Some(auth) = request.extensions().get::<AuthUser>() {
         return Some(auth.tenant_id);
     }
-    request
-        .extensions()
-        .get::<HostTenant>()
-        .map(|host| host.0)
+    request.extensions().get::<HostTenant>().map(|host| host.0)
 }
 
 fn maintenance_response(message: &str, ends_at: Option<chrono::DateTime<chrono::Utc>>) -> Response {

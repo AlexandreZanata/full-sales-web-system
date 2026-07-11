@@ -575,12 +575,7 @@ pub async fn seed_portal_home_content(env: &TestEnv) -> PortalHomeSeed {
     let object_key = "portal/banners/test-hero.webp";
     env.state
         .storage
-        .put_object(
-            "catalog",
-            object_key,
-            &minimal_webp_bytes(),
-            "image/webp",
-        )
+        .put_object("catalog", object_key, &minimal_webp_bytes(), "image/webp")
         .await
         .expect("banner object");
 

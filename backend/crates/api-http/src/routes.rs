@@ -8,26 +8,10 @@ use crate::admin_orders::{
     approve_order, cancel_order, get_order, list_orders, reject_order_handler, start_picking,
 };
 use crate::audit::list_audit_events;
+use crate::audit_context::audit_context_middleware;
+use crate::auth::{auth_middleware, login, logout, refresh};
 use crate::billing::asaas_webhook;
 use crate::billing::{attach_payment_method, get_invoice, get_subscription, list_invoices};
-use crate::health::readiness;
-use crate::maintenance::maintenance_middleware;
-use crate::audit_context::audit_context_middleware;
-use crate::platform::{
-    add_blocklist_entry, create_tenant, delete_blocklist_entry, disable_platform_user,
-    enable_platform_user, end_impersonation, get_platform_user, get_tenant, get_tenant_stats,
-    get_tenant_export, health_history, health_matrix, list_fraud_events, list_platform_audit_events,
-    list_platform_tenants, list_platform_users, list_tenant_orders_support,
-    list_tenant_products_support, list_tenant_sales_support, list_tenant_workforce,
-    offboard_tenant, patch_platform_user, patch_tenant, patch_tenant_features,
-    platform_login, platform_logout, platform_mfa_verify, platform_refresh, reactivate_tenant,
-    reset_platform_user_password, resolve_fraud_event, run_dunning_job, run_offboarding_job,
-    schedule_maintenance, start_impersonation, start_tenant_export, suspend_tenant,
-};
-use crate::platform::export::{get_settings_data_export, start_settings_data_export};
-use crate::platform::auth::platform_auth_middleware;
-use crate::auth::{auth_middleware, login, logout, refresh};
-use crate::tenant_gate::tenant_gate_middleware;
 use crate::catalog_events::stream_catalog_events;
 use crate::categories::{
     create_category, delete_category, get_category, list_categories, reorder_categories,
@@ -42,14 +26,29 @@ use crate::deliveries::{
     confirm_delivery, create_order_delivery, get_delivery, list_deliveries, start_delivery_transit,
 };
 use crate::domains::{
-    create_domain, delete_domain, force_verify_platform_domain, get_domain_verify, host_tenant_middleware,
-    list_domains, list_platform_domains, patch_platform_domain, run_domain_verification_job_handler,
-    set_primary_domain,
+    create_domain, delete_domain, force_verify_platform_domain, get_domain_verify,
+    host_tenant_middleware, list_domains, list_platform_domains, patch_platform_domain,
+    run_domain_verification_job_handler, set_primary_domain,
 };
 use crate::fraud::list_fraud_alerts;
+use crate::health::readiness;
 use crate::inventory::{get_stock_balance, list_movements, list_stock_balances, record_movement};
+use crate::maintenance::maintenance_middleware;
 use crate::media::{
     get_media_content, get_media_url, get_public_product_media_content, upload_media,
+};
+use crate::platform::auth::platform_auth_middleware;
+use crate::platform::export::{get_settings_data_export, start_settings_data_export};
+use crate::platform::{
+    add_blocklist_entry, create_tenant, delete_blocklist_entry, disable_platform_user,
+    enable_platform_user, end_impersonation, get_platform_user, get_tenant, get_tenant_export,
+    get_tenant_stats, health_history, health_matrix, list_fraud_events, list_platform_audit_events,
+    list_platform_tenants, list_platform_users, list_tenant_orders_support,
+    list_tenant_products_support, list_tenant_sales_support, list_tenant_workforce,
+    offboard_tenant, patch_platform_user, patch_tenant, patch_tenant_features, platform_login,
+    platform_logout, platform_mfa_verify, platform_refresh, reactivate_tenant,
+    reset_platform_user_password, resolve_fraud_event, run_dunning_job, run_offboarding_job,
+    schedule_maintenance, start_impersonation, start_tenant_export, suspend_tenant,
 };
 use crate::portal::{
     cancel_portal_order, create_portal_order, get_portal_category_by_slug, get_portal_order,
@@ -72,11 +71,12 @@ use crate::sales::{
 };
 use crate::settings::{
     connect_asaas, disconnect_asaas, get_payment_balance, get_payment_settings,
-    get_settings, get_public_settings, list_payment_transactions, patch_settings,
+    get_public_settings, get_settings, list_payment_transactions, patch_settings,
     update_payment_settings, update_site_logo,
 };
-use crate::status::public_status;
 use crate::state::AppState;
+use crate::status::public_status;
+use crate::tenant_gate::tenant_gate_middleware;
 use crate::users::{
     create_user, deactivate_user, get_user, list_users, upsert_driver_profile,
     upsert_seller_profile,
@@ -125,8 +125,14 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/auth/login", post(login))
         .route("/v1/auth/refresh", post(refresh))
         .route("/v1/public/products", get(list_public_products))
-        .route("/v1/public/products/featured", get(list_public_featured_products))
-        .route("/v1/public/products/popular", get(list_public_popular_products))
+        .route(
+            "/v1/public/products/featured",
+            get(list_public_featured_products),
+        )
+        .route(
+            "/v1/public/products/popular",
+            get(list_public_popular_products),
+        )
         .route("/v1/public/products/{id}", get(get_public_product_by_id))
         .route("/v1/public/banners", get(list_public_banners))
         .route("/v1/public/promotions", get(list_public_promotions))
@@ -201,7 +207,10 @@ pub fn v1_router(state: AppState) -> Router {
                 .delete(delete_category),
         )
         .route("/v1/categories/{id}/image", put(update_category_image))
-        .route("/v1/portal/banners", get(list_admin_banners).post(create_admin_banner))
+        .route(
+            "/v1/portal/banners",
+            get(list_admin_banners).post(create_admin_banner),
+        )
         .route(
             "/v1/portal/banners/{id}",
             patch(update_admin_banner).delete(delete_admin_banner),
@@ -275,11 +284,11 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/media/{id}/content", get(get_media_content))
         .route("/v1/settings", get(get_settings).patch(patch_settings))
         .route("/v1/settings/logo", put(update_site_logo))
-        .route("/v1/settings/domains", get(list_domains).post(create_domain))
         .route(
-            "/v1/settings/domains/{id}/verify",
-            get(get_domain_verify),
+            "/v1/settings/domains",
+            get(list_domains).post(create_domain),
         )
+        .route("/v1/settings/domains/{id}/verify", get(get_domain_verify))
         .route(
             "/v1/settings/domains/{id}/set-primary",
             post(set_primary_domain),
@@ -336,8 +345,14 @@ pub fn v1_router(state: AppState) -> Router {
     let platform_protected = Router::new()
         .route("/v1/platform/auth/logout", post(platform_logout))
         .route("/v1/platform/users", get(list_platform_users))
-        .route("/v1/platform/users/{id}", get(get_platform_user).patch(patch_platform_user))
-        .route("/v1/platform/users/{id}/disable", post(disable_platform_user))
+        .route(
+            "/v1/platform/users/{id}",
+            get(get_platform_user).patch(patch_platform_user),
+        )
+        .route(
+            "/v1/platform/users/{id}/disable",
+            post(disable_platform_user),
+        )
         .route("/v1/platform/users/{id}/enable", post(enable_platform_user))
         .route(
             "/v1/platform/users/{id}/reset-password",
@@ -347,15 +362,36 @@ pub fn v1_router(state: AppState) -> Router {
             "/v1/platform/tenants",
             get(list_platform_tenants).post(create_tenant),
         )
-        .route("/v1/platform/tenants/{id}", get(get_tenant).patch(patch_tenant))
-        .route("/v1/platform/tenants/{id}/users", get(list_tenant_workforce))
+        .route(
+            "/v1/platform/tenants/{id}",
+            get(get_tenant).patch(patch_tenant),
+        )
+        .route(
+            "/v1/platform/tenants/{id}/users",
+            get(list_tenant_workforce),
+        )
         .route("/v1/platform/tenants/{id}/stats", get(get_tenant_stats))
-        .route("/v1/platform/tenants/{id}/features", patch(patch_tenant_features))
-        .route("/v1/platform/tenants/{id}/orders", get(list_tenant_orders_support))
-        .route("/v1/platform/tenants/{id}/sales", get(list_tenant_sales_support))
-        .route("/v1/platform/tenants/{id}/products", get(list_tenant_products_support))
+        .route(
+            "/v1/platform/tenants/{id}/features",
+            patch(patch_tenant_features),
+        )
+        .route(
+            "/v1/platform/tenants/{id}/orders",
+            get(list_tenant_orders_support),
+        )
+        .route(
+            "/v1/platform/tenants/{id}/sales",
+            get(list_tenant_sales_support),
+        )
+        .route(
+            "/v1/platform/tenants/{id}/products",
+            get(list_tenant_products_support),
+        )
         .route("/v1/platform/audit/events", get(list_platform_audit_events))
-        .route("/v1/platform/tenants/{id}/export", post(start_tenant_export))
+        .route(
+            "/v1/platform/tenants/{id}/export",
+            post(start_tenant_export),
+        )
         .route(
             "/v1/platform/tenants/{id}/export/{jobId}",
             get(get_tenant_export),
@@ -364,7 +400,10 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/platform/health/matrix", get(health_matrix))
         .route("/v1/platform/health/history", get(health_history))
         .route("/v1/platform/tenants/{id}/suspend", post(suspend_tenant))
-        .route("/v1/platform/tenants/{id}/reactivate", post(reactivate_tenant))
+        .route(
+            "/v1/platform/tenants/{id}/reactivate",
+            post(reactivate_tenant),
+        )
         .route("/v1/platform/tenants/{id}/offboard", post(offboard_tenant))
         .route("/v1/platform/jobs/offboarding", post(run_offboarding_job))
         .route("/v1/platform/jobs/dunning", post(run_dunning_job))
@@ -380,16 +419,16 @@ pub fn v1_router(state: AppState) -> Router {
             post(resolve_fraud_event),
         )
         .route("/v1/platform/domains", get(list_platform_domains))
-        .route(
-            "/v1/platform/domains/{id}",
-            patch(patch_platform_domain),
-        )
+        .route("/v1/platform/domains/{id}", patch(patch_platform_domain))
         .route(
             "/v1/platform/domains/{id}/force-verify",
             post(force_verify_platform_domain),
         )
         .route("/v1/platform/blocklist", post(add_blocklist_entry))
-        .route("/v1/platform/blocklist/{id}", delete(delete_blocklist_entry))
+        .route(
+            "/v1/platform/blocklist/{id}",
+            delete(delete_blocklist_entry),
+        )
         .layer(axum::middleware::from_fn(audit_context_middleware))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),

@@ -1,4 +1,7 @@
-use axum::{Json, extract::{Path, State}};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -42,7 +45,10 @@ pub async fn patch_tenant_features(
         .ok_or_else(ApiError::not_found)?;
     if let Some(tier) = &body.api_rate_tier {
         if !matches!(tier.as_str(), "standard" | "pro" | "enterprise") {
-            return Err(ApiError::bad_request("VALIDATION_ERROR", "Invalid apiRateTier"));
+            return Err(ApiError::bad_request(
+                "VALIDATION_ERROR",
+                "Invalid apiRateTier",
+            ));
         }
     }
     application::feature_flags::merge_feature_flags(

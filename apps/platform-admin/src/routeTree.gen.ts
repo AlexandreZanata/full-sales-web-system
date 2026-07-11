@@ -8,141 +8,146 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root';
-import { Route as LoginRouteImport } from './routes/login';
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated';
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index';
-import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index';
-import { Route as AuthenticatedTenantsIndexRouteImport } from './routes/_authenticated/tenants/index';
-import { Route as AuthenticatedMaintenanceIndexRouteImport } from './routes/_authenticated/maintenance/index';
-import { Route as AuthenticatedHealthIndexRouteImport } from './routes/_authenticated/health/index';
-import { Route as AuthenticatedFraudIndexRouteImport } from './routes/_authenticated/fraud/index';
-import { Route as AuthenticatedDomainsIndexRouteImport } from './routes/_authenticated/domains/index';
-import { Route as AuthenticatedBillingIndexRouteImport } from './routes/_authenticated/billing/index';
-import { Route as AuthenticatedAuditIndexRouteImport } from './routes/_authenticated/audit/index';
-import { Route as AuthenticatedUsersIdRouteImport } from './routes/_authenticated/users/$id';
-import { Route as AuthenticatedTenantsNewRouteImport } from './routes/_authenticated/tenants/new';
-import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants/$id';
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
+import { Route as AuthenticatedTenantsIndexRouteImport } from './routes/_authenticated/tenants/index'
+import { Route as AuthenticatedMaintenanceIndexRouteImport } from './routes/_authenticated/maintenance/index'
+import { Route as AuthenticatedHealthIndexRouteImport } from './routes/_authenticated/health/index'
+import { Route as AuthenticatedFraudIndexRouteImport } from './routes/_authenticated/fraud/index'
+import { Route as AuthenticatedDomainsIndexRouteImport } from './routes/_authenticated/domains/index'
+import { Route as AuthenticatedBillingIndexRouteImport } from './routes/_authenticated/billing/index'
+import { Route as AuthenticatedAuditIndexRouteImport } from './routes/_authenticated/audit/index'
+import { Route as AuthenticatedUsersIdRouteImport } from './routes/_authenticated/users/$id'
+import { Route as AuthenticatedTenantsNewRouteImport } from './routes/_authenticated/tenants/new'
+import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants/$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
-const AuthenticatedTenantsIndexRoute = AuthenticatedTenantsIndexRouteImport.update({
-  id: '/tenants/',
-  path: '/tenants/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
-const AuthenticatedMaintenanceIndexRoute = AuthenticatedMaintenanceIndexRouteImport.update({
-  id: '/maintenance/',
-  path: '/maintenance/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
-const AuthenticatedHealthIndexRoute = AuthenticatedHealthIndexRouteImport.update({
-  id: '/health/',
-  path: '/health/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
+const AuthenticatedTenantsIndexRoute =
+  AuthenticatedTenantsIndexRouteImport.update({
+    id: '/tenants/',
+    path: '/tenants/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMaintenanceIndexRoute =
+  AuthenticatedMaintenanceIndexRouteImport.update({
+    id: '/maintenance/',
+    path: '/maintenance/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedHealthIndexRoute =
+  AuthenticatedHealthIndexRouteImport.update({
+    id: '/health/',
+    path: '/health/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedFraudIndexRoute = AuthenticatedFraudIndexRouteImport.update({
   id: '/fraud/',
   path: '/fraud/',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
-const AuthenticatedDomainsIndexRoute = AuthenticatedDomainsIndexRouteImport.update({
-  id: '/domains/',
-  path: '/domains/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
-const AuthenticatedBillingIndexRoute = AuthenticatedBillingIndexRouteImport.update({
-  id: '/billing/',
-  path: '/billing/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
+const AuthenticatedDomainsIndexRoute =
+  AuthenticatedDomainsIndexRouteImport.update({
+    id: '/domains/',
+    path: '/domains/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBillingIndexRoute =
+  AuthenticatedBillingIndexRouteImport.update({
+    id: '/billing/',
+    path: '/billing/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAuditIndexRoute = AuthenticatedAuditIndexRouteImport.update({
   id: '/audit/',
   path: '/audit/',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 const AuthenticatedUsersIdRoute = AuthenticatedUsersIdRouteImport.update({
   id: '/users/$id',
   path: '/users/$id',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 const AuthenticatedTenantsNewRoute = AuthenticatedTenantsNewRouteImport.update({
   id: '/tenants/new',
   path: '/tenants/new',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 const AuthenticatedTenantsIdRoute = AuthenticatedTenantsIdRouteImport.update({
   id: '/tenants/$id',
   path: '/tenants/$id',
   getParentRoute: () => AuthenticatedRoute,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute;
-  '/login': typeof LoginRoute;
-  '/tenants/$id': typeof AuthenticatedTenantsIdRoute;
-  '/tenants/new': typeof AuthenticatedTenantsNewRoute;
-  '/users/$id': typeof AuthenticatedUsersIdRoute;
-  '/audit/': typeof AuthenticatedAuditIndexRoute;
-  '/billing/': typeof AuthenticatedBillingIndexRoute;
-  '/domains/': typeof AuthenticatedDomainsIndexRoute;
-  '/fraud/': typeof AuthenticatedFraudIndexRoute;
-  '/health/': typeof AuthenticatedHealthIndexRoute;
-  '/maintenance/': typeof AuthenticatedMaintenanceIndexRoute;
-  '/tenants/': typeof AuthenticatedTenantsIndexRoute;
-  '/users/': typeof AuthenticatedUsersIndexRoute;
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/tenants/new': typeof AuthenticatedTenantsNewRoute
+  '/users/$id': typeof AuthenticatedUsersIdRoute
+  '/audit/': typeof AuthenticatedAuditIndexRoute
+  '/billing/': typeof AuthenticatedBillingIndexRoute
+  '/domains/': typeof AuthenticatedDomainsIndexRoute
+  '/fraud/': typeof AuthenticatedFraudIndexRoute
+  '/health/': typeof AuthenticatedHealthIndexRoute
+  '/maintenance/': typeof AuthenticatedMaintenanceIndexRoute
+  '/tenants/': typeof AuthenticatedTenantsIndexRoute
+  '/users/': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute;
-  '/': typeof AuthenticatedIndexRoute;
-  '/tenants/$id': typeof AuthenticatedTenantsIdRoute;
-  '/tenants/new': typeof AuthenticatedTenantsNewRoute;
-  '/users/$id': typeof AuthenticatedUsersIdRoute;
-  '/audit': typeof AuthenticatedAuditIndexRoute;
-  '/billing': typeof AuthenticatedBillingIndexRoute;
-  '/domains': typeof AuthenticatedDomainsIndexRoute;
-  '/fraud': typeof AuthenticatedFraudIndexRoute;
-  '/health': typeof AuthenticatedHealthIndexRoute;
-  '/maintenance': typeof AuthenticatedMaintenanceIndexRoute;
-  '/tenants': typeof AuthenticatedTenantsIndexRoute;
-  '/users': typeof AuthenticatedUsersIndexRoute;
+  '/login': typeof LoginRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/tenants/new': typeof AuthenticatedTenantsNewRoute
+  '/users/$id': typeof AuthenticatedUsersIdRoute
+  '/audit': typeof AuthenticatedAuditIndexRoute
+  '/billing': typeof AuthenticatedBillingIndexRoute
+  '/domains': typeof AuthenticatedDomainsIndexRoute
+  '/fraud': typeof AuthenticatedFraudIndexRoute
+  '/health': typeof AuthenticatedHealthIndexRoute
+  '/maintenance': typeof AuthenticatedMaintenanceIndexRoute
+  '/tenants': typeof AuthenticatedTenantsIndexRoute
+  '/users': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  '/_authenticated': typeof AuthenticatedRouteWithChildren;
-  '/login': typeof LoginRoute;
-  '/_authenticated/': typeof AuthenticatedIndexRoute;
-  '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute;
-  '/_authenticated/tenants/new': typeof AuthenticatedTenantsNewRoute;
-  '/_authenticated/users/$id': typeof AuthenticatedUsersIdRoute;
-  '/_authenticated/audit/': typeof AuthenticatedAuditIndexRoute;
-  '/_authenticated/billing/': typeof AuthenticatedBillingIndexRoute;
-  '/_authenticated/domains/': typeof AuthenticatedDomainsIndexRoute;
-  '/_authenticated/fraud/': typeof AuthenticatedFraudIndexRoute;
-  '/_authenticated/health/': typeof AuthenticatedHealthIndexRoute;
-  '/_authenticated/maintenance/': typeof AuthenticatedMaintenanceIndexRoute;
-  '/_authenticated/tenants/': typeof AuthenticatedTenantsIndexRoute;
-  '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute;
+  __root__: typeof rootRouteImport
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/_authenticated/tenants/new': typeof AuthenticatedTenantsNewRoute
+  '/_authenticated/users/$id': typeof AuthenticatedUsersIdRoute
+  '/_authenticated/audit/': typeof AuthenticatedAuditIndexRoute
+  '/_authenticated/billing/': typeof AuthenticatedBillingIndexRoute
+  '/_authenticated/domains/': typeof AuthenticatedDomainsIndexRoute
+  '/_authenticated/fraud/': typeof AuthenticatedFraudIndexRoute
+  '/_authenticated/health/': typeof AuthenticatedHealthIndexRoute
+  '/_authenticated/maintenance/': typeof AuthenticatedMaintenanceIndexRoute
+  '/_authenticated/tenants/': typeof AuthenticatedTenantsIndexRoute
+  '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
@@ -156,8 +161,8 @@ export interface FileRouteTypes {
     | '/health/'
     | '/maintenance/'
     | '/tenants/'
-    | '/users/';
-  fileRoutesByTo: FileRoutesByTo;
+    | '/users/'
+  fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/'
@@ -171,7 +176,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/maintenance'
     | '/tenants'
-    | '/users';
+    | '/users'
   id:
     | '__root__'
     | '/_authenticated'
@@ -187,130 +192,130 @@ export interface FileRouteTypes {
     | '/_authenticated/health/'
     | '/_authenticated/maintenance/'
     | '/_authenticated/tenants/'
-    | '/_authenticated/users/';
-  fileRoutesById: FileRoutesById;
+    | '/_authenticated/users/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren;
-  LoginRoute: typeof LoginRoute;
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/login': {
-      id: '/login';
-      path: '/login';
-      fullPath: '/login';
-      preLoaderRoute: typeof LoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
-      id: '/_authenticated';
-      path: '';
-      fullPath: '/';
-      preLoaderRoute: typeof AuthenticatedRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/': {
-      id: '/_authenticated/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/users/': {
-      id: '/_authenticated/users/';
-      path: '/users';
-      fullPath: '/users/';
-      preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/users/'
+      path: '/users'
+      fullPath: '/users/'
+      preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/tenants/': {
-      id: '/_authenticated/tenants/';
-      path: '/tenants';
-      fullPath: '/tenants/';
-      preLoaderRoute: typeof AuthenticatedTenantsIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/tenants/'
+      path: '/tenants'
+      fullPath: '/tenants/'
+      preLoaderRoute: typeof AuthenticatedTenantsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/maintenance/': {
-      id: '/_authenticated/maintenance/';
-      path: '/maintenance';
-      fullPath: '/maintenance/';
-      preLoaderRoute: typeof AuthenticatedMaintenanceIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/maintenance/'
+      path: '/maintenance'
+      fullPath: '/maintenance/'
+      preLoaderRoute: typeof AuthenticatedMaintenanceIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/health/': {
-      id: '/_authenticated/health/';
-      path: '/health';
-      fullPath: '/health/';
-      preLoaderRoute: typeof AuthenticatedHealthIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/health/'
+      path: '/health'
+      fullPath: '/health/'
+      preLoaderRoute: typeof AuthenticatedHealthIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/fraud/': {
-      id: '/_authenticated/fraud/';
-      path: '/fraud';
-      fullPath: '/fraud/';
-      preLoaderRoute: typeof AuthenticatedFraudIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/fraud/'
+      path: '/fraud'
+      fullPath: '/fraud/'
+      preLoaderRoute: typeof AuthenticatedFraudIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/domains/': {
-      id: '/_authenticated/domains/';
-      path: '/domains';
-      fullPath: '/domains/';
-      preLoaderRoute: typeof AuthenticatedDomainsIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/domains/'
+      path: '/domains'
+      fullPath: '/domains/'
+      preLoaderRoute: typeof AuthenticatedDomainsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/billing/': {
-      id: '/_authenticated/billing/';
-      path: '/billing';
-      fullPath: '/billing/';
-      preLoaderRoute: typeof AuthenticatedBillingIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/billing/'
+      path: '/billing'
+      fullPath: '/billing/'
+      preLoaderRoute: typeof AuthenticatedBillingIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/audit/': {
-      id: '/_authenticated/audit/';
-      path: '/audit';
-      fullPath: '/audit/';
-      preLoaderRoute: typeof AuthenticatedAuditIndexRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/audit/'
+      path: '/audit'
+      fullPath: '/audit/'
+      preLoaderRoute: typeof AuthenticatedAuditIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/users/$id': {
-      id: '/_authenticated/users/$id';
-      path: '/users/$id';
-      fullPath: '/users/$id';
-      preLoaderRoute: typeof AuthenticatedUsersIdRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/users/$id'
+      path: '/users/$id'
+      fullPath: '/users/$id'
+      preLoaderRoute: typeof AuthenticatedUsersIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/tenants/new': {
-      id: '/_authenticated/tenants/new';
-      path: '/tenants/new';
-      fullPath: '/tenants/new';
-      preLoaderRoute: typeof AuthenticatedTenantsNewRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/tenants/new'
+      path: '/tenants/new'
+      fullPath: '/tenants/new'
+      preLoaderRoute: typeof AuthenticatedTenantsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/tenants/$id': {
-      id: '/_authenticated/tenants/$id';
-      path: '/tenants/$id';
-      fullPath: '/tenants/$id';
-      preLoaderRoute: typeof AuthenticatedTenantsIdRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
+      id: '/_authenticated/tenants/$id'
+      path: '/tenants/$id'
+      fullPath: '/tenants/$id'
+      preLoaderRoute: typeof AuthenticatedTenantsIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute;
-  AuthenticatedTenantsIdRoute: typeof AuthenticatedTenantsIdRoute;
-  AuthenticatedTenantsNewRoute: typeof AuthenticatedTenantsNewRoute;
-  AuthenticatedUsersIdRoute: typeof AuthenticatedUsersIdRoute;
-  AuthenticatedAuditIndexRoute: typeof AuthenticatedAuditIndexRoute;
-  AuthenticatedBillingIndexRoute: typeof AuthenticatedBillingIndexRoute;
-  AuthenticatedDomainsIndexRoute: typeof AuthenticatedDomainsIndexRoute;
-  AuthenticatedFraudIndexRoute: typeof AuthenticatedFraudIndexRoute;
-  AuthenticatedHealthIndexRoute: typeof AuthenticatedHealthIndexRoute;
-  AuthenticatedMaintenanceIndexRoute: typeof AuthenticatedMaintenanceIndexRoute;
-  AuthenticatedTenantsIndexRoute: typeof AuthenticatedTenantsIndexRoute;
-  AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute;
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedTenantsIdRoute: typeof AuthenticatedTenantsIdRoute
+  AuthenticatedTenantsNewRoute: typeof AuthenticatedTenantsNewRoute
+  AuthenticatedUsersIdRoute: typeof AuthenticatedUsersIdRoute
+  AuthenticatedAuditIndexRoute: typeof AuthenticatedAuditIndexRoute
+  AuthenticatedBillingIndexRoute: typeof AuthenticatedBillingIndexRoute
+  AuthenticatedDomainsIndexRoute: typeof AuthenticatedDomainsIndexRoute
+  AuthenticatedFraudIndexRoute: typeof AuthenticatedFraudIndexRoute
+  AuthenticatedHealthIndexRoute: typeof AuthenticatedHealthIndexRoute
+  AuthenticatedMaintenanceIndexRoute: typeof AuthenticatedMaintenanceIndexRoute
+  AuthenticatedTenantsIndexRoute: typeof AuthenticatedTenantsIndexRoute
+  AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -326,16 +331,16 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMaintenanceIndexRoute: AuthenticatedMaintenanceIndexRoute,
   AuthenticatedTenantsIndexRoute: AuthenticatedTenantsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
-};
+}
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
-);
+)
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()

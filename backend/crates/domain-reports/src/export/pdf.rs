@@ -6,9 +6,7 @@ use printpdf::{BuiltinFont, Mm, PdfDocument};
 
 use crate::export::csv::export_filename;
 use crate::export::error::ReportExportError;
-use crate::export::pdf_body::{
-    draw_footer, draw_sales_heading, draw_settlement, draw_table_row,
-};
+use crate::export::pdf_body::{draw_footer, draw_sales_heading, draw_settlement, draw_table_row};
 use crate::export::pdf_draw::{self, TOP_Y};
 use crate::export::pdf_header::{draw_header, draw_kpis, draw_meta};
 use crate::export::view::{
@@ -23,8 +21,7 @@ pub fn render_pdf(
     meta: &ExportMeta,
     branding: &ExportBranding,
 ) -> Result<RenderedExport, ReportExportError> {
-    let (doc, page1, layer1) =
-        PdfDocument::new("Report export", Mm(PAGE_W), Mm(PAGE_H), "Layer 1");
+    let (doc, page1, layer1) = PdfDocument::new("Report export", Mm(PAGE_W), Mm(PAGE_H), "Layer 1");
     let font = doc
         .add_builtin_font(BuiltinFont::Helvetica)
         .map_err(|_| ReportExportError::RenderFailed)?;
@@ -64,7 +61,13 @@ pub fn render_pdf(
     }
 
     if view.sales.is_empty() {
-        y = draw_table_row(&layer, &font, y, 0, &["No sales in this period", "", "", ""]);
+        y = draw_table_row(
+            &layer,
+            &font,
+            y,
+            0,
+            &["No sales in this period", "", "", ""],
+        );
     }
 
     y -= pdf_draw::LINE;

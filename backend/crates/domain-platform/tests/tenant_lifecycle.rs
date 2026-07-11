@@ -5,12 +5,9 @@ use uuid::Uuid;
 
 #[test]
 fn given_provisioning_when_activate_trial_then_trial() {
-    let mut tenant = Tenant::new_provisioning(
-        TenantId::generate(),
-        "Acme LTDA".into(),
-        "Acme".into(),
-    )
-    .expect("tenant");
+    let mut tenant =
+        Tenant::new_provisioning(TenantId::generate(), "Acme LTDA".into(), "Acme".into())
+            .expect("tenant");
     let plan = Uuid::now_v7();
     tenant
         .activate_trial(plan, Utc::now() + Duration::days(14))
@@ -22,9 +19,7 @@ fn given_provisioning_when_activate_trial_then_trial() {
 #[test]
 fn given_active_when_suspend_then_suspended() {
     let mut tenant = sample_active();
-    tenant
-        .suspend("fraud review", Utc::now())
-        .expect("suspend");
+    tenant.suspend("fraud review", Utc::now()).expect("suspend");
     assert_eq!(tenant.status, TenantStatus::Suspended);
 }
 
@@ -71,7 +66,9 @@ fn given_suspended_when_create_sale_gate_then_blocked() {
 #[test]
 fn given_past_due_when_mutations_then_allowed() {
     let mut tenant = sample_active();
-    tenant.transition_to(TenantStatus::PastDue).expect("past due");
+    tenant
+        .transition_to(TenantStatus::PastDue)
+        .expect("past due");
     tenant.ensure_mutations_allowed().expect("ok");
 }
 
@@ -83,14 +80,9 @@ fn given_short_suspend_reason_when_suspend_then_error() {
 }
 
 fn sample_active() -> Tenant {
-    let mut tenant = Tenant::new_provisioning(
-        TenantId::generate(),
-        "Acme LTDA".into(),
-        "Acme".into(),
-    )
-    .expect("tenant");
-    tenant
-        .activate_paid(Uuid::now_v7())
-        .expect("activate");
+    let mut tenant =
+        Tenant::new_provisioning(TenantId::generate(), "Acme LTDA".into(), "Acme".into())
+            .expect("tenant");
+    tenant.activate_paid(Uuid::now_v7()).expect("activate");
     tenant
 }

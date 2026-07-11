@@ -13,9 +13,7 @@ use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::state::AppState;
 
-use super::products::{
-    portal_product_from_row, require_commerce_contact,
-};
+use super::products::{portal_product_from_row, require_commerce_contact};
 
 #[derive(Serialize)]
 pub struct PortalProductDetailResponse {

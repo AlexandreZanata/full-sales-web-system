@@ -2,9 +2,7 @@
 
 use std::time::Duration;
 
-use application::billing::{
-    CreateCustomerRequest, CreateSubscriptionRequest, PaymentGateway,
-};
+use application::billing::{CreateCustomerRequest, CreateSubscriptionRequest, PaymentGateway};
 use infra_asaas::{AsaasClient, AsaasConfig};
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};

@@ -1,6 +1,6 @@
 use domain_billing::{
-    BillingError, BillingInterval, PaymentMethodToggles, SubscriptionPlan,
-    TenantPaymentSettings, ensure_online_payments_allowed,
+    BillingError, BillingInterval, PaymentMethodToggles, SubscriptionPlan, TenantPaymentSettings,
+    ensure_online_payments_allowed,
 };
 use domain_shared::TenantId;
 use uuid::Uuid;

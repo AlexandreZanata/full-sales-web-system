@@ -12,9 +12,9 @@ pub mod media_bytes;
 mod audit;
 mod catalog;
 mod commerces;
+mod deliveries;
 mod demo_catalog;
 mod demo_products;
-mod deliveries;
 mod error;
 mod foundation;
 pub mod ids;
@@ -62,8 +62,11 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
             crate::ids::tenant_id(),
             &catalog,
         )
+        .await
+        .map_err(|e| wrap_step("portal_content_backfill", e))?;
+        platform_admin::ensure_platform_admin(&pools.admin)
             .await
-            .map_err(|e| wrap_step("portal_content_backfill", e))?;
+            .map_err(|e| wrap_step("platform_admin_backfill", e))?;
         return Ok(());
     }
 
@@ -89,16 +92,16 @@ pub async fn seed_dev_dataset(pools: &SeedPools) -> DevSeedResult<()> {
         &users,
         &commerces,
     )
-        .await
-        .map_err(|e| wrap_step("catalog", e))?;
+    .await
+    .map_err(|e| wrap_step("catalog", e))?;
     portal_content::seed_portal_home_content(
         &pools.app,
         &pools.admin,
         foundation.tenant_id,
         &catalog,
     )
-        .await
-        .map_err(|e| wrap_step("portal_content", e))?;
+    .await
+    .map_err(|e| wrap_step("portal_content", e))?;
     orders::seed_orders(
         &pools.app,
         foundation.tenant_id,

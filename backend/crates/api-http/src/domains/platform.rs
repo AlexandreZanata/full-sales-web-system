@@ -111,10 +111,14 @@ pub async fn patch_platform_domain(
     if let Some(status) = body.status.as_deref() {
         match status {
             "Active" => {
-                domain.activate(now).map_err(|_| ApiError::bad_request("INVALID_TRANSITION", "Cannot activate"))?;
+                domain
+                    .activate(now)
+                    .map_err(|_| ApiError::bad_request("INVALID_TRANSITION", "Cannot activate"))?;
             }
             "Detached" => {
-                domain.detach(now).map_err(|_| ApiError::bad_request("INVALID_TRANSITION", "Cannot detach"))?;
+                domain
+                    .detach(now)
+                    .map_err(|_| ApiError::bad_request("INVALID_TRANSITION", "Cannot detach"))?;
             }
             _ => {
                 return Err(ApiError::bad_request("INVALID_INPUT", "Unsupported status"));
@@ -129,7 +133,9 @@ pub async fn patch_platform_domain(
         )
         .await
         .map_err(|_| ApiError::internal())?;
-        domain.set_primary(now).map_err(|_| ApiError::bad_request("INVALID_TRANSITION", "Cannot set primary"))?;
+        domain
+            .set_primary(now)
+            .map_err(|_| ApiError::bad_request("INVALID_TRANSITION", "Cannot set primary"))?;
     }
 
     persist_domain(&state.admin_pool, &domain, true).await?;
@@ -151,7 +157,9 @@ pub async fn run_domain_verification_job_handler(
     State(state): State<AppState>,
     _auth: PlatformAuthUser,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    Ok(Json(super::verification::run_domain_verification_job(&state).await?))
+    Ok(Json(
+        super::verification::run_domain_verification_job(&state).await?,
+    ))
 }
 
 fn platform_response(row: &infra_postgres::domains::DomainRow) -> PlatformDomainResponse {

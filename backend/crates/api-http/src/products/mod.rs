@@ -83,18 +83,13 @@ pub async fn list_products(
     .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
 
     let product_ids: Vec<uuid::Uuid> = rows.iter().map(|row| row.id).collect();
-    let images = primary_image::load_primary_images_by_product_id(
-        &state,
-        auth.tenant_id,
-        &product_ids,
-    )
-    .await
-    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+    let images =
+        primary_image::load_primary_images_by_product_id(&state, auth.tenant_id, &product_ids)
+            .await
+            .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
     let items: Vec<ProductResponse> = rows
         .iter()
-        .map(|row| {
-            product_response_from_row(row, images.get(&row.id).cloned())
-        })
+        .map(|row| product_response_from_row(row, images.get(&row.id).cloned()))
         .collect();
     Ok(Json(build_cursor_page(
         items,

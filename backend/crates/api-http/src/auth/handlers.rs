@@ -72,8 +72,11 @@ pub async fn login(
         return Err(ApiError::invalid_credentials());
     }
 
-    let auth = match application::auth::authenticate_login(&to_app_record(record.clone()), &body.password, true)
-    {
+    let auth = match application::auth::authenticate_login(
+        &to_app_record(record.clone()),
+        &body.password,
+        true,
+    ) {
         Ok(auth) => auth,
         Err(AppError::Identity(domain_identity::IdentityError::InactiveUser)) => {
             state

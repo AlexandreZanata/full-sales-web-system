@@ -48,7 +48,14 @@ async fn contract_payment_confirmed_when_trial_tenant_then_active() {
         "cnpj": "11222333000181"
     })
     .to_string();
-    let (status, resp) = request(&env, "POST", "/v1/platform/tenants", Some(&token), Some(body)).await;
+    let (status, resp) = request(
+        &env,
+        "POST",
+        "/v1/platform/tenants",
+        Some(&token),
+        Some(body),
+    )
+    .await;
     assert_eq!(status, StatusCode::CREATED, "{resp}");
     let tenant_id = resp["tenantId"].as_str().expect("id");
     assert_eq!(resp["status"], "Trial");
@@ -145,7 +152,11 @@ async fn contract_payment_overdue_then_dunning_suspends_after_grace() {
     .await;
     assert_eq!(status, StatusCode::OK, "{dunning}");
     let processed = dunning["processed"].as_array().expect("processed");
-    assert!(processed.iter().any(|id| id.as_str() == Some(provisioned_id)));
+    assert!(
+        processed
+            .iter()
+            .any(|id| id.as_str() == Some(provisioned_id))
+    );
 
     let tenant = infra_postgres::shared::find_tenant_lifecycle(
         &env.admin_pool,

@@ -1,30 +1,29 @@
-pub mod health;
-mod health_config;
-mod maintenance;
-mod domains;
-mod fraud;
-mod billing;
 mod admin_orders;
 mod audit;
 mod audit_context;
 mod auth;
+mod billing;
 pub mod catalog_events;
 mod categories;
 mod client_ip;
 pub mod cnpj_lookup;
 mod commerces;
 mod deliveries;
+mod domains;
 mod error;
+mod fraud;
+pub mod health;
+mod health_config;
 mod inventory;
 mod list_query;
+mod maintenance;
 mod media;
 mod pagination;
-mod portal;
-mod portal_content;
 mod platform;
 mod platform_audit;
+mod portal;
+mod portal_content;
 mod products;
-mod tenant_gate;
 mod reports;
 mod routes;
 mod sales;
@@ -32,6 +31,7 @@ mod session;
 mod settings;
 mod state;
 mod status;
+mod tenant_gate;
 mod users;
 mod validation;
 
@@ -46,11 +46,11 @@ use tracing::Level;
 
 pub use domains::{EmptyDnsTxtResolver, MockDnsTxtResolver, PublicTenantId};
 pub use error::ApiError;
+pub use health::{AlertConfig, run_health_worker, run_probe_cycle};
 pub use list_query::{
     CursorListResponse, CursorPaginationMeta, ListQueryApiError, RouteListConfig,
     build_cursor_page, parse_list_query,
 };
-pub use health::{AlertConfig, run_health_worker, run_probe_cycle};
 pub use routes::{app_with_state, health_router, health_router_liveness_only, router};
 pub use state::AppState;
 

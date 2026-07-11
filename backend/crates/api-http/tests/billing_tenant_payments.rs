@@ -118,14 +118,7 @@ async fn contract_valid_asaas_key_when_connect_then_success() {
     assert_eq!(resp["connected"], true);
     assert_eq!(resp["accountName"], "Tenant Sandbox");
 
-    let (status, resp) = request(
-        &env,
-        "GET",
-        "/v1/settings/payments",
-        Some(&token),
-        None,
-    )
-    .await;
+    let (status, resp) = request(&env, "GET", "/v1/settings/payments", Some(&token), None).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(resp["asaas"]["connected"], true);
     assert_eq!(resp["asaas"]["apiKeyLast4"], "y_99");
@@ -168,14 +161,7 @@ async fn contract_disconnect_asaas_when_connected_then_no_content() {
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
 
-    let (status, resp) = request(
-        &env,
-        "GET",
-        "/v1/settings/payments",
-        Some(&token),
-        None,
-    )
-    .await;
+    let (status, resp) = request(&env, "GET", "/v1/settings/payments", Some(&token), None).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(resp["asaas"]["connected"], false);
     assert_eq!(resp["enabled"], false);
@@ -218,8 +204,7 @@ async fn contract_portal_submit_when_online_payments_enabled_then_awaiting_payme
     let commerce_id = seed_commerce(&env, "11222333000181").await;
     let address_id = seed_delivery_address(&env, commerce_id).await;
     let product_id = seed_product(&env, "SKU-PAY-1", "Paid Product", 2500).await;
-    let (_, contact_token) =
-        seed_commerce_contact(&env, commerce_id, "pay-online@store.com").await;
+    let (_, contact_token) = seed_commerce_contact(&env, commerce_id, "pay-online@store.com").await;
 
     let (create_status, create_body) = request(
         &env,

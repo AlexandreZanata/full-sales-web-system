@@ -6,16 +6,16 @@ use domain_shared::TenantId;
 use thiserror::Error;
 use uuid::Uuid;
 
-pub mod feature_flags;
 pub mod audit;
 pub mod auth;
-pub mod domains;
-pub mod fraud;
 pub mod billing;
 pub mod categories;
 pub mod commerce_registrations;
 pub mod commerces;
 pub mod deliveries;
+pub mod domains;
+pub mod feature_flags;
+pub mod fraud;
 pub mod list_query;
 pub mod orders;
 pub mod products;
@@ -23,7 +23,9 @@ pub mod sales;
 pub mod tenants;
 pub mod users;
 
-pub use audit::{AuditRangeError, MAX_AUDIT_RANGE_DAYS, RecordAuditEvent, validate_audit_date_range};
+pub use audit::{
+    AuditRangeError, MAX_AUDIT_RANGE_DAYS, RecordAuditEvent, validate_audit_date_range,
+};
 pub use commerce_registrations::{
     can_review_commerce, ensure_can_review_commerce, ensure_can_submit_commerce,
     parse_submit_commerce_registration,

@@ -16,10 +16,7 @@ pub fn normalize_hostname(raw: &str) -> Result<String, DomainError> {
         if label.is_empty() || label.len() > 63 {
             return Err(DomainError::InvalidHostname);
         }
-        if !label
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-')
-        {
+        if !label.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
             return Err(DomainError::InvalidHostname);
         }
     }
@@ -27,7 +24,9 @@ pub fn normalize_hostname(raw: &str) -> Result<String, DomainError> {
 }
 
 pub fn is_reserved_hostname(hostname: &str, reserved: &[String]) -> bool {
-    reserved.iter().any(|r| hostname == r || hostname.ends_with(&format!(".{r}")))
+    reserved
+        .iter()
+        .any(|r| hostname == r || hostname.ends_with(&format!(".{r}")))
 }
 
 pub fn txt_record_name(hostname: &str) -> String {

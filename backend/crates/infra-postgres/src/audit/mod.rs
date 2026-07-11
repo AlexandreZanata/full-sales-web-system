@@ -127,9 +127,8 @@ async fn fetch_rows(
     before_id: Option<Uuid>,
     limit: i64,
 ) -> Result<Vec<AuditEventRow>, PostgresError> {
-    Ok(
-        sqlx::query_as::<_, AuditEventRow>(
-            "SELECT id, tenant_id, actor_id, actor_type, action, resource_type, resource_id,
+    Ok(sqlx::query_as::<_, AuditEventRow>(
+        "SELECT id, tenant_id, actor_id, actor_type, action, resource_type, resource_id,
                 metadata, correlation_id, ip, created_at
          FROM audit.events
          WHERE ($1::uuid IS NULL OR id < $1)
@@ -140,17 +139,16 @@ async fn fetch_rows(
            AND ($6::timestamptz IS NULL OR created_at <= $6)
          ORDER BY id DESC
          LIMIT $7",
-        )
-        .bind(before_id)
-        .bind(filters.tenant_id)
-        .bind(filters.actor_id)
-        .bind(filters.action.as_deref())
-        .bind(filters.from)
-        .bind(filters.to)
-        .bind(limit)
-        .fetch_all(&mut **tx)
-        .await?,
     )
+    .bind(before_id)
+    .bind(filters.tenant_id)
+    .bind(filters.actor_id)
+    .bind(filters.action.as_deref())
+    .bind(filters.from)
+    .bind(filters.to)
+    .bind(limit)
+    .fetch_all(&mut **tx)
+    .await?)
 }
 
 pub async fn count_audit_events(pool: &PgPool, tenant_id: TenantId) -> Result<i64, PostgresError> {

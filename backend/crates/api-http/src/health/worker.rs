@@ -129,12 +129,10 @@ fn reset_failure_streak(name: &'static str) {
 }
 
 async fn cleanup_old_results(state: &AppState) -> Result<(), String> {
-    let deleted = infra_postgres::ops::delete_probe_results_older_than(
-        &state.admin_pool,
-        retention_days(),
-    )
-    .await
-    .map_err(|err| err.to_string())?;
+    let deleted =
+        infra_postgres::ops::delete_probe_results_older_than(&state.admin_pool, retention_days())
+            .await
+            .map_err(|err| err.to_string())?;
     if deleted > 0 {
         info!(deleted, "pruned old health probe results");
     }

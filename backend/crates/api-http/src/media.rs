@@ -139,14 +139,12 @@ async fn resolve_public_catalog_media(
     pool: &infra_postgres::PgPool,
     tenant_id: domain_shared::TenantId,
     file_id: uuid::Uuid,
-) -> Result<
-    Option<infra_postgres::inventory::product_images::PublicProductMediaRow>,
-    ApiError,
-> {
-    if let Some(row) =
-        infra_postgres::inventory::product_images::find_active_product_media(pool, tenant_id, file_id)
-            .await
-            .map_err(|_| ApiError::internal())?
+) -> Result<Option<infra_postgres::inventory::product_images::PublicProductMediaRow>, ApiError> {
+    if let Some(row) = infra_postgres::inventory::product_images::find_active_product_media(
+        pool, tenant_id, file_id,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?
     {
         return Ok(Some(row));
     }
@@ -165,10 +163,9 @@ async fn resolve_public_catalog_media(
     {
         return Ok(Some(row));
     }
-    if let Some(row) =
-        infra_postgres::shared::find_tenant_site_logo_media(pool, tenant_id, file_id)
-            .await
-            .map_err(|_| ApiError::internal())?
+    if let Some(row) = infra_postgres::shared::find_tenant_site_logo_media(pool, tenant_id, file_id)
+        .await
+        .map_err(|_| ApiError::internal())?
     {
         return Ok(Some(row));
     }

@@ -8,10 +8,7 @@ use uuid::Uuid;
 
 use crate::auth::AuthUser;
 use crate::error::ApiError;
-use crate::products::{
-    ProductResponse, require_can_read_products,
-    require_can_write_products,
-};
+use crate::products::{ProductResponse, require_can_read_products, require_can_write_products};
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -147,12 +144,9 @@ pub async fn get_product(
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::product_not_found)?;
-    let images = super::primary_image::load_primary_images_by_product_id(
-        &state,
-        auth.tenant_id,
-        &[id],
-    )
-    .await?;
+    let images =
+        super::primary_image::load_primary_images_by_product_id(&state, auth.tenant_id, &[id])
+            .await?;
     Ok(Json(product_detail_from_row(
         &row,
         images.get(&id).cloned(),

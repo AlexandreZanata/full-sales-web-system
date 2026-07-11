@@ -2,14 +2,14 @@ mod checks;
 mod types;
 
 pub use types::{
-    ComponentStatus, ProbeOutcome, ProbeStatus, PROBE_ASAAS, PROBE_DNS, PROBE_MINIO, PROBE_POSTGRES,
-    PROBE_REDIS, PROBE_WEBHOOK_QUEUE,
+    ComponentStatus, PROBE_ASAAS, PROBE_DNS, PROBE_MINIO, PROBE_POSTGRES, PROBE_REDIS,
+    PROBE_WEBHOOK_QUEUE, ProbeOutcome, ProbeStatus,
 };
 
+use crate::state::AppState;
 use checks::{
     probe_asaas, probe_dns, probe_minio, probe_postgres, probe_redis, probe_webhook_queue,
 };
-use crate::state::AppState;
 
 pub async fn run_readiness_probes(state: &AppState) -> Vec<ProbeOutcome> {
     run_all_probes(state)

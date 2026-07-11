@@ -75,7 +75,10 @@ async fn br_co_010_given_seller_submit_when_list_active_commerces_then_visible()
         .iter()
         .filter_map(|row| row["id"].as_str())
         .collect();
-    assert!(ids.contains(&id), "pending registration must appear in active commerce list");
+    assert!(
+        ids.contains(&id),
+        "pending registration must appear in active commerce list"
+    );
 }
 
 #[tokio::test]

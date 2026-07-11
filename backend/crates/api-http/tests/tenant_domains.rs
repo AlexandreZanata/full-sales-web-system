@@ -168,14 +168,7 @@ async fn contract_set_primary_when_second_domain_then_first_detached() {
     .await;
     assert_eq!(status, StatusCode::OK);
 
-    let (status, list) = request(
-        &env,
-        "GET",
-        "/v1/settings/domains",
-        Some(&token),
-        None,
-    )
-    .await;
+    let (status, list) = request(&env, "GET", "/v1/settings/domains", Some(&token), None).await;
     assert_eq!(status, StatusCode::OK, "{list}");
     let items = list["data"].as_array().expect("data");
     let first = items

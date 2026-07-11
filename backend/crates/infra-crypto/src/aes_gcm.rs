@@ -37,7 +37,10 @@ pub struct CredentialEncryptor {
 }
 
 impl CredentialEncryptor {
-    pub fn from_master_key_b64(master_key_b64: &str, key_version: i16) -> Result<Self, AesGcmError> {
+    pub fn from_master_key_b64(
+        master_key_b64: &str,
+        key_version: i16,
+    ) -> Result<Self, AesGcmError> {
         let key_bytes = STANDARD
             .decode(master_key_b64.trim())
             .map_err(|_| AesGcmError::InvalidMasterKey)?;
@@ -53,7 +56,8 @@ impl CredentialEncryptor {
     }
 
     pub fn from_env() -> Result<Self, AesGcmError> {
-        let master_key = std::env::var(MASTER_KEY_ENV).map_err(|_| AesGcmError::MasterKeyMissing)?;
+        let master_key =
+            std::env::var(MASTER_KEY_ENV).map_err(|_| AesGcmError::MasterKeyMissing)?;
         Self::from_master_key_b64(&master_key, 1)
     }
 

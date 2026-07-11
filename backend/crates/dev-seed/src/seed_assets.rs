@@ -26,9 +26,8 @@ pub fn read_asset(relative: &str) -> DevSeedResult<(Vec<u8>, &'static str)> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("assets")
         .join(relative);
-    let bytes = std::fs::read(&path).map_err(|err| {
-        DevSeedError::Aborted(format!("missing seed asset {relative}: {err}"))
-    })?;
+    let bytes = std::fs::read(&path)
+        .map_err(|err| DevSeedError::Aborted(format!("missing seed asset {relative}: {err}")))?;
     Ok((bytes, mime_for_asset(relative)))
 }
 

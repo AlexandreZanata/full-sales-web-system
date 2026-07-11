@@ -1,8 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
+import { HealthHistoryChart, mapHealthHistoryPoints } from '@/components/charts/HealthHistoryChart';
+import { HealthUptimeChart } from '@/components/charts/HealthUptimeChart';
 import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
@@ -20,6 +23,12 @@ function HealthPage() {
   const probeNames = useMemo(() => Object.keys(matrix.data?.probes ?? {}), [matrix.data]);
   const [probe, setProbe] = useState('');
 
+  useEffect(() => {
+    if (!probe && probeNames[0]) {
+      setProbe(probeNames[0]);
+    }
+  }, [probe, probeNames]);
+
   const since = useMemo(() => new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), []);
   const history = useQuery({
     queryKey: ['health-history', probe],
@@ -27,10 +36,32 @@ function HealthPage() {
     enabled: Boolean(probe),
   });
 
+  const uptimeRows = useMemo(() => {
+    if (!matrix.data) return [];
+    return Object.entries(matrix.data.probes).map(([name, entry]) => ({
+      name,
+      uptime: entry.uptime24hPct,
+      status: entry.status,
+    }));
+  }, [matrix.data]);
+
+  const historyRows = useMemo(
+    () => mapHealthHistoryPoints(history.data?.points ?? []),
+    [history.data],
+  );
+
   return (
     <div className="space-y-6">
-      <PageHeader title={t('health.title')} />
+      <PageHeader title={t('health.title')} description={t('health.subtitle')} />
       {matrix.isLoading ? <LoadingSpinner /> : null}
+
+      {uptimeRows.length ? (
+        <Card className="p-5">
+          <h2 className="text-sm font-semibold">{t('dashboard.healthUptime')}</h2>
+          <HealthUptimeChart rows={uptimeRows} uptimeLabel={t('dashboard.uptime24h')} />
+        </Card>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {matrix.data
           ? Object.entries(matrix.data.probes).map(([name, entry]) => (
@@ -39,17 +70,23 @@ function HealthPage() {
                   <span className={`size-3 rounded-full ${probeStatusTone(entry.status)}`} />
                   <h3 className="font-medium">{name}</h3>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{entry.status}</p>
-                <p className="text-xs text-muted-foreground">24h uptime: {entry.uptime24hPct}%</p>
+                <p className="mt-2 text-sm capitalize text-muted-foreground">{entry.status}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t('dashboard.uptime24h')}: {entry.uptime24hPct}%
+                </p>
               </Card>
             ))
           : null}
       </div>
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold">{t('health.history')}</h2>
+
+      <Card className="space-y-4 p-5">
+        <div>
+          <h2 className="text-sm font-semibold">{t('health.history')}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">{t('health.historyHint')}</p>
+        </div>
         <Select
           label="Probe"
-          value={probe || probeNames[0] || ''}
+          value={probe}
           onChange={(e) => {
             setProbe(e.target.value);
           }}
@@ -60,20 +97,13 @@ function HealthPage() {
             </option>
           ))}
         </Select>
-        {history.data?.points.length ? (
-          <ul className="max-h-64 overflow-y-auto rounded border border-hairline text-sm">
-            {history.data.points.map((point) => (
-              <li
-                key={point.checkedAt}
-                className="flex justify-between border-b border-hairline px-3 py-2 last:border-0"
-              >
-                <span>{point.checkedAt}</span>
-                <span>{point.status}</span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+        {history.isLoading ? <LoadingSpinner /> : null}
+        {historyRows.length ? (
+          <HealthHistoryChart rows={historyRows} uptimeLabel={t('dashboard.uptime24h')} />
+        ) : (
+          <EmptyState title={t('common.noResults')} />
+        )}
+      </Card>
     </div>
   );
 }

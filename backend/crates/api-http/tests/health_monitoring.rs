@@ -43,7 +43,10 @@ async fn contract_platform_health_matrix_when_authenticated_then_returns_probes(
     .await;
     assert_eq!(status, StatusCode::OK, "{body}");
     assert!(body["probes"]["postgres"].is_object(), "{body}");
-    assert!(body["probes"]["postgres"]["uptime24hPct"].is_number(), "{body}");
+    assert!(
+        body["probes"]["postgres"]["uptime24hPct"].is_number(),
+        "{body}"
+    );
 }
 
 #[tokio::test]
@@ -79,5 +82,8 @@ async fn contract_health_history_when_valid_probe_then_returns_series() {
     let (status, body) = request(&env, "GET", &path, Some(&token), None).await;
     assert_eq!(status, StatusCode::OK, "{body}");
     assert_eq!(body["probe"], "postgres");
-    assert!(body["data"].as_array().is_some_and(|rows| !rows.is_empty()), "{body}");
+    assert!(
+        body["data"].as_array().is_some_and(|rows| !rows.is_empty()),
+        "{body}"
+    );
 }

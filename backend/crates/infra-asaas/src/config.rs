@@ -22,8 +22,7 @@ impl AsaasConfig {
         if api_key.trim().is_empty() {
             return Err("ASAAS_API_KEY must not be empty".into());
         }
-        let base_url = std::env::var("ASAAS_BASE_URL")
-            .unwrap_or_else(|_| DEFAULT_BASE_URL.into());
+        let base_url = std::env::var("ASAAS_BASE_URL").unwrap_or_else(|_| DEFAULT_BASE_URL.into());
         let timeout_secs = std::env::var("ASAAS_TIMEOUT_SECS")
             .ok()
             .and_then(|v| v.parse().ok())

@@ -26,7 +26,8 @@ pub fn validate_audit_date_range(
     to: Option<DateTime<Utc>>,
 ) -> Result<(DateTime<Utc>, DateTime<Utc>), AuditRangeError> {
     let end = to.unwrap_or_else(Utc::now);
-    let start = from.unwrap_or_else(|| end - Duration::from_secs(MAX_AUDIT_RANGE_DAYS as u64 * 86400));
+    let start =
+        from.unwrap_or_else(|| end - Duration::from_secs(MAX_AUDIT_RANGE_DAYS as u64 * 86400));
     if end < start {
         return Err(AuditRangeError::InvalidRange);
     }

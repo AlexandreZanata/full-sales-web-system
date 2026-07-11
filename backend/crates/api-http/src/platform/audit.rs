@@ -13,9 +13,18 @@ use crate::platform::auth::PlatformAuthUser;
 use crate::state::AppState;
 
 static PLATFORM_AUDIT_FILTERS: [application::list_query::FilterFieldSpec; 4] = [
-    application::list_query::FilterFieldSpec::new("tenant_id", &[application::list_query::ListFilterOp::Eq]),
-    application::list_query::FilterFieldSpec::new("actor_id", &[application::list_query::ListFilterOp::Eq]),
-    application::list_query::FilterFieldSpec::new("action", &[application::list_query::ListFilterOp::Eq]),
+    application::list_query::FilterFieldSpec::new(
+        "tenant_id",
+        &[application::list_query::ListFilterOp::Eq],
+    ),
+    application::list_query::FilterFieldSpec::new(
+        "actor_id",
+        &[application::list_query::ListFilterOp::Eq],
+    ),
+    application::list_query::FilterFieldSpec::new(
+        "action",
+        &[application::list_query::ListFilterOp::Eq],
+    ),
     application::list_query::FilterFieldSpec::new(
         "created_at",
         &[
@@ -72,10 +81,9 @@ pub(crate) fn map_range_error(err: application::AuditRangeError) -> ApiError {
         application::AuditRangeError::InvalidRange => {
             ApiError::bad_request("INVALID_DATE_RANGE", "Invalid audit date range")
         }
-        application::AuditRangeError::TooWide => ApiError::bad_request(
-            "AUDIT_RANGE_TOO_WIDE",
-            "Audit query range exceeds 90 days",
-        ),
+        application::AuditRangeError::TooWide => {
+            ApiError::bad_request("AUDIT_RANGE_TOO_WIDE", "Audit query range exceeds 90 days")
+        }
     }
 }
 

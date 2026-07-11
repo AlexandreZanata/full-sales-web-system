@@ -1,7 +1,7 @@
 use axum::{Json, extract::State};
 
-use domain_billing::ensure_online_payments_allowed;
 use application::billing::api_key_last4;
+use domain_billing::ensure_online_payments_allowed;
 
 use crate::audit_context::AuditRequestContext;
 use crate::auth::AuthUser;
@@ -39,7 +39,9 @@ pub async fn connect_asaas(
         .credential_encryptor
         .as_ref()
         .ok_or_else(ApiError::internal)?;
-    let blob = encryptor.encrypt(api_key).map_err(|_| ApiError::internal())?;
+    let blob = encryptor
+        .encrypt(api_key)
+        .map_err(|_| ApiError::internal())?;
     infra_postgres::billing::upsert_credentials(
         &state.admin_pool,
         auth.tenant_id,
@@ -76,7 +78,13 @@ pub async fn disconnect_asaas(
     infra_postgres::billing::disable_online_payments(&state.admin_pool, auth.tenant_id)
         .await
         .map_err(|_| ApiError::internal())?;
-    audit_payment_action(&state, &ctx, &auth, "tenant.asaas.disconnected", serde_json::json!({}))
-        .await?;
+    audit_payment_action(
+        &state,
+        &ctx,
+        &auth,
+        "tenant.asaas.disconnected",
+        serde_json::json!({}),
+    )
+    .await?;
     Ok(axum::http::StatusCode::NO_CONTENT)
 }

@@ -166,7 +166,9 @@ pub fn submit_portal_order(order: Order) -> Result<Order, OrdersAppError> {
 }
 
 pub fn submit_portal_order_online(order: Order) -> Result<Order, OrdersAppError> {
-    order.submit_for_online_payment().map_err(OrdersAppError::from)
+    order
+        .submit_for_online_payment()
+        .map_err(OrdersAppError::from)
 }
 
 pub fn reject_order(order: Order, reason: &str) -> Result<Order, OrdersAppError> {

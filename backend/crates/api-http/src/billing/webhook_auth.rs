@@ -4,7 +4,9 @@ pub const WEBHOOK_TOKEN_HEADER: &str = "asaas-access-token";
 pub const WEBHOOK_TOKEN_ENV: &str = "ASAAS_WEBHOOK_TOKEN";
 
 pub fn webhook_token_from_env() -> Option<String> {
-    std::env::var(WEBHOOK_TOKEN_ENV).ok().filter(|t| !t.trim().is_empty())
+    std::env::var(WEBHOOK_TOKEN_ENV)
+        .ok()
+        .filter(|t| !t.trim().is_empty())
 }
 
 pub fn validate_webhook_token(provided: Option<&str>, expected: &str) -> bool {

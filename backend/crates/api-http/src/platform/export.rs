@@ -61,14 +61,7 @@ pub async fn start_settings_data_export(
     ctx: AuditRequestContext,
 ) -> Result<(StatusCode, Json<ExportJobResponse>), ApiError> {
     require_admin(&auth)?;
-    start_export(
-        &state,
-        &ctx,
-        auth.user_id,
-        "User",
-        auth.tenant_id,
-    )
-    .await
+    start_export(&state, &ctx, auth.user_id, "User", auth.tenant_id).await
 }
 
 pub async fn get_settings_data_export(
@@ -118,12 +111,8 @@ async fn start_export(
     let worker_state = state.clone();
     tokio::spawn(async move {
         if let Err(err) = export_job::run_export_job(&worker_state, tenant_id, job_id).await {
-            let _ = infra_postgres::ops::mark_export_failed(
-                &worker_state.admin_pool,
-                job_id,
-                &err,
-            )
-            .await;
+            let _ = infra_postgres::ops::mark_export_failed(&worker_state.admin_pool, job_id, &err)
+                .await;
         }
     });
     get_export(state, tenant_id, job_id)
@@ -156,10 +145,12 @@ async fn get_export(
 }
 
 async fn tenant_exists(state: &AppState, tenant_id: TenantId) -> Result<bool, ApiError> {
-    Ok(infra_postgres::shared::find_tenant_lifecycle(&state.admin_pool, tenant_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .is_some())
+    Ok(
+        infra_postgres::shared::find_tenant_lifecycle(&state.admin_pool, tenant_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .is_some(),
+    )
 }
 
 async fn presigned_export_url(

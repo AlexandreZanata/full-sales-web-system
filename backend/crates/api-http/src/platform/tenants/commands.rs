@@ -61,7 +61,10 @@ pub async fn create_tenant(
         .await
         .map_err(|_| ApiError::internal())?
     {
-        return Err(ApiError::bad_request("PLAN_NOT_FOUND", "Subscription plan not found"));
+        return Err(ApiError::bad_request(
+            "PLAN_NOT_FOUND",
+            "Subscription plan not found",
+        ));
     }
 
     let admin_email = body.admin_email.trim().to_lowercase();
@@ -90,8 +93,8 @@ pub async fn create_tenant(
         seed_demo_catalog: body.seed_demo_catalog.unwrap_or(false),
     };
 
-    let mut tenant =
-        application::tenants::build_staging_tenant(tenant_id, &input).map_err(map_platform_patch_error)?;
+    let mut tenant = application::tenants::build_staging_tenant(tenant_id, &input)
+        .map_err(map_platform_patch_error)?;
 
     let mut settings = tenant.settings.clone();
     if input.seed_demo_catalog {
@@ -376,10 +379,12 @@ pub async fn run_offboarding_job(
     State(state): State<AppState>,
     _auth: PlatformAuthUser,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    let candidates =
-        infra_postgres::shared::find_offboarding_candidates(&state.admin_pool, application::tenants::RETENTION_DAYS)
-            .await
-            .map_err(|_| ApiError::internal())?;
+    let candidates = infra_postgres::shared::find_offboarding_candidates(
+        &state.admin_pool,
+        application::tenants::RETENTION_DAYS,
+    )
+    .await
+    .map_err(|_| ApiError::internal())?;
     let mut processed = Vec::new();
     let mut skipped = Vec::new();
     for tenant_id in candidates {
@@ -392,7 +397,9 @@ pub async fn run_offboarding_job(
             skipped.push(tenant_id.as_uuid());
         }
     }
-    Ok(Json(serde_json::json!({ "processed": processed, "skipped": skipped })))
+    Ok(Json(
+        serde_json::json!({ "processed": processed, "skipped": skipped }),
+    ))
 }
 
 pub async fn run_dunning_job(
@@ -402,7 +409,9 @@ pub async fn run_dunning_job(
     let processed = crate::billing::run_dunning_job(&state.admin_pool)
         .await
         .map_err(|_| ApiError::internal())?;
-    Ok(Json(serde_json::json!({ "processed": processed, "emailNotifications": "stub" })))
+    Ok(Json(
+        serde_json::json!({ "processed": processed, "emailNotifications": "stub" }),
+    ))
 }
 
 async fn persist_transition(
@@ -426,7 +435,10 @@ async fn persist_transition(
     )))
 }
 
-async fn load_row(state: &AppState, tenant_id: TenantId) -> Result<infra_postgres::shared::TenantLifecycleRow, ApiError> {
+async fn load_row(
+    state: &AppState,
+    tenant_id: TenantId,
+) -> Result<infra_postgres::shared::TenantLifecycleRow, ApiError> {
     infra_postgres::shared::find_tenant_lifecycle(&state.admin_pool, tenant_id)
         .await
         .map_err(|_| ApiError::internal())?

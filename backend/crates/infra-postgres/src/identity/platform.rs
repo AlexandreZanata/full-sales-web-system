@@ -147,12 +147,11 @@ pub async fn find_tenant_admin_user(
 }
 
 pub async fn tenant_exists(pool: &PgPool, tenant_id: Uuid) -> Result<bool, PostgresError> {
-    let exists = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS(SELECT 1 FROM shared.tenants WHERE id = $1)",
-    )
-    .bind(tenant_id)
-    .fetch_one(pool)
-    .await?;
+    let exists =
+        sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM shared.tenants WHERE id = $1)")
+            .bind(tenant_id)
+            .fetch_one(pool)
+            .await?;
     Ok(exists)
 }
 

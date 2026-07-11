@@ -28,8 +28,14 @@ async fn given_seeded_portal_content_when_public_home_endpoints_then_200_with_da
     let env = setup_with_tenant(tenant_id).await;
     let seed = seed_portal_home_content(&env).await;
 
-    let (banner_status, banner_body) =
-        request(&env, "GET", "/v1/public/banners?placement=hero&limit=5", None, None).await;
+    let (banner_status, banner_body) = request(
+        &env,
+        "GET",
+        "/v1/public/banners?placement=hero&limit=5",
+        None,
+        None,
+    )
+    .await;
     assert_eq!(banner_status, StatusCode::OK);
     let banners = banner_body["data"].as_array().expect("banner data");
     assert!(!banners.is_empty());
@@ -42,8 +48,14 @@ async fn given_seeded_portal_content_when_public_home_endpoints_then_200_with_da
     assert!(!promotions.is_empty());
     assert_eq!(promotions[0]["headline"], "Tasty Burger");
 
-    let (featured_status, featured_body) =
-        request(&env, "GET", "/v1/public/products/featured?limit=8", None, None).await;
+    let (featured_status, featured_body) = request(
+        &env,
+        "GET",
+        "/v1/public/products/featured?limit=8",
+        None,
+        None,
+    )
+    .await;
     assert_eq!(featured_status, StatusCode::OK);
     let featured = featured_body["data"].as_array().expect("featured data");
     assert!(!featured.is_empty());
@@ -53,8 +65,14 @@ async fn given_seeded_portal_content_when_public_home_endpoints_then_200_with_da
             .any(|row| row["id"] == seed.featured_product_id.to_string())
     );
 
-    let (popular_status, popular_body) =
-        request(&env, "GET", "/v1/public/products/popular?limit=8", None, None).await;
+    let (popular_status, popular_body) = request(
+        &env,
+        "GET",
+        "/v1/public/products/popular?limit=8",
+        None,
+        None,
+    )
+    .await;
     assert_eq!(popular_status, StatusCode::OK);
     let popular = popular_body["data"].as_array().expect("popular data");
     assert!(!popular.is_empty());

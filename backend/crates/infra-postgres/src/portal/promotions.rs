@@ -180,7 +180,12 @@ pub async fn update_promotion(
     .bind(update.discount_text.as_deref())
     .bind(update.background.as_deref())
     .bind(update.category_slug.is_some())
-    .bind(update.category_slug.as_ref().and_then(|value| value.as_deref()))
+    .bind(
+        update
+            .category_slug
+            .as_ref()
+            .and_then(|value| value.as_deref()),
+    )
     .bind(update.link_url.is_some())
     .bind(update.link_url.as_ref().and_then(|value| value.as_deref()))
     .bind(update.image_file_id.is_some())

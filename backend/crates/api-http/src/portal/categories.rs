@@ -15,9 +15,7 @@ use crate::list_query::{
     CursorListResponse, PORTAL_CATEGORIES_LIST_CONFIG, build_cursor_page, decode_query_pairs,
     parse_list_query,
 };
-use crate::portal::products::{
-    PortalProductResponse, build_portal_product_responses,
-};
+use crate::portal::products::{PortalProductResponse, build_portal_product_responses};
 use crate::state::AppState;
 
 #[derive(Serialize)]

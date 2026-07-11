@@ -1,7 +1,7 @@
+mod alerts;
 mod chargeback;
 mod coordinator;
 mod signals;
-mod alerts;
 
 pub use alerts::list_fraud_alerts;
 pub use chargeback::handle_chargeback;

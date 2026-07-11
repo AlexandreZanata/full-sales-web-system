@@ -68,7 +68,10 @@ pub async fn list_users_cross_tenant(
         .fetch_all(&mut *tx)
         .await?;
     tx.commit().await?;
-    Ok(rows.into_iter().map(CrossTenantUserDetailRow::from).collect())
+    Ok(rows
+        .into_iter()
+        .map(CrossTenantUserDetailRow::from)
+        .collect())
 }
 
 pub async fn find_user_cross_tenant(
@@ -98,13 +101,12 @@ pub async fn set_user_active(
 ) -> Result<bool, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_bypass_rls(&mut tx).await?;
-    let result = sqlx::query(
-        "UPDATE identity.users SET active = $2, updated_at = now() WHERE id = $1",
-    )
-    .bind(user_id)
-    .bind(active)
-    .execute(&mut *tx)
-    .await?;
+    let result =
+        sqlx::query("UPDATE identity.users SET active = $2, updated_at = now() WHERE id = $1")
+            .bind(user_id)
+            .bind(active)
+            .execute(&mut *tx)
+            .await?;
     tx.commit().await?;
     Ok(result.rows_affected() == 1)
 }
@@ -116,13 +118,12 @@ pub async fn update_user_role(
 ) -> Result<bool, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_bypass_rls(&mut tx).await?;
-    let result = sqlx::query(
-        "UPDATE identity.users SET role = $2, updated_at = now() WHERE id = $1",
-    )
-    .bind(user_id)
-    .bind(role)
-    .execute(&mut *tx)
-    .await?;
+    let result =
+        sqlx::query("UPDATE identity.users SET role = $2, updated_at = now() WHERE id = $1")
+            .bind(user_id)
+            .bind(role)
+            .execute(&mut *tx)
+            .await?;
     tx.commit().await?;
     Ok(result.rows_affected() == 1)
 }

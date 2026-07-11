@@ -7,8 +7,8 @@ use http::StatusCode;
 use serde_json::json;
 
 use support::{
-    PLATFORM_ADMIN_EMAIL, current_mfa_code, platform_access_token, platform_login_step,
-    request, seed_admin, seed_driver, seed_platform_admin, seed_user, setup, setup_with_tenant,
+    PLATFORM_ADMIN_EMAIL, current_mfa_code, platform_access_token, platform_login_step, request,
+    seed_admin, seed_driver, seed_platform_admin, seed_user, setup, setup_with_tenant,
 };
 
 #[tokio::test]
@@ -68,7 +68,14 @@ async fn contract_platform_login_when_rate_limited_then_429() {
     })
     .to_string();
     for _ in 0..5 {
-        let _ = request(&env, "POST", "/v1/platform/auth/login", None, Some(body.clone())).await;
+        let _ = request(
+            &env,
+            "POST",
+            "/v1/platform/auth/login",
+            None,
+            Some(body.clone()),
+        )
+        .await;
     }
     let (status, resp) = request(&env, "POST", "/v1/platform/auth/login", None, Some(body)).await;
     assert_eq!(status, StatusCode::TOO_MANY_REQUESTS);
@@ -136,7 +143,12 @@ async fn contract_impersonation_token_can_list_tenant_users() {
 
     let (status, users) = request(&env, "GET", "/v1/users", Some(imp_token), None).await;
     assert_eq!(status, StatusCode::OK, "users: {users}");
-    assert!(users["data"].as_array().map(|a| !a.is_empty()).unwrap_or(false));
+    assert!(
+        users["data"]
+            .as_array()
+            .map(|a| !a.is_empty())
+            .unwrap_or(false)
+    );
 }
 
 #[tokio::test]

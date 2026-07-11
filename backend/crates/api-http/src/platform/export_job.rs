@@ -58,15 +58,20 @@ fn build_zip(bundle: &serde_json::Value) -> Result<Vec<u8>, String> {
     let mut buffer = Cursor::new(Vec::new());
     let mut zip = ZipWriter::new(&mut buffer);
     let options = SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
-    for name in ["users.json", "commerces.json", "orders.json", "sales.json", "manifest.json"] {
+    for name in [
+        "users.json",
+        "commerces.json",
+        "orders.json",
+        "sales.json",
+        "manifest.json",
+    ] {
         let content = if name == "manifest.json" {
             serde_json::to_vec_pretty(bundle).map_err(|e| e.to_string())?
         } else {
             let key = name.strip_suffix(".json").expect("json suffix");
             serde_json::to_vec_pretty(&bundle[key]).map_err(|e| e.to_string())?
         };
-        zip.start_file(name, options)
-            .map_err(|e| e.to_string())?;
+        zip.start_file(name, options).map_err(|e| e.to_string())?;
         zip.write_all(&content).map_err(|e| e.to_string())?;
     }
     zip.finish().map_err(|e| e.to_string())?;

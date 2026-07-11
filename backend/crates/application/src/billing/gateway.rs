@@ -54,9 +54,13 @@ pub trait PaymentGateway: Send + Sync {
         req: CreateSubscriptionRequest,
     ) -> Result<SubscriptionResponse, BillingError>;
 
-    async fn cancel_subscription(&self, req: CancelSubscriptionRequest) -> Result<(), BillingError>;
+    async fn cancel_subscription(&self, req: CancelSubscriptionRequest)
+    -> Result<(), BillingError>;
 
-    async fn attach_payment_method(&self, req: AttachPaymentMethodRequest) -> Result<(), BillingError>;
+    async fn attach_payment_method(
+        &self,
+        req: AttachPaymentMethodRequest,
+    ) -> Result<(), BillingError>;
 
     async fn ping(&self) -> Result<(), BillingError>;
 }

@@ -65,10 +65,11 @@ pub async fn update_payment_settings(
         .apply_update(body.enabled, methods, body.auto_capture, &limits)
         .map_err(map_billing_api)?;
     if body.enabled {
-        let connected = infra_postgres::billing::find_credentials(&state.admin_pool, auth.tenant_id)
-            .await
-            .map_err(|_| ApiError::internal())?
-            .is_some();
+        let connected =
+            infra_postgres::billing::find_credentials(&state.admin_pool, auth.tenant_id)
+                .await
+                .map_err(|_| ApiError::internal())?
+                .is_some();
         if !connected {
             return Err(map_billing_api(BillingError::TenantAsaasNotConnected));
         }

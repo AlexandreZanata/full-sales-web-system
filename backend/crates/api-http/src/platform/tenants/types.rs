@@ -74,7 +74,10 @@ pub fn row_to_tenant(row: &TenantLifecycleRow) -> Tenant {
     }
 }
 
-pub fn tenant_detail(row: TenantLifecycleRow, counts: infra_postgres::shared::TenantCounts) -> TenantDetailResponse {
+pub fn tenant_detail(
+    row: TenantLifecycleRow,
+    counts: infra_postgres::shared::TenantCounts,
+) -> TenantDetailResponse {
     TenantDetailResponse {
         id: row.id.as_uuid(),
         legal_name: row.legal_name,
@@ -95,14 +98,22 @@ pub fn tenant_detail(row: TenantLifecycleRow, counts: infra_postgres::shared::Te
 
 pub fn map_platform_patch_error(err: application::AppError) -> crate::error::ApiError {
     match err {
-        application::AppError::Platform(domain_platform::PlatformError::InvalidTenantTransition { .. }) => {
-            crate::error::ApiError::bad_request("INVALID_TENANT_TRANSITION", "Invalid tenant status transition")
-        }
+        application::AppError::Platform(
+            domain_platform::PlatformError::InvalidTenantTransition { .. },
+        ) => crate::error::ApiError::bad_request(
+            "INVALID_TENANT_TRANSITION",
+            "Invalid tenant status transition",
+        ),
         application::AppError::Platform(domain_platform::PlatformError::SuspendReasonRequired)
         | application::AppError::Platform(domain_platform::PlatformError::SuspendReasonTooShort) => {
-            crate::error::ApiError::bad_request("INVALID_INPUT", "Suspend reason required (min 3 chars)")
+            crate::error::ApiError::bad_request(
+                "INVALID_INPUT",
+                "Suspend reason required (min 3 chars)",
+            )
         }
-        application::AppError::Platform(_) => crate::error::ApiError::bad_request("INVALID_INPUT", "Invalid tenant input"),
+        application::AppError::Platform(_) => {
+            crate::error::ApiError::bad_request("INVALID_INPUT", "Invalid tenant input")
+        }
         other => match other {
             application::AppError::TenantSuspended => crate::error::ApiError::tenant_suspended(),
             _ => crate::error::ApiError::internal(),

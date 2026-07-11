@@ -40,18 +40,18 @@ pub async fn list_fraud_alerts(
 ) -> Result<Json<Vec<FraudAlertResponse>>, Response> {
     require_admin(&auth).map_err(IntoResponse::into_response)?;
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
-    let rows = infra_postgres::fraud::list_fraud_events_tenant(
-        &state.app_pool,
-        auth.tenant_id,
-        limit,
-    )
-    .await
-    .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
+    let rows =
+        infra_postgres::fraud::list_fraud_events_tenant(&state.app_pool, auth.tenant_id, limit)
+            .await
+            .map_err(|_| IntoResponse::into_response(ApiError::internal()))?;
     let items: Vec<FraudAlertResponse> = rows
         .into_iter()
         .map(|row| {
             let event = restore_fraud_event(&row);
-            if matches!(event.severity, FraudSeverity::High | FraudSeverity::Critical) {
+            if matches!(
+                event.severity,
+                FraudSeverity::High | FraudSeverity::Critical
+            ) {
                 notify_high_severity_stub(auth.tenant_id, event.event_type);
             }
             FraudAlertResponse {

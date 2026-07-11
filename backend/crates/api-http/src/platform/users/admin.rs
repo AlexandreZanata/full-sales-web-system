@@ -84,7 +84,11 @@ async fn mutate_active(
         state,
         ctx,
         auth.user_id,
-        if active { "user.enable" } else { "user.disable" },
+        if active {
+            "user.enable"
+        } else {
+            "user.disable"
+        },
         Some(TenantId::from_uuid(row.tenant_id)),
         "User",
         id,

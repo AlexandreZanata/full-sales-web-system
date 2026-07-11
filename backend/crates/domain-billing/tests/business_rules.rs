@@ -21,11 +21,13 @@ fn starter_plan() -> SubscriptionPlan {
 // BR-BI-001 contract: duplicate webhook must not change subscription state.
 #[test]
 fn given_active_subscription_when_duplicate_payment_confirmed_then_state_unchanged() {
-    let mut sub = Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
+    let mut sub =
+        Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
     let period_end = Utc::now() + Duration::days(30);
     sub.activate(period_end).expect("activate");
     let before = sub.status;
-    sub.restore_from_payment(period_end).expect("idempotent active");
+    sub.restore_from_payment(period_end)
+        .expect("idempotent active");
     assert_eq!(sub.status, before);
     assert_eq!(sub.status, SubscriptionStatus::Active);
 }
@@ -33,7 +35,8 @@ fn given_active_subscription_when_duplicate_payment_confirmed_then_state_unchang
 // BR-BI-002 contract: trial converts to active on first payment.
 #[test]
 fn given_pending_subscription_when_activate_then_active() {
-    let mut sub = Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
+    let mut sub =
+        Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
     let period_end = Utc::now() + Duration::days(30);
     sub.activate(period_end).expect("activate");
     assert_eq!(sub.status, SubscriptionStatus::Active);
@@ -42,15 +45,18 @@ fn given_pending_subscription_when_activate_then_active() {
 
 #[test]
 fn given_active_subscription_when_overdue_then_past_due() {
-    let mut sub = Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
-    sub.activate(Utc::now() + Duration::days(30)).expect("activate");
+    let mut sub =
+        Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
+    sub.activate(Utc::now() + Duration::days(30))
+        .expect("activate");
     sub.mark_past_due().expect("past due");
     assert_eq!(sub.status, SubscriptionStatus::PastDue);
 }
 
 #[test]
 fn given_past_due_subscription_when_payment_confirmed_then_active() {
-    let mut sub = Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
+    let mut sub =
+        Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
     sub.activate(Utc::now()).expect("activate");
     sub.mark_past_due().expect("past due");
     let new_end = Utc::now() + Duration::days(30);
@@ -60,7 +66,8 @@ fn given_past_due_subscription_when_payment_confirmed_then_active() {
 
 #[test]
 fn given_expired_subscription_when_activate_then_invalid_transition() {
-    let mut sub = Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
+    let mut sub =
+        Subscription::new_pending(Uuid::now_v7(), TenantId::generate(), starter_plan().id);
     sub.activate(Utc::now()).expect("activate");
     sub.cancel().expect("cancel");
     sub.expire().expect("expire");
@@ -116,7 +123,10 @@ fn given_invalid_subscription_transition_when_checked_then_false() {
 
 #[test]
 fn given_invalid_invoice_transition_when_checked_then_false() {
-    assert!(!can_transition_invoice(InvoiceStatus::Refunded, InvoiceStatus::Paid));
+    assert!(!can_transition_invoice(
+        InvoiceStatus::Refunded,
+        InvoiceStatus::Paid
+    ));
 }
 
 #[test]

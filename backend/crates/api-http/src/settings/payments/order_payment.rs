@@ -4,9 +4,7 @@ use application::billing::{
 use uuid::Uuid;
 
 use crate::error::ApiError;
-use crate::fraud::{
-    check_amount_anomaly, check_payment_velocity, ensure_checkout_allowed,
-};
+use crate::fraud::{check_amount_anomaly, check_payment_velocity, ensure_checkout_allowed};
 use crate::state::AppState;
 
 use super::support::{load_settings, map_billing_api, tenant_asaas_client};
@@ -63,7 +61,9 @@ pub async fn process_order_payment_webhook(
     if !matches!(event_type, "PAYMENT_CONFIRMED" | "PAYMENT_RECEIVED") {
         return Ok(());
     }
-    let payment = payload.get("payment").ok_or(application::AppError::Forbidden)?;
+    let payment = payload
+        .get("payment")
+        .ok_or(application::AppError::Forbidden)?;
     let payment_id = payment
         .get("id")
         .and_then(|v| v.as_str())

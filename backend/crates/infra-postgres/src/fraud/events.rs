@@ -1,7 +1,7 @@
 use domain_fraud::{FraudEventType, FraudResolution, FraudSeverity};
 use domain_shared::TenantId;
-use sqlx::Row;
 use sqlx::PgPool;
+use sqlx::Row;
 use uuid::Uuid;
 
 use crate::PostgresError;
@@ -37,10 +37,7 @@ pub struct FraudEventFilters {
     pub tenant_id: Option<Uuid>,
 }
 
-pub async fn insert_fraud_event(
-    pool: &PgPool,
-    event: NewFraudEvent,
-) -> Result<(), PostgresError> {
+pub async fn insert_fraud_event(pool: &PgPool, event: NewFraudEvent) -> Result<(), PostgresError> {
     sqlx::query(
         "INSERT INTO fraud.fraud_events
          (id, tenant_id, user_id, event_type, severity, metadata)
@@ -97,13 +94,7 @@ pub async fn list_fraud_events_platform(
 ) -> Result<Vec<FraudEventRow>, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_bypass_rls(&mut tx).await?;
-    let rows = query_rows(
-        &mut tx,
-        filters,
-        before_id,
-        limit,
-    )
-    .await?;
+    let rows = query_rows(&mut tx, filters, before_id, limit).await?;
     tx.commit().await?;
     Ok(rows)
 }
@@ -174,7 +165,9 @@ impl sqlx::FromRow<'_, sqlx::postgres::PgRow> for FraudEventRow {
     fn from_row(row: &sqlx::postgres::PgRow) -> Result<Self, sqlx::Error> {
         Ok(Self {
             id: row.try_get("id")?,
-            tenant_id: row.try_get::<Option<Uuid>, _>("tenant_id")?.map(TenantId::from_uuid),
+            tenant_id: row
+                .try_get::<Option<Uuid>, _>("tenant_id")?
+                .map(TenantId::from_uuid),
             user_id: row.try_get("user_id")?,
             event_type: row.try_get("event_type")?,
             severity: row.try_get("severity")?,

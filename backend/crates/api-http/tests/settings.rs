@@ -7,7 +7,8 @@ use http::StatusCode;
 use serde_json::json;
 
 use support::{
-    minimal_webp_bytes, request, request_bytes, seed_admin, setup, setup_with_tenant, upload_multipart,
+    minimal_webp_bytes, request, request_bytes, seed_admin, setup, setup_with_tenant,
+    upload_multipart,
 };
 
 const DEV_SEED_TENANT_ID: &str = "01900001-0000-7000-8000-000000000001";
@@ -173,9 +174,7 @@ async fn contract_public_settings_logo_when_seeded_then_public_media_url_loads()
     let (settings_status, settings_body) =
         request(&env, "GET", "/v1/public/settings", None, None).await;
     assert_eq!(settings_status, StatusCode::OK);
-    let logo_url = settings_body["logoUrl"]
-        .as_str()
-        .expect("public logoUrl");
+    let logo_url = settings_body["logoUrl"].as_str().expect("public logoUrl");
     assert!(logo_url.starts_with("/v1/public/media/"));
 
     let (media_status, _) = request_bytes(&env, "GET", logo_url, None).await;

@@ -17,8 +17,8 @@ use crate::list_query::{
 };
 use crate::platform::auth::PlatformAuthUser;
 use crate::platform_audit::record_platform_audit;
-use crate::sales::types::SaleSummaryResponse;
 use crate::products::ProductResponse;
+use crate::sales::types::SaleSummaryResponse;
 use crate::state::AppState;
 
 pub async fn list_tenant_orders_support(

@@ -23,7 +23,7 @@ export function Input({ className, label, error, id, ...props }: InputProps) {
       <input
         id={inputId}
         className={cn(
-          'h-10 w-full rounded-md border bg-surface px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-admin-accent',
+          'h-10 w-full rounded-lg border bg-surface px-3.5 text-sm text-foreground shadow-sm transition-shadow placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-admin-accent/40 focus:ring-offset-1',
           error ? 'border-destructive focus:ring-destructive' : 'border-input',
           className,
         )}

@@ -135,9 +135,7 @@ async fn contract_opencnpj_when_504_then_retries_once() {
 
 #[test]
 fn contract_env_when_opencnpj_selected_then_builds_provider() {
-    let result = OpenCnpjLookup::from_config(
-        "https://api.comerc.app.br".into(),
-        "ocnpj_test_key".into(),
-    );
+    let result =
+        OpenCnpjLookup::from_config("https://api.comerc.app.br".into(), "ocnpj_test_key".into());
     assert!(result.is_ok());
 }

@@ -1,8 +1,6 @@
 use domain_shared::TenantId;
 
-use domain_identity::{
-    Email, IdentityError, ImpersonationGrant, PlatformUserId, UserId,
-};
+use domain_identity::{Email, IdentityError, ImpersonationGrant, PlatformUserId, UserId};
 
 #[test]
 fn given_expired_grant_when_ensure_active_then_error() {

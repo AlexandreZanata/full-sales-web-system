@@ -43,46 +43,72 @@ function MaintenancePage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-4">
-      <PageHeader title={t('maintenance.title')} />
-      <Card className="p-4">
-        <form className="space-y-4" onSubmit={handleSubmit}>
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      <PageHeader title={t('maintenance.title')} description={t('maintenance.description')} />
+
+      <Card className="platform-form-panel overflow-hidden p-0">
+        <div className="platform-form-panel-accent" aria-hidden />
+        <div className="border-b border-hairline bg-surface-muted/50 px-6 py-4 md:px-10 md:py-5">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {t('maintenance.scopeHint')}
+          </p>
+        </div>
+
+        <form className="space-y-6 px-6 py-6 md:space-y-8 md:px-10 md:py-8" onSubmit={handleSubmit}>
           <Input
             label={t('maintenance.tenantOptional')}
             value={form.tenantId}
+            placeholder="01900001-0000-7000-8000-000000000001"
+            className="h-11 text-base md:h-12"
             onChange={(e) => {
               setForm((prev) => ({ ...prev, tenantId: e.target.value }));
             }}
           />
+
           <Textarea
             label={t('maintenance.message')}
             required
+            rows={5}
             value={form.message}
+            placeholder="Scheduled maintenance — portal checkout may be unavailable."
+            className="min-h-36 resize-y text-base leading-relaxed md:min-h-40"
             onChange={(e) => {
               setForm((prev) => ({ ...prev, message: e.target.value }));
             }}
           />
-          <Input
-            label={t('maintenance.startsAt')}
-            type="datetime-local"
-            required
-            value={form.startsAt}
-            onChange={(e) => {
-              setForm((prev) => ({ ...prev, startsAt: e.target.value }));
-            }}
-          />
-          <Input
-            label={t('maintenance.endsAt')}
-            type="datetime-local"
-            required
-            value={form.endsAt}
-            onChange={(e) => {
-              setForm((prev) => ({ ...prev, endsAt: e.target.value }));
-            }}
-          />
-          <Button type="submit" disabled={mutation.isPending}>
-            {t('maintenance.schedule')}
-          </Button>
+
+          <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+            <Input
+              label={t('maintenance.startsAt')}
+              type="datetime-local"
+              required
+              value={form.startsAt}
+              className="h-11 text-base md:h-12"
+              onChange={(e) => {
+                setForm((prev) => ({ ...prev, startsAt: e.target.value }));
+              }}
+            />
+            <Input
+              label={t('maintenance.endsAt')}
+              type="datetime-local"
+              required
+              value={form.endsAt}
+              className="h-11 text-base md:h-12"
+              onChange={(e) => {
+                setForm((prev) => ({ ...prev, endsAt: e.target.value }));
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-hairline pt-6 md:flex-row md:items-center md:justify-end md:pt-8">
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="h-11 min-h-11 w-full px-8 text-base shadow-md shadow-primary/20 md:w-auto md:min-w-[14rem]"
+            >
+              {t('maintenance.schedule')}
+            </Button>
+          </div>
         </form>
       </Card>
     </div>

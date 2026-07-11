@@ -7,9 +7,7 @@ use axum::{
 use crate::domains::PublicTenantId;
 use crate::error::ApiError;
 use crate::list_query::CursorListResponse;
-use crate::portal::products::{
-    build_portal_product_responses, list_products_cursor,
-};
+use crate::portal::products::{build_portal_product_responses, list_products_cursor};
 use crate::state::AppState;
 
 #[derive(serde::Deserialize)]

@@ -38,10 +38,7 @@ impl InMemoryVelocityCounter {
 #[async_trait]
 impl VelocityCounter for InMemoryVelocityCounter {
     async fn increment(&self, key: &str, ttl: Duration) -> Result<u32, VelocityError> {
-        let mut guard = self
-            .store
-            .lock()
-            .map_err(|_| VelocityError::StoreFailed)?;
+        let mut guard = self.store.lock().map_err(|_| VelocityError::StoreFailed)?;
         let now = Instant::now();
         let count = match guard.entries.get(key) {
             Some((expires, count)) if *expires > now => count + 1,
@@ -52,10 +49,7 @@ impl VelocityCounter for InMemoryVelocityCounter {
     }
 
     async fn get(&self, key: &str) -> Result<u32, VelocityError> {
-        let guard = self
-            .store
-            .lock()
-            .map_err(|_| VelocityError::StoreFailed)?;
+        let guard = self.store.lock().map_err(|_| VelocityError::StoreFailed)?;
         let now = Instant::now();
         Ok(guard
             .entries
@@ -99,7 +93,10 @@ impl VelocityCounter for RedisVelocityCounter {
 
     async fn get(&self, key: &str) -> Result<u32, VelocityError> {
         let mut conn = self.client.clone();
-        let value: Option<u32> = conn.get(key).await.map_err(|_| VelocityError::StoreFailed)?;
+        let value: Option<u32> = conn
+            .get(key)
+            .await
+            .map_err(|_| VelocityError::StoreFailed)?;
         Ok(value.unwrap_or(0))
     }
 }

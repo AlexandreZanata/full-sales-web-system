@@ -41,10 +41,16 @@ pub async fn schedule_maintenance(
     Json(body): Json<ScheduleMaintenanceRequest>,
 ) -> Result<(StatusCode, Json<MaintenanceWindowResponse>), ApiError> {
     if body.message.trim().len() < 3 {
-        return Err(ApiError::bad_request("VALIDATION_ERROR", "Message too short"));
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Message too short",
+        ));
     }
     if body.ends_at <= body.starts_at {
-        return Err(ApiError::bad_request("VALIDATION_ERROR", "endsAt must be after startsAt"));
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "endsAt must be after startsAt",
+        ));
     }
     if let Some(tid) = body.tenant_id {
         let exists = infra_postgres::identity::tenant_exists(&state.admin_pool, tid)

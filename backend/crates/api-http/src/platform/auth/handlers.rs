@@ -4,10 +4,11 @@ use infra_crypto::{PasswordHasher, TotpVerifier};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::middleware::PlatformAuthUser;
+use super::mfa_policy::platform_mfa_enabled;
 use crate::client_ip::client_ip;
 use crate::error::ApiError;
 use crate::fraud::on_login_failure;
-use super::middleware::PlatformAuthUser;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -66,15 +67,16 @@ pub async fn platform_login(
 
     let email = body.email.trim().to_lowercase();
     let ip = client_ip(&headers);
-    let record = match infra_postgres::identity::find_platform_user_for_login(&state.admin_pool, &email)
-        .await
-        .map_err(|_| ApiError::internal())?
-    {
-        Some(record) => record,
-        None => {
-            return Err(record_platform_login_failure(&state, &rate_key, &ip, &email).await);
-        }
-    };
+    let record =
+        match infra_postgres::identity::find_platform_user_for_login(&state.admin_pool, &email)
+            .await
+            .map_err(|_| ApiError::internal())?
+        {
+            Some(record) => record,
+            None => {
+                return Err(record_platform_login_failure(&state, &rate_key, &ip, &email).await);
+            }
+        };
 
     let password_ok = PasswordHasher::verify(&body.password, &record.password_hash)
         .map_err(|_| ApiError::internal())?;
@@ -82,7 +84,7 @@ pub async fn platform_login(
         return Err(record_platform_login_failure(&state, &rate_key, &ip, &email).await);
     }
 
-    if record.mfa_enrolled && record.mfa_secret.is_some() {
+    if platform_mfa_enabled() && record.mfa_enrolled && record.mfa_secret.is_some() {
         let mfa_token = state
             .jwt
             .issue_mfa_pending_token(record.id)
@@ -120,9 +122,7 @@ pub async fn platform_mfa_verify(
         .verify(body.code.trim())
         .map_err(|_| ApiError::invalid_credentials())?;
 
-    issue_platform_tokens(&state, record.id)
-        .await
-        .map(Json)
+    issue_platform_tokens(&state, record.id).await.map(Json)
 }
 
 pub async fn platform_refresh(

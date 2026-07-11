@@ -25,7 +25,11 @@ fn sample_event(event_id: &str, tenant_id: &str) -> String {
     .to_string()
 }
 
-async fn webhook_request(env: &support::TestEnv, token: Option<&str>, body: Option<String>) -> (StatusCode, serde_json::Value) {
+async fn webhook_request(
+    env: &support::TestEnv,
+    token: Option<&str>,
+    body: Option<String>,
+) -> (StatusCode, serde_json::Value) {
     let app = api_http::full_app(env.state.clone());
     let mut builder = axum::http::Request::builder()
         .method("POST")
@@ -104,7 +108,14 @@ async fn contract_webhook_when_payment_confirmed_twice_then_idempotent_tenant_st
         "cnpj": "11222333000181"
     })
     .to_string();
-    let (status, resp) = request(&env, "POST", "/v1/platform/tenants", Some(&token), Some(body)).await;
+    let (status, resp) = request(
+        &env,
+        "POST",
+        "/v1/platform/tenants",
+        Some(&token),
+        Some(body),
+    )
+    .await;
     assert_eq!(status, StatusCode::CREATED, "{resp}");
     let tenant_id = resp["tenantId"].as_str().expect("id");
 

@@ -19,24 +19,42 @@ pub struct FraudThresholds {
 struct RawThresholds {
     #[serde(rename = "loginFailureMax", default = "default_login_failure_max")]
     login_failure_max: u32,
-    #[serde(rename = "loginFailureWindowSecs", default = "default_login_failure_window_secs")]
+    #[serde(
+        rename = "loginFailureWindowSecs",
+        default = "default_login_failure_window_secs"
+    )]
     login_failure_window_secs: u64,
-    #[serde(rename = "paymentVelocityMax", default = "default_payment_velocity_max")]
+    #[serde(
+        rename = "paymentVelocityMax",
+        default = "default_payment_velocity_max"
+    )]
     payment_velocity_max: u32,
-    #[serde(rename = "paymentVelocityWindowSecs", default = "default_payment_velocity_window_secs")]
+    #[serde(
+        rename = "paymentVelocityWindowSecs",
+        default = "default_payment_velocity_window_secs"
+    )]
     payment_velocity_window_secs: u64,
     #[serde(rename = "provisionAlertMax", default = "default_provision_alert_max")]
     provision_alert_max: u32,
-    #[serde(rename = "provisionAlertWindowSecs", default = "default_provision_alert_window_secs")]
+    #[serde(
+        rename = "provisionAlertWindowSecs",
+        default = "default_provision_alert_window_secs"
+    )]
     provision_alert_window_secs: u64,
-    #[serde(rename = "webhookFailureBurstMax", default = "default_webhook_failure_burst_max")]
+    #[serde(
+        rename = "webhookFailureBurstMax",
+        default = "default_webhook_failure_burst_max"
+    )]
     webhook_failure_burst_max: u32,
     #[serde(
         rename = "webhookFailureBurstWindowSecs",
         default = "default_webhook_failure_burst_window_secs"
     )]
     webhook_failure_burst_window_secs: u64,
-    #[serde(rename = "tenantFraudScoreBlock", default = "default_tenant_fraud_score_block")]
+    #[serde(
+        rename = "tenantFraudScoreBlock",
+        default = "default_tenant_fraud_score_block"
+    )]
     tenant_fraud_score_block: i32,
 }
 
@@ -65,7 +83,9 @@ impl FraudThresholds {
             provision_alert_max: raw.provision_alert_max,
             provision_alert_window: Duration::from_secs(raw.provision_alert_window_secs),
             webhook_failure_burst_max: raw.webhook_failure_burst_max,
-            webhook_failure_burst_window: Duration::from_secs(raw.webhook_failure_burst_window_secs),
+            webhook_failure_burst_window: Duration::from_secs(
+                raw.webhook_failure_burst_window_secs,
+            ),
             tenant_fraud_score_block: raw.tenant_fraud_score_block,
         }
     }

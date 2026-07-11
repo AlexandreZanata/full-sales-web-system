@@ -20,18 +20,16 @@ pub fn map_billing_api(err: BillingError) -> ApiError {
             "PLAN_FEATURE_UNAVAILABLE",
             "Plan does not include online payments",
         ),
-        BillingError::InvalidCredentials => ApiError::bad_request(
-            "INVALID_ASAAS_CREDENTIALS",
-            "Invalid Asaas API key",
-        ),
+        BillingError::InvalidCredentials => {
+            ApiError::bad_request("INVALID_ASAAS_CREDENTIALS", "Invalid Asaas API key")
+        }
         BillingError::TenantAsaasNotConnected => ApiError::bad_request(
             "ASAAS_NOT_CONNECTED",
             "Connect tenant Asaas credentials first",
         ),
-        BillingError::InvalidRequest(_) => ApiError::bad_request(
-            "VALIDATION_ERROR",
-            "Invalid tenant payment settings",
-        ),
+        BillingError::InvalidRequest(_) => {
+            ApiError::bad_request("VALIDATION_ERROR", "Invalid tenant payment settings")
+        }
         _ => ApiError::internal(),
     }
 }
@@ -97,9 +95,7 @@ pub async fn tenant_asaas_client(
         nonce: creds.nonce,
         key_version: creds.key_version,
     };
-    let api_key = encryptor
-        .decrypt(&blob)
-        .map_err(|_| ApiError::internal())?;
+    let api_key = encryptor.decrypt(&blob).map_err(|_| ApiError::internal())?;
     infra_asaas::TenantAsaasClient::new(api_key, state.tenant_asaas_base_url.clone())
         .map_err(|_| ApiError::internal())
 }

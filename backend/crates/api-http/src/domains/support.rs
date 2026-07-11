@@ -24,7 +24,10 @@ pub fn row_to_domain(row: &DomainRow) -> TenantDomain {
     }
 }
 
-pub async fn ensure_custom_domain_plan(state: &AppState, tenant_id: TenantId) -> Result<(), ApiError> {
+pub async fn ensure_custom_domain_plan(
+    state: &AppState,
+    tenant_id: TenantId,
+) -> Result<(), ApiError> {
     let flags = crate::platform::feature_support::load_resolved_flags(state, tenant_id).await?;
     if !flags.custom_domain {
         return Err(ApiError::forbidden_with_code(
@@ -80,5 +83,8 @@ pub async fn persist_domain(
 }
 
 pub fn txt_challenge(domain: &TenantDomain) -> (String, String) {
-    (txt_record_name(&domain.hostname), domain.verification_token.clone())
+    (
+        txt_record_name(&domain.hostname),
+        domain.verification_token.clone(),
+    )
 }

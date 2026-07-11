@@ -1,11 +1,11 @@
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{Json, extract::State, http::StatusCode};
 use domain_identity::Role;
 use serde::Deserialize;
 
-use application::billing::AttachPaymentMethodRequest;
 use crate::auth::AuthUser;
 use crate::error::ApiError;
 use crate::state::AppState;
+use application::billing::AttachPaymentMethodRequest;
 
 #[derive(Deserialize)]
 pub struct PaymentMethodRequest {
@@ -29,10 +29,13 @@ pub async fn attach_payment_method(
             "credit_card token required",
         ));
     }
-    let customer_id = infra_postgres::billing::find_asaas_customer_id(&state.admin_pool, auth.tenant_id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(|| ApiError::bad_request("CUSTOMER_NOT_FOUND", "Asaas customer not provisioned"))?;
+    let customer_id =
+        infra_postgres::billing::find_asaas_customer_id(&state.admin_pool, auth.tenant_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(|| {
+                ApiError::bad_request("CUSTOMER_NOT_FOUND", "Asaas customer not provisioned")
+            })?;
     state
         .payment_gateway
         .attach_payment_method(AttachPaymentMethodRequest {
@@ -40,6 +43,8 @@ pub async fn attach_payment_method(
             credit_card_token: body.credit_card_token,
         })
         .await
-        .map_err(|_| ApiError::bad_request("PAYMENT_METHOD_FAILED", "Could not attach payment method"))?;
+        .map_err(|_| {
+            ApiError::bad_request("PAYMENT_METHOD_FAILED", "Could not attach payment method")
+        })?;
     Ok(StatusCode::CREATED)
 }

@@ -23,9 +23,7 @@ pub fn map_status(status: reqwest::StatusCode, body: &str) -> BillingError {
         401 | 403 => BillingError::InvalidCredentials,
         404 => BillingError::CustomerNotFound,
         429 => BillingError::RateLimited,
-        400 | 422 => BillingError::InvalidRequest(
-            code.unwrap_or("invalid_request").to_owned(),
-        ),
+        400 | 422 => BillingError::InvalidRequest(code.unwrap_or("invalid_request").to_owned()),
         _ if status.is_server_error() => BillingError::UpstreamUnavailable,
         _ => BillingError::UpstreamUnavailable,
     }

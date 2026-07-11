@@ -257,8 +257,7 @@ pub async fn submit_portal_order(
     let _ = require_commerce_contact(&auth)?;
     let session = session_from_auth(&auth);
     let existing = load_order(&state, &session, id).await?;
-    let settings =
-        crate::settings::payments::load_settings(&state, auth.tenant_id).await?;
+    let settings = crate::settings::payments::load_settings(&state, auth.tenant_id).await?;
     if settings.enabled {
         let total = existing.total().map_err(|_| ApiError::internal())?;
         let payment_id = crate::settings::payments::create_order_payment(

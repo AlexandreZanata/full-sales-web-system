@@ -23,7 +23,7 @@ export function Textarea({ className, label, error, id, ...props }: TextareaProp
       <textarea
         id={inputId}
         className={cn(
-          'min-h-24 w-full rounded-md border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-admin-accent',
+          'min-h-24 w-full rounded-lg border bg-surface px-3.5 py-2.5 text-sm text-foreground shadow-sm transition-shadow placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-admin-accent/40 focus:ring-offset-1',
           error ? 'border-destructive focus:ring-destructive' : 'border-input',
           className,
         )}

@@ -99,7 +99,11 @@ async fn seed_popular_metrics(
     Ok(())
 }
 
-async fn seed_hero_banners(app_pool: &PgPool, admin_pool: &PgPool, tenant: TenantId) -> DevSeedResult<()> {
+async fn seed_hero_banners(
+    app_pool: &PgPool,
+    admin_pool: &PgPool,
+    tenant: TenantId,
+) -> DevSeedResult<()> {
     let banner_ids = portal_banner_ids();
     let file_ids = portal_banner_file_ids();
     let uploader = admin_user_id();
@@ -158,7 +162,11 @@ async fn seed_hero_banners(app_pool: &PgPool, admin_pool: &PgPool, tenant: Tenan
     Ok(())
 }
 
-async fn seed_promotions(app_pool: &PgPool, admin_pool: &PgPool, tenant: TenantId) -> DevSeedResult<()> {
+async fn seed_promotions(
+    app_pool: &PgPool,
+    admin_pool: &PgPool,
+    tenant: TenantId,
+) -> DevSeedResult<()> {
     let promotion_ids = portal_promotion_ids();
     let file_ids = portal_promotion_file_ids();
     let uploader = admin_user_id();

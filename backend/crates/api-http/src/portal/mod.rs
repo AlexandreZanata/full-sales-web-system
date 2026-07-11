@@ -11,6 +11,7 @@ pub use categories::{
     get_portal_category_by_slug, get_public_category_by_slug, list_portal_categories,
     list_public_categories,
 };
+pub use featured_popular::{list_public_featured_products, list_public_popular_products};
 pub(crate) use orders::{
     PortalOrderResponse, load_order, map_order_error, map_postgres_order_error, order_to_response,
 };
@@ -19,7 +20,6 @@ pub use orders::{
     submit_portal_order, update_portal_order,
 };
 pub use product_detail::{get_portal_product_by_id, get_public_product_by_id};
-pub use featured_popular::{list_public_featured_products, list_public_popular_products};
-pub use promotions::list_public_promotions;
 pub(crate) use products::resolve_public_catalog_tenant;
 pub use products::{list_portal_products, list_public_products};
+pub use promotions::list_public_promotions;
