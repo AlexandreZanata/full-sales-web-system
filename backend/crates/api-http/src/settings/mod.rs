@@ -36,6 +36,8 @@ pub struct SettingsResponse {
     pub payment_methods: Option<payments::PaymentMethodsResponse>,
     #[serde(rename = "maintenanceBanner", skip_serializing_if = "Option::is_none")]
     pub maintenance_banner: Option<MaintenanceBanner>,
+    #[serde(rename = "heroBannerIntervalSecs")]
+    pub hero_banner_interval_secs: i32,
 }
 
 #[derive(Deserialize, Default)]
@@ -44,6 +46,8 @@ pub struct UpdateSettingsRequest {
     pub display_name: Option<String>,
     #[serde(rename = "salesContactPhone")]
     pub sales_contact_phone: Option<String>,
+    #[serde(rename = "heroBannerIntervalSecs")]
+    pub hero_banner_interval_secs: Option<i32>,
 }
 
 #[derive(Deserialize)]
@@ -73,7 +77,10 @@ pub async fn patch_settings(
 ) -> Result<Json<SettingsResponse>, ApiError> {
     require_admin(&auth)?;
 
-    if body.display_name.is_none() && body.sales_contact_phone.is_none() {
+    if body.display_name.is_none()
+        && body.sales_contact_phone.is_none()
+        && body.hero_banner_interval_secs.is_none()
+    {
         return settings_response(&state, auth.tenant_id).await;
     }
 
@@ -110,6 +117,26 @@ pub async fn patch_settings(
         if !updated {
             return Err(ApiError::not_found());
         }
+    }
+
+    if let Some(interval_secs) = body.hero_banner_interval_secs {
+        if !(3..=120).contains(&interval_secs) {
+            return Err(ApiError::bad_request(
+                "VALIDATION_ERROR",
+                "heroBannerIntervalSecs must be between 3 and 120",
+            ));
+        }
+        let updated = infra_postgres::shared::update_tenant_hero_banner_interval_secs(
+            &state.app_pool,
+            auth.tenant_id,
+            interval_secs,
+        )
+        .await
+        .map_err(|_| ApiError::internal())?;
+        if !updated {
+            return Err(ApiError::not_found());
+        }
+        crate::catalog_events::notify_portal_settings_changed(&state.catalog_events);
     }
 
     settings_response(&state, auth.tenant_id).await
@@ -204,6 +231,7 @@ async fn settings_response(
         sales_contact_phone: row.sales_contact_phone,
         payment_methods,
         maintenance_banner,
+        hero_banner_interval_secs: row.hero_banner_interval_secs,
     }))
 }
 

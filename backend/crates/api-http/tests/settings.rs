@@ -36,6 +36,55 @@ async fn contract_patch_settings_when_valid_then_display_name_updated() {
 }
 
 #[tokio::test]
+async fn contract_get_settings_when_seeded_then_default_hero_banner_interval() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, body) =
+        request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["heroBannerIntervalSecs"], 7);
+}
+
+#[tokio::test]
+async fn contract_patch_settings_when_hero_banner_interval_then_persisted() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (patch_status, patch_body) = request(
+        &env,
+        "PATCH",
+        "/v1/settings",
+        Some(&admin_token),
+        Some(json!({ "heroBannerIntervalSecs": 12 }).to_string()),
+    )
+    .await;
+    assert_eq!(patch_status, StatusCode::OK);
+    assert_eq!(patch_body["heroBannerIntervalSecs"], 12);
+
+    let (get_status, get_body) =
+        request(&env, "GET", "/v1/public/settings", None, None).await;
+    assert_eq!(get_status, StatusCode::OK);
+    assert_eq!(get_body["heroBannerIntervalSecs"], 12);
+}
+
+#[tokio::test]
+async fn contract_patch_settings_when_invalid_hero_banner_interval_then_400() {
+    let env = setup().await;
+    let (_, admin_token) = seed_admin(&env).await;
+
+    let (status, _) = request(
+        &env,
+        "PATCH",
+        "/v1/settings",
+        Some(&admin_token),
+        Some(json!({ "heroBannerIntervalSecs": 2 }).to_string()),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
 async fn contract_patch_settings_when_sales_contact_phone_then_persisted() {
     let env = setup().await;
     let (_, admin_token) = seed_admin(&env).await;

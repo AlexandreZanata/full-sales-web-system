@@ -7,7 +7,7 @@ use axum::{
     http::{HeaderValue, header},
     response::Response,
 };
-use domain_media::{FileId, compute_sha256, validate_upload};
+use domain_media::{FileId, compute_sha256, normalize_image_mime, validate_upload};
 use uuid::Uuid;
 
 use crate::auth::AuthUser;
@@ -25,6 +25,7 @@ pub async fn upload_media(
         support::parse_multipart(&mut multipart).await?;
     support::ensure_can_access_entity(&state, &auth, entity_type, entity_id).await?;
 
+    let mime_type = normalize_image_mime(&mime_type);
     let size_bytes = bytes.len() as u64;
     let sha256 = compute_sha256(&bytes);
     validate_upload(&mime_type, size_bytes, &bytes, &sha256).map_err(support::map_media_error)?;

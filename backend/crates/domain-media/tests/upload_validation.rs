@@ -26,7 +26,7 @@ fn given_exe_mime_when_validate_upload_then_invalid_mime_type() {
 }
 
 #[test]
-fn given_six_mb_payload_when_validate_upload_then_file_too_large() {
+fn given_over_max_payload_when_validate_upload_then_file_too_large() {
     let bytes = vec![0u8; (MAX_FILE_SIZE_BYTES + 1) as usize];
     let sha = compute_sha256(&bytes);
     let err = validate_upload("image/png", bytes.len() as u64, &bytes, &sha)

@@ -2,10 +2,19 @@ use sha2::{Digest, Sha256};
 
 use crate::error::MediaError;
 
-/// Maximum upload size — 5 MiB (RN7 / ENTITY-SPEC-file).
-pub const MAX_FILE_SIZE_BYTES: u64 = 5_242_880;
+/// Maximum upload size — 15 MiB (RN7 / ENTITY-SPEC-file).
+pub const MAX_FILE_SIZE_BYTES: u64 = 15 * 1024 * 1024;
 
 const ALLOWED_MIMES: &[&str] = &["image/jpeg", "image/png", "image/webp"];
+
+pub fn normalize_image_mime(mime_type: &str) -> String {
+    match mime_type.trim().to_ascii_lowercase().as_str() {
+        "image/jpg" | "image/jpeg" => "image/jpeg".into(),
+        "image/png" => "image/png".into(),
+        "image/webp" => "image/webp".into(),
+        other => other.into(),
+    }
+}
 
 /// Computes lowercase hex SHA-256 digest of `bytes`.
 pub fn compute_sha256(bytes: &[u8]) -> String {
@@ -20,7 +29,8 @@ pub fn validate_upload(
     bytes: &[u8],
     claimed_sha256: &str,
 ) -> Result<(), MediaError> {
-    if !ALLOWED_MIMES.contains(&mime_type) {
+    let mime_type = normalize_image_mime(mime_type);
+    if !ALLOWED_MIMES.contains(&mime_type.as_str()) {
         return Err(MediaError::InvalidMimeType);
     }
     if size_bytes == 0 || size_bytes > MAX_FILE_SIZE_BYTES {

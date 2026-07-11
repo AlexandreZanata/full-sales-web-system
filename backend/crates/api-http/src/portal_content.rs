@@ -36,6 +36,8 @@ pub struct AdminBannerResponse {
     #[serde(rename = "sortOrder")]
     pub sort_order: i32,
     pub active: bool,
+    #[serde(rename = "updatedAt")]
+    pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 #[derive(Deserialize)]
@@ -88,6 +90,7 @@ fn banner_response(row: infra_postgres::portal::banners::BannerRow) -> AdminBann
         alt_text: row.alt_text,
         sort_order: row.sort_order,
         active: row.active,
+        updated_at: row.updated_at,
     }
 }
 

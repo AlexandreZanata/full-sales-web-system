@@ -48,7 +48,7 @@ pub async fn parse_multipart(
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|_| ApiError::bad_request("VALIDATION_ERROR", "Invalid multipart body"))?
+        .map_err(map_multipart_body_error)?
     {
         match field.name() {
             Some("file") => {
@@ -57,9 +57,7 @@ pub async fn parse_multipart(
                     field
                         .bytes()
                         .await
-                        .map_err(|_| {
-                            ApiError::bad_request("VALIDATION_ERROR", "Invalid file field")
-                        })?
+                        .map_err(map_multipart_file_error)?
                         .to_vec(),
                 );
             }
@@ -183,7 +181,7 @@ pub fn object_key_for(
     mime: &str,
 ) -> String {
     let ext = match mime {
-        "image/jpeg" => "jpg",
+        "image/jpeg" | "image/jpg" => "jpg",
         "image/png" => "png",
         "image/webp" => "webp",
         _ => "bin",
@@ -195,6 +193,24 @@ pub fn object_key_for(
         file_id,
         ext
     )
+}
+
+fn map_multipart_body_error(err: axum::extract::multipart::MultipartError) -> ApiError {
+    let detail = err.to_string().to_ascii_lowercase();
+    if detail.contains("length limit") || detail.contains("too large") {
+        return ApiError::file_too_large();
+    }
+    tracing::warn!(error = %err, "multipart body read failed");
+    ApiError::bad_request("VALIDATION_ERROR", "Invalid multipart body")
+}
+
+fn map_multipart_file_error(err: axum::extract::multipart::MultipartError) -> ApiError {
+    let detail = err.to_string().to_ascii_lowercase();
+    if detail.contains("length limit") || detail.contains("too large") {
+        return ApiError::file_too_large();
+    }
+    tracing::warn!(error = %err, "multipart file field read failed");
+    ApiError::bad_request("VALIDATION_ERROR", "Invalid file field")
 }
 
 pub fn map_media_error(err: MediaError) -> ApiError {

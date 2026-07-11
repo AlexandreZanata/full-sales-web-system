@@ -38,6 +38,8 @@ pub struct PortalBannerResponse {
     pub link_url: Option<String>,
     #[serde(rename = "altText", skip_serializing_if = "Option::is_none")]
     pub alt_text: Option<String>,
+    #[serde(rename = "updatedAt")]
+    pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 pub async fn list_public_banners(
@@ -84,6 +86,7 @@ pub async fn list_public_banners(
             image_url,
             link_url: row.link_url,
             alt_text: row.alt_text,
+            updated_at: row.updated_at,
         });
     }
 

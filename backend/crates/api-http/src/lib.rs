@@ -36,6 +36,8 @@ mod users;
 mod validation;
 
 use axum::Router;
+use axum::extract::DefaultBodyLimit;
+use domain_media::MAX_FILE_SIZE_BYTES;
 use http::HeaderName;
 use tower::ServiceBuilder;
 use tower_http::{
@@ -66,9 +68,12 @@ pub fn full_app(state: AppState) -> Router {
 
 fn wrap_layers(router: Router) -> Router {
     let request_id = HeaderName::from_static("x-request-id");
+    // Multipart boundaries/metadata — keep above MAX_FILE_SIZE_BYTES.
+    let max_body_bytes = MAX_FILE_SIZE_BYTES as usize + 1_048_576;
 
     router.fallback(error::not_found_handler).layer(
         ServiceBuilder::new()
+            .layer(DefaultBodyLimit::max(max_body_bytes))
             .layer(SetRequestIdLayer::new(request_id.clone(), MakeRequestUuid))
             .layer(PropagateRequestIdLayer::new(request_id))
             .layer(

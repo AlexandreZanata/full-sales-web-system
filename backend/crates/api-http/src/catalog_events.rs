@@ -80,6 +80,18 @@ impl CatalogEventHub {
         self.publish(event);
     }
 
+    pub fn publish_portal_settings(&self) {
+        let event = CatalogChangedEvent {
+            event_type: CATALOG_SSE_EVENT,
+            resource: "portal_settings",
+            action: "updated",
+            at: Utc::now().to_rfc3339(),
+            id: None,
+            sku: None,
+        };
+        self.publish(event);
+    }
+
     fn publish(&self, event: CatalogChangedEvent) {
         let Ok(payload) = serde_json::to_string(&event) else {
             return;
@@ -103,6 +115,10 @@ pub fn notify_category_changed(hub: &CatalogEventHub, action: &'static str, cate
 
 pub fn notify_banner_changed(hub: &CatalogEventHub, action: &'static str, banner_id: Uuid) {
     hub.publish_banner(action, banner_id);
+}
+
+pub fn notify_portal_settings_changed(hub: &CatalogEventHub) {
+    hub.publish_portal_settings();
 }
 
 pub async fn stream_catalog_events(

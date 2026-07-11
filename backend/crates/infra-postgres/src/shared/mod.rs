@@ -29,6 +29,7 @@ pub struct TenantRow {
     pub display_name: String,
     pub logo_file_id: Option<Uuid>,
     pub sales_contact_phone: Option<String>,
+    pub hero_banner_interval_secs: i32,
     pub active: bool,
 }
 
@@ -51,7 +52,7 @@ pub async fn find_tenant_by_id(
     id: TenantId,
 ) -> Result<Option<TenantRow>, PostgresError> {
     let row = sqlx::query_as::<_, TenantRecord>(
-        "SELECT id, name, display_name, logo_file_id, sales_contact_phone, active FROM shared.tenants WHERE id = $1",
+        "SELECT id, name, display_name, logo_file_id, sales_contact_phone, hero_banner_interval_secs, active FROM shared.tenants WHERE id = $1",
     )
     .bind(id.as_uuid())
     .fetch_optional(pool)
@@ -63,6 +64,7 @@ pub async fn find_tenant_by_id(
         display_name: r.display_name,
         logo_file_id: r.logo_file_id,
         sales_contact_phone: r.sales_contact_phone,
+        hero_banner_interval_secs: r.hero_banner_interval_secs,
         active: r.active,
     }))
 }
@@ -136,6 +138,21 @@ pub async fn update_tenant_sales_contact_phone(
     Ok(result.rows_affected() == 1)
 }
 
+pub async fn update_tenant_hero_banner_interval_secs(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    interval_secs: i32,
+) -> Result<bool, PostgresError> {
+    let result = sqlx::query(
+        "UPDATE shared.tenants SET hero_banner_interval_secs = $1 WHERE id = $2",
+    )
+    .bind(interval_secs)
+    .bind(tenant_id.as_uuid())
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
 #[derive(sqlx::FromRow)]
 struct TenantRecord {
     id: Uuid,
@@ -143,5 +160,6 @@ struct TenantRecord {
     display_name: String,
     logo_file_id: Option<Uuid>,
     sales_contact_phone: Option<String>,
+    hero_banner_interval_secs: i32,
     active: bool,
 }

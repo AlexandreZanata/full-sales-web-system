@@ -31,6 +31,7 @@ pub struct BannerFileRow {
     pub link_url: Option<String>,
     pub alt_text: Option<String>,
     pub sort_order: i32,
+    pub updated_at: DateTime<Utc>,
 }
 
 pub struct BannerInsert {
@@ -64,7 +65,7 @@ pub async fn list_active_banners_with_files(
     apply_tenant_context(&mut tx, tenant_id).await?;
     let rows = sqlx::query_as::<_, BannerFileRow>(
         "SELECT b.id, b.placement, b.image_file_id, b.image_url, f.bucket, f.object_key,
-                b.link_url, b.alt_text, b.sort_order
+                b.link_url, b.alt_text, b.sort_order, b.updated_at
          FROM portal.banners b
          LEFT JOIN media.files f ON f.id = b.image_file_id AND f.tenant_id = b.tenant_id
          WHERE b.tenant_id = $1 AND b.placement = $2 AND b.active = true
