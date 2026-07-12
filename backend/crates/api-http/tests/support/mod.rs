@@ -186,6 +186,7 @@ pub async fn seed_product(env: &TestEnv, sku: &str, name: &str, price_amount: i6
             name: name.to_owned(),
             price_amount,
             price_currency: "BRL".into(),
+            compare_at_price: None,
             category_id: None,
             unit_of_measure: "Unit".into(),
             description: None,
@@ -603,7 +604,8 @@ pub async fn seed_portal_home_content(env: &TestEnv) -> PortalHomeSeed {
         infra_postgres::portal::banners::BannerInsert {
             id: banner_id,
             placement: "hero".into(),
-            image_file_id: file_id,
+            image_file_id: Some(file_id),
+            image_url: None,
             link_url: None,
             alt_text: Some("Welcome hero".into()),
             sort_order: 0,

@@ -7,6 +7,7 @@ use crate::audit_context::AuditRequestContext;
 use crate::error::ApiError;
 use crate::state::AppState;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn record_platform_audit(
     state: &AppState,
     ctx: &AuditRequestContext,
@@ -36,6 +37,7 @@ pub async fn record_platform_audit(
     .map_err(|_| ApiError::internal())
 }
 
+#[allow(dead_code, clippy::too_many_arguments)] // tenant-scoped audit helper for upcoming handlers
 pub async fn record_tenant_audit(
     state: &AppState,
     ctx: &AuditRequestContext,

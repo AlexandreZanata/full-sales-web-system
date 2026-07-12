@@ -43,16 +43,14 @@ pub async fn maintenance_middleware(
         return Ok(maintenance_response(&window.message, Some(window.ends_at)));
     }
 
-    if let Some(tenant_id) = tenant_from_request(&request) {
-        if let Some(window) =
+    if let Some(tenant_id) = tenant_from_request(&request)
+        && let Some(window) =
             infra_postgres::ops::find_active_for_tenant(&state.admin_pool, tenant_id)
                 .await
                 .map_err(|_| ApiError::internal())?
-        {
-            if !allows_settings_read(request.method(), request.uri()) {
-                return Ok(maintenance_response(&window.message, Some(window.ends_at)));
-            }
-        }
+        && !allows_settings_read(request.method(), request.uri())
+    {
+        return Ok(maintenance_response(&window.message, Some(window.ends_at)));
     }
 
     Ok(next.run(request).await)

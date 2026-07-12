@@ -15,10 +15,10 @@ impl MockDnsTxtResolver {
     }
 
     pub fn set_txt(&self, name: &str, values: Vec<String>) {
-        self.records
-            .lock()
-            .expect("mock dns lock")
-            .insert(name.to_lowercase(), values);
+        let Ok(mut guard) = self.records.lock() else {
+            return;
+        };
+        guard.insert(name.to_lowercase(), values);
     }
 }
 

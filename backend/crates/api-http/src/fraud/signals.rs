@@ -7,6 +7,7 @@ use crate::state::AppState;
 
 use super::coordinator::record_event;
 
+#[allow(dead_code)] // wired when card fingerprint collection ships
 pub async fn check_duplicate_card(
     state: &AppState,
     tenant_id: TenantId,

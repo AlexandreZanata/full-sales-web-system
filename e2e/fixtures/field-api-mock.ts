@@ -1,6 +1,7 @@
 import type { Page, Route } from '@playwright/test';
 
 import { buildFieldAccessToken, loginResponse } from './client-auth';
+import { cursorPage } from './cursor-page';
 
 export async function mockFieldApi(page: Page): Promise<void> {
   const accessToken = buildFieldAccessToken();
@@ -23,7 +24,7 @@ export async function mockFieldApi(page: Page): Promise<void> {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ page: 1, pageSize: 20, total: 0, items: [] }),
+        body: JSON.stringify(cursorPage([])),
       });
       return;
     }

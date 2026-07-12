@@ -40,15 +40,15 @@ async fn contract_get_settings_when_seeded_then_default_hero_banner_interval() {
     let env = setup().await;
     let (_, admin_token) = seed_admin(&env).await;
 
-    let (status, body) =
-        request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
+    let (status, body) = request(&env, "GET", "/v1/settings", Some(&admin_token), None).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["heroBannerIntervalSecs"], 7);
 }
 
 #[tokio::test]
 async fn contract_patch_settings_when_hero_banner_interval_then_persisted() {
-    let env = setup().await;
+    let tenant_id = domain_shared::TenantId::parse(DEV_SEED_TENANT_ID).expect("tenant");
+    let env = setup_with_tenant(tenant_id).await;
     let (_, admin_token) = seed_admin(&env).await;
 
     let (patch_status, patch_body) = request(
@@ -62,8 +62,7 @@ async fn contract_patch_settings_when_hero_banner_interval_then_persisted() {
     assert_eq!(patch_status, StatusCode::OK);
     assert_eq!(patch_body["heroBannerIntervalSecs"], 12);
 
-    let (get_status, get_body) =
-        request(&env, "GET", "/v1/public/settings", None, None).await;
+    let (get_status, get_body) = request(&env, "GET", "/v1/public/settings", None, None).await;
     assert_eq!(get_status, StatusCode::OK);
     assert_eq!(get_body["heroBannerIntervalSecs"], 12);
 }

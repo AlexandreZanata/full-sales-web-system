@@ -39,6 +39,7 @@ pub async fn seed_other_tenant_product(env: &crate::support::TestEnv) -> Uuid {
             name: "Other Product".into(),
             price_amount: 900,
             price_currency: "BRL".into(),
+            compare_at_price: None,
             category_id: None,
             unit_of_measure: "Unit".into(),
             description: None,

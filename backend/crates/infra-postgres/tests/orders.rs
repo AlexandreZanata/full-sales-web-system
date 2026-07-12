@@ -166,6 +166,7 @@ async fn seed_order_fixture(pools: &TestPools) -> OrderFixture {
             name: "Order Product".into(),
             price_amount: 1000,
             price_currency: "BRL".into(),
+            compare_at_price: None,
             category_id: None,
             unit_of_measure: "Unit".into(),
             description: None,

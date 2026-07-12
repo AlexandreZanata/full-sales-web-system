@@ -43,13 +43,13 @@ pub async fn patch_tenant_features(
         .await
         .map_err(|_| ApiError::internal())?
         .ok_or_else(ApiError::not_found)?;
-    if let Some(tier) = &body.api_rate_tier {
-        if !matches!(tier.as_str(), "standard" | "pro" | "enterprise") {
-            return Err(ApiError::bad_request(
-                "VALIDATION_ERROR",
-                "Invalid apiRateTier",
-            ));
-        }
+    if let Some(tier) = &body.api_rate_tier
+        && !matches!(tier.as_str(), "standard" | "pro" | "enterprise")
+    {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "Invalid apiRateTier",
+        ));
     }
     application::feature_flags::merge_feature_flags(
         &mut lifecycle.settings,

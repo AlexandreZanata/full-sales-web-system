@@ -113,10 +113,12 @@ impl PaymentGateway for FailingPaymentGateway {
 }
 
 /// Returns deterministic customer id from tenant UUID string.
+#[allow(dead_code)] // used by sandbox/integration helpers
 pub fn mock_customer_id(tenant_id: &str) -> String {
     format!("cus_mock_{tenant_id}")
 }
 
+#[allow(dead_code)] // used by sandbox/integration helpers
 pub fn idempotency_key() -> String {
     Uuid::now_v7().to_string()
 }

@@ -14,6 +14,7 @@ pub struct AuthUser {
     pub tenant_id: TenantId,
     pub role: Role,
     pub commerce_id: Option<uuid::Uuid>,
+    #[allow(dead_code)] // set for platform impersonation sessions
     pub impersonating: bool,
 }
 
@@ -76,6 +77,7 @@ pub async fn auth_middleware(
     Ok(next.run(request).await)
 }
 
+#[allow(dead_code)] // reserved for routes that must reject platform JWT
 pub async fn reject_platform_token_middleware(
     State(state): State<AppState>,
     request: axum::extract::Request,

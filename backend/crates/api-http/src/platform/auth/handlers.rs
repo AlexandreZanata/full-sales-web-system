@@ -4,8 +4,8 @@ use infra_crypto::{PasswordHasher, TotpVerifier};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::middleware::PlatformAuthUser;
 use super::mfa_policy::platform_mfa_enabled;
+use super::middleware::PlatformAuthUser;
 use crate::client_ip::client_ip;
 use crate::error::ApiError;
 use crate::fraud::on_login_failure;

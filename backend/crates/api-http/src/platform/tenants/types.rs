@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
-use domain_platform::{Tenant, TenantStatus};
-use domain_shared::TenantId;
+use domain_platform::Tenant;
 use infra_postgres::shared::TenantLifecycleRow;
 use serde::Serialize;
 use uuid::Uuid;

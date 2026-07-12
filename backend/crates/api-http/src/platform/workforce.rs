@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::error::ApiError;
 use crate::list_query::build_cursor_page;
 use crate::platform::auth::PlatformAuthUser;
-use crate::platform::users::{PlatformUserItem, to_item};
+use crate::platform::users::PlatformUserItem;
 use crate::state::AppState;
 
 const DEFAULT_LIMIT: u32 = 20;

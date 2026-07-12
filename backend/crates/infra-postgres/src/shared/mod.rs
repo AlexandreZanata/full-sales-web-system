@@ -143,13 +143,12 @@ pub async fn update_tenant_hero_banner_interval_secs(
     tenant_id: TenantId,
     interval_secs: i32,
 ) -> Result<bool, PostgresError> {
-    let result = sqlx::query(
-        "UPDATE shared.tenants SET hero_banner_interval_secs = $1 WHERE id = $2",
-    )
-    .bind(interval_secs)
-    .bind(tenant_id.as_uuid())
-    .execute(pool)
-    .await?;
+    let result =
+        sqlx::query("UPDATE shared.tenants SET hero_banner_interval_secs = $1 WHERE id = $2")
+            .bind(interval_secs)
+            .bind(tenant_id.as_uuid())
+            .execute(pool)
+            .await?;
     Ok(result.rows_affected() == 1)
 }
 

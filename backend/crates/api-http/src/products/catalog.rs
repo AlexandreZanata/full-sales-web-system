@@ -180,10 +180,11 @@ pub async fn update_product(
         validate_description(description)?;
     }
 
-    let existing = infra_postgres::inventory::find_product_by_id(&state.app_pool, auth.tenant_id, id)
-        .await
-        .map_err(|_| ApiError::internal())?
-        .ok_or_else(ApiError::product_not_found)?;
+    let existing =
+        infra_postgres::inventory::find_product_by_id(&state.app_pool, auth.tenant_id, id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::product_not_found)?;
     let next_price = body.price_amount.unwrap_or(existing.price_amount);
     let next_compare = if body.compare_at_price.is_some() {
         body.compare_at_price.as_ref().and_then(|value| *value)
@@ -278,14 +279,17 @@ fn product_detail_from_row(
     }
 }
 
-fn validate_compare_at_price(price_amount: i64, compare_at_price: Option<i64>) -> Result<(), ApiError> {
-    if let Some(compare_at) = compare_at_price {
-        if compare_at <= price_amount {
-            return Err(ApiError::bad_request(
-                "VALIDATION_ERROR",
-                "compareAtPrice must be greater than priceAmount",
-            ));
-        }
+fn validate_compare_at_price(
+    price_amount: i64,
+    compare_at_price: Option<i64>,
+) -> Result<(), ApiError> {
+    if let Some(compare_at) = compare_at_price
+        && compare_at <= price_amount
+    {
+        return Err(ApiError::bad_request(
+            "VALIDATION_ERROR",
+            "compareAtPrice must be greater than priceAmount",
+        ));
     }
     Ok(())
 }

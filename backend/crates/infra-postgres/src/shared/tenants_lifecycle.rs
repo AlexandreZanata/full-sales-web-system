@@ -165,6 +165,7 @@ async fn insert_tenant_row(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn update_tenant_lifecycle(
     pool: &PgPool,
     tenant_id: TenantId,

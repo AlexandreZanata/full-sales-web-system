@@ -96,14 +96,12 @@ async fn handle_alerting(
             )
             .await
             .map_err(|err| err.to_string())?;
-            if let Some(url) = config.webhook_url.as_deref() {
-                if send_webhook(url, &message).await {
-                    let _ = infra_postgres::ops::mark_ops_alert_webhook_sent(
-                        &state.admin_pool,
-                        alert_id,
-                    )
-                    .await;
-                }
+            if let Some(url) = config.webhook_url.as_deref()
+                && send_webhook(url, &message).await
+            {
+                let _ =
+                    infra_postgres::ops::mark_ops_alert_webhook_sent(&state.admin_pool, alert_id)
+                        .await;
             }
             reset_failure_streak(probe.name);
         }
@@ -112,7 +110,9 @@ async fn handle_alerting(
 }
 
 fn update_failure_streak(name: &'static str, failing: bool) -> u32 {
-    let mut guard = FAILURE_STREAKS.lock().expect("failure streak lock");
+    let Ok(mut guard) = FAILURE_STREAKS.lock() else {
+        return 0;
+    };
     if failing {
         let entry = guard.entry(name).or_insert(0);
         *entry += 1;
@@ -124,8 +124,9 @@ fn update_failure_streak(name: &'static str, failing: bool) -> u32 {
 }
 
 fn reset_failure_streak(name: &'static str) {
-    let mut guard = FAILURE_STREAKS.lock().expect("failure streak lock");
-    guard.remove(name);
+    if let Ok(mut guard) = FAILURE_STREAKS.lock() {
+        guard.remove(name);
+    }
 }
 
 async fn cleanup_old_results(state: &AppState) -> Result<(), String> {

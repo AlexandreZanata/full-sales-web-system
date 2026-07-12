@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { mockAdminShellApis } from './fixtures/admin-shell-api';
 import { loginResponse } from './fixtures/auth';
 import { seedEnglishLocale } from './fixtures/locale';
 import { openNavLink } from './fixtures/nav';
@@ -26,6 +27,7 @@ const emptyCursorPage = {
 test.describe('Admin orders list', () => {
   test.beforeEach(async ({ page }) => {
     await seedEnglishLocale(page);
+    await mockAdminShellApis(page);
     await page.route('**/v1/auth/login', async (route) => {
       await route.fulfill({
         status: 200,

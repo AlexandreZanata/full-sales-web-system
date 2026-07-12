@@ -7,10 +7,7 @@ import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { PortalAccountMenu } from '@/components/layout/PortalAccountMenu';
 import { PortalHeaderSearch } from '@/components/layout/PortalHeaderSearch';
 import { resolveDefaultCategorySlug, catalogHomeSearch } from '@/lib/catalog/catalogSearch';
-import {
-  isPortalHomeActive,
-  isPortalMenuActive,
-} from '@/lib/catalog/portalHeaderNav';
+import { isPortalHomeActive, isPortalMenuActive } from '@/lib/catalog/portalHeaderNav';
 import { useCatalogCategories } from '@/lib/catalog/useCatalogCategories';
 import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';

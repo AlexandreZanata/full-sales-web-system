@@ -416,7 +416,9 @@ fn validate_banner_image_source(
     image_url: Option<&str>,
 ) -> Result<(), ApiError> {
     let has_file = image_file_id.is_some();
-    let has_url = image_url.map(str::trim).is_some_and(|value| !value.is_empty());
+    let has_url = image_url
+        .map(str::trim)
+        .is_some_and(|value| !value.is_empty());
     if has_file == has_url {
         return Err(ApiError::bad_request(
             "VALIDATION_ERROR",

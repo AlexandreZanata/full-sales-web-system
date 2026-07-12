@@ -133,7 +133,7 @@ pub async fn enforce_settlement_rate_limit(
     let key = format!("settlement:{}", tenant_id.as_uuid());
     if !state
         .rate_limiter
-        .try_consume(&key, state.settlement_rate_limit.clone())
+        .try_consume(&key, state.settlement_rate_limit)
     {
         return Err(ApiError::rate_limited());
     }

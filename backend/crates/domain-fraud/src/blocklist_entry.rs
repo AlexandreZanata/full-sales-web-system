@@ -17,6 +17,7 @@ pub struct BlocklistEntry {
 }
 
 impl BlocklistEntry {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: Uuid,
         email: Option<String>,

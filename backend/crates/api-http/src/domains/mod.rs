@@ -16,4 +16,3 @@ pub use settings::{
     create_domain, delete_domain, get_domain_verify, list_domains, set_primary_domain,
 };
 pub use support::HostTenant;
-pub use verification::{force_verify_domain, run_domain_verification_job};

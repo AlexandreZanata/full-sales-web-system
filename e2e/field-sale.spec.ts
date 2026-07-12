@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { buildFieldAccessToken, loginResponse } from './fixtures/client-auth';
+import { cursorPage } from './fixtures/cursor-page';
 
 test.describe('Field sale flow', () => {
   test('given_new_sale_when_confirm_then_detail_shows_confirmed', async ({ page }) => {
@@ -29,12 +30,12 @@ test.describe('Field sale flow', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            page: 1,
-            pageSize: 50,
-            total: 1,
-            items: [{ id: commerceId, legalName: 'Seed Store', tradeName: 'Seed Store', active: true }],
-          }),
+          body: JSON.stringify(
+            cursorPage(
+              [{ id: commerceId, legalName: 'Seed Store', tradeName: 'Seed Store', active: true }],
+              100,
+            ),
+          ),
         });
         return;
       }
@@ -43,21 +44,21 @@ test.describe('Field sale flow', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            page: 1,
-            pageSize: 50,
-            total: 1,
-            items: [
-              {
-                id: productId,
-                name: 'Seed Widget',
-                sku: 'SKU-001',
-                priceAmount: 2500,
-                priceCurrency: 'BRL',
-                active: true,
-              },
-            ],
-          }),
+          body: JSON.stringify(
+            cursorPage(
+              [
+                {
+                  id: productId,
+                  name: 'Seed Widget',
+                  sku: 'SKU-001',
+                  priceAmount: 2500,
+                  priceCurrency: 'BRL',
+                  active: true,
+                },
+              ],
+              100,
+            ),
+          ),
         });
         return;
       }
@@ -75,7 +76,7 @@ test.describe('Field sale flow', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ page: 1, pageSize: 20, total: 0, items: [] }),
+          body: JSON.stringify(cursorPage([])),
         });
         return;
       }

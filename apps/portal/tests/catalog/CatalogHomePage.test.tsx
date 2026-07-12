@@ -29,11 +29,6 @@ describe('CatalogHomePage — Phase 71J contract', () => {
       .filter((child) => child.tagName === 'SECTION')
       .map((child) => child.getAttribute('data-testid'));
 
-    expect(sections).toEqual([
-      'hero-banner',
-      'home-categories',
-      'featured-items',
-      'popular-items',
-    ]);
+    expect(sections).toEqual(['hero-banner', 'home-categories', 'featured-items', 'popular-items']);
   });
 });

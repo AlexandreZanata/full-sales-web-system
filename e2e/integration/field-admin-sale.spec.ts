@@ -55,12 +55,15 @@ test.describe('Integration: field sale visible in admin', () => {
     });
     expect(confirmResponse.ok()).toBeTruthy();
 
-    const adminSales = await request.get(`${API_BASE}/v1/sales?status=Confirmed&pageSize=50`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
+    const adminSales = await request.get(
+      `${API_BASE}/v1/sales?filter[status]=Confirmed&limit=50`,
+      {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      },
+    );
     expect(adminSales.ok()).toBeTruthy();
-    const list = (await adminSales.json()) as { items: Array<{ id: string; status: string }> };
-    const found = list.items.find((item) => item.id === saleId);
+    const list = (await adminSales.json()) as { data: Array<{ id: string; status: string }> };
+    const found = list.data.find((item) => item.id === saleId);
     expect(found?.status).toBe('Confirmed');
   });
 });

@@ -1,7 +1,6 @@
 use application::fraud::FraudThresholds;
 use domain_fraud::{FraudEvent, FraudEventType, FraudResolution, FraudSeverity};
 use domain_shared::TenantId;
-use infra_redis::VelocityCounter;
 use uuid::Uuid;
 
 use crate::error::ApiError;

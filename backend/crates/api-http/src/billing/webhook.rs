@@ -21,6 +21,7 @@ pub struct AsaasWebhookPayload {
     pub id: String,
     pub event: String,
     #[serde(flatten)]
+    #[allow(dead_code)] // retained for future event-specific fields
     pub extra: serde_json::Value,
 }
 

@@ -156,6 +156,7 @@ impl AppState {
     pub fn test_credential_encryptor() -> Arc<CredentialEncryptor> {
         use base64::{Engine, engine::general_purpose::STANDARD};
         let key = STANDARD.encode([9u8; 32]);
+        #[allow(clippy::expect_used)] // test helper with fixed key
         Arc::new(
             CredentialEncryptor::from_master_key_b64(&key, 1).expect("test credential encryptor"),
         )

@@ -1,6 +1,6 @@
 use axum::{
     Json,
-    extract::{Path, RawQuery, State},
+    extract::{RawQuery, State},
     response::{IntoResponse, Response},
 };
 use chrono::{DateTime, Utc};

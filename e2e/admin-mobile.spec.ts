@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { mockAdminDashboardApis, mockAdminShellApis } from './fixtures/admin-shell-api';
 import { seedEnglishLocale } from './fixtures/locale';
 
 const emptyCursorPage = {
@@ -12,6 +13,8 @@ test.describe('Admin mobile navigation', () => {
 
   test('given_mobile_viewport_when_open_menu_then_sidebar_links_visible', async ({ page }) => {
     await seedEnglishLocale(page);
+    await mockAdminShellApis(page);
+    await mockAdminDashboardApis(page);
     await page.route('**/v1/audit/events?*', async (route) => {
       await route.fulfill({
         status: 200,

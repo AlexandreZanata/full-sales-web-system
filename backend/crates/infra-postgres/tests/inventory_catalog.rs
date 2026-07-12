@@ -63,6 +63,7 @@ async fn seed_product_with_stock(app: &PgPool, tenant: TenantId, qty: i32) -> Uu
             name: "Catalog Product".into(),
             price_amount: 1500,
             price_currency: "BRL".into(),
+            compare_at_price: None,
             category_id: None,
             unit_of_measure: "Box".into(),
             description: None,

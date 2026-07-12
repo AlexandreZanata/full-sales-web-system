@@ -10,6 +10,7 @@ use crate::state::AppState;
 #[derive(Debug, Clone)]
 pub struct PlatformAuthUser {
     pub user_id: uuid::Uuid,
+    #[allow(dead_code)] // reserved for PlatformAdmin RLS bypass policy
     pub bypass_rls: bool,
 }
 

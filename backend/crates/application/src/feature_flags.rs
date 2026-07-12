@@ -55,10 +55,13 @@ pub fn merge_feature_flags(settings: &mut Value, patch: TenantFeatureFlags) {
     if !settings.is_object() {
         *settings = serde_json::json!({});
     }
-    settings.as_object_mut().expect("object").insert(
-        "feature_flags".into(),
-        serde_json::to_value(current).expect("flags"),
-    );
+    let Some(obj) = settings.as_object_mut() else {
+        return;
+    };
+    let Ok(flags) = serde_json::to_value(current) else {
+        return;
+    };
+    obj.insert("feature_flags".into(), flags);
 }
 
 fn default_rate_tier(plan_limits: &Value) -> String {

@@ -164,6 +164,7 @@ async fn given_order_flow_when_deliver_then_sale_matches_delivered_totals() {
             name: "Bridge Product".into(),
             price_amount: 2500,
             price_currency: "BRL".into(),
+            compare_at_price: None,
             category_id: None,
             unit_of_measure: "Unit".into(),
             description: None,

@@ -165,10 +165,9 @@ const DEMO_HERO_BANNERS: PortalBanner[] = [
 export async function fetchPortalBanners(placement = 'hero'): Promise<PortalBanner[]> {
   try {
     const query = new URLSearchParams({ placement, limit: '10' });
-    const response = await apiFetch<CursorListResponse<PortalBanner>>(
-      `/public/banners?${query}`,
-      { skipAuth: true },
-    );
+    const response = await apiFetch<CursorListResponse<PortalBanner>>(`/public/banners?${query}`, {
+      skipAuth: true,
+    });
     if (response.data.length > 0) {
       return response.data;
     }

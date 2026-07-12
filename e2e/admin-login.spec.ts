@@ -1,11 +1,14 @@
 import { expect, test } from '@playwright/test';
 
+import { mockAdminDashboardApis, mockAdminShellApis } from './fixtures/admin-shell-api';
 import { loginResponse } from './fixtures/auth';
 import { seedEnglishLocale } from './fixtures/locale';
 
 test.describe('Admin login', () => {
   test('given_valid_credentials_when_sign_in_then_dashboard', async ({ page }) => {
     await seedEnglishLocale(page);
+    await mockAdminShellApis(page);
+    await mockAdminDashboardApis(page);
     await page.route('**/v1/auth/login', async (route) => {
       await route.fulfill({
         status: 200,

@@ -21,6 +21,7 @@ pub mod ids;
 mod orders;
 mod platform_admin;
 mod portal_content;
+mod portal_promotions;
 mod reports;
 mod sales;
 mod seed_assets;

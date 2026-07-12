@@ -8,7 +8,8 @@ use infra_postgres::portal::banners::{self, BannerInsert};
 use crate::catalog::CatalogSeed;
 use crate::error::DevSeedResult;
 use crate::ids::{admin_user_id, portal_banner_file_ids, portal_banner_ids};
-use crate::seed_assets::{ensure_media_file, ensure_storage_bytes};
+use crate::portal_promotions::seed_promotions;
+use crate::seed_assets::{ensure_media_file, ensure_storage_bytes, read_asset_or_placeholder};
 
 const BANNER_SPECS: [(&str, &str, &str, i32); 3] = [
     (
@@ -40,6 +41,7 @@ pub async fn seed_portal_home_content(
     seed_featured_products(app_pool, tenant, catalog).await?;
     seed_popular_metrics(app_pool, tenant, catalog).await?;
     seed_hero_banners(app_pool, admin_pool, tenant).await?;
+    seed_promotions(app_pool, admin_pool, tenant).await?;
     Ok(())
 }
 
@@ -136,12 +138,6 @@ async fn seed_hero_banners(
         )
         .await?;
     }
-    ensure_portal_banner_storage().await?;
-    Ok(())
-}
-
-async fn ensure_portal_banner_storage() -> DevSeedResult<()> {
-    use crate::seed_assets::read_asset_or_placeholder;
     for (asset, object_key, _, _) in BANNER_SPECS {
         let (bytes, mime) = read_asset_or_placeholder(asset);
         ensure_storage_bytes(object_key, &bytes, mime).await?;

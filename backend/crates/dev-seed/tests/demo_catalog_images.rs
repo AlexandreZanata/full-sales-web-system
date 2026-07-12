@@ -79,9 +79,12 @@ async fn given_fresh_db_when_seed_then_all_demo_entities_have_images() {
         .collect();
     assert_eq!(hero_banners.len(), 3);
     for banner in &hero_banners {
-        assert_ne!(
-            banner.image_file_id,
-            Uuid::nil(),
+        assert!(
+            banner.image_file_id.is_some_and(|id| id != Uuid::nil())
+                || banner
+                    .image_url
+                    .as_deref()
+                    .is_some_and(|url| !url.trim().is_empty()),
             "banner {} missing image",
             banner.id
         );

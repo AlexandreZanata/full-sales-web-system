@@ -426,13 +426,11 @@ async fn persist_transition(
     let counts = infra_postgres::shared::tenant_counts(&state.app_pool, tenant_id)
         .await
         .map_err(|_| ApiError::internal())?;
-    Ok(Json(tenant_detail(
-        infra_postgres::shared::find_tenant_lifecycle(&state.admin_pool, tenant_id)
-            .await
-            .map_err(|_| ApiError::internal())?
-            .expect("tenant"),
-        counts,
-    )))
+    let lifecycle = infra_postgres::shared::find_tenant_lifecycle(&state.admin_pool, tenant_id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::not_found)?;
+    Ok(Json(tenant_detail(lifecycle, counts)))
 }
 
 async fn load_row(

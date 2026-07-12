@@ -21,10 +21,7 @@ pub async fn readiness(State(state): State<AppState>) -> (StatusCode, Json<Readi
     } else {
         StatusCode::SERVICE_UNAVAILABLE
     };
-    let components = outcomes
-        .iter()
-        .map(|probe| (probe.name, ComponentStatus::from(probe)))
-        .collect();
+    let components = components_from_probes(&outcomes);
     (
         status_code,
         Json(ReadinessResponse {

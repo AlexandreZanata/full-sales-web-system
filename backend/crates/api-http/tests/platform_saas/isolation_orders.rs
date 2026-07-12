@@ -83,6 +83,7 @@ async fn contract_tenant_a_admin_cannot_read_tenant_b_order() {
             name: "Other Order Product".into(),
             price_amount: 500,
             price_currency: "BRL".into(),
+            compare_at_price: None,
             category_id: None,
             unit_of_measure: "Unit".into(),
             description: None,

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { buildFieldAccessToken, loginResponse } from './fixtures/client-auth';
+import { cursorPage } from './fixtures/cursor-page';
 
 test.describe('Field delivery flow', () => {
   test('given_driver_when_list_and_start_transit_then_status_updates', async ({ page }) => {
@@ -27,19 +28,16 @@ test.describe('Field delivery flow', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            page: 1,
-            pageSize: 20,
-            total: 1,
-            items: [
+          body: JSON.stringify(
+            cursorPage([
               {
                 id: deliveryId,
                 orderId,
                 driverId: '01900001-0002-7000-8000-000000000001',
                 status: 'Waiting',
               },
-            ],
-          }),
+            ]),
+          ),
         });
         return;
       }
@@ -48,7 +46,7 @@ test.describe('Field delivery flow', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ page: 1, pageSize: 20, total: 0, items: [] }),
+          body: JSON.stringify(cursorPage([])),
         });
         return;
       }

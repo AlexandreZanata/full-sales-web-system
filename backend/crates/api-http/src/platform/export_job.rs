@@ -68,7 +68,9 @@ fn build_zip(bundle: &serde_json::Value) -> Result<Vec<u8>, String> {
         let content = if name == "manifest.json" {
             serde_json::to_vec_pretty(bundle).map_err(|e| e.to_string())?
         } else {
-            let key = name.strip_suffix(".json").expect("json suffix");
+            let key = name
+                .strip_suffix(".json")
+                .ok_or_else(|| "expected .json suffix".to_owned())?;
             serde_json::to_vec_pretty(&bundle[key]).map_err(|e| e.to_string())?
         };
         zip.start_file(name, options).map_err(|e| e.to_string())?;
