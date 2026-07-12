@@ -15,12 +15,23 @@ class SyncEngine(
     suspend fun processOutbox(): SyncProcessResult {
         var processed = 0
         for (entry in outbox.listPendingFifo()) {
-            if (entry.attempts >= maxAttempts) continue
+            if (entry.attempts >= maxAttempts) {
+                deadLetter(entry)
+                continue
+            }
             val stop = processEntry(entry)
             if (stop) return SyncProcessResult(processed, stoppedEarly = true)
             processed++
         }
         return SyncProcessResult(processed)
+    }
+
+    private suspend fun deadLetter(entry: SyncOutboxEntry) {
+        sales.markSyncFailed(
+            entry.saleLocalId,
+            entry.lastError ?: "MAX_ATTEMPTS",
+        )
+        outbox.markCompleted(entry.id)
     }
 
     private suspend fun processEntry(entry: SyncOutboxEntry): Boolean {

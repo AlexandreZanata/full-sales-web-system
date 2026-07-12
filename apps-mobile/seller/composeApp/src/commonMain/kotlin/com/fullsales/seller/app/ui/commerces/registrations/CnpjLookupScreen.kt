@@ -47,10 +47,17 @@ fun CnpjLookupScreen(
         )
         Button(
             onClick = { viewModel.lookup(onContinue) },
-            enabled = !state.loading,
+            enabled = state.lookupEnabled,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(if (state.loading) s.common.loading else s.registrations.lookupAction)
+        }
+        if (!state.lookupEnabled && !state.loading) {
+            Text(
+                s.registrations.requiresInternet,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         if (state.loading) CircularProgressIndicator()
     }

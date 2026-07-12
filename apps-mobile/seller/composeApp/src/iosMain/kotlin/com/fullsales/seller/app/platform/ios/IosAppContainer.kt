@@ -1,5 +1,6 @@
 package com.fullsales.seller.app.platform.ios
 
+import com.fullsales.seller.app.platform.IosPathNetworkMonitor
 import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.app.platform.SellerAppContainer
@@ -13,6 +14,7 @@ import com.fullsales.seller.shared.api.TokenRefreshHandler
 import com.fullsales.seller.shared.api.createSellerHttpClient
 import com.fullsales.seller.shared.auth.SellerRoleGateResult
 import com.fullsales.seller.shared.auth.gateSellerAccessToken
+import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
@@ -21,6 +23,9 @@ import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 import com.fullsales.seller.shared.sync.SyncTokenRefresher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class IosAppContainer : SellerAppContainer {
     override val tokenStore: SellerTokenStore = KeychainSellerTokenStore()
@@ -39,7 +44,16 @@ class IosAppContainer : SellerAppContainer {
         CatalogPullSync(catalogRepository, syncTransport),
         SyncEngine(outboxRepository, saleRepository, syncTransport, tokenRefresher),
     )
-    override val networkMonitor: NetworkMonitor = IosNetworkMonitor()
+    override val networkMonitor: NetworkMonitor = IosPathNetworkMonitor()
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    init {
+        OnlineSyncTrigger(
+            networkMonitor.connectivity,
+            syncCoordinator::pushOutbox,
+            appScope,
+        )
+    }
 
     override fun requestSync() {
         // ponytail: Phase 66 wires BGTaskScheduler; foreground sync on resume.
@@ -88,6 +102,3 @@ private class IosMediaUrlResolver(
     }
 }
 
-private class IosNetworkMonitor : NetworkMonitor {
-    override fun isOnline(): Boolean = true
-}

@@ -1,11 +1,13 @@
 package com.fullsales.seller.app.platform
 
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.connectivity.ConnectivityState
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
+import kotlinx.coroutines.flow.StateFlow
 
 interface SellerTokenStore {
     fun getAccessToken(): String?
@@ -19,7 +21,8 @@ interface MediaUrlResolver {
 }
 
 interface NetworkMonitor {
-    fun isOnline(): Boolean
+    val connectivity: StateFlow<ConnectivityState>
+    fun isOnline(): Boolean = connectivity.value == ConnectivityState.Online
 }
 
 interface SellerAppContainer {

@@ -6,6 +6,8 @@ import com.fullsales.seller.app.platform.CommerceRegistrationDraftStore
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.ApiException
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.connectivity.ConnectivityState
+import com.fullsales.seller.shared.connectivity.allowsInternetOnlyActions
 import com.fullsales.seller.shared.model.CnpjLookupResult
 import com.fullsales.seller.shared.model.RegistrationMode
 import com.fullsales.seller.shared.registrations.CommerceRegistrationDraft
@@ -30,8 +32,11 @@ data class CommerceRegistrationUiState(
     val errors: CommerceRegistrationFormErrors = CommerceRegistrationFormErrors(),
     val snackbarCode: String? = null,
     val cnpjReadOnly: Boolean = false,
+    val connectivity: ConnectivityState = ConnectivityState.Offline,
 ) {
     val hasPersistedContent: Boolean get() = !draft.isEffectivelyEmpty()
+    val submitEnabled: Boolean
+        get() = !submitting && connectivity.allowsInternetOnlyActions()
 }
 
 class CommerceRegistrationViewModel(
@@ -47,6 +52,11 @@ class CommerceRegistrationViewModel(
     init {
         restoreDraft()
         observeDraftPersistence()
+        viewModelScope.launch {
+            networkMonitor.connectivity.collect { connectivity ->
+                _state.update { it.copy(connectivity = connectivity) }
+            }
+        }
     }
 
     fun startManual() {
@@ -97,10 +107,7 @@ class CommerceRegistrationViewModel(
             _state.update { it.copy(errors = errors) }
             return
         }
-        if (!networkMonitor.isOnline()) {
-            _state.update { it.copy(snackbarCode = "NETWORK_ERROR") }
-            return
-        }
+        if (!_state.value.submitEnabled) return
         viewModelScope.launch {
             _state.update { it.copy(submitting = true, errors = CommerceRegistrationFormErrors()) }
             runCatching {

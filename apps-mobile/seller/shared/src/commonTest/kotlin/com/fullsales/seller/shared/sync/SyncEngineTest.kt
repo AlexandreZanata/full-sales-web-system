@@ -111,6 +111,19 @@ class SyncEngineTest {
         assertEquals(1, outbox.all.first { !it.completed }.attempts)
     }
 
+    @Test
+    fun given_attemptsAtMax_when_processOutbox_then_marksSyncFailed() = runTest {
+        seedCatalog()
+        val sale = writer.createSale(saleRequest(), 20.0)
+        val entry = outbox.all.first()
+        repeat(5) { outbox.markFailed(entry.id, "timeout") }
+
+        engine().processOutbox()
+
+        assertEquals(LocalSaleStatus.SyncFailed, sales.getSale(sale.localId)?.status)
+        assertTrue(outbox.all.first().completed)
+    }
+
     private fun seedCatalog() {
         catalog.seed(
             Product("p1", "Widget", "W-1", 10.0, "BRL", true),

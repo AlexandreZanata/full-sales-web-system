@@ -35,20 +35,28 @@ class SaleActionSubmitter(
         val remoteId = detail.remoteId
             ?: return SaleActionResult.Failure("NO_REMOTE_ID", "NO_REMOTE_ID")
         val localId = detail.localId
-        return if (online) {
-            runCatching {
-                call(remoteId)
-                localId?.let { updateLocalStatus(it, action) }
-                syncCoordinator?.syncPullAndPush()
-                SaleActionResult.Success
-            }.getOrElse { mapError(it) }
-        } else {
-            enqueueOffline(localId ?: remoteId, remoteId, action)
+        if (!online) {
+            return enqueueOptimistic(localId ?: remoteId, remoteId, action)
+        }
+        return runCatching {
+            call(remoteId)
+            localId?.let { updateLocalStatus(it, action) }
+            syncCoordinator?.pushOutbox()
             SaleActionResult.Success
+        }.getOrElse { error ->
+            if (isTransportFailure(error)) {
+                enqueueOptimistic(localId ?: remoteId, remoteId, action)
+            } else {
+                mapError(error)
+            }
         }
     }
 
-    private suspend fun enqueueOffline(localId: String, remoteId: String, action: String) {
+    private suspend fun enqueueOptimistic(
+        localId: String,
+        remoteId: String,
+        action: String,
+    ): SaleActionResult {
         outbox.enqueue(
             SyncOutboxEntry(
                 id = "$localId:$action",
@@ -60,6 +68,8 @@ class SaleActionSubmitter(
                 createdAtEpochMs = currentEpochMs(),
             ),
         )
+        updateLocalStatus(localId, action)
+        return SaleActionResult.Success
     }
 
     private suspend fun updateLocalStatus(localId: String, action: String) {

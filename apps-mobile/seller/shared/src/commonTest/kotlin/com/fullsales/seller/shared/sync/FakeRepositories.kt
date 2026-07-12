@@ -150,9 +150,11 @@ class RecordingTransport : SyncTransport {
 class FakeCatalogPullClient : CatalogPullClient {
     var commerces = listOf<Commerce>()
     var products = listOf<Product>()
+    var throwOnFetch: Boolean = false
 
-    override suspend fun fetchCommerces(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListCommerces =
-        if (cursor == null) {
+    override suspend fun fetchCommerces(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListCommerces {
+        if (throwOnFetch) error("catalog unavailable")
+        return if (cursor == null) {
             com.fullsales.seller.shared.model.CursorListCommerces(
                 commerces,
                 com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
@@ -163,9 +165,11 @@ class FakeCatalogPullClient : CatalogPullClient {
                 com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
             )
         }
+    }
 
-    override suspend fun fetchProducts(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListProducts =
-        if (cursor == null) {
+    override suspend fun fetchProducts(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListProducts {
+        if (throwOnFetch) error("catalog unavailable")
+        return if (cursor == null) {
             com.fullsales.seller.shared.model.CursorListProducts(
                 products,
                 com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
@@ -176,6 +180,7 @@ class FakeCatalogPullClient : CatalogPullClient {
                 com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
             )
         }
+    }
 }
 
 class FakeTokenRefresher(private var ok: Boolean = true) : SyncTokenRefresher {

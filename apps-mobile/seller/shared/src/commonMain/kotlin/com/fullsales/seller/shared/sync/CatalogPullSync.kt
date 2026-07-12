@@ -58,8 +58,17 @@ class SellerSyncCoordinator(
     private val catalogPull: CatalogPullSync,
     private val engine: SyncEngine,
 ) {
+    /** Push outbox only — never blocked by catalog pull. */
+    suspend fun pushOutbox(): SyncProcessResult = engine.processOutbox()
+
+    /** Best-effort catalog pull; failures are swallowed so push can still succeed. */
+    suspend fun pullCatalog(): Boolean =
+        runCatching { catalogPull.pullCatalog() }.isSuccess
+
+    /** Push first, then best-effort pull. Catalog failure does not abort push. */
     suspend fun syncPullAndPush(): SyncProcessResult {
-        catalogPull.pullCatalog()
-        return engine.processOutbox()
+        val pushResult = pushOutbox()
+        pullCatalog()
+        return pushResult
     }
 }

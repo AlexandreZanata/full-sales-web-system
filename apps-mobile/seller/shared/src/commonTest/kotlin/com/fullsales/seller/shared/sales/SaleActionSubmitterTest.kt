@@ -39,6 +39,25 @@ class SaleActionSubmitterTest {
         val result = submitter.confirm(detail, online = false)
         assertTrue(result is SaleActionResult.Success)
         assertEquals("/sales/remote-9/confirm", outbox.all.first().path)
+        assertEquals(LocalSaleStatus.Confirmed, sales.getSale(local.localId)?.status)
+    }
+
+    @Test
+    fun given_noRemoteId_when_confirm_then_blockedWithAwaitingSyncCode() = runTest {
+        val local = sales.createLocalSale(
+            com.fullsales.seller.shared.model.CreateSaleRequest(
+                commerceId = "c1",
+                paymentMethod = "cash",
+                items = listOf(com.fullsales.seller.shared.model.CreateSaleItem("p1", 1)),
+            ),
+            1000.0,
+        )
+        sales.updateStatus(local.localId, LocalSaleStatus.PendingSync)
+        val detail = buildSaleDetailFromLocal(sales.getSale(local.localId)!!, emptyList(), emptyList())
+        val submitter = SaleActionSubmitter(unusedApi(), sales, outbox)
+        val result = submitter.confirm(detail, online = false)
+        assertTrue(result is SaleActionResult.Failure)
+        assertEquals("NO_REMOTE_ID", (result as SaleActionResult.Failure).code)
     }
 
     @Test
@@ -47,6 +66,15 @@ class SaleActionSubmitterTest {
         assertEquals(
             "This sale can no longer be changed",
             SellerStrings.saleActionError(messages, "INVALID_SALE_TRANSITION"),
+        )
+    }
+
+    @Test
+    fun awaitingSyncMessage_ptBr() {
+        val messages = SellerStrings.forLocale(SellerLocale.PtBr)
+        assertEquals(
+            "Aguardando sincronização",
+            SellerStrings.saleActionError(messages, "NO_REMOTE_ID"),
         )
     }
 

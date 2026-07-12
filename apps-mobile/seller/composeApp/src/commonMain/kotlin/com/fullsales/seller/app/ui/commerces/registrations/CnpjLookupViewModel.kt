@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.ApiException
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.connectivity.ConnectivityState
+import com.fullsales.seller.shared.connectivity.allowsInternetOnlyActions
 import com.fullsales.seller.shared.model.CnpjLookupResult
 import com.fullsales.seller.shared.model.isValidCnpjInput
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +20,10 @@ data class CnpjLookupUiState(
     val loading: Boolean = false,
     val errorCode: String? = null,
     val result: CnpjLookupResult? = null,
-)
+    val connectivity: ConnectivityState = ConnectivityState.Offline,
+) {
+    val lookupEnabled: Boolean get() = !loading && connectivity.allowsInternetOnlyActions()
+}
 
 class CnpjLookupViewModel(
     private val apiClient: SellerApiClient,
@@ -26,6 +31,14 @@ class CnpjLookupViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(CnpjLookupUiState())
     val state: StateFlow<CnpjLookupUiState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            networkMonitor.connectivity.collect { connectivity ->
+                _state.update { it.copy(connectivity = connectivity) }
+            }
+        }
+    }
 
     fun setCnpj(value: String) {
         _state.update { it.copy(cnpj = value, errorCode = null) }
@@ -37,10 +50,7 @@ class CnpjLookupViewModel(
             _state.update { it.copy(errorCode = "INVALID_CNPJ") }
             return
         }
-        if (!networkMonitor.isOnline()) {
-            _state.update { it.copy(errorCode = "NETWORK_ERROR") }
-            return
-        }
+        if (!_state.value.lookupEnabled) return
         viewModelScope.launch {
             _state.update { it.copy(loading = true, errorCode = null) }
             runCatching { apiClient.lookupCnpj(cnpj) }

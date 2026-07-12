@@ -11,7 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -49,13 +49,14 @@ fun CommerceRegistrationFormScreen(
             if (code == "SUBMITTED") onSubmitted()
         }
     }
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+    NestedScreenScaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(top = 4.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
@@ -76,10 +77,17 @@ fun CommerceRegistrationFormScreen(
             )
             Button(
                 onClick = viewModel::submit,
-                enabled = !state.submitting,
+                enabled = state.submitEnabled,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(if (state.submitting) s.common.saving else s.registrations.submit)
+            }
+            if (!state.submitEnabled && !state.submitting) {
+                Text(
+                    s.registrations.requiresInternet,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
                 Text(s.common.back)

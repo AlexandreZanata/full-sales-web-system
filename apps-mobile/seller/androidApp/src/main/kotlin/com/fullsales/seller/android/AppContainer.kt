@@ -22,10 +22,14 @@ import com.fullsales.seller.shared.db.repository.RoomSyncOutboxRepository
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
+import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
 import com.fullsales.seller.shared.sync.CatalogPullSync
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class AppContainer(context: Context) : SellerAppContainer {
     init {
@@ -33,6 +37,7 @@ class AppContainer(context: Context) : SellerAppContainer {
     }
 
     private val androidContext = context.applicationContext
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val database = SellerDatabase.build(androidContext)
     private val tokenStoreImpl = TokenStore(androidContext)
     override val tokenStore: SellerTokenStore = tokenStoreImpl
@@ -54,6 +59,14 @@ class AppContainer(context: Context) : SellerAppContainer {
         SyncEngine(outboxRepository, saleRepository, syncTransport, tokenRefresher),
     )
     override val networkMonitor: NetworkMonitor = createNetworkMonitor()
+
+    init {
+        OnlineSyncTrigger(
+            networkMonitor.connectivity,
+            syncCoordinator::pushOutbox,
+            appScope,
+        )
+    }
 
     fun scheduleSync() {
         SyncWorker.enqueuePeriodic(androidContext)

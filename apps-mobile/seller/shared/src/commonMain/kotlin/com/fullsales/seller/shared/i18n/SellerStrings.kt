@@ -16,7 +16,7 @@ object SellerStrings {
         SaleDisplayStatus.SyncFailed -> messages.status.syncFailed
     }
 
-    fun paymentMethod(messages: SellerMessages, method: String): String = when (method) {
+    fun paymentMethod(messages: SellerMessages, method: String): String = when (method.lowercase()) {
         "cash" -> messages.paymentMethods.cash
         "pix" -> messages.paymentMethods.pix
         "credit" -> messages.paymentMethods.credit
@@ -30,11 +30,15 @@ object SellerStrings {
         else -> format(messages.common.stockAvailable, "qty" to available.toString())
     }
 
+    fun stockBackorderBadge(messages: SellerMessages): String = messages.common.stockBackorder
+
+    fun stockBackorderWarning(messages: SellerMessages): String = messages.common.stockBackorderWarning
+
     fun saleActionError(messages: SellerMessages, code: String): String = when (code) {
         "INSUFFICIENT_STOCK" -> messages.sales.insufficientStock
         "INVALID_SALE_TRANSITION" -> messages.sales.invalidTransition
         "SALE_NOT_FOUND" -> messages.sales.notFound
-        "NO_REMOTE_ID" -> messages.sales.loadErrorOffline
+        "NO_REMOTE_ID" -> messages.sales.awaitingSync
         "OFFLINE_UNAVAILABLE" -> messages.sales.loadErrorOffline
         "LOAD_FAILED" -> messages.sales.loadFailed
         else -> messages.sales.actionFailed
@@ -64,6 +68,13 @@ object SellerStrings {
         "UNAUTHORIZED" -> messages.products.sessionExpired
         "LOAD_FAILED" -> messages.products.loadFailed
         else -> messages.products.loadFailed
+    }
+
+    fun commerceError(messages: SellerMessages, code: String): String = when (code) {
+        "COMMERCE_NOT_FOUND" -> messages.commerces.notFound
+        "UNAUTHORIZED" -> messages.commerces.sessionExpired
+        "SYNC_FAILED" -> messages.commerces.syncFailed
+        else -> messages.commerces.loadFailed
     }
 
     fun formatValidation(messages: SellerMessages, error: CreateSaleValidationError): String =

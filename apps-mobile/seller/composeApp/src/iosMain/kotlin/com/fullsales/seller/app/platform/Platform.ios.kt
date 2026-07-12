@@ -1,8 +1,18 @@
 package com.fullsales.seller.app.platform
 
 import com.fullsales.seller.shared.a11y.TextSizePreset
+import com.fullsales.seller.shared.connectivity.ConnectivityState
+import com.fullsales.seller.shared.connectivity.DebouncedConnectivity
 import com.fullsales.seller.shared.i18n.SellerLocale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
 import platform.Foundation.NSUserDefaults
+import platform.Network.NWPath
+import platform.Network.NWPathMonitor
+import platform.Network.NWPathStatusSatisfied
+import platform.darwin.dispatch_get_main_queue
 
 actual class AccessibilityStore actual constructor() {
     private val defaults = NSUserDefaults.standardUserDefaults
@@ -33,8 +43,21 @@ actual class LocaleStore actual constructor() {
     }
 }
 
-actual fun createNetworkMonitor(): NetworkMonitor = object : NetworkMonitor {
-    override fun isOnline(): Boolean = true
-}
+actual fun createNetworkMonitor(): NetworkMonitor = IosPathNetworkMonitor()
 
 actual fun isDebugBuild(): Boolean = false
+
+internal class IosPathNetworkMonitor : NetworkMonitor {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val gate = DebouncedConnectivity(scope)
+    override val connectivity: StateFlow<ConnectivityState> = gate.state
+    private val monitor = NWPathMonitor()
+
+    init {
+        monitor.setQueue(dispatch_get_main_queue())
+        monitor.pathUpdateHandler = { path: NWPath? ->
+            gate.onValidatedChanged(path?.status == NWPathStatusSatisfied)
+        }
+        monitor.start()
+    }
+}

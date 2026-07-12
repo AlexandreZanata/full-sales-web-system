@@ -35,7 +35,7 @@ fun MyRegistrationsScreen(viewModel: MyRegistrationsViewModel) {
     val state by viewModel.state.collectAsState()
     PullToRefreshBox(
         isRefreshing = state.refreshing,
-        onRefresh = { viewModel.refresh() },
+        onRefresh = { if (!state.isOffline) viewModel.refresh() },
         modifier = Modifier
             .fillMaxSize()
             .semantics { contentDescription = s.a11y.pullToRefresh },

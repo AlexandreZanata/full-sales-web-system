@@ -86,11 +86,16 @@ All seller-facing HTTP routes have `SellerApiClient` methods and MockEngine unit
 
 ## Offline sync
 
-1. **Create offline:** `OfflineSaleWriter` → Room sale (`PendingSync`) + outbox row.
-2. **Reconnect:** `SyncEngine.processOutbox()` via `SellerSyncCoordinator` (foreground on resume, WorkManager periodic).
-3. **Idempotency:** UUID v7 key on `POST /v1/sales`; server dedupes retries.
+Phase 14 (14A–14C) — validated connectivity, push-first sync, offline-first mutations.
 
-Tests: `SyncEngineTest`, `OfflineSalePersistenceTest` (Robolectric), `OfflineSaleOutboxTest` + `CreateSaleInstrumentedTest` (instrumented).
+1. **Connectivity:** `NetworkMonitor.connectivity: StateFlow<ConnectivityState>` (`Offline` | `Connecting` | `Online`). Offline is immediate; Online after **2s** continuous validated reachability (`DebouncedConnectivity`). Android uses `NetworkCallback` + `NET_CAPABILITY_INTERNET` **and** `NET_CAPABILITY_VALIDATED`; iOS uses `NWPathMonitor`.
+2. **Create:** offline **or** online transport failure → `OfflineSaleWriter` → Room (`PendingSync`) + outbox (same Pending sync UX). Business `ApiException` still fails hard.
+3. **Confirm/cancel:** with `remoteId` → optimistic local `Confirmed`/`Cancelled` + pending sync chip while outbox drains. Without `remoteId` → blocked (`NO_REMOTE_ID` / “Aguardando sincronização”).
+4. **Sync:** `SellerSyncCoordinator.pushOutbox()` then best-effort `pullCatalog()` — catalog failure never blocks push. Stable Offline→Online auto-drains outbox once (`OnlineSyncTrigger`). WorkManager / onResume remain secondary. Exhausted retries (`attempts >= max`) → `SyncFailed` (dead-letter UX).
+5. **Internet-only:** CNPJ lookup + registration submit CTAs disabled when not Online (“Disponível com internet”). Draft form stays editable; my-registrations keeps last in-memory list and skips refresh offline.
+6. **Idempotency:** UUID v7 key on `POST /v1/sales`; server dedupes retries.
+
+Tests: `DebouncedConnectivityTest`, `SellerSyncCoordinatorTest`, `SyncEngineTest`, `CreateSaleSubmitterTest`, `SaleActionSubmitterTest`, `OfflineSalePersistenceTest` (Robolectric), instrumented outbox/create tests.
 
 ## Accessibility (Phase 66)
 

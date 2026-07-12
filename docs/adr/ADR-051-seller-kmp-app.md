@@ -23,6 +23,12 @@ Create a **separate** Kotlin Multiplatform app at `apps-mobile/seller`:
 
 Shared patterns (not shared Gradle modules yet): `SellerApiClient` mirrors field HTTP contracts; Room + outbox + `SyncEngine` follow the same offline-first model as field Phase 39F.
 
+### Connectivity + push-first (Phase 14)
+
+- Prefer **validated** reachability (`NET_CAPABILITY_VALIDATED` / `NWPathMonitor`) over “has interface”.
+- Debounce flaps: Offline immediate; Online after a stable window (2s).
+- Outbox **push must not wait** on catalog pull success; auto-push once on stable Online.
+
 ## Consequences
 
 ### Positive

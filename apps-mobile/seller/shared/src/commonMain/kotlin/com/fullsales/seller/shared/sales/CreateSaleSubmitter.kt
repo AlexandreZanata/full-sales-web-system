@@ -21,16 +21,25 @@ class CreateSaleSubmitter(
         totalAmountMinor: Double,
         online: Boolean,
     ): CreateSaleSubmitResult = if (online) {
-        submitOnline(request)
+        submitOnline(request, totalAmountMinor)
     } else {
         submitOffline(request, totalAmountMinor)
     }
 
-    private suspend fun submitOnline(request: CreateSaleRequest): CreateSaleSubmitResult =
+    private suspend fun submitOnline(
+        request: CreateSaleRequest,
+        totalAmountMinor: Double,
+    ): CreateSaleSubmitResult =
         runCatching {
             val sale = apiClient.createSale(request, newIdempotencyKey())
             CreateSaleSubmitResult.Success(sale.id, isRemote = true)
-        }.getOrElse { mapSubmitError(it) }
+        }.getOrElse { error ->
+            if (isTransportFailure(error)) {
+                submitOffline(request, totalAmountMinor)
+            } else {
+                mapSubmitError(error)
+            }
+        }
 
     private suspend fun submitOffline(
         request: CreateSaleRequest,
@@ -42,6 +51,8 @@ class CreateSaleSubmitter(
         CreateSaleSubmitResult.Failure("LOCAL_ERROR", "LOCAL_ERROR")
     }
 }
+
+internal fun isTransportFailure(error: Throwable): Boolean = error !is ApiException
 
 private fun mapSubmitError(error: Throwable): CreateSaleSubmitResult.Failure {
     if (error is ApiException) {

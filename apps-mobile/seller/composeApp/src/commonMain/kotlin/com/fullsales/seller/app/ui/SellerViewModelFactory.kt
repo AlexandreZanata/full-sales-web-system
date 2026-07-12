@@ -77,7 +77,11 @@ class SellerViewModelFactory(
             ) as T
         SaleDetailViewModel::class ->
             SaleDetailViewModel(
-                SaleDetailLoader(container.apiClient, container.saleRepository),
+                SaleDetailLoader(
+                    container.apiClient,
+                    container.saleRepository,
+                    container.outboxRepository,
+                ),
                 SaleActionSubmitter(
                     container.apiClient,
                     container.saleRepository,
