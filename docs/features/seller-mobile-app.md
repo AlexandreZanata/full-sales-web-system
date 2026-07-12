@@ -86,16 +86,20 @@ All seller-facing HTTP routes have `SellerApiClient` methods and MockEngine unit
 
 ## Offline sync
 
-Phase 14 (14A–14C) — validated connectivity, push-first sync, offline-first mutations.
+Phase 14 — validated connectivity, push-first sync, offline-first mutations, cache-first reads.
 
 1. **Connectivity:** `NetworkMonitor.connectivity: StateFlow<ConnectivityState>` (`Offline` | `Connecting` | `Online`). Offline is immediate; Online after **2s** continuous validated reachability (`DebouncedConnectivity`). Android uses `NetworkCallback` + `NET_CAPABILITY_INTERNET` **and** `NET_CAPABILITY_VALIDATED`; iOS uses `NWPathMonitor`.
 2. **Create:** offline **or** online transport failure → `OfflineSaleWriter` → Room (`PendingSync`) + outbox (same Pending sync UX). Business `ApiException` still fails hard.
 3. **Confirm/cancel:** with `remoteId` → optimistic local `Confirmed`/`Cancelled` + pending sync chip while outbox drains. Without `remoteId` → blocked (`NO_REMOTE_ID` / “Aguardando sincronização”).
 4. **Sync:** `SellerSyncCoordinator.pushOutbox()` then best-effort `pullCatalog()` — catalog failure never blocks push. Stable Offline→Online auto-drains outbox once (`OnlineSyncTrigger`). WorkManager / onResume remain secondary. Exhausted retries (`attempts >= max`) → `SyncFailed` (dead-letter UX).
 5. **Internet-only:** CNPJ lookup + registration submit CTAs disabled when not Online (“Disponível com internet”). Draft form stays editable; my-registrations keeps last in-memory list and skips refresh offline.
-6. **Idempotency:** UUID v7 key on `POST /v1/sales`; server dedupes retries.
+6. **Cache-first reads (14D):** Product/commerce detail load from Room (and address/stock snapshots) first; API enrich when Online. Stock balances persist in Room (`stock_snapshots`) until next successful fetch (no hard TTL). Browse/create-sale uses cached stock for backorder warnings; unknown stock does not hide products.
+7. **Offline chrome (14E):** Shell chip shows Offline / Syncing / Online / Sync failed (TalkBack live region); pull-to-refresh offline shows “Sem conexão” and does not spin.
+8. **Idempotency:** UUID v7 key on `POST /v1/sales`; server dedupes retries.
 
-Tests: `DebouncedConnectivityTest`, `SellerSyncCoordinatorTest`, `SyncEngineTest`, `CreateSaleSubmitterTest`, `SaleActionSubmitterTest`, `OfflineSalePersistenceTest` (Robolectric), instrumented outbox/create tests.
+**Manual device script:** sync catalog online → airplane → open product/commerce/sale detail from cache → create/confirm with remoteId → CNPJ/registration disabled → toggle airplane rapidly → outbox drains after stable Online.
+
+Tests: `DebouncedConnectivityTest`, `SellerSyncCoordinatorTest`, `CacheFirstDetailLoaderTest`, `SyncEngineTest`, `CreateSaleSubmitterTest`, `SaleActionSubmitterTest`, `OfflineSalePersistenceTest` (Robolectric), instrumented outbox/create tests.
 
 ## Accessibility (Phase 66)
 

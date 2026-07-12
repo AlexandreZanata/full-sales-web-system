@@ -11,13 +11,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
+import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
+import com.fullsales.seller.app.ui.shell.SellerStickyBottomBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,7 +52,7 @@ fun CreateSaleScreen(
             viewModel.clearSnackbar()
         }
     }
-    Scaffold(
+    NestedScreenScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             CreateSaleBottomBar(
@@ -69,8 +68,9 @@ fun CreateSaleScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-                .padding(bottom = 24.dp),
+                .padding(horizontal = 16.dp)
+                .padding(top = 4.dp, bottom = 12.dp)
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Row(
@@ -129,51 +129,41 @@ private fun CreateSaleBottomBar(
     onSubmit: () -> Unit,
 ) {
     val s = LocalSellerStrings.current
-    Surface(
-        shadowElevation = 8.dp,
-        tonalElevation = 3.dp,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    SellerStickyBottomBar {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            Text(
+                s.common.total,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                formatMoneyMinorUnits(totalMinor),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .weight(1f)
+                    .defaultMinSize(minHeight = 48.dp),
             ) {
-                Text(
-                    s.common.total,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    formatMoneyMinorUnits(totalMinor),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                Text(s.common.back)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .weight(1f)
-                        .defaultMinSize(minHeight = 48.dp),
-                ) {
-                    Text(s.common.back)
-                }
-                Button(
-                    onClick = onSubmit,
-                    enabled = !submitting,
-                    modifier = Modifier
-                        .weight(1f)
-                        .defaultMinSize(minHeight = 48.dp),
-                ) {
-                    Text(if (submitting) s.common.saving else s.sales.confirmShort)
-                }
+            Button(
+                onClick = onSubmit,
+                enabled = !submitting,
+                modifier = Modifier
+                    .weight(1f)
+                    .defaultMinSize(minHeight = 48.dp),
+            ) {
+                Text(if (submitting) s.common.saving else s.sales.confirmShort)
             }
         }
     }

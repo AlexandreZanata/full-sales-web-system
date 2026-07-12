@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.ApiException
+import com.fullsales.seller.shared.catalog.StockBalancePrefetcher
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.repository.CatalogRepository
@@ -11,9 +12,11 @@ import com.fullsales.seller.shared.sales.SaleActionResult
 import com.fullsales.seller.shared.sales.SaleActionSubmitter
 import com.fullsales.seller.shared.sales.SaleDetailLoader
 import com.fullsales.seller.shared.sales.SaleDetailModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,6 +24,7 @@ data class SaleDetailUiState(
     val loading: Boolean = true,
     val acting: Boolean = false,
     val detail: SaleDetailModel? = null,
+    val stockByProductId: Map<String, Int> = emptyMap(),
     val errorCode: String? = null,
     val snackbarCode: String? = null,
 )
@@ -30,30 +34,39 @@ class SaleDetailViewModel(
     private val actionSubmitter: SaleActionSubmitter,
     private val catalogRepository: CatalogRepository,
     private val networkMonitor: NetworkMonitor,
+    private val stockPrefetcher: StockBalancePrefetcher,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SaleDetailUiState())
     val state: StateFlow<SaleDetailUiState> = _state.asStateFlow()
+    private var saleId: String? = null
     private var commerces: List<Commerce> = emptyList()
     private var products: List<Product> = emptyList()
-    private var saleId: String? = null
+    private var loadJob: Job? = null
+    private var loadGeneration = 0
 
     init {
         viewModelScope.launch {
-            catalogRepository.observeCommerces().collect { commerces = it }
+            val cached = stockPrefetcher.cachedMap()
+            if (cached.isNotEmpty()) {
+                _state.update { it.copy(stockByProductId = cached) }
+            }
         }
         viewModelScope.launch {
-            catalogRepository.observeProducts().collect { products = it }
+            combine(
+                catalogRepository.observeCommerces(),
+                catalogRepository.observeProducts(),
+            ) { commerceList, productList -> commerceList to productList }
+                .collect { (commerceList, productList) ->
+                    commerces = commerceList
+                    products = productList
+                    saleId?.let { fetchDetail(it, showLoading = _state.value.detail == null) }
+                }
         }
     }
 
     fun load(id: String) {
         saleId = id
-        viewModelScope.launch {
-            _state.update { it.copy(loading = true, errorCode = null) }
-            loader.load(id, commerces, products, networkMonitor.isOnline())
-                .onSuccess { detail -> _state.update { it.copy(loading = false, detail = detail) } }
-                .onFailure { error -> _state.update { mapLoadError(error) } }
-        }
+        fetchDetail(id, showLoading = true)
     }
 
     fun confirm() = runAction { detail -> actionSubmitter.confirm(detail, networkMonitor.isOnline()) }
@@ -64,6 +77,26 @@ class SaleDetailViewModel(
         _state.update { it.copy(snackbarCode = null) }
     }
 
+    private fun fetchDetail(id: String, showLoading: Boolean) {
+        loadJob?.cancel()
+        val generation = ++loadGeneration
+        loadJob = viewModelScope.launch {
+            if (showLoading) _state.update { it.copy(loading = true, errorCode = null) }
+            loader.load(id, commerces, products, networkMonitor.isOnline())
+                .onSuccess { detail ->
+                    if (generation == loadGeneration) {
+                        _state.update { it.copy(loading = false, detail = detail) }
+                        prefetchStockForDetail(detail)
+                    }
+                }
+                .onFailure { error ->
+                    if (generation == loadGeneration) {
+                        _state.update { mapLoadError(error) }
+                    }
+                }
+        }
+    }
+
     private fun runAction(block: suspend (SaleDetailModel) -> SaleActionResult) {
         val detail = _state.value.detail ?: return
         viewModelScope.launch {
@@ -71,7 +104,7 @@ class SaleDetailViewModel(
             when (val result = block(detail)) {
                 SaleActionResult.Success -> {
                     _state.update { it.copy(acting = false) }
-                    saleId?.let { load(it) }
+                    saleId?.let { fetchDetail(it, showLoading = false) }
                 }
                 is SaleActionResult.Failure -> {
                     _state.update {
@@ -80,6 +113,23 @@ class SaleDetailViewModel(
                 }
             }
         }
+    }
+
+    private fun prefetchStockForDetail(detail: SaleDetailModel) {
+        detail.items.map { it.productId }.distinct()
+            .filter { it.isNotBlank() && it !in _state.value.stockByProductId }
+            .forEach { productId ->
+                viewModelScope.launch {
+                    val available = if (networkMonitor.isOnline()) {
+                        stockPrefetcher.fetchAndCache(productId)
+                    } else {
+                        stockPrefetcher.cachedMap()[productId]
+                    } ?: return@launch
+                    _state.update {
+                        it.copy(stockByProductId = it.stockByProductId + (productId to available))
+                    }
+                }
+            }
     }
 
     private fun mapLoadError(error: Throwable): SaleDetailUiState {

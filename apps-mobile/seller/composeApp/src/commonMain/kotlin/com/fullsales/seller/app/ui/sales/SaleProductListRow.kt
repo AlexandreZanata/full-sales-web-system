@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.app.ui.theme.SellerWarningColor
 import com.fullsales.seller.shared.i18n.CreateSaleValidationError
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.Product
@@ -34,7 +35,9 @@ internal fun SaleProductListRow(
     line: CreateSaleLineInput,
     products: List<Product>,
     topSellingProducts: List<TopSellingProduct>,
+    stockByProductId: Map<String, Int>,
     stock: Int?,
+    isBackorder: Boolean,
     quantityError: CreateSaleValidationError?,
     mediaUrlResolver: MediaUrlResolver,
     onChange: (CreateSaleLineInput) -> Unit,
@@ -81,12 +84,16 @@ internal fun SaleProductListRow(
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         ProductSkuBadge(sku = product.sku)
-                        stock?.let {
-                            Text(
-                                SellerStrings.stockBadge(s, it),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                        if (isBackorder) {
+                            BackorderBadge()
+                        } else {
+                            stock?.let {
+                                Text(
+                                    SellerStrings.stockBadge(s, it),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     } else {
                         Text(
@@ -122,8 +129,16 @@ internal fun SaleProductListRow(
                         value = line.quantityText,
                         onValueChange = { onChange(line.copy(quantityText = it)) },
                         isError = quantityError != null,
+                        isWarning = isBackorder,
                     )
                 }
+            }
+            if (isBackorder) {
+                Text(
+                    SellerStrings.stockBackorderWarning(s),
+                    color = SellerWarningColor,
+                    style = MaterialTheme.typography.bodySmall,
+                )
             }
             quantityError?.let { err ->
                 Text(
@@ -136,6 +151,7 @@ internal fun SaleProductListRow(
                 ProductSearchPicker(
                     products = products,
                     topSellingProducts = topSellingProducts,
+                    stockByProductId = stockByProductId,
                     productId = line.productId,
                     searchQuery = line.productSearchQuery,
                     onSearchChange = { onChange(line.copy(productSearchQuery = it)) },
@@ -144,6 +160,23 @@ internal fun SaleProductListRow(
                 )
             }
         }
+    }
+}
+
+@Composable
+internal fun BackorderBadge() {
+    val s = LocalSellerStrings.current
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = SellerWarningColor.copy(alpha = 0.18f),
+    ) {
+        Text(
+            text = SellerStrings.stockBackorderBadge(s),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = SellerWarningColor,
+        )
     }
 }
 

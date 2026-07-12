@@ -28,6 +28,10 @@ internal class MemoryCatalogRepository : CatalogRepository {
 
     override fun observeProducts(): Flow<List<Product>> = productFlow.asStateFlow()
 
+    override suspend fun getCommerce(id: String): Commerce? = commerces.firstOrNull { it.id == id }
+
+    override suspend fun getProduct(id: String): Product? = products.firstOrNull { it.id == id }
+
     override suspend fun replaceCommerces(items: List<Commerce>) {
         commerces.clear()
         commerces.addAll(items)

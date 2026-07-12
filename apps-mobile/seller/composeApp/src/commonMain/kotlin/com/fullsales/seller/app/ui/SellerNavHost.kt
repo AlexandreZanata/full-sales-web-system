@@ -90,6 +90,7 @@ private fun SellerNavHostContent(
             settingsViewModel,
             localeViewModel,
             accessibilityViewModel,
+            onSyncRefresh = syncViewModel::refreshNow,
         ) {
             SalesListScreen(
                 viewModel = salesListViewModel,
@@ -106,6 +107,7 @@ private fun SellerNavHostContent(
             settingsViewModel,
             localeViewModel,
             accessibilityViewModel,
+            onSyncRefresh = syncViewModel::refreshNow,
         ) {
             NewSaleWithCommercePicker(navController, factory)
         }
@@ -118,6 +120,7 @@ private fun SellerNavHostContent(
             settingsViewModel,
             localeViewModel,
             accessibilityViewModel,
+            onSyncRefresh = syncViewModel::refreshNow,
         ) {
             LaunchedEffect(Unit) { commerceViewModel.refresh() }
             CommerceListScreen(
@@ -135,9 +138,14 @@ private fun SellerNavHostContent(
             authViewModel,
             localeViewModel,
             accessibilityViewModel,
+            onSyncRefresh = syncViewModel::refreshNow,
         ) { id ->
             val viewModel: SaleDetailViewModel = viewModel(factory = factory)
-            SaleDetailScreen(saleId = id, viewModel = viewModel)
+            SaleDetailScreen(
+                saleId = id,
+                viewModel = viewModel,
+                mediaUrlResolver = factory.mediaUrlResolver,
+            )
         }
         commerceRoutes(
             navController,

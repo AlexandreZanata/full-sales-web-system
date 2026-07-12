@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.CreateSaleDraftStore
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.catalog.StockBalancePrefetcher
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.TopSellingProduct
@@ -21,8 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -52,27 +51,22 @@ class CreateSaleViewModel(
     private val submitter: CreateSaleSubmitter,
     private val networkMonitor: NetworkMonitor,
     private val draftStore: CreateSaleDraftStore,
+    private val stockPrefetcher: StockBalancePrefetcher,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateSaleUiState())
     val state: StateFlow<CreateSaleUiState> = _state.asStateFlow()
 
     init {
-        restoreDraft()
+        restoreCreateSaleDraft(draftStore, _state) { ids -> ids.forEach { loadStock(it) } }
         observeCatalog()
-        observeDraftPersistence()
+        viewModelScope.observeCreateSaleDraftPersistence(draftStore, _state)
         loadTopSellingProducts()
-    }
-
-    private fun restoreDraft() {
-        val draft = draftStore.read() ?: return
-        _state.update { current ->
-            current.copy(
-                commerceId = draft.commerceId,
-                paymentMethod = draft.paymentMethod,
-                lines = draft.lines.ifEmpty { listOf(CreateSaleLineInput()) },
-            )
+        viewModelScope.launch {
+            val cached = stockPrefetcher.cachedMap()
+            if (cached.isNotEmpty()) {
+                _state.update { it.copy(stockByProductId = it.stockByProductId + cached) }
+            }
         }
-        draft.lines.map { it.productId }.filter { it.isNotBlank() }.forEach { loadStock(it) }
     }
 
     private fun observeCatalog() {
@@ -84,23 +78,15 @@ class CreateSaleViewModel(
                 commerces to products
             }.collect { (commerces, products) ->
                 _state.update { it.copy(commerces = commerces, products = products, loading = false) }
+                prefetchStockBalances(products.map { it.id })
             }
         }
     }
 
-    private fun observeDraftPersistence() {
-        viewModelScope.launch {
-            _state
-                .map { createSaleDraftFrom(it.commerceId, it.paymentMethod, it.lines) }
-                .distinctUntilChanged()
-                .collect { draft ->
-                    if (draft.isEffectivelyEmpty()) {
-                        draftStore.clear()
-                    } else {
-                        draftStore.write(draft)
-                    }
-                }
-        }
+    private fun prefetchStockBalances(productIds: List<String>) {
+        if (!networkMonitor.isOnline()) return
+        productIds.filter { it.isNotBlank() && it !in _state.value.stockByProductId }
+            .forEach { loadStock(it) }
     }
 
     private fun loadTopSellingProducts() {
@@ -109,6 +95,7 @@ class CreateSaleViewModel(
             runCatching { apiClient.listTopSellingProducts(limit = 5) }
                 .onSuccess { response ->
                     _state.update { it.copy(topSellingProducts = response.data) }
+                    prefetchStockBalances(response.data.map { it.productId })
                 }
         }
     }
@@ -212,10 +199,15 @@ class CreateSaleViewModel(
 
     private fun loadStock(productId: String) {
         viewModelScope.launch {
-            runCatching { apiClient.getStockBalance(productId).available }
-                .onSuccess { available ->
+            if (!networkMonitor.isOnline()) {
+                stockPrefetcher.cachedMap()[productId]?.let { available ->
                     _state.update { it.copy(stockByProductId = it.stockByProductId + (productId to available)) }
                 }
+                return@launch
+            }
+            stockPrefetcher.fetchAndCache(productId)?.let { available ->
+                _state.update { it.copy(stockByProductId = it.stockByProductId + (productId to available)) }
+            }
         }
     }
 }

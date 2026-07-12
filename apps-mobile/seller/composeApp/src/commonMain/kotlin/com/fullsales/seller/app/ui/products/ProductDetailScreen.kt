@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.app.ui.theme.SellerWarningColor
 import com.fullsales.seller.shared.i18n.SellerStrings
 
 @Composable
@@ -92,14 +93,25 @@ private fun ProductDetailContent(
             )
         }
         Text(
-            SellerStrings.stockBadge(s, stockAvailable),
+            if (stockUnavailable) {
+                SellerStrings.stockBackorderBadge(s)
+            } else {
+                SellerStrings.stockBadge(s, stockAvailable)
+            },
             style = MaterialTheme.typography.labelLarge,
             color = if (stockUnavailable) {
-                MaterialTheme.colorScheme.error
+                SellerWarningColor
             } else {
                 MaterialTheme.colorScheme.primary
             },
         )
+        if (stockUnavailable) {
+            Text(
+                SellerStrings.stockBackorderWarning(s),
+                style = MaterialTheme.typography.bodySmall,
+                color = SellerWarningColor,
+            )
+        }
         Text(
             if (active) s.common.active else s.common.inactive,
             style = MaterialTheme.typography.labelMedium,
@@ -109,7 +121,6 @@ private fun ProductDetailContent(
         }
         Button(
             onClick = onAddToSale,
-            enabled = !stockUnavailable,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(s.products.addToSale)

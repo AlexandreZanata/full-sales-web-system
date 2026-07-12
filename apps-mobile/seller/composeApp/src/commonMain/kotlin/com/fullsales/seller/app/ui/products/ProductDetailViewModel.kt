@@ -3,8 +3,9 @@ package com.fullsales.seller.app.ui.products
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.MediaUrlResolver
+import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.ApiException
-import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.catalog.ProductDetailLoader
 import com.fullsales.seller.shared.model.ProductDetail
 import com.fullsales.seller.shared.model.formatProductPrice
 import com.fullsales.seller.shared.model.isStockUnavailable
@@ -24,8 +25,9 @@ data class ProductDetailUiState(
 )
 
 class ProductDetailViewModel(
-    private val apiClient: SellerApiClient,
+    private val loader: ProductDetailLoader,
     private val mediaUrlResolver: MediaUrlResolver,
+    private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductDetailUiState())
     val state: StateFlow<ProductDetailUiState> = _state.asStateFlow()
@@ -34,17 +36,19 @@ class ProductDetailViewModel(
         viewModelScope.launch {
             _state.value = ProductDetailUiState(loading = true)
             runCatching {
-                val product = apiClient.getProduct(productId)
-                val balance = runCatching { apiClient.getStockBalance(productId) }.getOrNull()
+                val loaded = loader.load(productId, networkMonitor.isOnline())
                 val imageUrl = mediaUrlResolver.resolveImageUrl(
-                    product.primaryImageUrl,
-                    product.primaryImageFileId,
+                    loaded.product.primaryImageUrl,
+                    loaded.product.primaryImageFileId,
                 )
                 ProductDetailUiState(
-                    product = product,
-                    priceLabel = formatProductPrice(product.priceAmount, product.priceCurrency),
-                    stockAvailable = balance?.available,
-                    stockUnavailable = isStockUnavailable(balance?.available),
+                    product = loaded.product,
+                    priceLabel = formatProductPrice(
+                        loaded.product.priceAmount,
+                        loaded.product.priceCurrency,
+                    ),
+                    stockAvailable = loaded.stockAvailable,
+                    stockUnavailable = isStockUnavailable(loaded.stockAvailable),
                     imageUrl = imageUrl,
                     loading = false,
                 )
@@ -58,8 +62,9 @@ class ProductDetailViewModel(
         }
     }
 
-    private fun mapErrorCode(error: Throwable): String = when (error) {
-        is ApiException -> error.detail.code
+    private fun mapErrorCode(error: Throwable): String = when {
+        error is ApiException -> error.detail.code
+        error.message == "PRODUCT_NOT_FOUND" -> "PRODUCT_NOT_FOUND"
         else -> "LOAD_FAILED"
     }
 }

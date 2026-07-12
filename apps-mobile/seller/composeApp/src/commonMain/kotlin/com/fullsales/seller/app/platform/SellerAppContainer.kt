@@ -3,7 +3,9 @@ package com.fullsales.seller.app.platform
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.connectivity.ConnectivityState
 import com.fullsales.seller.shared.repository.CatalogRepository
+import com.fullsales.seller.shared.repository.CommerceAddressCache
 import com.fullsales.seller.shared.repository.SaleRepository
+import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
@@ -31,6 +33,8 @@ interface SellerAppContainer {
     val catalogRepository: CatalogRepository
     val saleRepository: SaleRepository
     val outboxRepository: SyncOutboxRepository
+    val stockSnapshots: StockSnapshotRepository
+    val commerceAddressCache: CommerceAddressCache
     val syncCoordinator: SellerSyncCoordinator
     val offlineSaleWriter: OfflineSaleWriter
     val mediaUrlResolver: MediaUrlResolver

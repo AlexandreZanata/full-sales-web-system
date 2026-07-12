@@ -18,12 +18,15 @@ import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.catalog.filterProductsBySearch
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.TopSellingProduct
+import com.fullsales.seller.shared.sales.filterProductsAvailableForBrowsing
+import com.fullsales.seller.shared.sales.isProductAvailableForBrowsing
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ProductSearchPicker(
     products: List<Product>,
     topSellingProducts: List<TopSellingProduct>,
+    stockByProductId: Map<String, Int> = emptyMap(),
     productId: String,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
@@ -31,7 +34,9 @@ internal fun ProductSearchPicker(
     showSelectedLabel: Boolean = true,
 ) {
     val s = LocalSellerStrings.current
-    val selected = products.firstOrNull { it.id == productId }
+    val browseProducts = filterProductsAvailableForBrowsing(products, stockByProductId)
+    val selected = browseProducts.firstOrNull { it.id == productId }
+        ?: products.firstOrNull { it.id == productId }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (showSelectedLabel) {
             Text(s.sales.product, style = MaterialTheme.typography.labelLarge)
@@ -52,13 +57,15 @@ internal fun ProductSearchPicker(
         )
         if (searchQuery.isBlank() && topSellingProducts.isNotEmpty()) {
             TopSellingSection(
-                topSellingProducts = topSellingProducts,
+                topSellingProducts = topSellingProducts.filter {
+                    isProductAvailableForBrowsing(stockByProductId, it.productId)
+                },
                 productId = productId,
                 onSelect = onSelect,
             )
         }
         SearchResultsSection(
-            products = products,
+            products = browseProducts,
             searchQuery = searchQuery,
             productId = productId,
             onSelect = onSelect,

@@ -23,6 +23,9 @@ import com.fullsales.seller.app.ui.sales.SaleDetailViewModel
 import com.fullsales.seller.app.ui.sales.SalesListViewModel
 import com.fullsales.seller.app.ui.settings.SettingsViewModel
 import com.fullsales.seller.app.ui.sync.SyncStatusViewModel
+import com.fullsales.seller.shared.catalog.CommerceDetailLoader
+import com.fullsales.seller.shared.catalog.ProductDetailLoader
+import com.fullsales.seller.shared.catalog.StockBalancePrefetcher
 import com.fullsales.seller.shared.sales.CreateSaleSubmitter
 import com.fullsales.seller.shared.sales.SaleActionSubmitter
 import com.fullsales.seller.shared.sales.SaleDetailLoader
@@ -31,6 +34,9 @@ class SellerViewModelFactory(
     private val container: SellerAppContainer,
 ) : ViewModelProvider.Factory {
     val mediaUrlResolver: MediaUrlResolver get() = container.mediaUrlResolver
+    private val stockPrefetcher
+        get() = StockBalancePrefetcher(container.apiClient, container.stockSnapshots)
+
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T = when (modelClass) {
         AuthViewModel::class ->
@@ -51,7 +57,14 @@ class SellerViewModelFactory(
                 container.networkMonitor,
             ) as T
         CommerceDetailViewModel::class ->
-            CommerceDetailViewModel(container.apiClient) as T
+            CommerceDetailViewModel(
+                CommerceDetailLoader(
+                    container.catalogRepository,
+                    container.commerceAddressCache,
+                    container.apiClient,
+                ),
+                container.networkMonitor,
+            ) as T
         CnpjLookupViewModel::class ->
             CnpjLookupViewModel(container.apiClient, container.networkMonitor) as T
         CommerceRegistrationViewModel::class ->
@@ -64,9 +77,22 @@ class SellerViewModelFactory(
         MyRegistrationsViewModel::class ->
             MyRegistrationsViewModel(container.apiClient, container.networkMonitor) as T
         ProductViewModel::class ->
-            ProductViewModel(container.catalogRepository, container.syncCoordinator) as T
+            ProductViewModel(
+                container.catalogRepository,
+                container.syncCoordinator,
+                container.networkMonitor,
+                stockPrefetcher,
+            ) as T
         ProductDetailViewModel::class ->
-            ProductDetailViewModel(container.apiClient, container.mediaUrlResolver) as T
+            ProductDetailViewModel(
+                ProductDetailLoader(
+                    container.catalogRepository,
+                    container.stockSnapshots,
+                    container.apiClient,
+                ),
+                container.mediaUrlResolver,
+                container.networkMonitor,
+            ) as T
         CreateSaleViewModel::class ->
             CreateSaleViewModel(
                 container.apiClient,
@@ -74,6 +100,7 @@ class SellerViewModelFactory(
                 CreateSaleSubmitter(container.apiClient, container.offlineSaleWriter),
                 container.networkMonitor,
                 CreateSaleDraftStore(),
+                stockPrefetcher,
             ) as T
         SaleDetailViewModel::class ->
             SaleDetailViewModel(
@@ -90,6 +117,7 @@ class SellerViewModelFactory(
                 ),
                 container.catalogRepository,
                 container.networkMonitor,
+                stockPrefetcher,
             ) as T
         SyncStatusViewModel::class ->
             SyncStatusViewModel(

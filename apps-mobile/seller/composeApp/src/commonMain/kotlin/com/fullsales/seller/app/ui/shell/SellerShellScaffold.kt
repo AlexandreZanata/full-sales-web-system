@@ -1,19 +1,18 @@
 package com.fullsales.seller.app.ui.shell
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Store
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -46,6 +45,7 @@ fun SellerShellScaffold(
     onNavigateNewSale: () -> Unit,
     onNavigateCommerces: () -> Unit,
     onLogout: () -> Unit,
+    onSyncRefresh: (() -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val s = LocalSellerStrings.current
@@ -53,8 +53,10 @@ fun SellerShellScaffold(
     val textSizePreset by accessibilityViewModel.preset.collectAsState()
     val showBottomBar = SellerRoutes.showsBottomBar(currentRoute)
     Scaffold(
+        contentWindowInsets = NestedScreenWindowInsets,
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets.statusBars,
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (!logoUrl.isNullOrBlank()) {
@@ -75,7 +77,7 @@ fun SellerShellScaffold(
                         onLocaleChange = localeViewModel::setLocale,
                         modifier = Modifier.padding(end = 4.dp),
                     )
-                    SyncBadgeChip(syncBadge)
+                    SyncBadgeChip(syncBadge, onRefresh = onSyncRefresh)
                     ShellOverflowMenu(
                         textSizePreset = textSizePreset,
                         onTextSizeChange = accessibilityViewModel::setPreset,
@@ -86,7 +88,7 @@ fun SellerShellScaffold(
         },
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
+                NavigationBar(windowInsets = WindowInsets.navigationBars) {
                     NavigationBarItem(
                         selected = currentRoute == SellerRoutes.SALES,
                         onClick = onNavigateSales,
@@ -110,32 +112,4 @@ fun SellerShellScaffold(
         },
         content = content,
     )
-}
-
-@Composable
-private fun SyncBadgeChip(badge: SyncBadge) {
-    val s = LocalSellerStrings.current
-    val (label, colors) = when (badge) {
-        SyncBadge.Offline -> s.common.offline to AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        SyncBadge.Syncing -> s.common.syncing to AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-        SyncBadge.SyncFailed -> s.common.syncFailed to AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            labelColor = MaterialTheme.colorScheme.onErrorContainer,
-        )
-        SyncBadge.Idle -> return
-    }
-    Box(modifier = Modifier.padding(end = 4.dp)) {
-        AssistChip(
-            onClick = {},
-            enabled = false,
-            label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-            colors = colors,
-        )
-    }
 }

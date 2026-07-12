@@ -48,6 +48,8 @@ data class SellerMessages(
         val syncing: String = "",
         val syncFailed: String = "",
         val connecting: String = "",
+        val online: String = "",
+        val noConnection: String = "",
         val search: String = "",
         val quantity: String = "",
         val total: String = "",

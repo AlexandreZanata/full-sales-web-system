@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.displayName
-import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.platform.NetworkMonitor
+import com.fullsales.seller.shared.api.ApiException
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,8 +19,9 @@ data class CommerceListUiState(
     val searchQuery: String = "",
     val activeOnly: Boolean = true,
     val refreshing: Boolean = false,
-    val error: String? = null,
+    val errorCode: String? = null,
     val isOffline: Boolean = false,
+    val snackbarCode: String? = null,
 ) {
     val filtered: List<Commerce> = items
         .asSequence()
@@ -29,7 +30,7 @@ data class CommerceListUiState(
         .sortedBy { it.displayName().lowercase() }
         .toList()
 
-    val isEmpty: Boolean get() = !refreshing && error == null && filtered.isEmpty()
+    val isEmpty: Boolean get() = !refreshing && errorCode == null && filtered.isEmpty()
 }
 
 private fun commerceMatchesSearch(commerce: Commerce, query: String): Boolean {
@@ -47,7 +48,7 @@ class CommerceViewModel(
     private val _searchQuery = MutableStateFlow("")
     private val _activeOnly = MutableStateFlow(true)
     private val _refreshing = MutableStateFlow(false)
-    private val _error = MutableStateFlow<String?>(null)
+    private val _errorCode = MutableStateFlow<String?>(null)
     private val _state = MutableStateFlow(CommerceListUiState())
     val state: StateFlow<CommerceListUiState> = _state.asStateFlow()
 
@@ -58,15 +59,16 @@ class CommerceViewModel(
                 _searchQuery,
                 _activeOnly,
                 _refreshing,
-                _error,
-            ) { commerces, query, activeOnly, refreshing, error ->
+                _errorCode,
+            ) { commerces, query, activeOnly, refreshing, errorCode ->
                 CommerceListUiState(
                     items = commerces,
                     searchQuery = query,
                     activeOnly = activeOnly,
                     refreshing = refreshing,
-                    error = error,
+                    errorCode = errorCode,
                     isOffline = !networkMonitor.isOnline(),
+                    snackbarCode = _state.value.snackbarCode,
                 )
             }.collect { _state.value = it }
         }
@@ -80,13 +82,27 @@ class CommerceViewModel(
         _activeOnly.value = activeOnly
     }
 
+    fun clearSnackbar() {
+        _state.value = _state.value.copy(snackbarCode = null)
+    }
+
     fun refresh() {
         viewModelScope.launch {
+            if (!networkMonitor.isOnline()) {
+                _state.value = _state.value.copy(snackbarCode = "OFFLINE", refreshing = false)
+                return@launch
+            }
             _refreshing.value = true
-            _error.value = null
+            _errorCode.value = null
             runCatching { syncCoordinator.syncPullAndPush() }
-                .onFailure { _error.value = it.message ?: "Sync failed" }
+                .onSuccess { _errorCode.value = null }
+                .onFailure { err -> _errorCode.value = mapSyncError(err) }
             _refreshing.value = false
         }
+    }
+
+    private fun mapSyncError(error: Throwable): String = when (error) {
+        is ApiException -> error.detail.code
+        else -> "SYNC_FAILED"
     }
 }

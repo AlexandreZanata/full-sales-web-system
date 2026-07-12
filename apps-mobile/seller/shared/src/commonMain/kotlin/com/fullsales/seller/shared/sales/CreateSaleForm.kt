@@ -43,7 +43,7 @@ fun validateCreateSaleForm(
     commerceId: String,
     paymentMethod: String,
     lines: List<CreateSaleLineInput>,
-    stockByProductId: Map<String, Int>,
+    stockByProductId: Map<String, Int> = emptyMap(),
 ): CreateSaleFormErrors {
     val commerceError = if (commerceId.isBlank()) CreateSaleValidationError.SelectCommerce else null
     val paymentError = if (paymentMethod.isBlank()) CreateSaleValidationError.SelectPayment else null
@@ -56,19 +56,45 @@ fun validateCreateSaleForm(
         val quantityError = when {
             line.productId.isBlank() -> null
             qty == null || qty <= 0 -> CreateSaleValidationError.QuantityRequired
-            else -> {
-                val stock = stockByProductId[line.productId]
-                if (stock != null && qty > stock) {
-                    CreateSaleValidationError.QuantityExceedsStock(stock)
-                } else {
-                    null
-                }
-            }
+            else -> null
         }
         CreateSaleLineErrors(quantityError = quantityError)
     }
     return CreateSaleFormErrors(commerceError, paymentError, linesError, lineErrors)
 }
+
+/** True when sale line quantity exceeds known warehouse stock (confirm still allowed). */
+fun saleLineNeedsBackorderWarning(
+    productId: String,
+    quantity: Int,
+    stockByProductId: Map<String, Int>,
+): Boolean {
+    if (productId.isBlank() || quantity <= 0) return false
+    val available = stockByProductId[productId] ?: return false
+    return quantity > available
+}
+
+/** True when requested quantity exceeds known warehouse stock (sale still allowed). */
+fun needsBackorderWarning(
+    productId: String,
+    lines: List<CreateSaleLineInput>,
+    stockByProductId: Map<String, Int>,
+): Boolean {
+    if (productId.isBlank()) return false
+    val available = stockByProductId[productId] ?: return false
+    return reservedQuantityInSale(lines, productId) > available
+}
+
+/** Hide out-of-stock products from browse/picker once balance is known. */
+fun isProductAvailableForBrowsing(stockByProductId: Map<String, Int>, productId: String): Boolean {
+    val available = stockByProductId[productId] ?: return true
+    return available > 0
+}
+
+fun filterProductsAvailableForBrowsing(
+    products: List<Product>,
+    stockByProductId: Map<String, Int>,
+): List<Product> = products.filter { isProductAvailableForBrowsing(stockByProductId, it.id) }
 
 fun buildCreateSaleRequest(
     commerceId: String,

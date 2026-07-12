@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 enum class SyncBadge {
-    Idle,
+    Online,
     Offline,
     Syncing,
     SyncFailed,
@@ -28,7 +28,7 @@ class SyncStatusViewModel(
     private val outbox: SyncOutboxRepository,
     private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
-    private val _badge = MutableStateFlow(SyncBadge.Idle)
+    private val _badge = MutableStateFlow(SyncBadge.Offline)
     val badge: StateFlow<SyncBadge> = _badge.asStateFlow()
     private val _refreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
@@ -49,6 +49,10 @@ class SyncStatusViewModel(
 
     fun refreshNow() {
         viewModelScope.launch {
+            if (!networkMonitor.isOnline()) {
+                _badge.value = SyncBadge.Offline
+                return@launch
+            }
             _refreshing.value = true
             _badge.value = SyncBadge.Syncing
             runCatching { container.syncCoordinator.syncPullAndPush() }
@@ -66,7 +70,7 @@ class SyncStatusViewModel(
             localSales.any { it.status == LocalSaleStatus.SyncFailed } -> SyncBadge.SyncFailed
             connectivity != ConnectivityState.Online -> SyncBadge.Offline
             outbox.listPendingFifo().isNotEmpty() -> SyncBadge.Syncing
-            else -> SyncBadge.Idle
+            else -> SyncBadge.Online
         }
     }
 }

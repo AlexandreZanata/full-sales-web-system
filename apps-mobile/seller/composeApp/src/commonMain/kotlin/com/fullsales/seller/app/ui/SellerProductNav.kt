@@ -30,6 +30,7 @@ internal fun NavGraphBuilder.productRoutes(
         DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
             ProductListScreen(
                 viewModel = productViewModel,
+                mediaUrlResolver = factory.mediaUrlResolver,
                 onProductClick = { id -> navController.navigate(SellerRoutes.productDetail(id)) },
             )
         }

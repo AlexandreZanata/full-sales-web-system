@@ -25,3 +25,17 @@ data class ProductEntity(
     val primaryImageUrl: String? = null,
     val primaryImageFileId: String? = null,
 )
+
+@Entity(tableName = "stock_snapshots")
+data class StockSnapshotEntity(
+    @PrimaryKey val productId: String,
+    val available: Int,
+    val syncedAtEpochMs: Long,
+)
+
+@Entity(tableName = "commerce_address_cache")
+data class CommerceAddressCacheEntity(
+    @PrimaryKey val commerceId: String,
+    val addressesJson: String,
+    val syncedAtEpochMs: Long,
+)

@@ -27,6 +27,7 @@ internal fun NavGraphBuilder.shellRoute(
     settingsViewModel: SettingsViewModel,
     localeViewModel: LocaleViewModel,
     accessibilityViewModel: AccessibilityViewModel,
+    onSyncRefresh: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     composable(route) {
@@ -39,6 +40,7 @@ internal fun NavGraphBuilder.shellRoute(
             authViewModel,
             localeViewModel,
             accessibilityViewModel,
+            onSyncRefresh,
         ) {
             content()
         }
@@ -54,11 +56,20 @@ internal fun NavGraphBuilder.detailRoute(
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
     accessibilityViewModel: AccessibilityViewModel,
+    onSyncRefresh: (() -> Unit)? = null,
     content: @Composable (String) -> Unit,
 ) {
     composable(route, arguments = listOf(navArgument(argName) { type = NavType.StringType })) { entry ->
         val id = entry.arguments?.getString(argName).orEmpty()
-        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+        DetailShell(
+            navController,
+            settings,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+            onSyncRefresh,
+        ) {
             content(id)
         }
     }
@@ -73,6 +84,7 @@ internal fun ShellScaffold(
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
     accessibilityViewModel: AccessibilityViewModel,
+    onSyncRefresh: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     SellerShellScaffold(
@@ -86,6 +98,7 @@ internal fun ShellScaffold(
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
         onNavigateCommerces = { navController.navigate(SellerRoutes.COMMERCES) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },
+        onSyncRefresh = onSyncRefresh,
     ) { padding ->
         Box(Modifier.padding(padding)) { content() }
     }
@@ -99,6 +112,7 @@ internal fun DetailShell(
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
     accessibilityViewModel: AccessibilityViewModel,
+    onSyncRefresh: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     SellerShellScaffold(
@@ -112,6 +126,7 @@ internal fun DetailShell(
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
         onNavigateCommerces = { navController.navigate(SellerRoutes.COMMERCES) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },
+        onSyncRefresh = onSyncRefresh,
     ) { padding ->
         Box(Modifier.padding(padding)) { content() }
     }

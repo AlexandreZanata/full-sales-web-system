@@ -17,6 +17,12 @@ class RoomCatalogRepository(private val dao: CatalogDao) : CatalogRepository {
     override fun observeProducts(): Flow<List<Product>> =
         dao.observeActiveProducts().map { rows -> rows.map { it.toModel() } }
 
+    override suspend fun getCommerce(id: String): Commerce? =
+        dao.getCommerce(id)?.toModel()
+
+    override suspend fun getProduct(id: String): Product? =
+        dao.getProduct(id)?.toModel()
+
     override suspend fun replaceCommerces(commerces: List<Commerce>) {
         dao.replaceCommerces(commerces.map { it.toEntity() })
     }

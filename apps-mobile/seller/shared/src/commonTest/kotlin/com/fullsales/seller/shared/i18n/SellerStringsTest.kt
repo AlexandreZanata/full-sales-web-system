@@ -16,4 +16,11 @@ class SellerStringsTest {
         val en = SellerStrings.forLocale(SellerLocale.En)
         assertEquals("Confirm sale", en.sales.confirm)
     }
+
+    @Test
+    fun paymentMethod_mapsApiPascalCaseToLocale() {
+        val pt = SellerStrings.forLocale(SellerLocale.PtBr)
+        assertEquals("Dinheiro", SellerStrings.paymentMethod(pt, "Cash"))
+        assertEquals("PIX", SellerStrings.paymentMethod(pt, "Pix"))
+    }
 }

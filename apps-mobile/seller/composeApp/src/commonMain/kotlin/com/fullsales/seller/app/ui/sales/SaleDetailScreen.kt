@@ -2,40 +2,27 @@ package com.fullsales.seller.app.ui.sales
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.fullsales.seller.app.ui.a11y.screenTitle
+import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import com.fullsales.seller.shared.i18n.SellerStrings
-import com.fullsales.seller.shared.i18n.SyncChipStatus
-import com.fullsales.seller.shared.model.formatMoneyMinorUnits
 import com.fullsales.seller.shared.sales.SaleDetailModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,6 +30,7 @@ import com.fullsales.seller.shared.sales.SaleDetailModel
 fun SaleDetailScreen(
     saleId: String,
     viewModel: SaleDetailViewModel,
+    mediaUrlResolver: MediaUrlResolver,
 ) {
     val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
@@ -54,7 +42,22 @@ fun SaleDetailScreen(
             viewModel.clearSnackbar()
         }
     }
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+    val detail = state.detail
+    NestedScreenScaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            if (detail != null) {
+                SaleDetailActionBar(
+                    showActions = detail.showActions,
+                    acting = state.acting,
+                    totalMinor = detail.totalAmountMinor.toLong(),
+                    currency = detail.totalCurrency,
+                    onConfirm = viewModel::confirm,
+                    onCancel = viewModel::cancel,
+                )
+            }
+        },
+    ) { padding ->
         when {
             state.loading -> CircularProgressIndicator(
                 modifier = Modifier
@@ -69,11 +72,11 @@ fun SaleDetailScreen(
                     .fillMaxSize()
                     .padding(padding),
             )
-            state.detail != null -> SaleDetailContent(
-                detail = state.detail!!,
-                acting = state.acting,
-                onConfirm = viewModel::confirm,
-                onCancel = viewModel::cancel,
+            detail != null -> SaleDetailBody(
+                detail = detail,
+                stockByProductId = state.stockByProductId,
+                hasBottomActionBar = detail.showActions,
+                mediaUrlResolver = mediaUrlResolver,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -81,106 +84,30 @@ fun SaleDetailScreen(
 }
 
 @Composable
-private fun SaleDetailContent(
+private fun SaleDetailBody(
     detail: SaleDetailModel,
-    acting: Boolean,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
+    stockByProductId: Map<String, Int>,
+    hasBottomActionBar: Boolean,
+    mediaUrlResolver: MediaUrlResolver,
     modifier: Modifier = Modifier,
 ) {
-    val s = LocalSellerStrings.current
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(bottom = 16.dp)
+            .then(if (hasBottomActionBar) Modifier else Modifier.navigationBarsPadding()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                s.sales.detail,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.screenTitle(),
-            )
-            SaleStatusChip(status = detail.status)
-        }
-        detail.syncChip?.let { SyncStatusChip(it) }
-        Text(
-            detail.commerceName ?: detail.commerceId.take(8),
-            style = MaterialTheme.typography.titleMedium,
+        SaleDetailHeader(detail = detail)
+        SaleDetailSummaryCard(detail = detail)
+        SaleDetailMetaCard(detail = detail)
+        SaleDetailItemsCard(
+            items = detail.items,
+            stockByProductId = stockByProductId,
+            showBackorderHints = detail.showActions,
+            mediaUrlResolver = mediaUrlResolver,
         )
-        Text(
-            SellerStrings.format(
-                s.sales.paymentLabel,
-                "method" to SellerStrings.paymentMethod(s, detail.paymentMethod),
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            formatMoneyMinorUnits(detail.totalAmountMinor.toLong(), detail.totalCurrency),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Card(shape = MaterialTheme.shapes.medium) {
-            Column {
-                detail.items.forEach { line ->
-                    ListItem(
-                        headlineContent = { Text("${line.quantity}× ${line.productLabel}") },
-                        supportingContent = { Text(line.productId.take(8)) },
-                        trailingContent = {
-                            Text(formatMoneyMinorUnits(line.lineTotalMinor.toLong(), line.currency))
-                        },
-                    )
-                }
-            }
-        }
-        if (detail.showActions) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onConfirm,
-                    enabled = !acting,
-                    modifier = Modifier
-                        .weight(1f)
-                        .defaultMinSize(minHeight = 48.dp),
-                ) {
-                    if (acting) CircularProgressIndicator(modifier = Modifier.padding(4.dp))
-                    else Text(s.sales.confirmShort)
-                }
-                OutlinedButton(
-                    onClick = onCancel,
-                    enabled = !acting,
-                    modifier = Modifier
-                        .weight(1f)
-                        .defaultMinSize(minHeight = 48.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) {
-                    Text(s.sales.cancelShort)
-                }
-            }
-        }
     }
-}
-
-@Composable
-private fun SyncStatusChip(status: SyncChipStatus) {
-    val s = LocalSellerStrings.current
-    val label = when (status) {
-        SyncChipStatus.PendingSync -> s.syncStatus.pendingSync
-        SyncChipStatus.SyncFailed -> s.syncStatus.syncFailed
-    }
-    AssistChip(
-        onClick = {},
-        enabled = false,
-        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ),
-    )
 }

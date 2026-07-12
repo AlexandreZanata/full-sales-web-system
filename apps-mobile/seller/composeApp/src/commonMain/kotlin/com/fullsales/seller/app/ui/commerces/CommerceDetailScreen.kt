@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.CommerceAddressUi
@@ -28,15 +29,16 @@ fun CommerceDetailScreen(
     commerceId: String,
     viewModel: CommerceDetailViewModel,
 ) {
+    val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     LaunchedEffect(commerceId) { viewModel.load(commerceId) }
 
     when {
         state.loading -> CircularProgressIndicator(modifier = Modifier.padding(24.dp))
-        state.error != null -> Text(
-            state.error!!,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(16.dp),
+        state.errorCode != null -> SellerEmptyState(
+            title = SellerStrings.commerceError(s, state.errorCode!!),
+            message = s.common.tryAgain,
+            modifier = Modifier.fillMaxSize(),
         )
         state.commerce != null -> CommerceDetailContent(
             legalName = state.commerce!!.legalName,
@@ -84,7 +86,13 @@ private fun CommerceDetailContent(
         }
         item { Text(s.commerces.addresses, style = MaterialTheme.typography.titleMedium) }
         if (addresses.isEmpty()) {
-            item { Text(s.commerces.noAddresses, style = MaterialTheme.typography.bodyMedium) }
+            item {
+                SellerEmptyState(
+                    title = s.commerces.noAddresses,
+                    message = s.commerces.empty,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         } else {
             items(addresses, key = { it.id }) { address ->
                 AddressRow(address)

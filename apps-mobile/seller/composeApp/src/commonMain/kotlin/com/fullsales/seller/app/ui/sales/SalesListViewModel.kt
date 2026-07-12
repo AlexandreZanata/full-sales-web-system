@@ -20,6 +20,7 @@ data class SalesListUiState(
     val refreshing: Boolean = false,
     val isOffline: Boolean = false,
     val remoteLoaded: Boolean = false,
+    val snackbarCode: String? = null,
 )
 
 class SalesListViewModel(
@@ -43,9 +44,19 @@ class SalesListViewModel(
         refresh()
     }
 
+    fun clearSnackbar() {
+        _state.update { it.copy(snackbarCode = null) }
+    }
+
     fun refresh() {
         viewModelScope.launch {
-            _state.update { it.copy(refreshing = true, isOffline = !networkMonitor.isOnline()) }
+            if (!networkMonitor.isOnline()) {
+                _state.update {
+                    it.copy(refreshing = false, isOffline = true, snackbarCode = "OFFLINE")
+                }
+                return@launch
+            }
+            _state.update { it.copy(refreshing = true, isOffline = false) }
             runCatching { syncCoordinator.syncPullAndPush() }
             val fetchOk = runCatching {
                 remoteSales = apiClient.listSales(limit = 20).data

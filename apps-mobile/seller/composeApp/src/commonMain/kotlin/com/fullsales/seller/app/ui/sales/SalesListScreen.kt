@@ -17,12 +17,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -45,7 +49,16 @@ fun SalesListScreen(
 ) {
     val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
-    Scaffold(
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(state.snackbarCode) {
+        state.snackbarCode?.let { code ->
+            val message = if (code == "OFFLINE") s.common.noConnection else code
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearSnackbar()
+        }
+    }
+    NestedScreenScaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = onNewSale) {
                 Icon(Icons.Default.Add, contentDescription = s.a11y.newSale)

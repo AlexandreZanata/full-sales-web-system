@@ -17,10 +17,14 @@ import com.fullsales.seller.shared.api.SellerSyncTransport
 import com.fullsales.seller.shared.api.createSellerHttpClient
 import com.fullsales.seller.shared.db.SellerDatabase
 import com.fullsales.seller.shared.db.repository.RoomCatalogRepository
+import com.fullsales.seller.shared.db.repository.RoomCommerceAddressCache
 import com.fullsales.seller.shared.db.repository.RoomSaleRepository
+import com.fullsales.seller.shared.db.repository.RoomStockSnapshotRepository
 import com.fullsales.seller.shared.db.repository.RoomSyncOutboxRepository
 import com.fullsales.seller.shared.repository.CatalogRepository
+import com.fullsales.seller.shared.repository.CommerceAddressCache
 import com.fullsales.seller.shared.repository.SaleRepository
+import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
 import com.fullsales.seller.shared.sync.CatalogPullSync
@@ -44,6 +48,10 @@ class AppContainer(context: Context) : SellerAppContainer {
     override val catalogRepository: CatalogRepository = RoomCatalogRepository(database.catalogDao())
     override val saleRepository: SaleRepository = RoomSaleRepository(database.saleDao())
     override val outboxRepository: SyncOutboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
+    override val stockSnapshots: StockSnapshotRepository =
+        RoomStockSnapshotRepository(database.cacheDao())
+    override val commerceAddressCache: CommerceAddressCache =
+        RoomCommerceAddressCache(database.cacheDao())
     private val tokenProvider = AuthTokenProvider { tokenStoreImpl.getAccessToken() }
     private val authHttpClient = createSellerHttpClient(AuthTokenProvider { null })
     private val authApiClient = SellerApiClient(authHttpClient)

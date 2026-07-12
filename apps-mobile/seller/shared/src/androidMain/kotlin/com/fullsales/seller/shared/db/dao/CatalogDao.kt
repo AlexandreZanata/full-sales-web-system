@@ -18,6 +18,12 @@ interface CatalogDao {
     @Query("SELECT * FROM products WHERE active = 1 ORDER BY name")
     fun observeActiveProducts(): Flow<List<ProductEntity>>
 
+    @Query("SELECT * FROM commerces WHERE id = :id LIMIT 1")
+    suspend fun getCommerce(id: String): CommerceEntity?
+
+    @Query("SELECT * FROM products WHERE id = :id LIMIT 1")
+    suspend fun getProduct(id: String): ProductEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertCommerces(items: List<CommerceEntity>)
 

@@ -16,7 +16,11 @@ import com.fullsales.seller.shared.auth.SellerRoleGateResult
 import com.fullsales.seller.shared.auth.gateSellerAccessToken
 import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
 import com.fullsales.seller.shared.repository.CatalogRepository
+import com.fullsales.seller.shared.repository.CommerceAddressCache
+import com.fullsales.seller.shared.repository.MemoryCommerceAddressCache
+import com.fullsales.seller.shared.repository.MemoryStockSnapshotRepository
 import com.fullsales.seller.shared.repository.SaleRepository
+import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.CatalogPullSync
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
@@ -32,6 +36,8 @@ class IosAppContainer : SellerAppContainer {
     override val catalogRepository: CatalogRepository = MemoryCatalogRepository()
     override val saleRepository: SaleRepository = MemorySaleRepository()
     override val outboxRepository: SyncOutboxRepository = MemoryOutboxRepository()
+    override val stockSnapshots: StockSnapshotRepository = MemoryStockSnapshotRepository()
+    override val commerceAddressCache: CommerceAddressCache = MemoryCommerceAddressCache()
     private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
     private val authApiClient = SellerApiClient(createSellerHttpClient(AuthTokenProvider { null }))
     private val tokenRefresher = IosTokenRefresher(tokenStore, authApiClient)
