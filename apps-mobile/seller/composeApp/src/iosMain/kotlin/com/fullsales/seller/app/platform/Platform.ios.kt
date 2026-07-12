@@ -9,9 +9,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import platform.Foundation.NSUserDefaults
-import platform.Network.NWPath
-import platform.Network.NWPathMonitor
-import platform.Network.NWPathStatusSatisfied
+import platform.Network.nw_path_get_status
+import platform.Network.nw_path_monitor_create
+import platform.Network.nw_path_monitor_set_queue
+import platform.Network.nw_path_monitor_set_update_handler
+import platform.Network.nw_path_monitor_start
+import platform.Network.nw_path_status_satisfied
 import platform.darwin.dispatch_get_main_queue
 
 actual class AccessibilityStore actual constructor() {
@@ -51,13 +54,13 @@ internal class IosPathNetworkMonitor : NetworkMonitor {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val gate = DebouncedConnectivity(scope)
     override val connectivity: StateFlow<ConnectivityState> = gate.state
-    private val monitor = NWPathMonitor()
+    private val monitor = nw_path_monitor_create()
 
     init {
-        monitor.setQueue(dispatch_get_main_queue())
-        monitor.pathUpdateHandler = { path: NWPath? ->
-            gate.onValidatedChanged(path?.status == NWPathStatusSatisfied)
+        nw_path_monitor_set_update_handler(monitor) { path ->
+            gate.onValidatedChanged(nw_path_get_status(path) == nw_path_status_satisfied)
         }
-        monitor.start()
+        nw_path_monitor_set_queue(monitor, dispatch_get_main_queue())
+        nw_path_monitor_start(monitor)
     }
 }

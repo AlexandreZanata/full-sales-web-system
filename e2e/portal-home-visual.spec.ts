@@ -11,11 +11,13 @@ test.describe('Portal home visual regression', () => {
   });
 
   test('given_home_when_loaded_then_key_regions_match_snapshots', async ({ page }) => {
-    await expect(page.locator('.portal-header')).toHaveScreenshot('portal-header.png');
-    await expect(page.getByTestId('hero-banner')).toHaveScreenshot('portal-hero.png');
-    await expect(page.getByTestId('featured-items')).toHaveScreenshot('portal-featured.png');
-    await expect(page.getByTestId('popular-items')).toHaveScreenshot('portal-popular.png');
-    await expect(page.getByRole('contentinfo')).toHaveScreenshot('portal-footer.png');
+    // CI vs local Chromium font AA: allow ≤2% pixel drift without masking layout regressions.
+    const shot = { maxDiffPixelRatio: 0.02 };
+    await expect(page.locator('.portal-header')).toHaveScreenshot('portal-header.png', shot);
+    await expect(page.getByTestId('hero-banner')).toHaveScreenshot('portal-hero.png', shot);
+    await expect(page.getByTestId('featured-items')).toHaveScreenshot('portal-featured.png', shot);
+    await expect(page.getByTestId('popular-items')).toHaveScreenshot('portal-popular.png', shot);
+    await expect(page.getByRole('contentinfo')).toHaveScreenshot('portal-footer.png', shot);
   });
 
   test('given_home_when_loaded_then_passes_axe_accessibility_scan', async ({ page }) => {
