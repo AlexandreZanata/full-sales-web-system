@@ -1,0 +1,141 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Overlay to deploy
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - prod
+      deploy_cluster:
+        description: Apply manifests to cluster (requires KUBE_CONFIG)
+        required: true
+        default: false
+        type: boolean
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "apps/admin/**"
+      - "apps/portal/**"
+      - "apps/platform-admin/**"
+      - "deploy/**"
+      - ".github/workflows/deploy.yml"
+  pull_request:
+    paths:
+      - "deploy/**"
+      - ".github/workflows/deploy.yml"
+      - "backend/Dockerfile"
+      - "deploy/docker/**"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.31.0"
+      - name: Contract — kustomize overlays
+        run: bash deploy/kubernetes/scripts/validate-manifests.sh
+
+  build-images:
+    needs: validate
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: fullsales-api
+            context: backend
+            file: backend/Dockerfile
+          - image: fullsales-admin
+            context: .
+            file: deploy/docker/spa.Dockerfile
+            app_name: admin
+          - image: fullsales-portal
+            context: .
+            file: deploy/docker/spa.Dockerfile
+            app_name: portal
+          - image: fullsales-platform-admin
+            context: .
+            file: deploy/docker/spa.Dockerfile
+            app_name: platform-admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_NAME=${{ matrix.app_name }}
+            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'https://api.example.com/v1' }}
+
+  deploy-staging:
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      inputs.deploy_cluster == true &&
+      inputs.environment == 'staging'
+    needs: build-images
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.31.0"
+      - name: Configure cluster
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          echo "${{ secrets.STAGING_SECRETS_ENV }}" > deploy/kubernetes/overlays/staging/secrets.env
+      - name: Pin image tags to git SHA
+        env:
+          OWNER: ${{ github.repository_owner }}
+          SHORT: ${{ github.sha }}
+        run: |
+          SHORT_SHA="${SHORT:0:7}"
+          REG="ghcr.io/${OWNER}"
+          sed -i \
+            -e "s|newTag: staging|newTag: ${SHORT_SHA}|g" \
+            -e "s|ghcr.io/example/|${REG}/|g" \
+            deploy/kubernetes/overlays/staging/kustomization.yaml
+      - name: Apply staging
+        run: kubectl apply -k deploy/kubernetes/overlays/staging
+      - name: Rollout + smoke
+        run: |
+          kubectl -n fullsales-staging rollout status deploy/api --timeout=300s
+          kubectl -n fullsales-staging port-forward svc/api 18080:80 &
+          sleep 3
+          curl -fsS http://127.0.0.1:18080/health | grep -q '"status":"ok"'
+          kill %1 2>/dev/null || true

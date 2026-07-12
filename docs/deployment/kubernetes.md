@@ -6,21 +6,24 @@
 
 ```text
 deploy/kubernetes/
-  base/                 # Deployments, Services, ConfigMaps, NetworkPolicy, migrate Job
-  overlays/staging/     # In-cluster Postgres/Redis/MinIO + staging replicas
-  overlays/prod/        # External data stores; min 2 API replicas
+  base/                 # Workloads, Ingress, NetworkPolicy, migrate Job, TLS placeholder
+  overlays/staging/     # In-cluster Postgres/Redis/MinIO + secretGenerator
+  overlays/prod/        # Managed DB URLs + HPA minReplicas 2
 ```
 
-Apply staging:
+Apply staging (after `secrets.env` exists):
 
 ```bash
+cp deploy/kubernetes/overlays/staging/secrets.env.example \
+   deploy/kubernetes/overlays/staging/secrets.env
 kubectl apply -k deploy/kubernetes/overlays/staging
 ```
 
 Validate manifests without a cluster:
 
 ```bash
-./deploy/kubernetes/scripts/validate-manifests.sh
+pnpm validate:deploy
+# or: ./deploy/kubernetes/scripts/validate-manifests.sh
 ```
 
 ## Images
@@ -34,48 +37,50 @@ Validate manifests without a cluster:
 ### Build commands
 
 ```bash
-# API (+ fullsales-migrate binary)
 docker build -f backend/Dockerfile -t ghcr.io/example/fullsales-api:local backend
 
-# SPAs (build context = repo root)
 docker build -f deploy/docker/spa.Dockerfile \
   --build-arg APP_NAME=admin \
   --build-arg VITE_API_BASE_URL=https://api.example.com/v1 \
   -t ghcr.io/example/fullsales-admin:local .
-
-docker build -f deploy/docker/spa.Dockerfile \
-  --build-arg APP_NAME=portal \
-  --build-arg VITE_API_BASE_URL=https://api.example.com/v1 \
-  -t ghcr.io/example/fullsales-portal:local .
-
-docker build -f deploy/docker/spa.Dockerfile \
-  --build-arg APP_NAME=platform-admin \
-  --build-arg VITE_API_BASE_URL=https://api.example.com/v1 \
-  -t ghcr.io/example/fullsales-platform-admin:local .
+# repeat for portal, platform-admin
 ```
 
-Tagging: prefer immutable `<git-sha>`; optional mutable `staging` / `prod` tags for overlays.
+CI: `.github/workflows/deploy.yml` builds/pushes on `main` and can apply staging.
+
+Tagging: immutable short SHA; overlays may use `staging` / `prod` until pinned.
 
 ## Health probes
 
 | Path | Use |
 |------|-----|
-| `GET /health` | Liveness — process up |
-| `GET /health/ready` | Readiness — dependencies OK |
+| `GET /health` | Liveness |
+| `GET /health/ready` | Readiness |
 
-API Deployment uses both. SPA pods probe `GET /`.
+See [health-monitoring.md](../runbooks/health-monitoring.md). From Ingress: probe `https://api.<host>/health`.
 
 ## Migrations
 
-API startup still runs embedded sqlx migrations via `DATABASE_ADMIN_URL`.  
-Prefer the one-shot Job `fullsales-migrate` (same image) **before** rolling the API Deployment so schema is ready before new pods become Ready. See `base/migrate-job.yaml`.
+Prefer Job `fullsales-migrate` before API rollout. API also migrates on boot via `DATABASE_ADMIN_URL`.
 
-## Secrets
+## Secrets (OD-15-7)
 
-Do not commit real secrets. Copy `deploy/kubernetes/overlays/staging/secrets.env.example` → `secrets.env` (gitignored) or inject via CI (OD-15-7).
+- Overlays use `secretGenerator` from **gitignored** `secrets.env`
+- Commit only `secrets.env.example`
+- CI injects `STAGING_SECRETS_ENV` — never commit real JWT / Ed25519 / Asaas keys
+- Origin TLS: Secret `cloudflare-origin-tls` (replace placeholder)
 
-## Next
+## Ingress
 
-Ingress + origin TLS: [nginx-ingress.md](nginx-ingress.md) (Phase 15D).  
-Cloudflare: [cloudflare.md](cloudflare.md) (Phase 15E).  
-Runbooks: [deploy-staging.md](../runbooks/deploy-staging.md), [rollback-deploy.md](../runbooks/rollback-deploy.md).
+See [nginx-ingress.md](nginx-ingress.md) and [cloudflare.md](cloudflare.md).
+
+## Hardening
+
+- API: non-root UID 10001, read-only root FS, `emptyDir` for `/tmp`, drop all caps
+- NetworkPolicy on API + SPA ingress
+- Logs: container stdout → `kubectl -n <ns> logs deploy/api -f`
+
+## Related runbooks
+
+- [deploy-staging.md](../runbooks/deploy-staging.md)
+- [rollback-deploy.md](../runbooks/rollback-deploy.md)

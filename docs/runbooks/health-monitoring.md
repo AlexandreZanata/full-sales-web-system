@@ -28,6 +28,16 @@ When a probe fails `HEALTH_ALERT_THRESHOLD` times consecutively (default 3):
 1. Row inserted into `ops.ops_alerts`
 2. If `OPS_ALERT_WEBHOOK` is set, POST JSON `{ "text", "content" }` (Slack/Discord compatible)
 
+## Public path via Ingress / Cloudflare
+
+| URL | Expect |
+|-----|--------|
+| `https://api.<platform>/health` | liveness OK through edge |
+| `https://api.<platform>/health/ready` | 200 when Postgres/Redis/MinIO OK |
+| `https://api.<platform>/v1/status` | public status (no cache at Cloudflare) |
+
+Do not cache `/health*` or `/v1/*` at the CDN — see [cloudflare.md](../deployment/cloudflare.md).
+
 ## Manual verification (dev)
 
 ```bash

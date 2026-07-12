@@ -1,0 +1,32 @@
+# Catch-all for tenant custom domains → portal (ADR-017).
+# Explicit platform hosts on `platform` Ingress take precedence.
+# Host header is preserved for tenant resolution.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: custom-domains
+  labels:
+    app.kubernetes.io/name: custom-domains-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+spec:
+  ingressClassName: nginx
+  # TLS: use Cloudflare Origin Cert with wildcard/SAN, or terminate TLS at Cloudflare only
+  # and keep gray-cloud off; with Full Strict, attach the same origin secret when possible.
+  tls:
+    - secretName: cloudflare-origin-tls
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: portal
+                port:
+                  number: 80
+          # Optional: serve tenant admin on same custom host under /admin/
+          # Wire a second SPA or path rewrite when product requires it.

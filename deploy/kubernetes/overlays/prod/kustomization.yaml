@@ -4,6 +4,12 @@ namespace: fullsales-prod
 resources:
   - namespace.yaml
   - ../../base
+secretGenerator:
+  - name: api-secrets
+    envs:
+      - secrets.env
+    options:
+      disableNameSuffixHash: true
 images:
   - name: ghcr.io/example/fullsales-api
     newTag: prod
@@ -16,7 +22,6 @@ images:
 patches:
   - path: api-replicas-patch.yaml
   - path: api-hpa-patch.yaml
-  - path: api-secret.yaml
 labels:
   - pairs:
       fullsales.io/env: prod

@@ -32,7 +32,8 @@
     "mobile:seller:check": "cd apps-mobile/seller && ./gradlew :shared:check :composeApp:compileDebugKotlinAndroid :androidApp:lint :androidApp:assembleDebug",
     "seed:dev": "cd backend && ALLOW_DEV_SEED=1 cargo run -p dev-seed",
     "seed:dev:reset": "bash backend/crates/dev-seed/scripts/reset-dev-catalog.sh",
-    "validate:deploy": "bash deploy/scripts/validate-deploy.sh"
+    "validate:deploy": "bash deploy/scripts/validate-deploy.sh",
+    "smoke:deploy-load": "bash deploy/scripts/load-smoke.sh"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

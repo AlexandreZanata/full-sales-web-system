@@ -5,6 +5,12 @@ resources:
   - namespace.yaml
   - ../../base
   - data-stores.yaml
+secretGenerator:
+  - name: api-secrets
+    envs:
+      - secrets.env
+    options:
+      disableNameSuffixHash: true
 images:
   - name: ghcr.io/example/fullsales-api
     newTag: staging
