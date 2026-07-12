@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platform-admin
+  labels:
+    app.kubernetes.io/name: platform-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: platform-admin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: platform-admin
+    spec:
+      containers:
+        - name: platform-admin
+          image: ghcr.io/example/fullsales-platform-admin:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform-admin
+  labels:
+    app.kubernetes.io/name: platform-admin
+spec:
+  selector:
+    app.kubernetes.io/name: platform-admin
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

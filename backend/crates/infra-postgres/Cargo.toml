@@ -5,6 +5,10 @@ edition.workspace = true
 license.workspace = true
 publish = false
 
+[[bin]]
+name = "fullsales-migrate"
+path = "src/bin/migrate.rs"
+
 [dependencies]
 chrono.workspace = true
 domain-audit.workspace = true

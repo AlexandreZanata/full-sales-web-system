@@ -36,4 +36,4 @@ Tenants on **Pro** and **Enterprise** plans may serve portal and admin UIs on th
 |--------|------------------|
 | CNAME-only verification | Less explicit ownership proof |
 | Custom domain for API v1 | Certificate and routing complexity |
-| Cloudflare proxy | Couples to external CDN; self-hosted first |
+| Cloudflare proxy | Preferred public edge in ADR-019 (Nginx Ingress + Full Strict); self-hosted Caddy remains alternate |

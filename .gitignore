@@ -17,6 +17,7 @@ target/
 .env
 .env.*
 !.env.example
+deploy/kubernetes/overlays/*/secrets.env
 
 # IDE
 .idea/

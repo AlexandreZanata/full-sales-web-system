@@ -24,3 +24,4 @@ Template: `agent-rules/11-documentation-and-glossary/adr-template.md`
 | [ADR-016](ADR-016-platform-admin-rls-bypass.md) | RLS bypass for PlatformAdmin | Accepted |
 | [ADR-017](ADR-017-custom-domain-verification.md) | Custom domain verification + routing | Accepted |
 | [ADR-018](ADR-018-tenant-asaas-payments.md) | Tenant payment collection via Asaas | Accepted |
+| [ADR-019](ADR-019-nginx-cloudflare-edge.md) | Nginx Ingress + Cloudflare edge | Accepted |

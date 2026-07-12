@@ -14,7 +14,7 @@ Aligned with OWASP Top 10:2025 — see `agent-rules/03-security/README.md`.
 | Rate limiting | Redis sliding window on login and report generation |
 | Multi-tenant isolation | PostgreSQL RLS on all sensitive tables |
 | PII | CNPJ and contact data masked in logs (`Debug` impl) |
-| Transport | TLS mandatory in production (Caddy/Nginx) |
+| Transport | TLS mandatory in production (Cloudflare Full Strict → Nginx Ingress; see ADR-019) |
 | Signing keys | Ed25519 private key in secret manager only |
 
 ---

@@ -55,11 +55,18 @@ API key is server-side only; clients use the unchanged Full Sales lookup contrac
 
 ---
 
-## Production deployment (planned)
+## Production deployment
 
 | Component | Choice |
 |-----------|--------|
-| TLS termination | Caddy or Nginx reverse proxy |
-| Secrets | Environment variables / secret manager (Ed25519 private key never in DB) |
+| Orchestration | Kubernetes (k3s/staging first; managed cloud before prod) — [deployment/kubernetes.md](deployment/kubernetes.md) |
+| Manifests | Kustomize (`deploy/kubernetes/`) |
+| Cluster edge | Nginx Ingress Controller — [deployment/nginx-ingress.md](deployment/nginx-ingress.md) |
+| Public edge | Cloudflare (DNS proxy, WAF, Full Strict) — [deployment/cloudflare.md](deployment/cloudflare.md) |
+| Origin TLS | Cloudflare Origin Certificate (default); cert-manager optional |
+| Container images | `ghcr.io/<org>/fullsales-<svc>:<git-sha>` |
+| Secrets | CI-injected Kubernetes Secrets (staging); External Secrets before multi-env prod |
+| Signing key | Ed25519 private key only via Secret — never in DB or image layers |
 
-See [SECURITY.md](SECURITY.md) and [DIGITAL-SIGNATURE.md](DIGITAL-SIGNATURE.md).
+ADR: [ADR-019](adr/ADR-019-nginx-cloudflare-edge.md). See [SECURITY.md](SECURITY.md) and [DIGITAL-SIGNATURE.md](DIGITAL-SIGNATURE.md).  
+Custom-domain alternate (self-hosted Caddy): [deployment/caddy-custom-domains.md](deployment/caddy-custom-domains.md).

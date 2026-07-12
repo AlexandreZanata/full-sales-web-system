@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: fullsales-staging
+resources:
+  - namespace.yaml
+  - ../../base
+  - data-stores.yaml
+images:
+  - name: ghcr.io/example/fullsales-api
+    newTag: staging
+  - name: ghcr.io/example/fullsales-admin
+    newTag: staging
+  - name: ghcr.io/example/fullsales-portal
+    newTag: staging
+  - name: ghcr.io/example/fullsales-platform-admin
+    newTag: staging
+replicas:
+  - name: api
+    count: 1
+labels:
+  - pairs:
+      fullsales.io/env: staging
+    includeSelectors: false

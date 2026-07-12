@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  labels:
+    app.kubernetes.io/name: api
+data:
+  API_HOST: "0.0.0.0"
+  API_PORT: "8080"
+  RUST_LOG: "api_http=info,tower_http=info"
+  STORAGE_REGION: "us-east-1"
+  STORAGE_BUCKET: "full-sales-media"
+  MEDIA_BUCKET: "media"
+  EXPORT_BUCKET: "exports"
