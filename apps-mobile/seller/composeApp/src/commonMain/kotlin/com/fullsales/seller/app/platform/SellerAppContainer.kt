@@ -4,9 +4,11 @@ import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.connectivity.ConnectivityState
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.CommerceAddressCache
+import com.fullsales.seller.shared.repository.RegistrationRepository
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
+import com.fullsales.seller.shared.sync.OfflineRegistrationWriter
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +39,8 @@ interface SellerAppContainer {
     val commerceAddressCache: CommerceAddressCache
     val syncCoordinator: SellerSyncCoordinator
     val offlineSaleWriter: OfflineSaleWriter
+    val registrationRepository: RegistrationRepository
+    val offlineRegistrationWriter: OfflineRegistrationWriter
     val mediaUrlResolver: MediaUrlResolver
     val networkMonitor: NetworkMonitor
     fun requestSync()

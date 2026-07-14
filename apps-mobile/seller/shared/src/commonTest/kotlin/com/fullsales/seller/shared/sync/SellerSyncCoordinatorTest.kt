@@ -33,6 +33,7 @@ class SellerSyncCoordinatorTest {
         val coordinator = SellerSyncCoordinator(
             CatalogPullSync(catalog, pullClient),
             PullSalesSync(sales, pullClient),
+            PullRegistrationsSync(FakeRegistrationRepository(), pullClient),
             SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
         )
 
@@ -62,6 +63,7 @@ class SellerSyncCoordinatorTest {
         val coordinator = SellerSyncCoordinator(
             CatalogPullSync(catalog, pullClient),
             PullSalesSync(sales, pullClient),
+            PullRegistrationsSync(FakeRegistrationRepository(), pullClient),
             SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
         )
 

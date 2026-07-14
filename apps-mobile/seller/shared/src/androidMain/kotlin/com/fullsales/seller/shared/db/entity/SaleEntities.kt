@@ -61,4 +61,5 @@ data class SyncOutboxEntity(
     val attempts: Int,
     val lastError: String?,
     val completed: Boolean,
+    val entityType: String = "Sale",
 )

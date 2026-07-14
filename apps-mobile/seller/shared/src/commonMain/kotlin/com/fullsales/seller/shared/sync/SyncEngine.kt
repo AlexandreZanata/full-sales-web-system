@@ -1,7 +1,9 @@
 package com.fullsales.seller.shared.sync
 
 import com.fullsales.seller.shared.model.LocalSaleStatus
+import com.fullsales.seller.shared.model.SyncEntityType
 import com.fullsales.seller.shared.model.SyncOutboxEntry
+import com.fullsales.seller.shared.repository.RegistrationRepository
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 
@@ -10,6 +12,7 @@ class SyncEngine(
     private val sales: SaleRepository,
     private val transport: SyncTransport,
     private val tokenRefresher: SyncTokenRefresher,
+    private val registrations: RegistrationRepository? = null,
     private val maxAttempts: Int = 5,
 ) {
     suspend fun processOutbox(): SyncProcessResult {
@@ -27,10 +30,12 @@ class SyncEngine(
     }
 
     private suspend fun deadLetter(entry: SyncOutboxEntry) {
-        sales.markSyncFailed(
-            entry.saleLocalId,
-            entry.lastError ?: "MAX_ATTEMPTS",
-        )
+        when (entry.entityType) {
+            SyncEntityType.Registration ->
+                registrations?.markSyncFailed(entry.saleLocalId, entry.lastError ?: "MAX_ATTEMPTS")
+            else ->
+                sales.markSyncFailed(entry.saleLocalId, entry.lastError ?: "MAX_ATTEMPTS")
+        }
         outbox.markCompleted(entry.id)
     }
 
@@ -48,10 +53,7 @@ class SyncEngine(
             }
             SyncHttpOutcome.InsufficientStock -> {
                 outbox.markCompleted(entry.id)
-                sales.markSyncFailed(
-                    entry.saleLocalId,
-                    result.errorCode ?: "INSUFFICIENT_STOCK",
-                )
+                sales.markSyncFailed(entry.saleLocalId, result.errorCode ?: "INSUFFICIENT_STOCK")
                 false
             }
             SyncHttpOutcome.NetworkError -> {
@@ -71,6 +73,13 @@ class SyncEngine(
 
     private suspend fun applySuccess(entry: SyncOutboxEntry, remoteId: String?) {
         when {
+            entry.path == "/commerces/registrations" && remoteId != null ->
+                registrations?.setRemoteSynced(
+                    localId = entry.saleLocalId,
+                    remoteId = remoteId,
+                    registrationStatus = "PendingReview",
+                    active = false,
+                )
             entry.path == "/sales" && remoteId != null ->
                 sales.setRemoteId(entry.saleLocalId, remoteId, LocalSaleStatus.Synced)
             entry.path.endsWith("/confirm") ->

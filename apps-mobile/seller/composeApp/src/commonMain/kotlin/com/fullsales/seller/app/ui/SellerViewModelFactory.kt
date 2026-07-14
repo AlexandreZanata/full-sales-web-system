@@ -26,6 +26,7 @@ import com.fullsales.seller.app.ui.sync.SyncStatusViewModel
 import com.fullsales.seller.shared.catalog.CommerceDetailLoader
 import com.fullsales.seller.shared.catalog.ProductDetailLoader
 import com.fullsales.seller.shared.catalog.StockBalancePrefetcher
+import com.fullsales.seller.shared.registrations.CreateRegistrationSubmitter
 import com.fullsales.seller.shared.sales.CreateSaleSubmitter
 import com.fullsales.seller.shared.sales.SaleActionSubmitter
 import com.fullsales.seller.shared.sales.SaleDetailLoader
@@ -68,13 +69,21 @@ class SellerViewModelFactory(
             CnpjLookupViewModel(container.apiClient, container.networkMonitor) as T
         CommerceRegistrationViewModel::class ->
             CommerceRegistrationViewModel(
-                container.apiClient,
+                CreateRegistrationSubmitter(
+                    container.apiClient,
+                    container.offlineRegistrationWriter,
+                    container.registrationRepository,
+                ),
                 container.networkMonitor,
                 container.syncCoordinator,
                 CommerceRegistrationDraftStore(),
             ) as T
         MyRegistrationsViewModel::class ->
-            MyRegistrationsViewModel(container.apiClient, container.networkMonitor) as T
+            MyRegistrationsViewModel(
+                container.registrationRepository,
+                container.syncCoordinator,
+                container.networkMonitor,
+            ) as T
         ProductViewModel::class ->
             ProductViewModel(
                 container.catalogRepository,

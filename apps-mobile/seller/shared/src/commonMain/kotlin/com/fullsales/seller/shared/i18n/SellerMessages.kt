@@ -18,6 +18,7 @@ data class SellerMessages(
         val newSale: String = "",
         val commerces: String = "",
         val logout: String = "",
+        /** App title in the shell header — always "Vendedor" / "Seller", never site settings. */
         val sellerFallback: String = "",
     )
 
@@ -181,8 +182,11 @@ data class SellerMessages(
         val postalCode: String = "",
         val submit: String = "",
         val submitted: String = "",
+        val queued: String = "",
         val empty: String = "",
         val statusPending: String = "",
+        val statusPendingSync: String = "",
+        val statusSyncFailed: String = "",
         val statusActive: String = "",
         val statusRejected: String = "",
         val rejectionReason: String = "",

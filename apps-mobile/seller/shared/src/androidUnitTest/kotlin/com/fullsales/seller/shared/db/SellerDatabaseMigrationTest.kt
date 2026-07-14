@@ -88,4 +88,58 @@ class SellerDatabaseMigrationTest {
         }
         context.deleteDatabase(dbName)
     }
+
+    @Test
+    fun given_v5Outbox_when_migrateToV6_then_registrationsTableAndEntityTypeExist() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val dbName = "seller-migration-5-6.db"
+        context.deleteDatabase(dbName)
+
+        val helper = FrameworkSQLiteOpenHelperFactory().create(
+            androidx.sqlite.db.SupportSQLiteOpenHelper.Configuration.builder(context)
+                .name(dbName)
+                .callback(
+                    object : androidx.sqlite.db.SupportSQLiteOpenHelper.Callback(5) {
+                        override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                            SellerMigrations.createV5CoreTables(db)
+                        }
+
+                        override fun onUpgrade(
+                            db: androidx.sqlite.db.SupportSQLiteDatabase,
+                            oldVersion: Int,
+                            newVersion: Int,
+                        ) = Unit
+                    },
+                )
+                .build(),
+        )
+
+        helper.writableDatabase.use { db ->
+            db.execSQL(
+                """
+                INSERT INTO sync_outbox (
+                  id, saleLocalId, method, path, bodyJson, idempotencyKey,
+                  createdAtEpochMs, attempts, lastError, completed
+                ) VALUES (
+                  'o1', 'sale-1', 'POST', '/sales', '{}', 'idem-1',
+                  1000, 0, NULL, 0
+                )
+                """.trimIndent(),
+            )
+            SellerMigrations.MIGRATION_5_6.migrate(db)
+
+            db.query("SELECT id, entityType FROM sync_outbox").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals("o1", cursor.getString(0))
+                assertEquals("Sale", cursor.getString(1))
+            }
+            db.query(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='registrations'",
+            ).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals("registrations", cursor.getString(0))
+            }
+        }
+        context.deleteDatabase(dbName)
+    }
 }

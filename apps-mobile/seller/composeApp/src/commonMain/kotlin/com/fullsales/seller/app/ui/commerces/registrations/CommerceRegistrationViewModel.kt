@@ -4,14 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.CommerceRegistrationDraftStore
 import com.fullsales.seller.app.platform.NetworkMonitor
-import com.fullsales.seller.shared.api.ApiException
-import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.connectivity.ConnectivityState
-import com.fullsales.seller.shared.connectivity.allowsInternetOnlyActions
 import com.fullsales.seller.shared.model.CnpjLookupResult
 import com.fullsales.seller.shared.model.RegistrationMode
 import com.fullsales.seller.shared.registrations.CommerceRegistrationDraft
 import com.fullsales.seller.shared.registrations.CommerceRegistrationFormErrors
+import com.fullsales.seller.shared.registrations.CreateRegistrationSubmitResult
+import com.fullsales.seller.shared.registrations.CreateRegistrationSubmitter
 import com.fullsales.seller.shared.registrations.buildSubmitRegistrationRequest
 import com.fullsales.seller.shared.registrations.draftFromLookup
 import com.fullsales.seller.shared.registrations.validateCommerceRegistrationForm
@@ -35,12 +34,12 @@ data class CommerceRegistrationUiState(
     val connectivity: ConnectivityState = ConnectivityState.Offline,
 ) {
     val hasPersistedContent: Boolean get() = !draft.isEffectivelyEmpty()
-    val submitEnabled: Boolean
-        get() = !submitting && connectivity.allowsInternetOnlyActions()
+    /** Form valid + not submitting — offline queue allowed (OD-16-1). */
+    val submitEnabled: Boolean get() = !submitting
 }
 
 class CommerceRegistrationViewModel(
-    private val apiClient: SellerApiClient,
+    private val submitter: CreateRegistrationSubmitter,
     private val networkMonitor: NetworkMonitor,
     private val syncCoordinator: SellerSyncCoordinator,
     private val draftStore: CommerceRegistrationDraftStore,
@@ -63,11 +62,7 @@ class CommerceRegistrationViewModel(
         val draft = CommerceRegistrationDraft(mode = RegistrationMode.MANUAL)
         draftStore.write(draft)
         _state.update {
-            it.copy(
-                draft = draft,
-                cnpjReadOnly = false,
-                errors = CommerceRegistrationFormErrors(),
-            )
+            it.copy(draft = draft, cnpjReadOnly = false, errors = CommerceRegistrationFormErrors())
         }
     }
 
@@ -77,11 +72,7 @@ class CommerceRegistrationViewModel(
         val draft = draftFromLookup(result, snapshot)
         draftStore.write(draft)
         _state.update {
-            it.copy(
-                draft = draft,
-                cnpjReadOnly = true,
-                errors = CommerceRegistrationFormErrors(),
-            )
+            it.copy(draft = draft, cnpjReadOnly = true, errors = CommerceRegistrationFormErrors())
         }
     }
 
@@ -110,15 +101,18 @@ class CommerceRegistrationViewModel(
         if (!_state.value.submitEnabled) return
         viewModelScope.launch {
             _state.update { it.copy(submitting = true, errors = CommerceRegistrationFormErrors()) }
-            runCatching {
-                apiClient.submitRegistration(buildSubmitRegistrationRequest(draft))
-            }.onSuccess {
-                runCatching { syncCoordinator.syncPullAndPush() }
-                draftStore.clear()
-                _state.update { it.copy(submitting = false, snackbarCode = "SUBMITTED") }
-            }.onFailure { err ->
-                val code = (err as? ApiException)?.detail?.code ?: "SUBMIT_FAILED"
-                _state.update { it.copy(submitting = false, snackbarCode = code) }
+            val online = networkMonitor.isOnline()
+            when (
+                val result = submitter.submit(buildSubmitRegistrationRequest(draft), online)
+            ) {
+                is CreateRegistrationSubmitResult.Success -> {
+                    if (result.isRemote) runCatching { syncCoordinator.syncPullAndPush() }
+                    draftStore.clear()
+                    val code = if (result.isRemote) "SUBMITTED" else "QUEUED"
+                    _state.update { it.copy(submitting = false, snackbarCode = code) }
+                }
+                is CreateRegistrationSubmitResult.Failure ->
+                    _state.update { it.copy(submitting = false, snackbarCode = result.code) }
             }
         }
     }

@@ -115,6 +115,8 @@ object SellerStrings {
 
     fun registrationStatus(messages: SellerMessages, status: String): String = when (status) {
         "PendingReview" -> messages.registrations.statusPending
+        "PendingSync" -> messages.registrations.statusPendingSync
+        "SyncFailed" -> messages.registrations.statusSyncFailed
         "Active" -> messages.registrations.statusActive
         "Rejected" -> messages.registrations.statusRejected
         else -> status

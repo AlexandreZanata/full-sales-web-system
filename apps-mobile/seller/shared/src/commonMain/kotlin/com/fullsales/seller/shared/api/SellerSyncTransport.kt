@@ -1,9 +1,10 @@
 package com.fullsales.seller.shared.api
 
 import com.fullsales.seller.shared.model.CreateSaleRequest
-import com.fullsales.seller.shared.model.Product
+import com.fullsales.seller.shared.model.SubmitRegistrationRequest
 import com.fullsales.seller.shared.model.SyncOutboxEntry
 import com.fullsales.seller.shared.sync.CatalogPullClient
+import com.fullsales.seller.shared.sync.RegistrationsPullClient
 import com.fullsales.seller.shared.sync.SalesPullClient
 import com.fullsales.seller.shared.sync.SyncHttpOutcome
 import com.fullsales.seller.shared.sync.SyncHttpResult
@@ -13,7 +14,7 @@ import kotlinx.serialization.json.Json
 class SellerSyncTransport(
     private val client: SellerApiClient,
     private val json: Json = defaultSellerJson(),
-) : SyncTransport, CatalogPullClient, SalesPullClient {
+) : SyncTransport, CatalogPullClient, SalesPullClient, RegistrationsPullClient {
     override suspend fun fetchCommerces(limit: Int, cursor: String?) =
         client.listCommerces(limit, cursor)
 
@@ -22,6 +23,9 @@ class SellerSyncTransport(
 
     override suspend fun fetchSales(limit: Int, cursor: String?) =
         client.listSales(limit, cursor)
+
+    override suspend fun fetchRegistrations(limit: Int, cursor: String?) =
+        client.listRegistrations(limit, cursor)
 
     override suspend fun execute(entry: SyncOutboxEntry): SyncHttpResult = try {
         when (entry.method) {
@@ -36,6 +40,7 @@ class SellerSyncTransport(
 
     private suspend fun postOutbox(entry: SyncOutboxEntry): SyncHttpResult = when {
         entry.path == "/sales" -> createSale(entry)
+        entry.path == "/commerces/registrations" -> createRegistration(entry)
         entry.path.endsWith("/confirm") -> postSaleAction(entry) { id -> client.confirmSale(id) }
         entry.path.endsWith("/cancel") -> postSaleAction(entry) { id -> client.cancelSale(id) }
         else -> SyncHttpResult(SyncHttpOutcome.ClientError, errorCode = "UNKNOWN_PATH")
@@ -45,6 +50,12 @@ class SellerSyncTransport(
         val request = json.decodeFromString<CreateSaleRequest>(entry.bodyJson)
         val sale = client.createSale(request, entry.idempotencyKey)
         return SyncHttpResult(SyncHttpOutcome.Success, remoteId = sale.id)
+    }
+
+    private suspend fun createRegistration(entry: SyncOutboxEntry): SyncHttpResult {
+        val request = json.decodeFromString<SubmitRegistrationRequest>(entry.bodyJson)
+        val registration = client.submitRegistration(request, entry.idempotencyKey)
+        return SyncHttpResult(SyncHttpOutcome.Success, remoteId = registration.id)
     }
 
     private suspend fun postSaleAction(

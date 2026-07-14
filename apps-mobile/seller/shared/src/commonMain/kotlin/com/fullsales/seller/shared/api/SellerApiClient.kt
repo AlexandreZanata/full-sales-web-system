@@ -78,9 +78,13 @@ class SellerApiClient(
         return http.apiGet("$baseUrl/commerces/cnpj-lookup?cnpj=$digits", json)
     }
 
-    suspend fun submitRegistration(request: SubmitRegistrationRequest): CommerceRegistration =
+    suspend fun submitRegistration(
+        request: SubmitRegistrationRequest,
+        idempotencyKey: String? = null,
+    ): CommerceRegistration =
         http.apiPost("$baseUrl/commerces/registrations", json) {
             contentType(ContentType.Application.Json)
+            idempotencyKey?.let { header("Idempotency-Key", it) }
             setBody(request)
         }
 

@@ -29,6 +29,37 @@ object SellerMigrations {
         }
     }
 
+    val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS registrations (
+                  localId TEXT NOT NULL PRIMARY KEY,
+                  remoteId TEXT,
+                  cnpj TEXT NOT NULL,
+                  legalName TEXT NOT NULL,
+                  tradeName TEXT NOT NULL,
+                  active INTEGER NOT NULL,
+                  registrationStatus TEXT NOT NULL,
+                  rejectionReason TEXT,
+                  registrationMode TEXT,
+                  contactPhone TEXT,
+                  contactEmail TEXT,
+                  deliveryAddressJson TEXT NOT NULL,
+                  syncStatus TEXT NOT NULL,
+                  syncFailureReason TEXT,
+                  createdAtEpochMs INTEGER NOT NULL,
+                  updatedAtEpochMs INTEGER NOT NULL,
+                  idempotencyKey TEXT NOT NULL
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "ALTER TABLE sync_outbox ADD COLUMN entityType TEXT NOT NULL DEFAULT 'Sale'",
+            )
+        }
+    }
+
     /** Minimal v4 DDL for migration contract tests (tables touched by 4→5). */
     fun createV4CoreTables(db: SupportSQLiteDatabase) {
         db.execSQL(
@@ -82,6 +113,28 @@ object SellerMigrations {
               productId TEXT NOT NULL,
               quantity INTEGER NOT NULL,
               FOREIGN KEY(saleLocalId) REFERENCES sales(localId) ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+    }
+
+    /** Minimal v5 DDL for migration contract tests (tables touched by 5→6). */
+    fun createV5CoreTables(db: SupportSQLiteDatabase) {
+        createV4CoreTables(db)
+        MIGRATION_4_5.migrate(db)
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS sync_outbox (
+              id TEXT NOT NULL PRIMARY KEY,
+              saleLocalId TEXT NOT NULL,
+              method TEXT NOT NULL,
+              path TEXT NOT NULL,
+              bodyJson TEXT NOT NULL,
+              idempotencyKey TEXT NOT NULL,
+              createdAtEpochMs INTEGER NOT NULL,
+              attempts INTEGER NOT NULL,
+              lastError TEXT,
+              completed INTEGER NOT NULL
             )
             """.trimIndent(),
         )

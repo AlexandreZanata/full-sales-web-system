@@ -197,12 +197,14 @@ class RecordingTransport : SyncTransport {
     }
 }
 
-class FakeCatalogPullClient : CatalogPullClient, SalesPullClient {
+class FakeCatalogPullClient : CatalogPullClient, SalesPullClient, RegistrationsPullClient {
     var commerces = listOf<Commerce>()
     var products = listOf<Product>()
     var sales = listOf<com.fullsales.seller.shared.model.Sale>()
+    var registrations = listOf<com.fullsales.seller.shared.model.CommerceRegistration>()
     var throwOnFetch: Boolean = false
     var throwOnSalesFetch: Boolean = false
+    var throwOnRegistrationsFetch: Boolean = false
 
     override suspend fun fetchCommerces(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListCommerces {
         if (throwOnFetch) error("catalog unavailable")
@@ -243,6 +245,21 @@ class FakeCatalogPullClient : CatalogPullClient, SalesPullClient {
             )
         } else {
             com.fullsales.seller.shared.model.CursorListSales(
+                emptyList(),
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        }
+    }
+
+    override suspend fun fetchRegistrations(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListRegistrations {
+        if (throwOnRegistrationsFetch) error("registrations unavailable")
+        return if (cursor == null) {
+            com.fullsales.seller.shared.model.CursorListRegistrations(
+                registrations,
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        } else {
+            com.fullsales.seller.shared.model.CursorListRegistrations(
                 emptyList(),
                 com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
             )

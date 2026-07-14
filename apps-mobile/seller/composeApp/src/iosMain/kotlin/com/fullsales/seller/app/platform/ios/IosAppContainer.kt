@@ -23,11 +23,14 @@ import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.CatalogPullSync
+import com.fullsales.seller.shared.sync.OfflineRegistrationWriter
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
+import com.fullsales.seller.shared.sync.PullRegistrationsSync
 import com.fullsales.seller.shared.sync.PullSalesSync
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 import com.fullsales.seller.shared.sync.SyncTokenRefresher
+import com.fullsales.seller.shared.repository.RegistrationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,10 +50,20 @@ class IosAppContainer : SellerAppContainer {
     override val mediaUrlResolver: MediaUrlResolver = IosMediaUrlResolver(apiClient)
     private val syncTransport = SellerSyncTransport(apiClient)
     override val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
+    override val registrationRepository: RegistrationRepository = MemoryRegistrationRepository()
+    override val offlineRegistrationWriter =
+        OfflineRegistrationWriter(registrationRepository, outboxRepository)
     override val syncCoordinator = SellerSyncCoordinator(
         CatalogPullSync(catalogRepository, syncTransport),
         PullSalesSync(saleRepository, syncTransport),
-        SyncEngine(outboxRepository, saleRepository, syncTransport, tokenRefresher),
+        PullRegistrationsSync(registrationRepository, syncTransport),
+        SyncEngine(
+            outboxRepository,
+            saleRepository,
+            syncTransport,
+            tokenRefresher,
+            registrationRepository,
+        ),
     )
     override val networkMonitor: NetworkMonitor = IosPathNetworkMonitor()
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

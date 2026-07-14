@@ -11,11 +11,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -23,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.listItemSummary
 import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.CommerceRegistration
 import com.fullsales.seller.shared.model.displayName
@@ -33,27 +38,45 @@ import com.fullsales.seller.shared.model.maskCnpj
 fun MyRegistrationsScreen(viewModel: MyRegistrationsViewModel) {
     val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
-    PullToRefreshBox(
-        isRefreshing = state.refreshing,
-        onRefresh = { if (!state.isOffline) viewModel.refresh() },
-        modifier = Modifier
-            .fillMaxSize()
-            .semantics { contentDescription = s.a11y.pullToRefresh },
-    ) {
-        Column(
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(state.snackbarCode) {
+        state.snackbarCode?.let { code ->
+            val message = when (code) {
+                "OFFLINE" -> s.common.noConnection
+                else -> code
+            }
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearSnackbar()
+        }
+    }
+    NestedScreenScaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        PullToRefreshBox(
+            isRefreshing = state.refreshing,
+            onRefresh = { if (!state.isOffline) viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(padding)
+                .semantics { contentDescription = s.a11y.pullToRefresh },
         ) {
-            Text(s.registrations.myTitle, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.screenTitle())
-            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            if (state.isOffline) Text(s.common.offline, color = MaterialTheme.colorScheme.error)
-            when {
-                state.isEmpty -> Text(s.registrations.empty, style = MaterialTheme.typography.bodyLarge)
-                else -> LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
-                    items(state.items, key = { it.id }) { item ->
-                        RegistrationRow(item)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    s.registrations.myTitle,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.screenTitle(),
+                )
+                state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                if (state.isOffline) Text(s.common.offline, color = MaterialTheme.colorScheme.error)
+                when {
+                    state.isEmpty -> Text(s.registrations.empty, style = MaterialTheme.typography.bodyLarge)
+                    else -> LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
+                        items(state.items, key = { it.id }) { item ->
+                            RegistrationRow(item)
+                        }
                     }
                 }
             }

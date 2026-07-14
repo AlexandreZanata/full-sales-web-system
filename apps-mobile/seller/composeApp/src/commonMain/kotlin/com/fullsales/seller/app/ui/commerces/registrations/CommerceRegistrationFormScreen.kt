@@ -42,11 +42,12 @@ fun CommerceRegistrationFormScreen(
         state.snackbarCode?.let { code ->
             val message = when (code) {
                 "SUBMITTED" -> s.registrations.submitted
+                "QUEUED" -> s.registrations.queued
                 else -> SellerStrings.registrationError(s, code)
             }
             snackbarHostState.showSnackbar(message)
             viewModel.clearSnackbar()
-            if (code == "SUBMITTED") onSubmitted()
+            if (code == "SUBMITTED" || code == "QUEUED") onSubmitted()
         }
     }
     NestedScreenScaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
@@ -81,13 +82,6 @@ fun CommerceRegistrationFormScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(if (state.submitting) s.common.saving else s.registrations.submit)
-            }
-            if (!state.submitEnabled && !state.submitting) {
-                Text(
-                    s.registrations.requiresInternet,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
             TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
                 Text(s.common.back)
