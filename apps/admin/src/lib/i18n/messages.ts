@@ -42,6 +42,13 @@ export type Messages = {
     adminNav: string;
     navMenu: string;
   };
+  a11y: {
+    language: string;
+    textSizeLabel: string;
+    textSizeNormal: string;
+    textSizeLarge: string;
+    textSizeExtraLarge: string;
+  };
   common: {
     previous: string;
     next: string;

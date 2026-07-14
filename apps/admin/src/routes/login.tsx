@@ -3,7 +3,7 @@ import { useState, type SubmitEvent } from 'react';
 
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { BrandMark } from '@/components/BrandMark';
-import { LocaleSwitcher } from '@/components/LocaleSwitcher';
+import { AccessibilityControls } from '@/components/AccessibilityControls';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -57,8 +57,8 @@ function LoginPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-surface-muted px-4">
       <Card className="w-full max-w-md">
-        <div className="mb-4 flex justify-end">
-          <LocaleSwitcher />
+        <div className="mb-6">
+          <AccessibilityControls layout="panel" />
         </div>
         <div className="mb-6">
           <BrandMark size="lg" className="mb-4" />

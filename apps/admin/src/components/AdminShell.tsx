@@ -6,7 +6,7 @@ import { useAdminAuth } from '@/auth/useAdminAuth';
 import { AdminBrand, AdminNavLinks } from '@/components/AdminNavLinks';
 import { BillingStatusBanner } from '@/components/settings/BillingStatusBanner';
 import { SiteBrand } from '@/components/SiteBrand';
-import { LocaleSwitcher } from '@/components/LocaleSwitcher';
+import { AccessibilityControls } from '@/components/AccessibilityControls';
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/lib/i18n/context';
 import { adminTokens } from '@/lib/admin-tokens';
@@ -74,7 +74,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
       <AdminBrand className="col-start-1 row-start-1 hidden md:flex" />
       <header className={cn('col-start-2 row-start-1 hidden md:flex', adminTokens.shellHeaderBar)}>
-        <LocaleSwitcher className="mr-auto" />
+        <AccessibilityControls className="mr-auto" />
         <span className="text-sm text-muted-foreground">{user?.email}</span>
         <Button
           variant="ghost"
@@ -131,6 +131,9 @@ export function AdminShell({ children }: AdminShellProps) {
                 setMobileNavOpen(false);
               }}
             />
+            <div className="border-t border-hairline p-3">
+              <AccessibilityControls layout="panel" />
+            </div>
           </aside>
         </div>
       ) : null}

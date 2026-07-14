@@ -85,11 +85,11 @@ fun needsBackorderWarning(
     return reservedQuantityInSale(lines, productId) > available
 }
 
-/** Hide out-of-stock products from browse/picker once balance is known. */
-fun isProductAvailableForBrowsing(stockByProductId: Map<String, Int>, productId: String): Boolean {
-    val available = stockByProductId[productId] ?: return true
-    return available > 0
-}
+/** All catalog products stay browsable; zero stock uses the existing backorder warning path. */
+fun isProductAvailableForBrowsing(
+    @Suppress("UNUSED_PARAMETER") stockByProductId: Map<String, Int>,
+    @Suppress("UNUSED_PARAMETER") productId: String,
+): Boolean = true
 
 fun filterProductsAvailableForBrowsing(
     products: List<Product>,

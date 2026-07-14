@@ -1,11 +1,9 @@
 package com.fullsales.seller.app.ui.shell
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -21,13 +19,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.ui.SellerRoutes
-import com.fullsales.seller.app.ui.components.RemoteImage
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.i18n.LocaleSwitcher
 import com.fullsales.seller.app.ui.sync.SyncBadge
@@ -36,8 +32,6 @@ import com.fullsales.seller.app.ui.sync.SyncBadge
 @Composable
 fun SellerShellScaffold(
     currentRoute: String?,
-    displayName: String?,
-    logoUrl: String?,
     syncBadge: SyncBadge,
     localeViewModel: LocaleViewModel,
     accessibilityViewModel: AccessibilityViewModel,
@@ -57,20 +51,7 @@ fun SellerShellScaffold(
         topBar = {
             TopAppBar(
                 windowInsets = WindowInsets.statusBars,
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (!logoUrl.isNullOrBlank()) {
-                            RemoteImage(
-                                url = logoUrl,
-                                contentDescription = displayName,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .padding(end = 8.dp),
-                            )
-                        }
-                        Text(displayName ?: s.nav.sellerFallback)
-                    }
-                },
+                title = { Text(s.nav.sellerFallback) },
                 actions = {
                     LocaleSwitcher(
                         locale = locale,

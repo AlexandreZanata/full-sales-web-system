@@ -44,4 +44,20 @@ class ProductSearchTest {
         val result = filterProductsBySearch(listOf(beta, alpha), "")
         assertTrue(result.first().name == "Alpha")
     }
+
+    @Test
+    fun sale_picker_blank_query_returns_empty_not_full_catalog() {
+        val catalog = listOf(widget, widget.copy(id = "p2", name = "Other", sku = "SKU-2"))
+        assertTrue(filterProductsForSalePickerSearch(catalog, "").isEmpty())
+        assertTrue(filterProductsForSalePickerSearch(catalog, "   ").isEmpty())
+    }
+
+    @Test
+    fun sale_picker_search_caps_results() {
+        val catalog = (1..30).map { i ->
+            widget.copy(id = "p$i", name = "Item $i", sku = "SKU-$i")
+        }
+        val result = filterProductsForSalePickerSearch(catalog, "Item", limit = 5)
+        assertTrue(result.size == 5)
+    }
 }

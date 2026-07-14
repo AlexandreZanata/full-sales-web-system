@@ -11,7 +11,6 @@ import com.fullsales.seller.app.ui.products.ProductDetailScreen
 import com.fullsales.seller.app.ui.products.ProductDetailViewModel
 import com.fullsales.seller.app.ui.products.ProductListScreen
 import com.fullsales.seller.app.ui.products.ProductViewModel
-import com.fullsales.seller.app.ui.settings.SettingsUiState
 import com.fullsales.seller.app.ui.sync.SyncBadge
 
 internal const val SELECTED_PRODUCT_ID = "selectedProductId"
@@ -20,14 +19,13 @@ internal fun NavGraphBuilder.productRoutes(
     navController: NavHostController,
     factory: SellerViewModelFactory,
     productViewModel: ProductViewModel,
-    settings: SettingsUiState,
     syncBadge: SyncBadge,
     authViewModel: AuthViewModel,
     localeViewModel: LocaleViewModel,
     accessibilityViewModel: AccessibilityViewModel,
 ) {
     composable(SellerRoutes.PRODUCTS) {
-        DetailShell(navController, settings, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+        DetailShell(navController, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
             ProductListScreen(
                 viewModel = productViewModel,
                 mediaUrlResolver = factory.mediaUrlResolver,
@@ -39,7 +37,6 @@ internal fun NavGraphBuilder.productRoutes(
         SellerRoutes.PRODUCT_DETAIL,
         "productId",
         navController,
-        settings,
         syncBadge,
         authViewModel,
         localeViewModel,

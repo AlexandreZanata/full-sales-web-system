@@ -15,11 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.selectableChipA11y
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
-import com.fullsales.seller.shared.catalog.filterProductsBySearch
+import com.fullsales.seller.app.ui.ime.bringIntoViewOnFocus
+import com.fullsales.seller.shared.catalog.filterProductsForSalePickerSearch
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.TopSellingProduct
 import com.fullsales.seller.shared.sales.filterProductsAvailableForBrowsing
-import com.fullsales.seller.shared.sales.isProductAvailableForBrowsing
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -52,17 +52,20 @@ internal fun ProductSearchPicker(
             value = searchQuery,
             onValueChange = onSearchChange,
             label = { Text(s.products.searchByNameOrSku) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewOnFocus(),
             singleLine = true,
         )
-        if (searchQuery.isBlank() && topSellingProducts.isNotEmpty()) {
-            TopSellingSection(
-                topSellingProducts = topSellingProducts.filter {
-                    isProductAvailableForBrowsing(stockByProductId, it.productId)
-                },
-                productId = productId,
-                onSelect = onSelect,
-            )
+        if (searchQuery.isBlank()) {
+            if (topSellingProducts.isNotEmpty()) {
+                TopSellingSection(
+                    topSellingProducts = topSellingProducts,
+                    productId = productId,
+                    onSelect = onSelect,
+                )
+            }
+            return@Column
         }
         SearchResultsSection(
             products = browseProducts,
@@ -117,8 +120,7 @@ private fun SearchResultsSection(
     onSelect: (String) -> Unit,
 ) {
     val s = LocalSellerStrings.current
-    if (searchQuery.isBlank()) return
-    val results = filterProductsBySearch(products, searchQuery).take(10)
+    val results = filterProductsForSalePickerSearch(products, searchQuery)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (results.isEmpty()) {
             Text(

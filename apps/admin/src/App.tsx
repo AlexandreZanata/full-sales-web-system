@@ -6,6 +6,7 @@ import { AdminAuthProvider } from '@/auth/AdminAuthProvider';
 import { useAdminAuth } from '@/auth/useAdminAuth';
 import { ToastProvider } from '@/components/ToastProvider';
 import { useCatalogRealtime } from '@/lib/catalog/useCatalogRealtime';
+import { AccessibilityProvider } from '@/lib/a11y/context';
 import { I18nProvider } from '@/lib/i18n/context';
 import { router } from '@/router';
 
@@ -24,11 +25,13 @@ function AdminRouter() {
 export function App() {
   return (
     <I18nProvider>
-      <ToastProvider>
-        <AdminAuthProvider>
-          <AdminRouter />
-        </AdminAuthProvider>
-      </ToastProvider>
+      <AccessibilityProvider>
+        <ToastProvider>
+          <AdminAuthProvider>
+            <AdminRouter />
+          </AdminAuthProvider>
+        </ToastProvider>
+      </AccessibilityProvider>
     </I18nProvider>
   );
 }

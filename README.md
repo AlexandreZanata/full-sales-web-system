@@ -78,6 +78,53 @@ Backend-only commands: [DEV-COMMANDS.md](docs/DEV-COMMANDS.md).
 
 ---
 
+## CNPJ lookup (OpenCNPJ)
+
+Full Sales proxies CNPJ lookups via `GET /v1/commerces/cnpj-lookup`. Upstream in production is **OpenCNPJ**.
+
+| Item | Value |
+|------|-------|
+| OpenCNPJ base URL | `https://api.comerc.app.br` |
+| Lookup path | `GET /api/v1/cnpj/{cnpj}` |
+| Auth header | `X-API-Key: ocnpj_live_<your-key>` |
+| Admin (create key) | https://admin.comerc.app.br |
+| Cutover runbook | [docs/runbooks/opencnpj-cutover.md](docs/runbooks/opencnpj-cutover.md) |
+
+**Never commit the live API key.** Store it only in `backend/.env` or the secret manager.
+
+### Configure the Full Sales API
+
+```bash
+# backend/.env
+CNPJ_LOOKUP_PROVIDER=opencnpj
+CNPJ_LOOKUP_URL=https://api.comerc.app.br
+CNPJ_LOOKUP_API_KEY=ocnpj_live_<your-32-hex-key>
+```
+
+### Call OpenCNPJ directly
+
+```bash
+export CNPJ_LOOKUP_API_KEY='ocnpj_live_<your-32-hex-key>'
+
+curl -sS \
+  -H "X-API-Key: ${CNPJ_LOOKUP_API_KEY}" \
+  -H "X-Request-ID: $(uuidgen)" \
+  "https://api.comerc.app.br/api/v1/cnpj/00000000000191"
+```
+
+### Call through Full Sales (seller/admin JWT)
+
+```bash
+# Local API: http://127.0.0.1:8080
+curl -sS \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  "http://127.0.0.1:8080/v1/commerces/cnpj-lookup?cnpj=00000000000191"
+```
+
+Contract: [docs/API-CONTRACT.md](docs/API-CONTRACT.md) — `GET /v1/commerces/cnpj-lookup`.
+
+---
+
 ## License
 
 Third-party harness: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

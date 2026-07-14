@@ -36,6 +36,13 @@ export const ptBR: Messages = {
     adminNav: 'Navegação admin',
     navMenu: 'Menu de navegação',
   },
+  a11y: {
+    language: 'Idioma',
+    textSizeLabel: 'Tamanho do texto',
+    textSizeNormal: 'Normal',
+    textSizeLarge: 'Grande',
+    textSizeExtraLarge: 'Extra grande',
+  },
   common: {
     previous: 'Anterior',
     next: 'Próximo',

@@ -3,9 +3,12 @@ package com.fullsales.seller.app.ui.sales
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.platform.MediaUrlResolver
@@ -33,6 +37,7 @@ import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.formatMoneyMinorUnits
+import com.fullsales.seller.shared.ui.shouldHideStickyCheckoutForIme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +51,8 @@ fun CreateSaleScreen(
     val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val imeBottomPx = WindowInsets.ime.getBottom(LocalDensity.current)
+    val hideStickyForIme = shouldHideStickyCheckoutForIme(imeBottomPx)
     LaunchedEffect(state.snackbarCode) {
         state.snackbarCode?.let { code ->
             snackbarHostState.showSnackbar(SellerStrings.createSaleError(s, code))
@@ -55,18 +62,21 @@ fun CreateSaleScreen(
     NestedScreenScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            CreateSaleBottomBar(
-                totalMinor = state.totalMinor,
-                submitting = state.submitting,
-                onBack = onBack,
-                onSubmit = { viewModel.submit(onCreated) },
-            )
+            if (!hideStickyForIme) {
+                CreateSaleBottomBar(
+                    totalMinor = state.totalMinor,
+                    submitting = state.submitting,
+                    onBack = onBack,
+                    onSubmit = { viewModel.submit(onCreated) },
+                )
+            }
         },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
                 .padding(top = 4.dp, bottom = 12.dp)

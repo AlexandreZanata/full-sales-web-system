@@ -25,7 +25,6 @@ import com.fullsales.seller.app.ui.sales.SaleDetailScreen
 import com.fullsales.seller.app.ui.sales.SaleDetailViewModel
 import com.fullsales.seller.app.ui.sales.SalesListScreen
 import com.fullsales.seller.app.ui.sales.SalesListViewModel
-import com.fullsales.seller.app.ui.settings.SettingsViewModel
 import com.fullsales.seller.app.ui.sync.SyncStatusViewModel
 import com.fullsales.seller.app.ui.theme.SellerTheme
 
@@ -55,13 +54,11 @@ private fun SellerNavHostContent(
     accessibilityViewModel: AccessibilityViewModel,
 ) {
     val authViewModel: AuthViewModel = viewModel(factory = factory)
-    val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
     val salesListViewModel: SalesListViewModel = viewModel(factory = factory)
     val commerceViewModel: CommerceViewModel = viewModel(factory = factory)
     val productViewModel: ProductViewModel = viewModel(factory = factory)
     val syncViewModel: SyncStatusViewModel = viewModel(factory = factory)
     val auth by authViewModel.state.collectAsState()
-    val settings by settingsViewModel.state.collectAsState()
     val syncBadge by syncViewModel.badge.collectAsState()
     val navController = rememberNavController()
     val startDestination = if (auth.isAuthenticated) SellerRoutes.SALES else SellerRoutes.LOGIN
@@ -73,7 +70,6 @@ private fun SellerNavHostContent(
                 localeViewModel = localeViewModel,
                 accessibilityViewModel = accessibilityViewModel,
                 onLoggedIn = {
-                    settingsViewModel.loadIfStale(force = true)
                     container.requestSync()
                     navController.navigate(SellerRoutes.SALES) {
                         popUpTo(SellerRoutes.LOGIN) { inclusive = true }
@@ -84,10 +80,8 @@ private fun SellerNavHostContent(
         shellRoute(
             SellerRoutes.SALES,
             navController,
-            settings,
             syncBadge,
             authViewModel,
-            settingsViewModel,
             localeViewModel,
             accessibilityViewModel,
             onSyncRefresh = syncViewModel::refreshNow,
@@ -101,10 +95,8 @@ private fun SellerNavHostContent(
         shellRoute(
             SellerRoutes.SALES_NEW,
             navController,
-            settings,
             syncBadge,
             authViewModel,
-            settingsViewModel,
             localeViewModel,
             accessibilityViewModel,
             onSyncRefresh = syncViewModel::refreshNow,
@@ -114,10 +106,8 @@ private fun SellerNavHostContent(
         shellRoute(
             SellerRoutes.COMMERCES,
             navController,
-            settings,
             syncBadge,
             authViewModel,
-            settingsViewModel,
             localeViewModel,
             accessibilityViewModel,
             onSyncRefresh = syncViewModel::refreshNow,
@@ -133,7 +123,6 @@ private fun SellerNavHostContent(
             SellerRoutes.SALE_DETAIL,
             "saleId",
             navController,
-            settings,
             syncBadge,
             authViewModel,
             localeViewModel,
@@ -151,7 +140,6 @@ private fun SellerNavHostContent(
             navController,
             factory,
             commerceViewModel,
-            settings,
             syncBadge,
             authViewModel,
             localeViewModel,
@@ -161,7 +149,6 @@ private fun SellerNavHostContent(
             navController,
             factory,
             productViewModel,
-            settings,
             syncBadge,
             authViewModel,
             localeViewModel,

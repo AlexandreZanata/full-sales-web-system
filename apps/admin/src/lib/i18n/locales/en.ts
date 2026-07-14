@@ -36,6 +36,13 @@ export const en: Messages = {
     adminNav: 'Admin navigation',
     navMenu: 'Navigation menu',
   },
+  a11y: {
+    language: 'Language',
+    textSizeLabel: 'Text size',
+    textSizeNormal: 'Normal',
+    textSizeLarge: 'Large',
+    textSizeExtraLarge: 'Extra large',
+  },
   common: {
     previous: 'Previous',
     next: 'Next',

@@ -20,21 +20,19 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.sync.SyncBadge
+import com.fullsales.seller.app.ui.sync.shouldShowInHeader
 
 @Composable
 fun SyncBadgeChip(
     badge: SyncBadge,
     onRefresh: (() -> Unit)? = null,
 ) {
+    if (!badge.shouldShowInHeader()) return
     val s = LocalSellerStrings.current
     val (label, colors) = when (badge) {
-        SyncBadge.Online -> s.common.online to AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
         SyncBadge.Offline -> s.common.offline to AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            containerColor = MaterialTheme.colorScheme.error,
+            labelColor = MaterialTheme.colorScheme.onError,
         )
         SyncBadge.Syncing -> s.common.syncing to AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -44,6 +42,7 @@ fun SyncBadgeChip(
             containerColor = MaterialTheme.colorScheme.errorContainer,
             labelColor = MaterialTheme.colorScheme.onErrorContainer,
         )
+        SyncBadge.Online, SyncBadge.Connecting -> return
     }
     var announce by remember { mutableStateOf(label) }
     LaunchedEffect(badge) { announce = label }
