@@ -63,6 +63,14 @@ data class SellerMessages(
         val inactive: String = "",
         val all: String = "",
         val primary: String = "",
+        /** Virgin install offline — ask to connect once (ListEmptyReason.OfflineUnavailable). */
+        val bootstrapTitle: String = "",
+        val bootstrapMessage: String = "",
+        /** Empty DB, never synced, while Online (ListEmptyReason.NeverSynced). */
+        val neverSyncedTitle: String = "",
+        val neverSyncedMessage: String = "",
+        /** Online refresh failed; LocalStore cache kept (ListEmptyReason.RefreshFailedKeepCache). */
+        val refreshFailedKeepCache: String = "",
     )
 
     data class Sales(
@@ -184,6 +192,7 @@ data class SellerMessages(
         val submitted: String = "",
         val queued: String = "",
         val empty: String = "",
+        val emptyTitle: String = "",
         val statusPending: String = "",
         val statusPendingSync: String = "",
         val statusSyncFailed: String = "",
@@ -203,6 +212,7 @@ data class SellerMessages(
         val title: String = "",
         val searchByNameOrSku: String = "",
         val empty: String = "",
+        val emptyTitle: String = "",
         val skuLabel: String = "",
         val categoryLabel: String = "",
         val unitLabel: String = "",
@@ -233,5 +243,9 @@ data class SellerMessages(
         val registrationListItem: String = "",
         val registerCommerce: String = "",
         val pullToRefresh: String = "",
+        val emptyNeverSynced: String = "",
+        val emptySyncedEmpty: String = "",
+        val emptyOfflineUnavailable: String = "",
+        val refreshKeepCache: String = "",
     )
 }

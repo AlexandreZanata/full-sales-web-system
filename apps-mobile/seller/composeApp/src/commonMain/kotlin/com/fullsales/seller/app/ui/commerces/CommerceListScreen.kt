@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -39,9 +38,13 @@ import com.fullsales.seller.app.ui.a11y.selectableChipA11y
 import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
-import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.displayName
+import com.fullsales.seller.shared.i18n.SellerStrings
+import com.fullsales.seller.shared.ui.ListEmptyDomain
+import com.fullsales.seller.shared.ui.ListEmptyReason
+import com.fullsales.seller.shared.ui.listEmptyCopy
+import com.fullsales.seller.shared.ui.listSnackbarMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,8 +60,7 @@ fun CommerceListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.snackbarCode) {
         state.snackbarCode?.let { code ->
-            val message = if (code == "OFFLINE") s.common.noConnection else code
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showSnackbar(listSnackbarMessage(s, code))
             viewModel.clearSnackbar()
         }
     }
@@ -97,16 +99,23 @@ fun CommerceListScreen(
                 )
             }
             when {
-                state.isEmpty && state.isOffline && state.items.isEmpty() -> SellerEmptyState(
-                    title = s.common.offline,
-                    message = s.commerces.emptyOffline,
-                    modifier = Modifier.fillMaxSize(),
-                )
-                state.isEmpty -> SellerEmptyState(
+                state.items.isEmpty() &&
+                    state.emptyReason != null &&
+                    state.emptyReason != ListEmptyReason.RefreshFailedKeepCache -> {
+                    val copy = listEmptyCopy(s, state.emptyReason!!, ListEmptyDomain.Commerces)
+                    SellerEmptyState(
+                        title = copy.title,
+                        message = copy.message,
+                        actionLabel = onRegisterCommerce?.let { s.commerces.registerFab },
+                        onAction = onRegisterCommerce,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .semantics { contentDescription = copy.announcement },
+                    )
+                }
+                state.isFilterEmpty -> SellerEmptyState(
                     title = s.commerces.emptyTitle,
-                    message = state.errorCode?.let { SellerStrings.commerceError(s, it) } ?: s.commerces.empty,
-                    actionLabel = onRegisterCommerce?.let { s.commerces.registerFab },
-                    onAction = onRegisterCommerce,
+                    message = s.commerces.empty,
                     modifier = Modifier.fillMaxSize(),
                 )
                 else -> LazyColumn(contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)) {

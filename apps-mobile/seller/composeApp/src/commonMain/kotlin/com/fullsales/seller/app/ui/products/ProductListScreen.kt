@@ -33,11 +33,16 @@ import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.ui.a11y.listItemSummary
 import com.fullsales.seller.app.ui.a11y.screenTitle
+import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.formatProductPrice
+import com.fullsales.seller.shared.ui.ListEmptyDomain
+import com.fullsales.seller.shared.ui.ListEmptyReason
+import com.fullsales.seller.shared.ui.listEmptyCopy
+import com.fullsales.seller.shared.ui.listSnackbarMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,8 +57,7 @@ fun ProductListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.snackbarCode) {
         state.snackbarCode?.let { code ->
-            val message = if (code == "OFFLINE") s.common.noConnection else code
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showSnackbar(listSnackbarMessage(s, code))
             viewModel.clearSnackbar()
         }
     }
@@ -86,9 +90,20 @@ fun ProductListScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
-                state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 when {
-                    state.isEmpty -> Text(s.products.empty, style = MaterialTheme.typography.bodyLarge)
+                    state.items.isEmpty() &&
+                        state.emptyReason != null &&
+                        state.emptyReason != ListEmptyReason.RefreshFailedKeepCache -> {
+                        val copy = listEmptyCopy(s, state.emptyReason!!, ListEmptyDomain.Products)
+                        SellerEmptyState(
+                            title = copy.title,
+                            message = copy.message,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .semantics { contentDescription = copy.announcement },
+                        )
+                    }
+                    state.isFilterEmpty -> Text(s.products.empty, style = MaterialTheme.typography.bodyLarge)
                     else -> LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
                         items(state.filtered, key = { it.id }) { product ->
                             ProductRow(

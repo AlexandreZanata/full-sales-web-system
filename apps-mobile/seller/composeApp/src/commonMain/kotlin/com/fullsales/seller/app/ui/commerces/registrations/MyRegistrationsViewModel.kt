@@ -9,6 +9,8 @@ import com.fullsales.seller.shared.model.CommerceRegistration
 import com.fullsales.seller.shared.model.toCommerceRegistration
 import com.fullsales.seller.shared.repository.RegistrationRepository
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
+import com.fullsales.seller.shared.ui.ListEmptyReason
+import com.fullsales.seller.shared.ui.resolveListEmptyReason
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,16 +20,23 @@ import kotlinx.coroutines.launch
 data class MyRegistrationsUiState(
     val items: List<CommerceRegistration> = emptyList(),
     val refreshing: Boolean = false,
-    val error: String? = null,
     val connectivity: ConnectivityState = ConnectivityState.Offline,
     val snackbarCode: String? = null,
+    val everSynced: Boolean = false,
+    val refreshFailed: Boolean = false,
 ) {
     val isOffline: Boolean get() = !connectivity.allowsInternetOnlyActions()
-    val isEmpty: Boolean get() = !refreshing && error == null && items.isEmpty()
+
+    val emptyReason: ListEmptyReason? get() = resolveListEmptyReason(
+        hasLocalRows = items.isNotEmpty(),
+        everSynced = everSynced,
+        isOnline = !isOffline,
+        refreshFailed = refreshFailed,
+    )
 }
 
 /**
- * LocalStore-first registrations list (Phase 16C).
+ * LocalStore-first registrations list (Phase 16C/16F).
  */
 class MyRegistrationsViewModel(
     private val registrationRepository: RegistrationRepository,
@@ -38,6 +47,11 @@ class MyRegistrationsViewModel(
     val state: StateFlow<MyRegistrationsUiState> = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(everSynced = registrationRepository.getLastRegistrationsSyncEpochMs() != null)
+            }
+        }
         viewModelScope.launch {
             networkMonitor.connectivity.collect { connectivity ->
                 _state.update { it.copy(connectivity = connectivity) }
@@ -68,13 +82,16 @@ class MyRegistrationsViewModel(
                 }
                 return@launch
             }
-            _state.update { it.copy(refreshing = true, error = null) }
+            _state.update { it.copy(refreshing = true, refreshFailed = false) }
             val ok = syncCoordinator.pullRegistrations()
+            val synced = registrationRepository.getLastRegistrationsSyncEpochMs() != null
             _state.update {
+                val keepCacheFail = !ok && it.items.isNotEmpty()
                 it.copy(
                     refreshing = false,
-                    error = if (!ok && it.items.isEmpty()) "Load failed" else null,
-                    snackbarCode = if (!ok && it.items.isNotEmpty()) "REFRESH_FAILED" else null,
+                    everSynced = synced || it.everSynced,
+                    refreshFailed = keepCacheFail,
+                    snackbarCode = if (keepCacheFail) "REFRESH_FAILED" else null,
                 )
             }
         }

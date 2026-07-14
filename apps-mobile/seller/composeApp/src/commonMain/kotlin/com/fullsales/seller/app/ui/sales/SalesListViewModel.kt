@@ -7,6 +7,8 @@ import com.fullsales.seller.shared.connectivity.ConnectivityState
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.sales.localSalesToListItems
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
+import com.fullsales.seller.shared.ui.ListEmptyReason
+import com.fullsales.seller.shared.ui.resolveListEmptyReason
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,12 +22,20 @@ data class SalesListUiState(
     val refreshing: Boolean = false,
     val isOffline: Boolean = false,
     /** True after at least one successful sales pull (durable metadata). */
-    val remoteLoaded: Boolean = false,
+    val everSynced: Boolean = false,
     val snackbarCode: String? = null,
-)
+    val refreshFailed: Boolean = false,
+) {
+    val emptyReason: ListEmptyReason? get() = resolveListEmptyReason(
+        hasLocalRows = items.isNotEmpty(),
+        everSynced = everSynced,
+        isOnline = !isOffline,
+        refreshFailed = refreshFailed,
+    )
+}
 
 /**
- * LocalStore-first list (Phase 16B): observe Room only; online refresh runs pullSales.
+ * LocalStore-first list (Phase 16B/16F): observe Room only; online refresh runs pullSales.
  */
 class SalesListViewModel(
     private val saleRepository: SaleRepository,
@@ -38,7 +48,7 @@ class SalesListViewModel(
     init {
         viewModelScope.launch {
             _state.update {
-                it.copy(remoteLoaded = saleRepository.getLastSalesSyncEpochMs() != null)
+                it.copy(everSynced = saleRepository.getLastSalesSyncEpochMs() != null)
             }
         }
         viewModelScope.launch {
@@ -51,7 +61,7 @@ class SalesListViewModel(
                 .map { it == ConnectivityState.Online }
                 .distinctUntilChanged()
                 .collect { online ->
-                    if (online && !_state.value.remoteLoaded) {
+                    if (online && !_state.value.everSynced) {
                         refresh()
                     } else if (!online) {
                         _state.update { it.copy(isOffline = true) }
@@ -71,20 +81,22 @@ class SalesListViewModel(
                     it.copy(
                         refreshing = false,
                         isOffline = true,
-                        snackbarCode = if (it.remoteLoaded) "OFFLINE" else null,
+                        snackbarCode = if (it.items.isNotEmpty()) "OFFLINE" else null,
                     )
                 }
                 return@launch
             }
-            _state.update { it.copy(refreshing = true, isOffline = false) }
-            runCatching { syncCoordinator.syncPullAndPush() }
+            _state.update { it.copy(refreshing = true, isOffline = false, refreshFailed = false) }
+            val pulls = syncCoordinator.syncPullAndPushWithPullFlags()
             val pulled = saleRepository.getLastSalesSyncEpochMs() != null
             _state.update {
+                val keepCacheFail = !pulls.salesOk && it.items.isNotEmpty()
                 it.copy(
                     refreshing = false,
                     isOffline = !networkMonitor.isOnline(),
-                    remoteLoaded = pulled || it.remoteLoaded,
-                    snackbarCode = if (!pulled && it.items.isEmpty()) "REFRESH_FAILED" else null,
+                    everSynced = pulled || it.everSynced,
+                    refreshFailed = keepCacheFail,
+                    snackbarCode = if (keepCacheFail) "REFRESH_FAILED" else null,
                 )
             }
         }

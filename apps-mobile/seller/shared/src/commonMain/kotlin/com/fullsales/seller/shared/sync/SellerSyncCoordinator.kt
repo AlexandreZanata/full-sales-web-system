@@ -32,4 +32,24 @@ class SellerSyncCoordinator(
         pullSettings()
         return pushResult
     }
+
+    /**
+     * Same as [syncPullAndPush] but exposes per-domain pull success for keep-cache snackbars (16F).
+     */
+    suspend fun syncPullAndPushWithPullFlags(): SyncPullFlags {
+        pushOutbox()
+        return SyncPullFlags(
+            catalogOk = pullCatalog(),
+            salesOk = pullSales(),
+            registrationsOk = pullRegistrations(),
+            settingsOk = pullSettings(),
+        )
+    }
 }
+
+data class SyncPullFlags(
+    val catalogOk: Boolean,
+    val salesOk: Boolean,
+    val registrationsOk: Boolean,
+    val settingsOk: Boolean,
+)

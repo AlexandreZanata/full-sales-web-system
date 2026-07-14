@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -35,10 +34,15 @@ import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.listItemSummary
 import com.fullsales.seller.app.ui.components.SellerEmptyState
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
+import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.SalesListItem
 import com.fullsales.seller.shared.model.formatMoneyMinorUnits
 import com.fullsales.seller.shared.model.formatSalesListDateTime
+import com.fullsales.seller.shared.ui.ListEmptyDomain
+import com.fullsales.seller.shared.ui.ListEmptyReason
+import com.fullsales.seller.shared.ui.listEmptyCopy
+import com.fullsales.seller.shared.ui.listSnackbarMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,8 +56,7 @@ fun SalesListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.snackbarCode) {
         state.snackbarCode?.let { code ->
-            val message = if (code == "OFFLINE") s.common.noConnection else code
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showSnackbar(listSnackbarMessage(s, code))
             viewModel.clearSnackbar()
         }
     }
@@ -73,21 +76,20 @@ fun SalesListScreen(
                 .padding(padding)
                 .semantics { contentDescription = s.a11y.pullToRefresh },
         ) {
+            val reason = state.emptyReason
             when {
-                state.items.isEmpty() && state.isOffline && !state.remoteLoaded ->
+                state.items.isEmpty() && reason != null && reason != ListEmptyReason.RefreshFailedKeepCache -> {
+                    val copy = listEmptyCopy(s, reason, ListEmptyDomain.Sales)
                     SellerEmptyState(
-                        title = s.sales.offlineTitle,
-                        message = s.sales.offlineMessage,
-                        modifier = Modifier.fillMaxSize(),
+                        title = copy.title,
+                        message = copy.message,
+                        actionLabel = if (reason == ListEmptyReason.SyncedEmpty) s.sales.emptyAction else null,
+                        onAction = if (reason == ListEmptyReason.SyncedEmpty) onNewSale else null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .semantics { contentDescription = copy.announcement },
                     )
-                state.items.isEmpty() ->
-                    SellerEmptyState(
-                        title = s.sales.emptyTitle,
-                        message = s.sales.emptyMessage,
-                        actionLabel = s.sales.emptyAction,
-                        onAction = onNewSale,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                }
                 else -> LazyColumn(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),

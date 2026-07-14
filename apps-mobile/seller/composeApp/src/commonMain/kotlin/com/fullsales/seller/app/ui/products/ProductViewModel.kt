@@ -9,6 +9,8 @@ import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.sales.filterProductsAvailableForBrowsing
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
+import com.fullsales.seller.shared.ui.ListEmptyReason
+import com.fullsales.seller.shared.ui.resolveListEmptyReason
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,16 +23,24 @@ data class ProductListUiState(
     val searchQuery: String = "",
     val stockByProductId: Map<String, Int> = emptyMap(),
     val refreshing: Boolean = false,
-    val error: String? = null,
     val snackbarCode: String? = null,
     val isOffline: Boolean = false,
+    val everSynced: Boolean = false,
+    val refreshFailed: Boolean = false,
 ) {
     val filtered: List<Product> = filterProductsAvailableForBrowsing(
         filterProductsBySearch(items, searchQuery),
         stockByProductId,
     )
 
-    val isEmpty: Boolean get() = !refreshing && error == null && filtered.isEmpty()
+    val emptyReason: ListEmptyReason? get() = resolveListEmptyReason(
+        hasLocalRows = items.isNotEmpty(),
+        everSynced = everSynced,
+        isOnline = !isOffline,
+        refreshFailed = refreshFailed,
+    )
+
+    val isFilterEmpty: Boolean get() = !refreshing && items.isNotEmpty() && filtered.isEmpty()
 }
 
 class ProductViewModel(
@@ -41,7 +51,8 @@ class ProductViewModel(
 ) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     private val _refreshing = MutableStateFlow(false)
-    private val _error = MutableStateFlow<String?>(null)
+    private val _everSynced = MutableStateFlow(false)
+    private val _refreshFailed = MutableStateFlow(false)
     private val _stockByProductId = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val _state = MutableStateFlow(ProductListUiState())
     val state: StateFlow<ProductListUiState> = _state.asStateFlow()
@@ -49,23 +60,25 @@ class ProductViewModel(
     init {
         viewModelScope.launch {
             _stockByProductId.value = stockPrefetcher.cachedMap()
+            _everSynced.value = catalogRepository.getLastCatalogSyncEpochMs() != null
         }
         viewModelScope.launch {
             combine(
                 catalogRepository.observeProducts(),
                 _searchQuery,
                 _refreshing,
-                _error,
                 _stockByProductId,
-            ) { products, query, refreshing, error, stockByProductId ->
+                _everSynced,
+            ) { products, query, refreshing, stockByProductId, everSynced ->
                 ProductListUiState(
                     items = products,
                     searchQuery = query,
                     stockByProductId = stockByProductId,
                     refreshing = refreshing,
-                    error = error,
                     snackbarCode = _state.value.snackbarCode,
                     isOffline = !networkMonitor.isOnline(),
+                    everSynced = everSynced,
+                    refreshFailed = _refreshFailed.value,
                 )
             }.collect { _state.value = it }
         }
@@ -87,14 +100,22 @@ class ProductViewModel(
     fun refresh() {
         viewModelScope.launch {
             if (!networkMonitor.isOnline()) {
-                _state.update { it.copy(snackbarCode = "OFFLINE", refreshing = false) }
+                _state.update {
+                    it.copy(snackbarCode = if (it.items.isNotEmpty()) "OFFLINE" else null, refreshing = false)
+                }
                 return@launch
             }
             _refreshing.value = true
-            _error.value = null
-            runCatching { syncCoordinator.syncPullAndPush() }
-                .onFailure { _error.value = it.message ?: "Sync failed" }
+            _refreshFailed.value = false
+            val pulls = syncCoordinator.syncPullAndPushWithPullFlags()
+            val synced = catalogRepository.getLastCatalogSyncEpochMs() != null
+            _everSynced.value = synced || _everSynced.value
+            val keepCacheFail = !pulls.catalogOk && _state.value.items.isNotEmpty()
+            _refreshFailed.value = keepCacheFail
             _refreshing.value = false
+            if (keepCacheFail) {
+                _state.update { it.copy(snackbarCode = "REFRESH_FAILED", refreshFailed = true) }
+            }
         }
     }
 
