@@ -93,13 +93,14 @@ Phase 14 — validated connectivity, push-first sync, offline-first mutations, c
 3. **Confirm/cancel:** with `remoteId` → optimistic local `Confirmed`/`Cancelled` + pending sync chip while outbox drains. Without `remoteId` → blocked (`NO_REMOTE_ID` / “Aguardando sincronização”).
 4. **Sync:** `SellerSyncCoordinator.pushOutbox()` then best-effort `pullCatalog()` — catalog failure never blocks push. Stable Offline→Online auto-drains outbox once (`OnlineSyncTrigger`). WorkManager / onResume remain secondary. Exhausted retries (`attempts >= max`) → `SyncFailed` (dead-letter UX).
 5. **Internet-only:** CNPJ lookup + registration submit CTAs disabled when not Online (“Disponível com internet”). Draft form stays editable; my-registrations keeps last in-memory list and skips refresh offline.
-6. **Cache-first reads (14D):** Product/commerce detail load from Room (and address/stock snapshots) first; API enrich when Online. Stock balances persist in Room (`stock_snapshots`) until next successful fetch (no hard TTL). Browse/create-sale uses cached stock for backorder warnings; unknown stock does not hide products.
+6. **Cache-first reads (14D / 16A):** Product/commerce detail load from Room (and address/stock snapshots) first; API enrich when Online. **Room schema v5** stores commerce `cnpj`, product `unitOfMeasure`/`description`, sale `driverId`/`origin`, and sale-line unit prices. Detail enrich upserts UOM/description into LocalStore; catalog list pull **preserves** those detail fields when the list payload omits them. Stock balances persist in Room (`stock_snapshots`) until next successful fetch (no hard TTL). Browse/create-sale uses cached stock for backorder warnings; unknown stock does not hide products.
 7. **Offline chrome (14E):** Shell chip shows Offline / Syncing / Online / Sync failed (TalkBack live region); pull-to-refresh offline shows “Sem conexão” and does not spin.
 8. **Idempotency:** UUID v7 key on `POST /v1/sales`; server dedupes retries.
+9. **Migrations (16A / OD-16-4):** `SellerMigrations.MIGRATION_4_5` is explicit; installs from v4 keep sales. Destructive fallback only for versions 1–3.
 
 **Manual device script:** sync catalog online → airplane → open product/commerce/sale detail from cache → create/confirm with remoteId → CNPJ/registration disabled → toggle airplane rapidly → outbox drains after stable Online.
 
-Tests: `DebouncedConnectivityTest`, `SellerSyncCoordinatorTest`, `CacheFirstDetailLoaderTest`, `SyncEngineTest`, `CreateSaleSubmitterTest`, `SaleActionSubmitterTest`, `OfflineSalePersistenceTest` (Robolectric), instrumented outbox/create tests.
+Tests: `DebouncedConnectivityTest`, `SellerSyncCoordinatorTest`, `CacheFirstDetailLoaderTest`, `ProductDetailEnrichPersistTest`, `SyncEngineTest`, `CreateSaleSubmitterTest`, `SaleActionSubmitterTest`, `OfflineSalePersistenceTest`, `CatalogFieldPersistenceTest`, `SellerDatabaseMigrationTest` (Robolectric), instrumented outbox/create tests.
 
 ## Accessibility (Phase 66)
 
@@ -193,4 +194,4 @@ GitHub Actions jobs `seller-kmp` (Ubuntu) and `seller-ios` (macOS) — see [.git
 - [ADR-051](../adr/ADR-051-seller-kmp-app.md) — separate seller app vs field
 - Module README: [apps-mobile/seller/README.md](../../apps-mobile/seller/README.md)
 
-**Updated:** 2026-07-06
+**Updated:** 2026-07-14

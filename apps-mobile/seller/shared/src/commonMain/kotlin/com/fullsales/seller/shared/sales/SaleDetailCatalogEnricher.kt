@@ -1,9 +1,9 @@
 package com.fullsales.seller.shared.sales
 
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.catalog.toProduct
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.Product
-import com.fullsales.seller.shared.model.ProductDetail
 
 class SaleDetailCatalogEnricher(
     private val apiClient: SellerApiClient,
@@ -33,17 +33,3 @@ class SaleDetailCatalogEnricher(
         return commerceById.values.toList() to productById.values.toList()
     }
 }
-
-internal fun ProductDetail.toProduct(): Product = Product(
-    id = id,
-    name = name,
-    sku = sku,
-    priceAmount = priceAmount,
-    priceCurrency = priceCurrency,
-    active = active,
-    categoryId = categoryId,
-    categoryName = categoryName,
-    categorySlug = categorySlug,
-    primaryImageUrl = primaryImageUrl,
-    primaryImageFileId = primaryImageFileId,
-)

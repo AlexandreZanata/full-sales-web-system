@@ -37,8 +37,24 @@ class FakeCatalogRepository : CatalogRepository {
     }
 
     override suspend fun replaceProducts(items: List<Product>) {
+        val preserved = products.associateBy { it.id }
         products.clear()
-        products.addAll(items)
+        products.addAll(
+            items.map { incoming ->
+                val old = preserved[incoming.id]
+                incoming.copy(
+                    unitOfMeasure = incoming.unitOfMeasure ?: old?.unitOfMeasure,
+                    description = incoming.description ?: old?.description,
+                )
+            },
+        )
+    }
+
+    override suspend fun upsertProducts(items: List<Product>) {
+        items.forEach { incoming ->
+            val idx = products.indexOfFirst { it.id == incoming.id }
+            if (idx >= 0) products[idx] = incoming else products.add(incoming)
+        }
     }
 
     override suspend fun getLastCatalogSyncEpochMs(): Long? = lastSync
@@ -79,6 +95,7 @@ class FakeSaleRepository : SaleRepository {
             totalAmount = totalAmount,
             items = request.items.map { SaleItem(it.productId, it.quantity) },
             createdAtEpochMs = 1L,
+            origin = com.fullsales.seller.shared.model.SaleOrigin.Local,
         )
         sales[localId] = sale
         sale

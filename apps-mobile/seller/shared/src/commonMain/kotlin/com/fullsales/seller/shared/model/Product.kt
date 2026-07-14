@@ -16,6 +16,8 @@ data class Product(
     val categorySlug: String? = null,
     @SerialName("primaryImageUrl") val primaryImageUrl: String? = null,
     @SerialName("primaryImageFileId") val primaryImageFileId: String? = null,
+    val unitOfMeasure: String? = null,
+    val description: String? = null,
 )
 
 @Serializable

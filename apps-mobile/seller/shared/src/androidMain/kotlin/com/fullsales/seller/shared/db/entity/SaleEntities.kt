@@ -20,6 +20,8 @@ data class SaleEntity(
     val totalCurrency: String,
     val createdAtEpochMs: Long,
     val syncFailureReason: String? = null,
+    val driverId: String? = null,
+    val origin: String = "Local",
 )
 
 @Entity(
@@ -39,6 +41,9 @@ data class SaleLineEntity(
     val saleLocalId: String,
     val productId: String,
     val quantity: Int,
+    val unitPriceAmount: Double = 0.0,
+    val unitPriceCurrency: String = "BRL",
+    val lineTotalAmount: Double = 0.0,
 )
 
 @Entity(

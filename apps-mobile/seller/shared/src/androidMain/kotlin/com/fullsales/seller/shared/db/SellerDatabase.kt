@@ -28,7 +28,7 @@ import com.fullsales.seller.shared.db.entity.SyncOutboxEntity
         StockSnapshotEntity::class,
         CommerceAddressCacheEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class SellerDatabase : RoomDatabase() {
@@ -40,7 +40,8 @@ abstract class SellerDatabase : RoomDatabase() {
     companion object {
         fun build(context: Context, name: String = "seller.db"): SellerDatabase =
             Room.databaseBuilder(context, SellerDatabase::class.java, name)
-                .fallbackToDestructiveMigration()
+                .addMigrations(SellerMigrations.MIGRATION_4_5)
+                .fallbackToDestructiveMigrationFrom(1, 2, 3)
                 .build()
 
         fun inMemory(context: Context): SellerDatabase =

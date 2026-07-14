@@ -9,6 +9,12 @@ enum class LocalSaleStatus {
     Cancelled,
 }
 
+/** Origin of a LocalSale row in LocalStore (Phase 16A). */
+enum class SaleOrigin {
+    Local,
+    RemoteMirror,
+}
+
 data class LocalSale(
     val localId: String,
     val remoteId: String? = null,
@@ -21,4 +27,6 @@ data class LocalSale(
     val items: List<SaleItem> = emptyList(),
     val createdAtEpochMs: Long,
     val syncFailureReason: String? = null,
+    val driverId: String? = null,
+    val origin: SaleOrigin = SaleOrigin.Local,
 )

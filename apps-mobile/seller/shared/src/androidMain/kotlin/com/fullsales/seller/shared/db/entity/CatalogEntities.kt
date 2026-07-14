@@ -9,6 +9,7 @@ data class CommerceEntity(
     val legalName: String,
     val tradeName: String?,
     val active: Boolean,
+    val cnpj: String? = null,
 )
 
 @Entity(tableName = "products")
@@ -24,6 +25,8 @@ data class ProductEntity(
     val categorySlug: String? = null,
     val primaryImageUrl: String? = null,
     val primaryImageFileId: String? = null,
+    val unitOfMeasure: String? = null,
+    val description: String? = null,
 )
 
 @Entity(tableName = "stock_snapshots")

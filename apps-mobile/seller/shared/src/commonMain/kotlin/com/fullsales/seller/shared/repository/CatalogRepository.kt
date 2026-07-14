@@ -11,6 +11,8 @@ interface CatalogRepository {
     suspend fun getProduct(id: String): Product?
     suspend fun replaceCommerces(commerces: List<Commerce>)
     suspend fun replaceProducts(products: List<Product>)
+    /** Upsert without wiping other rows — used after product detail enrich. */
+    suspend fun upsertProducts(products: List<Product>)
     suspend fun getLastCatalogSyncEpochMs(): Long?
     suspend fun setLastCatalogSyncEpochMs(epochMs: Long)
 }

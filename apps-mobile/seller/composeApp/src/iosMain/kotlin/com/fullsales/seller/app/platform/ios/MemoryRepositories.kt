@@ -39,8 +39,25 @@ internal class MemoryCatalogRepository : CatalogRepository {
     }
 
     override suspend fun replaceProducts(items: List<Product>) {
+        val preserved = products.associateBy { it.id }
         products.clear()
-        products.addAll(items)
+        products.addAll(
+            items.map { incoming ->
+                val old = preserved[incoming.id]
+                incoming.copy(
+                    unitOfMeasure = incoming.unitOfMeasure ?: old?.unitOfMeasure,
+                    description = incoming.description ?: old?.description,
+                )
+            },
+        )
+        productFlow.value = products.filter { it.active }
+    }
+
+    override suspend fun upsertProducts(items: List<Product>) {
+        items.forEach { incoming ->
+            val idx = products.indexOfFirst { it.id == incoming.id }
+            if (idx >= 0) products[idx] = incoming else products.add(incoming)
+        }
         productFlow.value = products.filter { it.active }
     }
 
@@ -76,6 +93,7 @@ internal class MemorySaleRepository : SaleRepository {
                 totalAmount = totalAmount,
                 items = request.items.map { SaleItem(it.productId, it.quantity) },
                 createdAtEpochMs = 1L,
+                origin = com.fullsales.seller.shared.model.SaleOrigin.Local,
             )
             sales[localId] = sale
             flow.value = sales.values.toList()

@@ -12,7 +12,7 @@ class CatalogPullSyncTest {
     fun pullCatalog_replacesCatalogAndRecordsLastSync() = runTest {
         val catalog = FakeCatalogRepository()
         val client = FakeCatalogPullClient()
-        client.commerces = listOf(Commerce("c1", "Store", "S", true))
+        client.commerces = listOf(Commerce("c1", "Store", "S", true, cnpj = "11222333000181"))
         client.products = listOf(
             Product("p1", "Active", "A-1", 10.0, "BRL", true),
             Product("p2", "Inactive", "I-1", 5.0, "BRL", false),
@@ -22,6 +22,7 @@ class CatalogPullSyncTest {
         sync.pullCatalog(nowEpochMs = 99_000L)
 
         assertEquals(1, catalog.observeCommerces().first().size)
+        assertEquals("11222333000181", catalog.getCommerce("c1")!!.cnpj)
         val products = catalog.observeProducts().first()
         assertEquals(1, products.size)
         assertEquals("p1", products.single().id)

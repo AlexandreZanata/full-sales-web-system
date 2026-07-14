@@ -12,7 +12,7 @@ data class CachedProductDetail(
 )
 
 /**
- * Contract (Phase 14D): Room/cache first; online enrich optional.
+ * Contract (Phase 14D / 16A): Room/cache first; online enrich writes UOM/description into LocalStore.
  */
 class ProductDetailLoader(
     private val catalog: CatalogRepository,
@@ -27,6 +27,9 @@ class ProductDetailLoader(
             return CachedProductDetail(product, cachedStock, fromCache = true)
         }
         val remote = runCatching { apiClient.getProduct(productId) }.getOrNull()
+        if (remote != null) {
+            catalog.upsertProducts(listOf(remote.toProduct()))
+        }
         val product = remote ?: cached ?: error("PRODUCT_NOT_FOUND")
         val balance = runCatching { apiClient.getStockBalance(productId).available }
             .onSuccess { stockSnapshots.put(productId, it) }

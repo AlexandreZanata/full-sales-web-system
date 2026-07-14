@@ -11,18 +11,21 @@ import com.fullsales.seller.shared.model.LocalSale
 import com.fullsales.seller.shared.model.LocalSaleStatus
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.SaleItem
+import com.fullsales.seller.shared.model.SaleOrigin
 import com.fullsales.seller.shared.model.SyncOutboxEntry
 
-fun CommerceEntity.toModel() = Commerce(id, legalName, tradeName, active)
+fun CommerceEntity.toModel() = Commerce(id, legalName, tradeName, active, cnpj)
+
 fun ProductEntity.toModel() = Product(
     id, name, sku, priceAmount, priceCurrency, active, categoryId, categoryName, categorySlug,
-    primaryImageUrl, primaryImageFileId,
+    primaryImageUrl, primaryImageFileId, unitOfMeasure, description,
 )
 
-fun Commerce.toEntity() = CommerceEntity(id, legalName, tradeName, active)
+fun Commerce.toEntity() = CommerceEntity(id, legalName, tradeName, active, cnpj)
+
 fun Product.toEntity() = ProductEntity(
     id, name, sku, priceAmount, priceCurrency, active, categoryId, categoryName, categorySlug,
-    primaryImageUrl, primaryImageFileId,
+    primaryImageUrl, primaryImageFileId, unitOfMeasure, description,
 )
 
 fun SaleWithLines.toModel(): LocalSale = LocalSale(
@@ -34,9 +37,19 @@ fun SaleWithLines.toModel(): LocalSale = LocalSale(
     status = LocalSaleStatus.valueOf(sale.status),
     totalAmount = sale.totalAmount,
     totalCurrency = sale.totalCurrency,
-    items = lines.map { SaleItem(it.productId, it.quantity) },
+    items = lines.map {
+        SaleItem(
+            productId = it.productId,
+            quantity = it.quantity,
+            unitPriceAmount = it.unitPriceAmount,
+            unitPriceCurrency = it.unitPriceCurrency,
+            lineTotalAmount = it.lineTotalAmount,
+        )
+    },
     createdAtEpochMs = sale.createdAtEpochMs,
     syncFailureReason = sale.syncFailureReason,
+    driverId = sale.driverId,
+    origin = runCatching { SaleOrigin.valueOf(sale.origin) }.getOrDefault(SaleOrigin.Local),
 )
 
 fun SyncOutboxEntity.toModel() = SyncOutboxEntry(
@@ -57,6 +70,8 @@ fun saleEntity(
     totalAmount: Double,
     status: LocalSaleStatus,
     createdAtEpochMs: Long,
+    driverId: String? = null,
+    origin: SaleOrigin = SaleOrigin.Local,
 ) = SaleEntity(
     localId = localId,
     remoteId = null,
@@ -67,7 +82,18 @@ fun saleEntity(
     totalAmount = totalAmount,
     totalCurrency = "BRL",
     createdAtEpochMs = createdAtEpochMs,
+    driverId = driverId,
+    origin = origin.name,
 )
 
 fun saleLines(localId: String, items: List<SaleItem>) =
-    items.map { SaleLineEntity(saleLocalId = localId, productId = it.productId, quantity = it.quantity) }
+    items.map {
+        SaleLineEntity(
+            saleLocalId = localId,
+            productId = it.productId,
+            quantity = it.quantity,
+            unitPriceAmount = it.unitPriceAmount,
+            unitPriceCurrency = it.unitPriceCurrency,
+            lineTotalAmount = it.lineTotalAmount,
+        )
+    }

@@ -8,6 +8,7 @@ import com.fullsales.seller.shared.model.CreateSaleRequest
 import com.fullsales.seller.shared.model.LocalSale
 import com.fullsales.seller.shared.model.LocalSaleStatus
 import com.fullsales.seller.shared.model.SaleItem
+import com.fullsales.seller.shared.model.SaleOrigin
 import com.fullsales.seller.shared.model.generateUuidV7
 import com.fullsales.seller.shared.repository.SaleRepository
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +36,7 @@ class RoomSaleRepository(private val dao: SaleDao) : SaleRepository {
             saleEntity(
                 localId, idempotencyKey, request.commerceId, request.paymentMethod,
                 totalAmount, LocalSaleStatus.Draft, now,
+                origin = SaleOrigin.Local,
             ),
         )
         dao.insertLines(saleLines(localId, items))
@@ -47,6 +49,7 @@ class RoomSaleRepository(private val dao: SaleDao) : SaleRepository {
             totalAmount = totalAmount,
             items = items,
             createdAtEpochMs = now,
+            origin = SaleOrigin.Local,
         )
     }
 

@@ -1,9 +1,9 @@
 package com.fullsales.seller.shared.db.repository
 
 import com.fullsales.seller.shared.db.dao.CatalogDao
+import com.fullsales.seller.shared.db.entity.SyncMetadataEntity
 import com.fullsales.seller.shared.db.mapper.toEntity
 import com.fullsales.seller.shared.db.mapper.toModel
-import com.fullsales.seller.shared.db.entity.SyncMetadataEntity
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.repository.CatalogRepository
@@ -28,7 +28,20 @@ class RoomCatalogRepository(private val dao: CatalogDao) : CatalogRepository {
     }
 
     override suspend fun replaceProducts(products: List<Product>) {
-        dao.replaceProducts(products.map { it.toEntity() })
+        // Catalog list pull omits detail fields — preserve UOM/description already in Room.
+        val merged = products.map { incoming ->
+            val existing = dao.getProduct(incoming.id)
+            incoming.copy(
+                unitOfMeasure = incoming.unitOfMeasure ?: existing?.unitOfMeasure,
+                description = incoming.description ?: existing?.description,
+            )
+        }
+        dao.replaceProducts(merged.map { it.toEntity() })
+    }
+
+    override suspend fun upsertProducts(products: List<Product>) {
+        if (products.isEmpty()) return
+        dao.upsertProducts(products.map { it.toEntity() })
     }
 
     override suspend fun getLastCatalogSyncEpochMs(): Long? =

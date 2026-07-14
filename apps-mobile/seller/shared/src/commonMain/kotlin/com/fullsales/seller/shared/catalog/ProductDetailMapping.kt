@@ -13,6 +13,24 @@ fun Product.toDetail(): ProductDetail = ProductDetail(
     categoryId = categoryId,
     categoryName = categoryName,
     categorySlug = categorySlug,
+    unitOfMeasure = unitOfMeasure,
+    description = description,
     primaryImageUrl = primaryImageUrl,
     primaryImageFileId = primaryImageFileId,
+)
+
+fun ProductDetail.toProduct(): Product = Product(
+    id = id,
+    name = name,
+    sku = sku,
+    priceAmount = priceAmount,
+    priceCurrency = priceCurrency,
+    active = active,
+    categoryId = categoryId,
+    categoryName = categoryName,
+    categorySlug = categorySlug,
+    primaryImageUrl = primaryImageUrl,
+    primaryImageFileId = primaryImageFileId,
+    unitOfMeasure = unitOfMeasure,
+    description = description,
 )
