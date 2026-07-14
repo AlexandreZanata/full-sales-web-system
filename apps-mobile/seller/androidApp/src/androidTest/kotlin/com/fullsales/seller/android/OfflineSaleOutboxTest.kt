@@ -37,6 +37,6 @@ class OfflineSaleOutboxTest {
         )
 
         assertEquals(LocalSaleStatus.PendingSync, container.saleRepository.getSale(sale.localId)?.status)
-        assertTrue(container.outboxRepository.countPendingForSale(sale.localId) >= 1)
+        assertTrue(container.outboxRepository.countPendingForAggregate(sale.localId) >= 1)
     }
 }

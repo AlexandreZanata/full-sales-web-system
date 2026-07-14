@@ -22,19 +22,35 @@ class SyncEngine(
                 deadLetter(entry)
                 continue
             }
-            val stop = processEntry(entry)
+            if (isBlockedByDependency(entry)) continue
+            val stop = processEntry(resolveRemotePath(entry))
             if (stop) return SyncProcessResult(processed, stoppedEarly = true)
             processed++
         }
         return SyncProcessResult(processed)
     }
 
+    private suspend fun isBlockedByDependency(entry: SyncOutboxEntry): Boolean {
+        val parentId = entry.dependsOnOutboxId ?: return false
+        val parent = outbox.getEntry(parentId) ?: return false
+        return !parent.completed
+    }
+
+    private suspend fun resolveRemotePath(entry: SyncOutboxEntry): SyncOutboxEntry {
+        if (entry.entityType != SyncEntityType.Sale) return entry
+        if (entry.path == "/sales") return entry
+        if (!entry.path.endsWith("/confirm") && !entry.path.endsWith("/cancel")) return entry
+        val remoteId = sales.getSale(entry.aggregateId)?.remoteId ?: return entry
+        val action = if (entry.path.endsWith("/confirm")) "confirm" else "cancel"
+        return entry.copy(path = "/sales/$remoteId/$action")
+    }
+
     private suspend fun deadLetter(entry: SyncOutboxEntry) {
         when (entry.entityType) {
             SyncEntityType.Registration ->
-                registrations?.markSyncFailed(entry.saleLocalId, entry.lastError ?: "MAX_ATTEMPTS")
+                registrations?.markSyncFailed(entry.aggregateId, entry.lastError ?: "MAX_ATTEMPTS")
             else ->
-                sales.markSyncFailed(entry.saleLocalId, entry.lastError ?: "MAX_ATTEMPTS")
+                sales.markSyncFailed(entry.aggregateId, entry.lastError ?: "MAX_ATTEMPTS")
         }
         outbox.markCompleted(entry.id)
     }
@@ -53,7 +69,7 @@ class SyncEngine(
             }
             SyncHttpOutcome.InsufficientStock -> {
                 outbox.markCompleted(entry.id)
-                sales.markSyncFailed(entry.saleLocalId, result.errorCode ?: "INSUFFICIENT_STOCK")
+                sales.markSyncFailed(entry.aggregateId, result.errorCode ?: "INSUFFICIENT_STOCK")
                 false
             }
             SyncHttpOutcome.NetworkError -> {
@@ -75,17 +91,17 @@ class SyncEngine(
         when {
             entry.path == "/commerces/registrations" && remoteId != null ->
                 registrations?.setRemoteSynced(
-                    localId = entry.saleLocalId,
+                    localId = entry.aggregateId,
                     remoteId = remoteId,
                     registrationStatus = "PendingReview",
                     active = false,
                 )
             entry.path == "/sales" && remoteId != null ->
-                sales.setRemoteId(entry.saleLocalId, remoteId, LocalSaleStatus.Synced)
+                sales.setRemoteId(entry.aggregateId, remoteId, LocalSaleStatus.Synced)
             entry.path.endsWith("/confirm") ->
-                sales.updateStatus(entry.saleLocalId, LocalSaleStatus.Confirmed)
+                sales.updateStatus(entry.aggregateId, LocalSaleStatus.Confirmed)
             entry.path.endsWith("/cancel") ->
-                sales.updateStatus(entry.saleLocalId, LocalSaleStatus.Cancelled)
+                sales.updateStatus(entry.aggregateId, LocalSaleStatus.Cancelled)
         }
     }
 }

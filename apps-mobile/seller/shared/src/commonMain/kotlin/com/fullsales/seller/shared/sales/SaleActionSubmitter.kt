@@ -3,6 +3,7 @@ package com.fullsales.seller.shared.sales
 import com.fullsales.seller.shared.api.ApiException
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.model.LocalSaleStatus
+import com.fullsales.seller.shared.model.SyncEntityType
 import com.fullsales.seller.shared.model.SyncOutboxEntry
 import com.fullsales.seller.shared.model.currentEpochMs
 import com.fullsales.seller.shared.repository.SaleRepository
@@ -32,40 +33,48 @@ class SaleActionSubmitter(
         action: String,
         call: suspend (String) -> Unit,
     ): SaleActionResult {
-        val remoteId = detail.remoteId
+        val localId = detail.localId ?: detail.remoteId
             ?: return SaleActionResult.Failure("NO_REMOTE_ID", "NO_REMOTE_ID")
-        val localId = detail.localId
-        if (!online) {
-            return enqueueOptimistic(localId ?: remoteId, remoteId, action)
-        }
-        return runCatching {
-            call(remoteId)
-            localId?.let { updateLocalStatus(it, action) }
-            syncCoordinator?.pushOutbox()
-            SaleActionResult.Success
-        }.getOrElse { error ->
-            if (isTransportFailure(error)) {
-                enqueueOptimistic(localId ?: remoteId, remoteId, action)
-            } else {
-                mapError(error)
+        val remoteId = detail.remoteId
+        if (remoteId != null) {
+            if (!online) return enqueueOptimistic(localId, pathSaleId = remoteId, action, dependsOn = null)
+            return runCatching {
+                call(remoteId)
+                updateLocalStatus(localId, action)
+                syncCoordinator?.pushOutbox()
+                SaleActionResult.Success
+            }.getOrElse { error ->
+                if (isTransportFailure(error)) {
+                    enqueueOptimistic(localId, pathSaleId = remoteId, action, dependsOn = null)
+                } else {
+                    mapError(error)
+                }
             }
         }
+        val createId = "$localId:create"
+        val pendingCreate = outbox.getEntry(createId)?.takeUnless { it.completed }
+            ?: return SaleActionResult.Failure("NO_REMOTE_ID", "NO_REMOTE_ID")
+        // OD-16-2: chain confirm/cancel after pending create (path uses localId until sync resolves remoteId).
+        return enqueueOptimistic(localId, pathSaleId = localId, action, dependsOn = pendingCreate.id)
     }
 
     private suspend fun enqueueOptimistic(
         localId: String,
-        remoteId: String,
+        pathSaleId: String,
         action: String,
+        dependsOn: String?,
     ): SaleActionResult {
         outbox.enqueue(
             SyncOutboxEntry(
                 id = "$localId:$action",
-                saleLocalId = localId,
+                aggregateId = localId,
                 method = "POST",
-                path = "/sales/$remoteId/$action",
+                path = "/sales/$pathSaleId/$action",
                 bodyJson = "{}",
                 idempotencyKey = "$localId:$action",
                 createdAtEpochMs = currentEpochMs(),
+                entityType = SyncEntityType.Sale,
+                dependsOnOutboxId = dependsOn,
             ),
         )
         updateLocalStatus(localId, action)

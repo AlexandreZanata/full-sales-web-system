@@ -53,13 +53,13 @@ fun SaleWithLines.toModel(): LocalSale = LocalSale(
 )
 
 fun SyncOutboxEntity.toModel() = SyncOutboxEntry(
-    id, saleLocalId, method, path, bodyJson, idempotencyKey,
-    createdAtEpochMs, attempts, lastError, completed, entityType,
+    id, aggregateId, method, path, bodyJson, idempotencyKey,
+    createdAtEpochMs, attempts, lastError, completed, entityType, dependsOnOutboxId,
 )
 
 fun SyncOutboxEntry.toEntity() = SyncOutboxEntity(
-    id, saleLocalId, method, path, bodyJson, idempotencyKey,
-    createdAtEpochMs, attempts, lastError, completed, entityType,
+    id, aggregateId, method, path, bodyJson, idempotencyKey,
+    createdAtEpochMs, attempts, lastError, completed, entityType, dependsOnOutboxId,
 )
 
 fun saleEntity(

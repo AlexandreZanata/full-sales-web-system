@@ -177,7 +177,11 @@ internal class MemoryOutboxRepository : SyncOutboxRepository {
         }
     }
 
-    override suspend fun countPendingForSale(saleLocalId: String): Int = mutex.withLock {
-        entries.values.count { !it.completed && it.saleLocalId == saleLocalId }
+    override suspend fun getEntry(id: String): SyncOutboxEntry? = mutex.withLock {
+        entries[id]
+    }
+
+    override suspend fun countPendingForAggregate(aggregateId: String): Int = mutex.withLock {
+        entries.values.count { !it.completed && it.aggregateId == aggregateId }
     }
 }

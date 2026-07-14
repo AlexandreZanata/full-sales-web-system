@@ -56,7 +56,7 @@ class SyncEngineTest {
         outbox.enqueue(
             SyncOutboxEntry(
                 id = "${local.localId}:confirm",
-                saleLocalId = local.localId,
+                aggregateId = local.localId,
                 method = "POST",
                 path = "/sales/remote-2/confirm",
                 bodyJson = "{}",
@@ -85,7 +85,7 @@ class SyncEngineTest {
         outbox.enqueue(
             SyncOutboxEntry(
                 id = "${sale.localId}:retry",
-                saleLocalId = sale.localId,
+                aggregateId = sale.localId,
                 method = "POST",
                 path = "/sales",
                 bodyJson = "{}",

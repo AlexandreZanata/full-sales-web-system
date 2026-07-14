@@ -3,6 +3,7 @@ package com.fullsales.seller.shared.sync
 import com.fullsales.seller.shared.model.CreateSaleRequest
 import com.fullsales.seller.shared.model.LocalSale
 import com.fullsales.seller.shared.model.LocalSaleStatus
+import com.fullsales.seller.shared.model.SyncEntityType
 import com.fullsales.seller.shared.model.SyncOutboxEntry
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
@@ -19,12 +20,13 @@ class OfflineSaleWriter(
         outbox.enqueue(
             SyncOutboxEntry(
                 id = "${sale.localId}:create",
-                saleLocalId = sale.localId,
+                aggregateId = sale.localId,
                 method = "POST",
                 path = "/sales",
                 bodyJson = json.encodeToString(request),
                 idempotencyKey = sale.idempotencyKey,
                 createdAtEpochMs = sale.createdAtEpochMs,
+                entityType = SyncEntityType.Sale,
             ),
         )
         sales.updateStatus(sale.localId, LocalSaleStatus.PendingSync)

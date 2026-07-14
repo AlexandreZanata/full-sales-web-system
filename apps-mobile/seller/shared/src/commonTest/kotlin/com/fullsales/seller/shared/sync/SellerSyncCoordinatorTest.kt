@@ -71,4 +71,28 @@ class SellerSyncCoordinatorTest {
         assertEquals(1, result.processedCount)
         assertTrue(sales.getLastSalesSyncEpochMs() == null)
     }
+
+    @Test
+    fun given_pullRegistrationsThrows_when_syncPullAndPush_then_outboxStillProcessed() = runTest {
+        val catalog = FakeCatalogRepository()
+        val sales = FakeSaleRepository()
+        val outbox = FakeOutboxRepository()
+        val transport = RecordingTransport()
+        val pullClient = FakeCatalogPullClient().apply { throwOnRegistrationsFetch = true }
+        OfflineSaleWriter(sales, outbox).createSale(
+            CreateSaleRequest("c1", listOf(CreateSaleItem("p1", 1)), "cash"),
+            10.0,
+        )
+        transport.nextResult = SyncHttpResult(SyncHttpOutcome.Success, remoteId = "srv-3")
+        val coordinator = SellerSyncCoordinator(
+            CatalogPullSync(catalog, pullClient),
+            PullSalesSync(sales, pullClient),
+            PullRegistrationsSync(FakeRegistrationRepository(), pullClient),
+            SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
+        )
+
+        val result = coordinator.syncPullAndPush()
+        assertEquals(1, result.processedCount)
+        assertEquals(1, transport.calls.size)
+    }
 }

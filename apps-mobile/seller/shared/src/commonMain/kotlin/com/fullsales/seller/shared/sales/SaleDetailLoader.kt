@@ -64,7 +64,7 @@ class SaleDetailLoader(
 
     private suspend fun hasPendingOutbox(localId: String?): Boolean {
         if (localId == null || outbox == null) return false
-        return outbox.countPendingForSale(localId) > 0
+        return outbox.countPendingForAggregate(localId) > 0
     }
 
     private suspend fun enrichForSale(

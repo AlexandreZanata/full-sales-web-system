@@ -14,6 +14,9 @@ class RoomSyncOutboxRepository(private val dao: SyncOutboxDao) : SyncOutboxRepos
     override suspend fun listPendingFifo(): List<SyncOutboxEntry> =
         dao.listPendingFifo().map { it.toModel() }
 
+    override suspend fun getEntry(id: String): SyncOutboxEntry? =
+        dao.getById(id)?.toModel()
+
     override suspend fun markCompleted(id: String) {
         dao.markCompleted(id)
     }
@@ -22,6 +25,6 @@ class RoomSyncOutboxRepository(private val dao: SyncOutboxDao) : SyncOutboxRepos
         dao.markFailed(id, error)
     }
 
-    override suspend fun countPendingForSale(saleLocalId: String): Int =
-        dao.countPendingForSale(saleLocalId)
+    override suspend fun countPendingForAggregate(aggregateId: String): Int =
+        dao.countPendingForAggregate(aggregateId)
 }

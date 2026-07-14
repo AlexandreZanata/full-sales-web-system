@@ -19,7 +19,7 @@ class OfflineRegistrationWriter(
         outbox.enqueue(
             SyncOutboxEntry(
                 id = "${local.localId}:create",
-                saleLocalId = local.localId,
+                aggregateId = local.localId,
                 method = "POST",
                 path = "/commerces/registrations",
                 bodyJson = json.encodeToString(request),

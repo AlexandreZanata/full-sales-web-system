@@ -53,7 +53,7 @@ class OfflineSalePersistenceTest {
     @Test
     fun createOfflineSale_enqueuesOutboxRow() = runTest {
         val sale = writer.createSale(saleRequest(), totalAmount = 20.0)
-        assertTrue(outboxRepository.countPendingForSale(sale.localId) >= 1)
+        assertTrue(outboxRepository.countPendingForAggregate(sale.localId) >= 1)
         val pending = outboxRepository.listPendingFifo()
         assertEquals(sale.idempotencyKey, pending.single().idempotencyKey)
     }

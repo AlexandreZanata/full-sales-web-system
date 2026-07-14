@@ -48,11 +48,11 @@ data class SaleLineEntity(
 
 @Entity(
     tableName = "sync_outbox",
-    indices = [Index("saleLocalId"), Index("completed")],
+    indices = [Index("aggregateId"), Index("completed")],
 )
 data class SyncOutboxEntity(
     @PrimaryKey val id: String,
-    val saleLocalId: String,
+    val aggregateId: String,
     val method: String,
     val path: String,
     val bodyJson: String,
@@ -62,4 +62,5 @@ data class SyncOutboxEntity(
     val lastError: String?,
     val completed: Boolean,
     val entityType: String = "Sale",
+    val dependsOnOutboxId: String? = null,
 )

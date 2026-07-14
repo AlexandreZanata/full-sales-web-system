@@ -5,10 +5,13 @@ object SyncEntityType {
     const val Registration = "Registration"
 }
 
+/**
+ * Durable sync queue row (Phase 16D).
+ * [aggregateId] is the local sale or registration id; [dependsOnOutboxId] chains confirm/cancel after create.
+ */
 data class SyncOutboxEntry(
     val id: String,
-    /** Aggregate id (sale localId or registration localId). */
-    val saleLocalId: String,
+    val aggregateId: String,
     val method: String,
     val path: String,
     val bodyJson: String,
@@ -18,4 +21,5 @@ data class SyncOutboxEntry(
     val lastError: String? = null,
     val completed: Boolean = false,
     val entityType: String = SyncEntityType.Sale,
+    val dependsOnOutboxId: String? = null,
 )

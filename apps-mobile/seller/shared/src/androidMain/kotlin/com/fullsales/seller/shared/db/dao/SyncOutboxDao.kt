@@ -16,6 +16,9 @@ interface SyncOutboxDao {
     )
     suspend fun listPendingFifo(): List<SyncOutboxEntity>
 
+    @Query("SELECT * FROM sync_outbox WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): SyncOutboxEntity?
+
     @Query("UPDATE sync_outbox SET completed = 1 WHERE id = :id")
     suspend fun markCompleted(id: String)
 
@@ -25,7 +28,7 @@ interface SyncOutboxDao {
     suspend fun markFailed(id: String, error: String?)
 
     @Query(
-        "SELECT COUNT(*) FROM sync_outbox WHERE completed = 0 AND saleLocalId = :saleLocalId",
+        "SELECT COUNT(*) FROM sync_outbox WHERE completed = 0 AND aggregateId = :aggregateId",
     )
-    suspend fun countPendingForSale(saleLocalId: String): Int
+    suspend fun countPendingForAggregate(aggregateId: String): Int
 }

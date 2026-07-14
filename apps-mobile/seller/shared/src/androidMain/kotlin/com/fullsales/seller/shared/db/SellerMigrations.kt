@@ -60,6 +60,45 @@ object SellerMigrations {
         }
     }
 
+    val MIGRATION_6_7: Migration = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS sync_outbox_new (
+                  id TEXT NOT NULL PRIMARY KEY,
+                  aggregateId TEXT NOT NULL,
+                  method TEXT NOT NULL,
+                  path TEXT NOT NULL,
+                  bodyJson TEXT NOT NULL,
+                  idempotencyKey TEXT NOT NULL,
+                  createdAtEpochMs INTEGER NOT NULL,
+                  attempts INTEGER NOT NULL,
+                  lastError TEXT,
+                  completed INTEGER NOT NULL,
+                  entityType TEXT NOT NULL DEFAULT 'Sale',
+                  dependsOnOutboxId TEXT
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                """
+                INSERT INTO sync_outbox_new (
+                  id, aggregateId, method, path, bodyJson, idempotencyKey,
+                  createdAtEpochMs, attempts, lastError, completed, entityType, dependsOnOutboxId
+                )
+                SELECT
+                  id, saleLocalId, method, path, bodyJson, idempotencyKey,
+                  createdAtEpochMs, attempts, lastError, completed, entityType, NULL
+                FROM sync_outbox
+                """.trimIndent(),
+            )
+            db.execSQL("DROP TABLE sync_outbox")
+            db.execSQL("ALTER TABLE sync_outbox_new RENAME TO sync_outbox")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_sync_outbox_aggregateId ON sync_outbox(aggregateId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_sync_outbox_completed ON sync_outbox(completed)")
+        }
+    }
+
     /** Minimal v4 DDL for migration contract tests (tables touched by 4→5). */
     fun createV4CoreTables(db: SupportSQLiteDatabase) {
         db.execSQL(
@@ -138,5 +177,11 @@ object SellerMigrations {
             )
             """.trimIndent(),
         )
+    }
+
+    /** Minimal v6 DDL for migration contract tests (tables touched by 6→7). */
+    fun createV6CoreTables(db: SupportSQLiteDatabase) {
+        createV5CoreTables(db)
+        MIGRATION_5_6.migrate(db)
     }
 }

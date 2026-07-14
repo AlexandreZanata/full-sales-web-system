@@ -31,7 +31,7 @@ import com.fullsales.seller.shared.db.entity.SyncOutboxEntity
         CommerceAddressCacheEntity::class,
         RegistrationEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class SellerDatabase : RoomDatabase() {
@@ -47,6 +47,7 @@ abstract class SellerDatabase : RoomDatabase() {
                 .addMigrations(
                     SellerMigrations.MIGRATION_4_5,
                     SellerMigrations.MIGRATION_5_6,
+                    SellerMigrations.MIGRATION_6_7,
                 )
                 .fallbackToDestructiveMigrationFrom(1, 2, 3)
                 .build()
