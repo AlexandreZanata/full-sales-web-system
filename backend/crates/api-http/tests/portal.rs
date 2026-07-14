@@ -282,6 +282,7 @@ async fn login(state: &AppState, email: &str) -> String {
     json["accessToken"].as_str().expect("token").to_owned()
 }
 
+// T-17-054
 #[tokio::test]
 async fn contract_portal_products_when_commerce_contact_then_200_with_image_url() {
     let env = setup().await;
@@ -372,6 +373,7 @@ async fn given_other_commerce_contact_when_list_orders_then_empty() {
     assert_eq!(json["data"].as_array().map(|items| items.len()), Some(0));
 }
 
+// T-17-074 / T-17-077
 #[tokio::test]
 async fn given_portal_flow_when_create_submit_approve_then_order_approved() {
     let env = setup().await;

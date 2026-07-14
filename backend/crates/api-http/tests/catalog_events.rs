@@ -150,6 +150,7 @@ async fn setup() -> SseEnv {
     }
 }
 
+// T-17-053
 #[tokio::test]
 async fn contract_catalog_events_route_when_get_then_text_event_stream() {
     let env = setup().await;

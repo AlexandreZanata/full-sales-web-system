@@ -10,6 +10,7 @@ use support::{request, seed_portal_home_content, seed_product, setup_with_tenant
 
 const DEV_SEED_TENANT_ID: &str = "01900001-0000-7000-8000-000000000001";
 
+// T-17-050
 #[tokio::test]
 async fn given_no_auth_when_get_public_products_then_200_with_data() {
     let tenant_id = TenantId::parse(DEV_SEED_TENANT_ID).expect("dev seed tenant");
@@ -22,6 +23,7 @@ async fn given_no_auth_when_get_public_products_then_200_with_data() {
     assert_eq!(body["pagination"]["limit"], 20);
 }
 
+// T-17-060 / T-17-061 / T-17-062 / T-17-063
 #[tokio::test]
 async fn given_seeded_portal_content_when_public_home_endpoints_then_200_with_data() {
     let tenant_id = TenantId::parse(DEV_SEED_TENANT_ID).expect("dev seed tenant");

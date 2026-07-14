@@ -577,8 +577,9 @@ pub(crate) fn map_order_error(err: application::orders::OrdersAppError) -> ApiEr
 }
 
 pub(crate) fn map_postgres_order_error(err: infra_postgres::PostgresError) -> ApiError {
-    match err {
-        infra_postgres::PostgresError::Database(_) => ApiError::order_not_found(),
-        _ => ApiError::internal(),
+    if err.is_row_not_found() {
+        return ApiError::order_not_found();
     }
+    tracing::error!(?err, "orders postgres error");
+    ApiError::internal()
 }

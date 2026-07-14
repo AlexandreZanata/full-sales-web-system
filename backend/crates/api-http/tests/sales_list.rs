@@ -50,6 +50,7 @@ async fn seed_stock(
     .expect("stock");
 }
 
+// T-17-048
 #[tokio::test]
 async fn contract_list_sales_when_driver_then_cursor_envelope() {
     let env = setup().await;
@@ -85,6 +86,7 @@ async fn contract_list_sales_when_invalid_filter_then_400() {
     assert_eq!(body["error"]["code"], "invalid_filter_field");
 }
 
+// T-17-049
 #[tokio::test]
 async fn contract_declare_payment_when_other_driver_then_forbidden() {
     let env = setup().await;

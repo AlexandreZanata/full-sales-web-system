@@ -51,6 +51,7 @@ Domain crate: `domain-deliveries`. Application: `confirm_delivery` (preview TX).
 | `orders` schema + `orders.orders` | `20260704123100` |
 | `orders.order_items` (frozen unit price RN3) | `20260704123200` |
 | Role-scoped RLS (`Admin` all; `CommerceContact` own commerce; `Seller` own created) | `20260704123100` |
+| `orders.order_items` DELETE grant + RLS (draft replace / PUT portal order) | `20260714120000` |
 | Session vars: `app.role`, `app.user_id`, `app.commerce_id` | `infra-postgres/rls.rs` |
 
 Domain crate: `domain-orders`. Application: `approve_order`, `cancel_order`.

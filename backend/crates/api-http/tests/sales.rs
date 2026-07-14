@@ -171,6 +171,7 @@ async fn login(state: &AppState, email: &str, password: &str) -> String {
 }
 
 // Contract: POST /v1/sales valid body → 201 + Sale shape (OpenAPI Sale schema)
+// T-17-044
 #[tokio::test]
 async fn contract_create_sale_when_valid_body_then_201_with_sale_shape() {
     let env = setup().await;
@@ -382,7 +383,7 @@ async fn contract_get_sale_when_unknown_id_then_404() {
     assert_eq!(json["error"]["code"], "SALE_NOT_FOUND");
 }
 
-// Contract: UC-001 AF-1 — confirm with insufficient stock → 409 INSUFFICIENT_STOCK
+// T-17-045 — UC-001 AF-1 — confirm with insufficient stock → 409 INSUFFICIENT_STOCK
 #[tokio::test]
 async fn contract_confirm_sale_when_insufficient_stock_then_409() {
     let env = setup().await;
@@ -508,6 +509,7 @@ async fn contract_create_sale_when_idempotency_key_replayed_then_same_response()
 }
 
 // Contract: UC-001 AF-2 — cancel pending sale → 200 Cancelled, stock unchanged
+// T-17-046
 #[tokio::test]
 async fn contract_cancel_sale_when_pending_then_200_cancelled() {
     let env = setup().await;
@@ -556,7 +558,7 @@ async fn contract_cancel_sale_when_pending_then_200_cancelled() {
     assert_eq!(json["status"], "Cancelled");
 }
 
-// Contract: UC-001 step 6 — confirm with sufficient stock → 200 Confirmed
+// T-17-045 — UC-001 step 6 — confirm with sufficient stock → 200 Confirmed
 #[tokio::test]
 async fn contract_confirm_sale_when_sufficient_stock_then_200_confirmed() {
     let env = setup().await;

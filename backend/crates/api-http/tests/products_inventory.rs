@@ -106,6 +106,7 @@ async fn contract_create_product_when_listed_then_present_in_data() {
     );
 }
 
+// T-17-041 / T-17-042
 #[tokio::test]
 async fn contract_adjustment_when_positive_then_balance_increases() {
     let env = setup().await;
@@ -450,6 +451,7 @@ async fn contract_list_products_when_deactivated_then_visible_with_inactive_filt
     assert_eq!(reactivated["active"], true);
 }
 
+// T-17-040
 #[tokio::test]
 async fn contract_list_stock_balances_when_products_seeded_then_returns_data() {
     let env = setup().await;
