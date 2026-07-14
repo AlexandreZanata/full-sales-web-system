@@ -1,4 +1,5 @@
 //! Phase 3 — Asaas webhook contract tests (BR-BI-001).
+//! T-17-144 inventory marker (happy + WEBHOOK_UNAUTHORIZED covered here).
 
 #[path = "support/mod.rs"]
 mod support;

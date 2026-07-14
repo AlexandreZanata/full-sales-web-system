@@ -1,4 +1,5 @@
 //! Phase 17H — Domains CRUD gaps (T-17-151..155).
+//! `/v1/settings/domains/{id}/set-primary`
 #[path = "support/mod.rs"]
 mod support;
 

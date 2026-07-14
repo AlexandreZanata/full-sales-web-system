@@ -1,13 +1,4 @@
 {
   "version": 1,
-  "waivers": [
-    {
-      "method": "POST",
-      "path": "/v1/billing/subscription/cancel",
-      "direction": "contract_missing_router",
-      "od": "OD-17-3",
-      "expires": "2026-09-14",
-      "reason": "Contracted in API-CONTRACT; Asaas gateway exists but HTTP handler not wired. Wire in Phase 17J."
-    }
-  ]
+  "waivers": []
 }

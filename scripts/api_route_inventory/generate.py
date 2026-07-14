@@ -114,7 +114,7 @@ def render_gap_baseline(
         "",
         "- `none` / `smoke-only` / `partial` → finish in 17B–17J",
         "- `full` requires `// T-17-NNN` marker + Happy/Authz/Errors asserts",
-        "- Cancel subscription waived until HTTP handler (17J / OD-17-3)",
+        "- Cancel subscription implemented (17J); allowlist empty",
         "",
     ]
     return "\n".join(lines)

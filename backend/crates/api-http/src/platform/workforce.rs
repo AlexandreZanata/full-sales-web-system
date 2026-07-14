@@ -60,7 +60,7 @@ pub async fn get_tenant_stats(
 ) -> Result<Json<TenantStatsResponse>, ApiError> {
     ensure_tenant(&state, id).await?;
     let stats = infra_postgres::shared::tenant_workforce_stats(
-        &state.app_pool,
+        &state.admin_pool,
         domain_shared::TenantId::from_uuid(id),
     )
     .await

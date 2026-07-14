@@ -11,7 +11,9 @@ use crate::audit::list_audit_events;
 use crate::audit_context::audit_context_middleware;
 use crate::auth::{auth_middleware, login, logout, refresh};
 use crate::billing::asaas_webhook;
-use crate::billing::{attach_payment_method, get_invoice, get_subscription, list_invoices};
+use crate::billing::{
+    attach_payment_method, cancel_subscription, get_invoice, get_subscription, list_invoices,
+};
 use crate::catalog_events::stream_catalog_events;
 use crate::categories::{
     create_category, delete_category, get_category, list_categories, reorder_categories,
@@ -318,6 +320,7 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/audit/events", get(list_audit_events))
         .route("/v1/fraud/alerts", get(list_fraud_alerts))
         .route("/v1/billing/subscription", get(get_subscription))
+        .route("/v1/billing/subscription/cancel", post(cancel_subscription))
         .route("/v1/billing/invoices", get(list_invoices))
         .route("/v1/billing/invoices/{id}", get(get_invoice))
         .route("/v1/billing/payment-methods", post(attach_payment_method))

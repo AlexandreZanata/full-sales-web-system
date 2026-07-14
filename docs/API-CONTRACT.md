@@ -1226,9 +1226,11 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `POST /v1/billing/subscription/cancel`
 
 - **Auth:** Tenant Admin
-- **Response 202:** Cancel at period end scheduled
+- **Response 202:** `{ "status": "Cancelled", "cancelAtPeriodEnd": true }` — gateway cancel when `asaas_subscription_id` present; local status → `Cancelled`
+- **Response 400:** `INVALID_SUBSCRIPTION_STATUS` when not `Active`/`PastDue`
+- **Response 404:** No subscription for tenant
 
-> **Implementation note (Phase 17A):** Documented; HTTP route not yet registered in `routes.rs`. Gateway (`PaymentGateway::cancel_subscription`) exists. Temporary drift waiver in `scripts/api-route-inventory-allowlist.json` (OD-17-3) until Phase 17J.
+**Implemented:** Phase 17J.
 
 ---
 
