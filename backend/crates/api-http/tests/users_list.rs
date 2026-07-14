@@ -8,7 +8,7 @@ use serde_json::json;
 
 use support::{request, seed_admin, seed_driver, setup};
 
-// Contract: list pagination shape
+// T-17-005 — Contract: list pagination shape
 #[tokio::test]
 async fn contract_list_users_when_admin_then_cursor_envelope() {
     let env = setup().await;
@@ -42,6 +42,7 @@ async fn contract_list_users_when_filter_role_then_only_matching() {
     assert!(data.iter().all(|user| user["role"] == "Driver"));
 }
 
+// T-17-005
 #[tokio::test]
 async fn contract_list_users_when_invalid_filter_then_400() {
     let env = setup().await;

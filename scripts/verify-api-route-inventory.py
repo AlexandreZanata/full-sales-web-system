@@ -95,6 +95,8 @@ def run_self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    raw = argv if argv is not None else sys.argv[1:]
+    raw = [a for a in raw if a != "--"]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--write-docs",
@@ -106,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Run parser/drift unit tests",
     )
-    args = parser.parse_args(argv)
+    args = parser.parse_args(raw)
     if args.self_test:
         return run_self_test()
     return run_verify(write_docs_flag=args.write_docs)

@@ -28,7 +28,7 @@ async fn login_with_ip(
     .await
 }
 
-// Contract: TS-E2E-003 — login rate limit after N failures
+// T-17-001 — Contract: TS-E2E-003 — login rate limit after N failures
 #[tokio::test]
 async fn given_repeated_login_failures_when_exceeds_limit_then_rate_limited() {
     let env = setup().await;
