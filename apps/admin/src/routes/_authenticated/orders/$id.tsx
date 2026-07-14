@@ -38,7 +38,13 @@ function OrderDetailPage() {
   const order = useQuery({ queryKey: ['orders', id], queryFn: () => fetchOrder(id) });
   const commerce = useQuery({
     queryKey: ['commerces', order.data?.commerceId],
-    queryFn: () => fetchCommerce(order.data!.commerceId),
+    queryFn: () => {
+      const commerceId = order.data?.commerceId;
+      if (!commerceId) {
+        return Promise.reject(new Error('commerceId required'));
+      }
+      return fetchCommerce(commerceId);
+    },
     enabled: Boolean(order.data?.commerceId),
   });
   const drivers = useQuery({

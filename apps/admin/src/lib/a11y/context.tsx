@@ -41,9 +41,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     [textSizePreset, setTextSizePreset],
   );
 
-  return (
-    <AccessibilityContext.Provider value={value}>{children}</AccessibilityContext.Provider>
-  );
+  return <AccessibilityContext.Provider value={value}>{children}</AccessibilityContext.Provider>;
 }
 
 export function useAccessibility(): AccessibilityContextValue {

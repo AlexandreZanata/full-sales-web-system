@@ -7,9 +7,7 @@ mod support;
 use http::StatusCode;
 use serde_json::json;
 
-use support::{
-    minimal_webp_bytes, request, seed_admin, seed_seller, setup, upload_multipart,
-};
+use support::{minimal_webp_bytes, request, seed_admin, seed_seller, setup, upload_multipart};
 
 fn registration_payload(cnpj: &str) -> String {
     json!({
@@ -61,12 +59,9 @@ async fn e2e_17k_registration_approve_list_commerces() {
     assert_eq!(ap_st, StatusCode::OK, "{ap}");
     assert_eq!(ap["registrationStatus"], "Active");
 
-    let (list_st, list) =
-        request(&env, "GET", "/v1/commerces?limit=50", Some(&admin), None).await;
+    let (list_st, list) = request(&env, "GET", "/v1/commerces?limit=50", Some(&admin), None).await;
     assert_eq!(list_st, StatusCode::OK, "{list}");
-    let rows = list["data"]
-        .as_array()
-        .or_else(|| list["items"].as_array());
+    let rows = list["data"].as_array().or_else(|| list["items"].as_array());
     assert!(rows.is_some_and(|r| !r.is_empty()), "{list}");
 }
 

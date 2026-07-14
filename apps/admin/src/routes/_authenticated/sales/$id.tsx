@@ -36,12 +36,24 @@ function SaleDetailPage() {
   const sale = useQuery({ queryKey: ['sales', id], queryFn: () => fetchSale(id) });
   const commerce = useQuery({
     queryKey: ['commerces', sale.data?.commerceId],
-    queryFn: () => fetchCommerce(sale.data!.commerceId),
+    queryFn: () => {
+      const commerceId = sale.data?.commerceId;
+      if (!commerceId) {
+        return Promise.reject(new Error('commerceId required'));
+      }
+      return fetchCommerce(commerceId);
+    },
     enabled: Boolean(sale.data?.commerceId),
   });
   const driver = useQuery({
     queryKey: ['users', sale.data?.driverId],
-    queryFn: () => fetchUser(sale.data!.driverId),
+    queryFn: () => {
+      const driverId = sale.data?.driverId;
+      if (!driverId) {
+        return Promise.reject(new Error('driverId required'));
+      }
+      return fetchUser(driverId);
+    },
     enabled: Boolean(sale.data?.driverId),
   });
   const products = useQuery({ queryKey: ['products', 'picker'], queryFn: fetchProductsForPicker });

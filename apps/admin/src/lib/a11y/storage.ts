@@ -32,6 +32,6 @@ export function applyTextSizePresetToDocument(preset: TextSizePreset): void {
   }
   // Browser zoom already reflects system preference; apply seller preset on top of 100%.
   const scalePercent = Math.round(effectiveFontScale(1, preset) * 100);
-  document.documentElement.style.fontSize = `${scalePercent}%`;
+  document.documentElement.style.fontSize = `${String(scalePercent)}%`;
   document.documentElement.dataset.textSize = preset;
 }

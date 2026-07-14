@@ -3,11 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { DeclaredPaymentBadge } from '@/components/sales/DeclaredPaymentBadge';
 import { PaymentMethodBadge } from '@/components/sales/PaymentMethodBadge';
 import { SaleStatusBadge } from '@/components/sales/SaleStatusBadge';
-import {
-  DetailField,
-  DetailFieldGrid,
-  DetailSummaryCard,
-} from '@/components/ui/DetailFields';
+import { DetailField, DetailFieldGrid, DetailSummaryCard } from '@/components/ui/DetailFields';
 import type { SaleDetail } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';

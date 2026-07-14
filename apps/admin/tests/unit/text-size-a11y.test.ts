@@ -4,11 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  effectiveFontScale,
-  parseTextSizePreset,
-  TEXT_SIZE_SCALE,
-} from '@/lib/a11y/types';
+import { effectiveFontScale, parseTextSizePreset, TEXT_SIZE_SCALE } from '@/lib/a11y/types';
 
 describe('admin text size a11y — seller parity contract', () => {
   it('given_presets_when_read_then_match_seller_scale_factors', () => {
