@@ -1,0 +1,34 @@
+selectAllSales:
+SELECT * FROM sales ORDER BY createdAtEpochMs DESC;
+
+selectSaleByLocalId:
+SELECT * FROM sales WHERE localId = ?;
+
+selectSaleByRemoteId:
+SELECT * FROM sales WHERE remoteId = ? LIMIT 1;
+
+upsertSale:
+INSERT OR REPLACE INTO sales(
+  localId, remoteId, idempotencyKey, commerceId, paymentMethod, status,
+  totalAmount, totalCurrency, createdAtEpochMs, syncFailureReason, driverId, origin
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateSaleStatus:
+UPDATE sales SET status = ? WHERE localId = ?;
+
+setSaleRemoteId:
+UPDATE sales SET remoteId = ?, status = ? WHERE localId = ?;
+
+markSaleSyncFailed:
+UPDATE sales SET status = ?, syncFailureReason = ? WHERE localId = ?;
+
+selectLinesForSale:
+SELECT * FROM sale_lines WHERE saleLocalId = ?;
+
+deleteLinesForSale:
+DELETE FROM sale_lines WHERE saleLocalId = ?;
+
+insertSaleLine:
+INSERT INTO sale_lines(
+  saleLocalId, productId, quantity, unitPriceAmount, unitPriceCurrency, lineTotalAmount
+) VALUES (?, ?, ?, ?, ?, ?);

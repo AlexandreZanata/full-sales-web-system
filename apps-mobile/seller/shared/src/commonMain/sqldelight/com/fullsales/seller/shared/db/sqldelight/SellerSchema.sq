@@ -1,0 +1,123 @@
+import kotlin.Boolean;
+
+CREATE TABLE commerces (
+  id TEXT NOT NULL PRIMARY KEY,
+  legalName TEXT NOT NULL,
+  tradeName TEXT,
+  active INTEGER AS Boolean NOT NULL DEFAULT 1,
+  cnpj TEXT
+);
+
+CREATE TABLE products (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  sku TEXT NOT NULL,
+  priceAmount REAL NOT NULL,
+  priceCurrency TEXT NOT NULL,
+  active INTEGER AS Boolean NOT NULL DEFAULT 1,
+  categoryId TEXT,
+  categoryName TEXT,
+  categorySlug TEXT,
+  primaryImageUrl TEXT,
+  primaryImageFileId TEXT,
+  unitOfMeasure TEXT,
+  description TEXT
+);
+
+CREATE TABLE sync_metadata (
+  key TEXT NOT NULL PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE stock_snapshots (
+  productId TEXT NOT NULL PRIMARY KEY,
+  available INTEGER NOT NULL,
+  syncedAtEpochMs INTEGER NOT NULL
+);
+
+CREATE TABLE commerce_address_cache (
+  commerceId TEXT NOT NULL PRIMARY KEY,
+  addressesJson TEXT NOT NULL,
+  syncedAtEpochMs INTEGER NOT NULL
+);
+
+CREATE TABLE media_url_cache (
+  fileId TEXT NOT NULL PRIMARY KEY,
+  url TEXT NOT NULL,
+  expiresAtEpochMs INTEGER NOT NULL
+);
+
+CREATE TABLE site_settings (
+  id TEXT NOT NULL PRIMARY KEY,
+  displayName TEXT,
+  logoFileId TEXT,
+  logoUrl TEXT,
+  salesContactPhone TEXT,
+  syncedAtEpochMs INTEGER NOT NULL
+);
+
+CREATE TABLE sales (
+  localId TEXT NOT NULL PRIMARY KEY,
+  remoteId TEXT,
+  idempotencyKey TEXT NOT NULL,
+  commerceId TEXT NOT NULL,
+  paymentMethod TEXT NOT NULL,
+  status TEXT NOT NULL,
+  totalAmount REAL NOT NULL,
+  totalCurrency TEXT NOT NULL,
+  createdAtEpochMs INTEGER NOT NULL,
+  syncFailureReason TEXT,
+  driverId TEXT,
+  origin TEXT NOT NULL
+);
+
+CREATE TABLE sale_lines (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  saleLocalId TEXT NOT NULL,
+  productId TEXT NOT NULL,
+  quantity INTEGER NOT NULL,
+  unitPriceAmount REAL,
+  unitPriceCurrency TEXT,
+  lineTotalAmount REAL,
+  FOREIGN KEY(saleLocalId) REFERENCES sales(localId) ON DELETE CASCADE
+);
+
+CREATE TABLE sync_outbox (
+  id TEXT NOT NULL PRIMARY KEY,
+  aggregateId TEXT NOT NULL,
+  method TEXT NOT NULL,
+  path TEXT NOT NULL,
+  bodyJson TEXT NOT NULL,
+  idempotencyKey TEXT NOT NULL,
+  createdAtEpochMs INTEGER NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  lastError TEXT,
+  completed INTEGER AS Boolean NOT NULL DEFAULT 0,
+  entityType TEXT NOT NULL DEFAULT 'Sale',
+  dependsOnOutboxId TEXT
+);
+
+CREATE TABLE registrations (
+  localId TEXT NOT NULL PRIMARY KEY,
+  remoteId TEXT,
+  cnpj TEXT NOT NULL,
+  legalName TEXT NOT NULL,
+  tradeName TEXT NOT NULL,
+  active INTEGER AS Boolean NOT NULL DEFAULT 0,
+  registrationStatus TEXT NOT NULL,
+  rejectionReason TEXT,
+  registrationMode TEXT NOT NULL,
+  contactPhone TEXT,
+  contactEmail TEXT,
+  deliveryAddressJson TEXT NOT NULL,
+  syncStatus TEXT NOT NULL,
+  syncFailureReason TEXT,
+  createdAtEpochMs INTEGER NOT NULL,
+  updatedAtEpochMs INTEGER NOT NULL,
+  idempotencyKey TEXT NOT NULL
+);
+
+CREATE INDEX idx_sale_lines_sale ON sale_lines(saleLocalId);
+CREATE INDEX idx_outbox_pending ON sync_outbox(completed, createdAtEpochMs);
+CREATE INDEX idx_sales_remote ON sales(remoteId);
+CREATE INDEX idx_registrations_remote ON registrations(remoteId);

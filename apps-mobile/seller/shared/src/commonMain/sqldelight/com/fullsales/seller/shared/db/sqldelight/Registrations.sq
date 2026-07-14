@@ -1,0 +1,25 @@
+selectAllRegistrations:
+SELECT * FROM registrations ORDER BY updatedAtEpochMs DESC;
+
+selectRegistrationByLocalId:
+SELECT * FROM registrations WHERE localId = ?;
+
+selectRegistrationByRemoteId:
+SELECT * FROM registrations WHERE remoteId = ? LIMIT 1;
+
+upsertRegistration:
+INSERT OR REPLACE INTO registrations(
+  localId, remoteId, cnpj, legalName, tradeName, active, registrationStatus,
+  rejectionReason, registrationMode, contactPhone, contactEmail, deliveryAddressJson,
+  syncStatus, syncFailureReason, createdAtEpochMs, updatedAtEpochMs, idempotencyKey
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+setRegistrationRemoteSynced:
+UPDATE registrations SET
+  remoteId = ?, syncStatus = ?, registrationStatus = ?, active = ?, updatedAtEpochMs = ?
+WHERE localId = ?;
+
+markRegistrationSyncFailed:
+UPDATE registrations SET
+  syncStatus = ?, syncFailureReason = ?, updatedAtEpochMs = ?
+WHERE localId = ?;

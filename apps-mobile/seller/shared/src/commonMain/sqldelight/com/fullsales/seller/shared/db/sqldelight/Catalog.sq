@@ -1,0 +1,34 @@
+selectActiveCommerces:
+SELECT * FROM commerces WHERE active = 1 ORDER BY legalName;
+
+selectCommerceById:
+SELECT * FROM commerces WHERE id = ?;
+
+deleteAllCommerces:
+DELETE FROM commerces;
+
+upsertCommerce:
+INSERT OR REPLACE INTO commerces(id, legalName, tradeName, active, cnpj)
+VALUES (?, ?, ?, ?, ?);
+
+selectActiveProducts:
+SELECT * FROM products WHERE active = 1 ORDER BY name;
+
+selectProductById:
+SELECT * FROM products WHERE id = ?;
+
+deleteAllProducts:
+DELETE FROM products;
+
+upsertProduct:
+INSERT OR REPLACE INTO products(
+  id, name, sku, priceAmount, priceCurrency, active,
+  categoryId, categoryName, categorySlug, primaryImageUrl, primaryImageFileId,
+  unitOfMeasure, description
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectMetadata:
+SELECT value FROM sync_metadata WHERE key = ?;
+
+upsertMetadata:
+INSERT OR REPLACE INTO sync_metadata(key, value) VALUES (?, ?);

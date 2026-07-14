@@ -1,0 +1,31 @@
+selectStock:
+SELECT * FROM stock_snapshots WHERE productId = ?;
+
+selectAllStock:
+SELECT * FROM stock_snapshots;
+
+upsertStock:
+INSERT OR REPLACE INTO stock_snapshots(productId, available, syncedAtEpochMs)
+VALUES (?, ?, ?);
+
+selectAddresses:
+SELECT * FROM commerce_address_cache WHERE commerceId = ?;
+
+upsertAddresses:
+INSERT OR REPLACE INTO commerce_address_cache(commerceId, addressesJson, syncedAtEpochMs)
+VALUES (?, ?, ?);
+
+selectMediaUrl:
+SELECT * FROM media_url_cache WHERE fileId = ?;
+
+upsertMediaUrl:
+INSERT OR REPLACE INTO media_url_cache(fileId, url, expiresAtEpochMs)
+VALUES (?, ?, ?);
+
+selectSiteSettings:
+SELECT * FROM site_settings WHERE id = ?;
+
+upsertSiteSettings:
+INSERT OR REPLACE INTO site_settings(
+  id, displayName, logoFileId, logoUrl, salesContactPhone, syncedAtEpochMs
+) VALUES (?, ?, ?, ?, ?, ?);

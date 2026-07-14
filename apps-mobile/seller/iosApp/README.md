@@ -17,7 +17,7 @@ From `apps-mobile/seller`:
 ./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
 ```
 
-On Linux CI, iOS targets are skipped (`kotlin.native.ignoreDisabledTargets=true`); use the macOS CI job.
+On Linux CI, iOS targets are skipped (`kotlin.native.ignoreDisabledTargets=true`); use the macOS CI job (`seller-ios`).
 
 ## Run on simulator (macOS)
 
@@ -37,11 +37,18 @@ Physical device: replace with your machine LAN IP, e.g. `http://192.168.1.10:808
 | Piece | Role |
 |-------|------|
 | `ComposeApp` framework | Shared Compose UI (`SellerNavHost`, M3 theme) |
-| `IosAppContainer` | Keychain tokens + in-memory catalog/sales cache |
-| `MainViewController()` | `ComposeUIViewController` entry for SwiftUI host |
+| `IosAppContainer` | Keychain tokens + **SQLDelight** LocalStore (`seller.db`) |
+| `MainViewController()` | Compose host + `UIApplicationDidBecomeActive` → sync resume |
+
+### Offline durability (Phase 16G / OD-16-5=A)
+
+- Catalog, sales (+ lines), registrations, outbox, stock/addresses, media URL cache, site settings — all in SQLDelight (schema matches Android Room inventory).
+- Pending sale + outbox survive force-quit / process kill.
+- Sync drain: `OnlineSyncTrigger` when Online is stable; `IosForegroundSync` on app become-active.
+- **Limit:** no WorkManager / reliable background push while suspended — foreground + resume required.
 
 ## Media upload UI
 
 **Skipped for MVP** — `SellerApiClient.uploadMedia` exists (Phase 54); product photo picker not required for seller shell.
 
-**Updated:** 2026-07-05
+**Updated:** 2026-07-14

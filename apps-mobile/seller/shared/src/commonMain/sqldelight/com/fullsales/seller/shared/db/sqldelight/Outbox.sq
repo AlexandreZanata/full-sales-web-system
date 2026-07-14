@@ -1,0 +1,20 @@
+insertOutbox:
+INSERT OR REPLACE INTO sync_outbox(
+  id, aggregateId, method, path, bodyJson, idempotencyKey, createdAtEpochMs,
+  attempts, lastError, completed, entityType, dependsOnOutboxId
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+listPendingFifo:
+SELECT * FROM sync_outbox WHERE completed = 0 ORDER BY createdAtEpochMs ASC;
+
+selectOutboxById:
+SELECT * FROM sync_outbox WHERE id = ?;
+
+markOutboxCompleted:
+UPDATE sync_outbox SET completed = 1 WHERE id = ?;
+
+markOutboxFailed:
+UPDATE sync_outbox SET attempts = attempts + 1, lastError = ? WHERE id = ?;
+
+countPendingForAggregate:
+SELECT COUNT(*) FROM sync_outbox WHERE completed = 0 AND aggregateId = ?;

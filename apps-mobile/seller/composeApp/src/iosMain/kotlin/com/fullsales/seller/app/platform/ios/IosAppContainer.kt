@@ -14,22 +14,30 @@ import com.fullsales.seller.shared.api.createSellerHttpClient
 import com.fullsales.seller.shared.auth.SellerRoleGateResult
 import com.fullsales.seller.shared.auth.gateSellerAccessToken
 import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightCatalogRepository
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightCommerceAddressCache
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightMediaUrlCacheStore
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightOutboxRepository
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightRegistrationRepository
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightSaleRepository
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightSiteSettingsRepository
+import com.fullsales.seller.shared.db.sqldelight.SqlDelightStockSnapshotRepository
+import com.fullsales.seller.shared.db.sqldelight.createIosSellerSqlDriver
+import com.fullsales.seller.shared.db.sqldelight.createSellerLocalDatabase
 import com.fullsales.seller.shared.media.MediaUrlCacheEntry
 import com.fullsales.seller.shared.media.MediaUrlCacheResolver
-import com.fullsales.seller.shared.media.MemoryMediaUrlCacheStore
-import com.fullsales.seller.shared.media.MemorySiteSettingsRepository
+import com.fullsales.seller.shared.media.MediaUrlCacheStore
 import com.fullsales.seller.shared.media.parseMediaExpiresAtEpochMs
 import com.fullsales.seller.shared.media.productThumbnailLoadUrl
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.CommerceAddressCache
-import com.fullsales.seller.shared.repository.MemoryCommerceAddressCache
-import com.fullsales.seller.shared.repository.MemoryStockSnapshotRepository
 import com.fullsales.seller.shared.repository.RegistrationRepository
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SiteSettingsRepository
 import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.CatalogPullSync
+import com.fullsales.seller.shared.sync.IosForegroundSync
 import com.fullsales.seller.shared.sync.OfflineRegistrationWriter
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.PullRegistrationsSync
@@ -42,15 +50,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
+/**
+ * iOS DI — LocalStore is durable SQLDelight SQLite (OD-16-5=A / Phase 16G).
+ * Background WorkManager equivalent is not available; drain on Online + [onAppResume].
+ */
 class IosAppContainer : SellerAppContainer {
+    private val sqlDriver = createIosSellerSqlDriver()
+    private val localDb = createSellerLocalDatabase(sqlDriver)
+
     override val tokenStore: SellerTokenStore = KeychainSellerTokenStore()
-    override val catalogRepository: CatalogRepository = MemoryCatalogRepository()
-    override val saleRepository: SaleRepository = MemorySaleRepository()
-    override val outboxRepository: SyncOutboxRepository = MemoryOutboxRepository()
-    override val stockSnapshots: StockSnapshotRepository = MemoryStockSnapshotRepository()
-    override val commerceAddressCache: CommerceAddressCache = MemoryCommerceAddressCache()
-    override val siteSettingsRepository: SiteSettingsRepository = MemorySiteSettingsRepository()
-    private val mediaStore = MemoryMediaUrlCacheStore()
+    override val catalogRepository: CatalogRepository = SqlDelightCatalogRepository(localDb)
+    override val saleRepository: SaleRepository = SqlDelightSaleRepository(localDb)
+    override val outboxRepository: SyncOutboxRepository = SqlDelightOutboxRepository(localDb)
+    override val stockSnapshots: StockSnapshotRepository = SqlDelightStockSnapshotRepository(localDb)
+    override val commerceAddressCache: CommerceAddressCache = SqlDelightCommerceAddressCache(localDb)
+    override val siteSettingsRepository: SiteSettingsRepository = SqlDelightSiteSettingsRepository(localDb)
+    private val mediaStore: MediaUrlCacheStore = SqlDelightMediaUrlCacheStore(localDb)
     private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
     private val authApiClient = SellerApiClient(createSellerHttpClient(AuthTokenProvider { null }))
     private val tokenRefresher = IosTokenRefresher(tokenStore, authApiClient)
@@ -59,7 +74,8 @@ class IosAppContainer : SellerAppContainer {
     override val mediaUrlResolver: MediaUrlResolver = IosMediaUrlResolver(apiClient, mediaStore)
     private val syncTransport = SellerSyncTransport(apiClient)
     override val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
-    override val registrationRepository: RegistrationRepository = MemoryRegistrationRepository()
+    override val registrationRepository: RegistrationRepository =
+        SqlDelightRegistrationRepository(localDb)
     override val offlineRegistrationWriter =
         OfflineRegistrationWriter(registrationRepository, outboxRepository)
     override val syncCoordinator = SellerSyncCoordinator(
@@ -77,6 +93,7 @@ class IosAppContainer : SellerAppContainer {
     )
     override val networkMonitor: NetworkMonitor = IosPathNetworkMonitor()
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val foregroundSync = IosForegroundSync(syncCoordinator)
 
     init {
         OnlineSyncTrigger(
@@ -87,11 +104,11 @@ class IosAppContainer : SellerAppContainer {
     }
 
     override fun requestSync() {
-        // ponytail: Phase 66 wires BGTaskScheduler; foreground sync on resume.
+        // Documented limit: no WorkManager equivalent; use OnlineSyncTrigger + onAppResume.
     }
 
     suspend fun onAppResume() {
-        syncCoordinator.syncPullAndPush()
+        foregroundSync.onAppResume()
     }
 }
 
@@ -121,14 +138,16 @@ private class IosTokenRefresher(
 
 private class IosMediaUrlResolver(
     private val apiClient: SellerApiClient,
-    store: MemoryMediaUrlCacheStore,
+    store: MediaUrlCacheStore,
 ) : MediaUrlResolver {
     private val resolver = MediaUrlCacheResolver(
         store = store,
         fetch = { fileId ->
-            val response = runCatching { apiClient.getMediaUrl(fileId) }.getOrNull() ?: return@MediaUrlCacheResolver null
+            val response = runCatching { apiClient.getMediaUrl(fileId) }.getOrNull()
+                ?: return@MediaUrlCacheResolver null
             val loadable = productThumbnailLoadUrl(response.url, apiBaseUrl)
-            val expiresAt = parseMediaExpiresAtEpochMs(response.expiresAt) ?: return@MediaUrlCacheResolver null
+            val expiresAt = parseMediaExpiresAtEpochMs(response.expiresAt)
+                ?: return@MediaUrlCacheResolver null
             MediaUrlCacheEntry(fileId, loadable, expiresAt)
         },
     )

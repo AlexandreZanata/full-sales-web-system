@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.sqldelight)
 }
 
 import java.util.Properties
@@ -39,6 +40,8 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -56,6 +59,7 @@ kotlin {
             api(libs.kotlinx.coroutines.android)
             api(libs.kotlinx.serialization.json)
             api(libs.ktor.client.core)
+            implementation(libs.sqldelight.android.driver)
         }
         val androidUnitTest by getting {
             dependencies {
@@ -65,10 +69,20 @@ kotlin {
                 implementation(libs.androidx.test.ext.junit)
                 implementation(libs.room.runtime)
                 implementation(libs.robolectric)
+                implementation(libs.sqldelight.sqlite.driver)
             }
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.sqldelight.native.driver)
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("SellerLocalDatabase") {
+            packageName.set("com.fullsales.seller.shared.db.sqldelight")
         }
     }
 }
