@@ -54,6 +54,7 @@ fn given_insufficient_stock_when_confirm_sale_then_returns_error() {
 | Domain coverage | `cargo llvm-cov --workspace` — domain crates 100% |
 | Security audit | `cargo audit` — no high/critical |
 | **API route inventory** | `pnpm verify:api-route-inventory` — `API-CONTRACT.md` ↔ `routes.rs` (Phase 17A) |
+| **Route contract manifest** | `pnpm verify:route-contract-manifest` — every `T-17-*` ID has a test marker (Phase 17L) |
 
 Regenerate local inventory / gap baseline:
 
@@ -62,7 +63,16 @@ pnpm verify:api-route-inventory -- --write-docs
 # writes .local/phases/17-backend-route-contract-coverage/documentation/{ROUTE-INVENTORY,GAP-BASELINE}.md
 ```
 
+Regenerate committed Phase 17 ID list (after contract changes):
+
+```bash
+python3 scripts/verify-route-contract-manifest.py --write-manifest
+# writes scripts/phase17-route-ids.txt
+```
+
 Temporary undocumented/unwired exceptions: `scripts/api-route-inventory-allowlist.json` (dated OD-17-3 waivers only).
+
+**Phase 17 coverage:** Happy/Authz/Errors for all 166 routes via `api-http` contract suites; Journey column = multi-step E2E **or** Standalone (OD-17-1 B when contract suite complete). See `.local/phases/17-backend-route-contract-coverage/`.
 
 ---
 
@@ -76,6 +86,9 @@ Temporary undocumented/unwired exceptions: `scripts/api-route-inventory-allowlis
 | E2E-004 | Cross-tenant access denied (RLS) | `backend/crates/api-http/tests/rls_cross_tenant.rs` |
 | E2E-005 | Portal order → delivery → declare payment → report | `backend/crates/api-http/tests/e2e_journeys.rs` (`e2e_003_portal_to_report`) |
 | E2E-006 | Media proof upload → delivery confirm | `backend/crates/api-http/tests/e2e_journeys.rs` (`e2e_004_media_proof_confirm`) |
+| E2E-007 | Registration submit → approve → list commerces | `backend/crates/api-http/tests/e2e_phase17_journeys.rs` |
+| E2E-008 | Media upload → settings logo | `backend/crates/api-http/tests/e2e_phase17_journeys.rs` |
+| E2E-009 | Platform provision → pay webhook → suspend → reactivate | `backend/crates/api-http/tests/platform_saas/` |
 
 ---
 

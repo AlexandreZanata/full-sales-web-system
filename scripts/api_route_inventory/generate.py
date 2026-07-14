@@ -19,7 +19,8 @@ def render_inventory(rows: list[Row]) -> str:
         "Regenerate: `pnpm verify:api-route-inventory -- --write-docs`.",
         "",
         "Coverage columns: **Happy** | **Authz** | **Errors** | **Journey** "
-        "(see README definition).",
+        "(see README). Journey `[x]` = E2E membership or Standalone "
+        "(OD-17-1 B when Happy/Authz/Errors complete).",
         "",
         "| Domain | Count |",
         "|--------|------:|",
@@ -44,6 +45,7 @@ def render_inventory(rows: list[Row]) -> str:
         "2. Every `.route(...)` in `routes.rs` must map to a contract section "
         "(or dated waiver in `scripts/api-route-inventory-allowlist.json`).",
         "3. CI: `pnpm verify:api-route-inventory` fails on mismatch.",
+        "4. CI: `pnpm verify:route-contract-manifest` — every T-17-* has a test marker.",
         "",
     ]
     return "\n".join(lines)

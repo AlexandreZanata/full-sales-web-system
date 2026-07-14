@@ -19,6 +19,14 @@ https://api.example.com/v1
 | Refresh token | `POST /v1/auth/refresh` with opaque token in body |
 | Tenant context | Set via JWT claim + Postgres `app.tenant_id` (not client header in prod) |
 
+## Testing
+
+Route coverage is gated by Phase 17:
+
+- Drift: `pnpm verify:api-route-inventory` (`API-CONTRACT.md` ↔ `routes.rs`)
+- Markers: `pnpm verify:route-contract-manifest` (every `T-17-*` ID has an `api-http` test marker)
+- Strategy: [TESTING-STRATEGY.md](TESTING-STRATEGY.md)
+
 ## Error format (all endpoints)
 
 ```json
