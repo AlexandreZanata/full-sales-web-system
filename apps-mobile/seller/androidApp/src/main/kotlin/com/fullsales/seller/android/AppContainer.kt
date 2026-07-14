@@ -18,14 +18,17 @@ import com.fullsales.seller.shared.api.createSellerHttpClient
 import com.fullsales.seller.shared.db.SellerDatabase
 import com.fullsales.seller.shared.db.repository.RoomCatalogRepository
 import com.fullsales.seller.shared.db.repository.RoomCommerceAddressCache
+import com.fullsales.seller.shared.db.repository.RoomMediaUrlCacheStore
 import com.fullsales.seller.shared.db.repository.RoomRegistrationRepository
 import com.fullsales.seller.shared.db.repository.RoomSaleRepository
+import com.fullsales.seller.shared.db.repository.RoomSiteSettingsRepository
 import com.fullsales.seller.shared.db.repository.RoomStockSnapshotRepository
 import com.fullsales.seller.shared.db.repository.RoomSyncOutboxRepository
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.CommerceAddressCache
 import com.fullsales.seller.shared.repository.RegistrationRepository
 import com.fullsales.seller.shared.repository.SaleRepository
+import com.fullsales.seller.shared.repository.SiteSettingsRepository
 import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
@@ -34,6 +37,7 @@ import com.fullsales.seller.shared.sync.OfflineRegistrationWriter
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.PullRegistrationsSync
 import com.fullsales.seller.shared.sync.PullSalesSync
+import com.fullsales.seller.shared.sync.PullSettingsSync
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 import kotlinx.coroutines.CoroutineScope
@@ -64,7 +68,12 @@ class AppContainer(context: Context) : SellerAppContainer {
     private val tokenRefresher = SellerTokenRefresher(tokenStoreImpl, authApiClient)
     private val httpClient = createSellerHttpClient(tokenProvider, tokenRefresher)
     override val apiClient = SellerApiClient(httpClient)
-    private val mediaUrlCacheImpl = MediaUrlCache(apiClient)
+    override val siteSettingsRepository: SiteSettingsRepository =
+        RoomSiteSettingsRepository(database.mediaSettingsDao())
+    private val mediaUrlCacheImpl = MediaUrlCache(
+        apiClient,
+        RoomMediaUrlCacheStore(database.mediaSettingsDao()),
+    )
     override val mediaUrlResolver: MediaUrlResolver = mediaUrlCacheImpl
     private val syncTransport = SellerSyncTransport(apiClient)
     override val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
@@ -76,6 +85,7 @@ class AppContainer(context: Context) : SellerAppContainer {
         CatalogPullSync(catalogRepository, syncTransport),
         PullSalesSync(saleRepository, syncTransport),
         PullRegistrationsSync(registrationRepository, syncTransport),
+        PullSettingsSync(siteSettingsRepository, syncTransport),
         SyncEngine(
             outboxRepository,
             saleRepository,

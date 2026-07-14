@@ -1,12 +1,13 @@
 package com.fullsales.seller.shared.sync
 
 /**
- * Push outbox first; catalog/sales/registrations pulls are best-effort and never abort push.
+ * Push outbox first; catalog/sales/registrations/settings pulls are best-effort and never abort push.
  */
 class SellerSyncCoordinator(
     private val catalogPull: CatalogPullSync,
     private val salesPull: PullSalesSync,
     private val registrationsPull: PullRegistrationsSync,
+    private val settingsPull: PullSettingsSync?,
     private val engine: SyncEngine,
 ) {
     suspend fun pushOutbox(): SyncProcessResult = engine.processOutbox()
@@ -20,11 +21,15 @@ class SellerSyncCoordinator(
     suspend fun pullRegistrations(): Boolean =
         runCatching { registrationsPull.pullRegistrations() }.isSuccess
 
+    suspend fun pullSettings(): Boolean =
+        settingsPull?.let { runCatching { it.pullSettings() }.isSuccess } ?: true
+
     suspend fun syncPullAndPush(): SyncProcessResult {
         val pushResult = pushOutbox()
         pullCatalog()
         pullSales()
         pullRegistrations()
+        pullSettings()
         return pushResult
     }
 }

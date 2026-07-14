@@ -34,6 +34,7 @@ class SellerSyncCoordinatorTest {
             CatalogPullSync(catalog, pullClient),
             PullSalesSync(sales, pullClient),
             PullRegistrationsSync(FakeRegistrationRepository(), pullClient),
+            settingsPull = null,
             SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
         )
 
@@ -64,6 +65,7 @@ class SellerSyncCoordinatorTest {
             CatalogPullSync(catalog, pullClient),
             PullSalesSync(sales, pullClient),
             PullRegistrationsSync(FakeRegistrationRepository(), pullClient),
+            settingsPull = null,
             SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
         )
 
@@ -88,6 +90,7 @@ class SellerSyncCoordinatorTest {
             CatalogPullSync(catalog, pullClient),
             PullSalesSync(sales, pullClient),
             PullRegistrationsSync(FakeRegistrationRepository(), pullClient),
+            settingsPull = null,
             SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
         )
 

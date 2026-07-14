@@ -6,6 +6,7 @@ import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.CommerceAddressCache
 import com.fullsales.seller.shared.repository.RegistrationRepository
 import com.fullsales.seller.shared.repository.SaleRepository
+import com.fullsales.seller.shared.repository.SiteSettingsRepository
 import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.OfflineRegistrationWriter
@@ -41,6 +42,7 @@ interface SellerAppContainer {
     val offlineSaleWriter: OfflineSaleWriter
     val registrationRepository: RegistrationRepository
     val offlineRegistrationWriter: OfflineRegistrationWriter
+    val siteSettingsRepository: SiteSettingsRepository
     val mediaUrlResolver: MediaUrlResolver
     val networkMonitor: NetworkMonitor
     fun requestSync()

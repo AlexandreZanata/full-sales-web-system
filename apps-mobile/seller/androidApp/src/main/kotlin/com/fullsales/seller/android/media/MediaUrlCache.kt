@@ -3,35 +3,38 @@ package com.fullsales.seller.android.media
 import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.api.apiBaseUrl
+import com.fullsales.seller.shared.media.MediaUrlCacheEntry
+import com.fullsales.seller.shared.media.MediaUrlCacheResolver
+import com.fullsales.seller.shared.media.MediaUrlCacheStore
+import com.fullsales.seller.shared.media.parseMediaExpiresAtEpochMs
 import com.fullsales.seller.shared.media.productThumbnailLoadUrl
-import java.time.Instant
+import com.fullsales.seller.shared.model.currentEpochMs
 
 class MediaUrlCache(
     private val apiClient: SellerApiClient,
-    private val expiryBufferSeconds: Long = 60,
-    private val nowEpochSeconds: () -> Long = { Instant.now().epochSecond },
+    private val store: MediaUrlCacheStore,
+    expiryBufferMs: Long = 60_000L,
+    nowEpochMs: () -> Long = { currentEpochMs() },
 ) : MediaUrlResolver {
-    private data class Cached(val url: String, val expiresAtEpochSeconds: Long)
-
-    private val cache = mutableMapOf<String, Cached>()
+    private val resolver = MediaUrlCacheResolver(
+        store = store,
+        fetch = { fileId -> fetchAndNormalize(fileId) },
+        nowEpochMs = nowEpochMs,
+        expiryBufferMs = expiryBufferMs,
+    )
 
     override suspend fun resolveImageUrl(directUrl: String?, fileId: String?): String? {
         directUrl?.takeIf { it.isNotBlank() }?.let {
             return productThumbnailLoadUrl(it, apiBaseUrl)
         }
         val id = fileId?.takeIf { it.isNotBlank() } ?: return null
-        cache[id]?.takeIf { !isExpired(it) }?.let { return it.url }
-        val response = runCatching { apiClient.getMediaUrl(id) }.getOrNull() ?: return null
-        val loadable = productThumbnailLoadUrl(response.url, apiBaseUrl)
-        val expiresAt = parseEpochSeconds(response.expiresAt) ?: return loadable
-        cache[id] = Cached(loadable, expiresAt)
-        return loadable
+        return resolver.resolveByFileId(id)
     }
 
-    private fun isExpired(cached: Cached): Boolean =
-        nowEpochSeconds() >= cached.expiresAtEpochSeconds - expiryBufferSeconds
-
-    private fun parseEpochSeconds(iso: String): Long? = runCatching {
-        Instant.parse(iso).epochSecond
-    }.getOrNull()
+    private suspend fun fetchAndNormalize(fileId: String): MediaUrlCacheEntry? {
+        val response = runCatching { apiClient.getMediaUrl(fileId) }.getOrNull() ?: return null
+        val loadable = productThumbnailLoadUrl(response.url, apiBaseUrl)
+        val expiresAt = parseMediaExpiresAtEpochMs(response.expiresAt) ?: return null
+        return MediaUrlCacheEntry(fileId, loadable, expiresAt)
+    }
 }

@@ -57,10 +57,16 @@ class CreateSaleViewModel(
     val state: StateFlow<CreateSaleUiState> = _state.asStateFlow()
 
     init {
-        restoreCreateSaleDraft(draftStore, _state) { ids -> ids.forEach { loadStock(it) } }
+        restoreCreateSaleDraft(draftStore, _state) { ids ->
+            ids.forEach { loadStock(it) }
+        }
         observeCatalog()
         viewModelScope.observeCreateSaleDraftPersistence(draftStore, _state)
-        loadTopSellingProducts()
+        viewModelScope.observeTopSellersOfflineHide(
+            networkMonitor,
+            apiClient,
+            _state,
+        ) { products -> prefetchStockBalances(products.map { it.productId }) }
         viewModelScope.launch {
             val cached = stockPrefetcher.cachedMap()
             if (cached.isNotEmpty()) {
@@ -87,17 +93,6 @@ class CreateSaleViewModel(
         if (!networkMonitor.isOnline()) return
         productIds.filter { it.isNotBlank() && it !in _state.value.stockByProductId }
             .forEach { loadStock(it) }
-    }
-
-    private fun loadTopSellingProducts() {
-        viewModelScope.launch {
-            if (!networkMonitor.isOnline()) return@launch
-            runCatching { apiClient.listTopSellingProducts(limit = 5) }
-                .onSuccess { response ->
-                    _state.update { it.copy(topSellingProducts = response.data) }
-                    prefetchStockBalances(response.data.map { it.productId })
-                }
-        }
     }
 
     fun setCommerceId(id: String) {
@@ -198,16 +193,6 @@ class CreateSaleViewModel(
     }
 
     private fun loadStock(productId: String) {
-        viewModelScope.launch {
-            if (!networkMonitor.isOnline()) {
-                stockPrefetcher.cachedMap()[productId]?.let { available ->
-                    _state.update { it.copy(stockByProductId = it.stockByProductId + (productId to available)) }
-                }
-                return@launch
-            }
-            stockPrefetcher.fetchAndCache(productId)?.let { available ->
-                _state.update { it.copy(stockByProductId = it.stockByProductId + (productId to available)) }
-            }
-        }
+        viewModelScope.loadCreateSaleStock(productId, networkMonitor, stockPrefetcher, _state)
     }
 }

@@ -43,7 +43,11 @@ class SellerViewModelFactory(
         AuthViewModel::class ->
             AuthViewModel(container.apiClient, container.tokenStore) as T
         SettingsViewModel::class ->
-            SettingsViewModel(container.apiClient) as T
+            SettingsViewModel(
+                container.apiClient,
+                container.siteSettingsRepository,
+                container.networkMonitor,
+            ) as T
         SalesListViewModel::class ->
             SalesListViewModel(
                 container.saleRepository,

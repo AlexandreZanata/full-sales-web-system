@@ -7,19 +7,26 @@ import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.app.platform.SellerTokenStore
 import com.fullsales.seller.shared.api.AuthTokenProvider
 import com.fullsales.seller.shared.api.SellerApiClient
-import com.fullsales.seller.shared.api.apiBaseUrl
-import com.fullsales.seller.shared.media.productThumbnailLoadUrl
 import com.fullsales.seller.shared.api.SellerSyncTransport
 import com.fullsales.seller.shared.api.TokenRefreshHandler
+import com.fullsales.seller.shared.api.apiBaseUrl
 import com.fullsales.seller.shared.api.createSellerHttpClient
 import com.fullsales.seller.shared.auth.SellerRoleGateResult
 import com.fullsales.seller.shared.auth.gateSellerAccessToken
 import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
+import com.fullsales.seller.shared.media.MediaUrlCacheEntry
+import com.fullsales.seller.shared.media.MediaUrlCacheResolver
+import com.fullsales.seller.shared.media.MemoryMediaUrlCacheStore
+import com.fullsales.seller.shared.media.MemorySiteSettingsRepository
+import com.fullsales.seller.shared.media.parseMediaExpiresAtEpochMs
+import com.fullsales.seller.shared.media.productThumbnailLoadUrl
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.CommerceAddressCache
 import com.fullsales.seller.shared.repository.MemoryCommerceAddressCache
 import com.fullsales.seller.shared.repository.MemoryStockSnapshotRepository
+import com.fullsales.seller.shared.repository.RegistrationRepository
 import com.fullsales.seller.shared.repository.SaleRepository
+import com.fullsales.seller.shared.repository.SiteSettingsRepository
 import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.CatalogPullSync
@@ -27,10 +34,10 @@ import com.fullsales.seller.shared.sync.OfflineRegistrationWriter
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 import com.fullsales.seller.shared.sync.PullRegistrationsSync
 import com.fullsales.seller.shared.sync.PullSalesSync
+import com.fullsales.seller.shared.sync.PullSettingsSync
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 import com.fullsales.seller.shared.sync.SyncTokenRefresher
-import com.fullsales.seller.shared.repository.RegistrationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,12 +49,14 @@ class IosAppContainer : SellerAppContainer {
     override val outboxRepository: SyncOutboxRepository = MemoryOutboxRepository()
     override val stockSnapshots: StockSnapshotRepository = MemoryStockSnapshotRepository()
     override val commerceAddressCache: CommerceAddressCache = MemoryCommerceAddressCache()
+    override val siteSettingsRepository: SiteSettingsRepository = MemorySiteSettingsRepository()
+    private val mediaStore = MemoryMediaUrlCacheStore()
     private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
     private val authApiClient = SellerApiClient(createSellerHttpClient(AuthTokenProvider { null }))
     private val tokenRefresher = IosTokenRefresher(tokenStore, authApiClient)
     private val httpClient = createSellerHttpClient(tokenProvider, tokenRefresher)
     override val apiClient = SellerApiClient(httpClient)
-    override val mediaUrlResolver: MediaUrlResolver = IosMediaUrlResolver(apiClient)
+    override val mediaUrlResolver: MediaUrlResolver = IosMediaUrlResolver(apiClient, mediaStore)
     private val syncTransport = SellerSyncTransport(apiClient)
     override val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
     override val registrationRepository: RegistrationRepository = MemoryRegistrationRepository()
@@ -57,6 +66,7 @@ class IosAppContainer : SellerAppContainer {
         CatalogPullSync(catalogRepository, syncTransport),
         PullSalesSync(saleRepository, syncTransport),
         PullRegistrationsSync(registrationRepository, syncTransport),
+        PullSettingsSync(siteSettingsRepository, syncTransport),
         SyncEngine(
             outboxRepository,
             saleRepository,
@@ -111,15 +121,23 @@ private class IosTokenRefresher(
 
 private class IosMediaUrlResolver(
     private val apiClient: SellerApiClient,
+    store: MemoryMediaUrlCacheStore,
 ) : MediaUrlResolver {
+    private val resolver = MediaUrlCacheResolver(
+        store = store,
+        fetch = { fileId ->
+            val response = runCatching { apiClient.getMediaUrl(fileId) }.getOrNull() ?: return@MediaUrlCacheResolver null
+            val loadable = productThumbnailLoadUrl(response.url, apiBaseUrl)
+            val expiresAt = parseMediaExpiresAtEpochMs(response.expiresAt) ?: return@MediaUrlCacheResolver null
+            MediaUrlCacheEntry(fileId, loadable, expiresAt)
+        },
+    )
+
     override suspend fun resolveImageUrl(directUrl: String?, fileId: String?): String? {
         directUrl?.takeIf { it.isNotBlank() }?.let {
             return productThumbnailLoadUrl(it, apiBaseUrl)
         }
         val id = fileId?.takeIf { it.isNotBlank() } ?: return null
-        return runCatching {
-            productThumbnailLoadUrl(apiClient.getMediaUrl(id).url, apiBaseUrl)
-        }.getOrNull()
+        return resolver.resolveByFileId(id)
     }
 }
-

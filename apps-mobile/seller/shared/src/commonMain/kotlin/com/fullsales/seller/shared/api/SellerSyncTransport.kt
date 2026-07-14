@@ -6,6 +6,7 @@ import com.fullsales.seller.shared.model.SyncOutboxEntry
 import com.fullsales.seller.shared.sync.CatalogPullClient
 import com.fullsales.seller.shared.sync.RegistrationsPullClient
 import com.fullsales.seller.shared.sync.SalesPullClient
+import com.fullsales.seller.shared.sync.SettingsPullClient
 import com.fullsales.seller.shared.sync.SyncHttpOutcome
 import com.fullsales.seller.shared.sync.SyncHttpResult
 import com.fullsales.seller.shared.sync.SyncTransport
@@ -14,7 +15,7 @@ import kotlinx.serialization.json.Json
 class SellerSyncTransport(
     private val client: SellerApiClient,
     private val json: Json = defaultSellerJson(),
-) : SyncTransport, CatalogPullClient, SalesPullClient, RegistrationsPullClient {
+) : SyncTransport, CatalogPullClient, SalesPullClient, RegistrationsPullClient, SettingsPullClient {
     override suspend fun fetchCommerces(limit: Int, cursor: String?) =
         client.listCommerces(limit, cursor)
 
@@ -26,6 +27,8 @@ class SellerSyncTransport(
 
     override suspend fun fetchRegistrations(limit: Int, cursor: String?) =
         client.listRegistrations(limit, cursor)
+
+    override suspend fun fetchSettings() = client.getSettings()
 
     override suspend fun execute(entry: SyncOutboxEntry): SyncHttpResult = try {
         when (entry.method) {
