@@ -7,6 +7,7 @@ use http::StatusCode;
 
 use support::{request, seed_admin, seed_commerce, seed_driver, setup};
 
+// T-17-011
 #[tokio::test]
 async fn contract_list_commerces_when_cursor_envelope_then_data_array() {
     let env = setup().await;
@@ -26,6 +27,7 @@ async fn contract_list_commerces_when_cursor_envelope_then_data_array() {
     assert_eq!(body["pagination"]["has_more"], false);
 }
 
+// T-17-011
 #[tokio::test]
 async fn contract_list_commerces_when_invalid_filter_then_400() {
     let env = setup().await;
@@ -60,7 +62,7 @@ async fn contract_list_commerces_when_limit_over_max_then_400() {
     assert_eq!(body["error"]["code"], "invalid_pagination");
 }
 
-// Contract: driver can GET commerce list; cannot POST address
+// T-17-011 / T-17-015 — driver can GET list; cannot POST address
 #[tokio::test]
 async fn contract_driver_when_list_commerces_then_ok_but_post_address_forbidden() {
     let env = setup().await;
@@ -108,6 +110,7 @@ async fn contract_driver_when_list_commerces_then_ok_but_post_address_forbidden(
     assert_eq!(post_body["error"]["code"], "FORBIDDEN");
 }
 
+// T-17-014
 #[tokio::test]
 async fn contract_list_addresses_when_cursor_envelope_then_data_array() {
     let env = setup().await;

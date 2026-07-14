@@ -1,4 +1,5 @@
-//! Contract tests: seller commerce registration workflow (Phase 69).
+//! Contract tests: seller commerce registration workflow (Phase 69 / 17C).
+//! Asserts API-CONTRACT.md: submit → PendingReview + active true.
 
 mod support;
 
@@ -25,8 +26,9 @@ fn registration_payload(cnpj: &str) -> Value {
     })
 }
 
+// T-17-019 — BR-CO-010
 #[tokio::test]
-async fn br_co_010_given_seller_when_submit_registration_then_active() {
+async fn br_co_010_given_seller_when_submit_registration_then_pending_review() {
     let env = setup().await;
     let (_seller_id, token) = support::seed_seller(&env, "seller-reg@test.com").await;
 
@@ -40,10 +42,11 @@ async fn br_co_010_given_seller_when_submit_registration_then_active() {
     .await;
 
     assert_eq!(status, StatusCode::CREATED);
-    assert_eq!(body["registrationStatus"], "Active");
+    assert_eq!(body["registrationStatus"], "PendingReview");
     assert_eq!(body["active"], true);
 }
 
+// T-17-019 — visible in active commerce list while pending
 #[tokio::test]
 async fn br_co_010_given_seller_submit_when_list_active_commerces_then_visible() {
     let env = setup().await;
@@ -81,6 +84,7 @@ async fn br_co_010_given_seller_submit_when_list_active_commerces_then_visible()
     );
 }
 
+// T-17-023
 #[tokio::test]
 async fn br_co_011_given_seller_when_approve_registration_then_forbidden() {
     let env = setup().await;
@@ -108,8 +112,9 @@ async fn br_co_011_given_seller_when_approve_registration_then_forbidden() {
     assert_eq!(status, StatusCode::FORBIDDEN);
 }
 
+// T-17-023 — admin approve pending → Active
 #[tokio::test]
-async fn contract_seller_submit_is_active_without_admin_approve() {
+async fn contract_admin_when_approve_pending_then_active() {
     let env = setup().await;
     let (_seller_id, seller_token) = support::seed_seller(&env, "seller-approve@test.com").await;
     let (_admin_id, admin_token) = support::seed_admin(&env).await;
@@ -123,10 +128,10 @@ async fn contract_seller_submit_is_active_without_admin_approve() {
     )
     .await;
     assert_eq!(create_status, StatusCode::CREATED);
-    assert_eq!(created["registrationStatus"], "Active");
+    assert_eq!(created["registrationStatus"], "PendingReview");
     let id = created["id"].as_str().expect("id");
 
-    let (status, _) = request(
+    let (status, body) = request(
         &env,
         "POST",
         &format!("/v1/commerces/registrations/{id}/approve"),
@@ -134,9 +139,11 @@ async fn contract_seller_submit_is_active_without_admin_approve() {
         Some("{}".into()),
     )
     .await;
-    assert_eq!(status, StatusCode::CONFLICT);
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["registrationStatus"], "Active");
 }
 
+// T-17-018
 #[tokio::test]
 async fn contract_lookup_when_known_cnpj_then_prefill() {
     let env = setup().await;
@@ -154,6 +161,7 @@ async fn contract_lookup_when_known_cnpj_then_prefill() {
     assert_eq!(body["legalName"], "Acme Comercio Ltda");
 }
 
+// T-17-019
 #[tokio::test]
 async fn contract_duplicate_cnpj_when_submit_then_conflict() {
     let env = setup().await;

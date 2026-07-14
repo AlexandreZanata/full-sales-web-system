@@ -8,7 +8,7 @@ use serde_json::json;
 
 use support::{request, seed_admin, seed_commerce, seed_driver, seed_product, setup};
 
-// Contract: deactivate commerce → subsequent sale 422
+// T-17-013
 #[tokio::test]
 async fn contract_deactivate_commerce_when_new_sale_then_422() {
     let env = setup().await;

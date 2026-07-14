@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use support::{minimal_webp_bytes, request, seed_admin, setup, upload_multipart};
 
+// T-17-026
 #[tokio::test]
 async fn contract_list_products_when_cursor_envelope_then_data_array() {
     let env = setup().await;
@@ -27,6 +28,7 @@ async fn contract_list_products_when_cursor_envelope_then_data_array() {
     assert_eq!(body["pagination"]["has_more"], false);
 }
 
+// T-17-026
 #[tokio::test]
 async fn contract_list_products_when_invalid_filter_then_400() {
     let env = setup().await;
@@ -61,6 +63,7 @@ async fn contract_list_products_when_limit_over_max_then_400() {
     assert_eq!(body["error"]["code"], "invalid_pagination");
 }
 
+// T-17-025 / T-17-026
 #[tokio::test]
 async fn contract_create_product_when_listed_then_present_in_data() {
     let env = setup().await;
@@ -211,6 +214,7 @@ async fn contract_adjustment_when_exceeds_balance_then_422() {
     assert_eq!(adj_body["error"]["code"], "INSUFFICIENT_BALANCE");
 }
 
+// T-17-037 / T-17-038
 #[tokio::test]
 async fn contract_list_product_images_when_attached_then_returns_data() {
     let env = setup().await;
@@ -307,6 +311,7 @@ async fn contract_list_product_images_when_attached_then_returns_data() {
     let _ = admin_id;
 }
 
+// T-17-039
 #[tokio::test]
 async fn contract_delete_product_image_when_attached_then_removed() {
     let env = setup().await;

@@ -12,6 +12,7 @@ use support::{
     upload_multipart,
 };
 
+// T-17-031 / T-17-030
 #[tokio::test]
 async fn contract_create_category_when_listed_then_present() {
     let env = setup().await;
@@ -122,6 +123,7 @@ async fn contract_assign_category_when_portal_filter_then_product_returned() {
     );
 }
 
+// T-17-025
 #[tokio::test]
 async fn contract_legacy_category_field_when_create_product_then_rejected() {
     let env = setup().await;
@@ -147,6 +149,7 @@ async fn contract_legacy_category_field_when_create_product_then_rejected() {
     assert_eq!(body["error"]["code"].as_str(), Some("VALIDATION_ERROR"));
 }
 
+// T-17-035
 #[tokio::test]
 async fn contract_reorder_categories_when_listed_then_order_persists() {
     let env = setup().await;
@@ -203,6 +206,7 @@ async fn contract_reorder_categories_when_listed_then_order_persists() {
     assert_eq!(first_body["sortOrder"].as_i64(), Some(1));
 }
 
+// T-17-036
 #[tokio::test]
 async fn contract_category_image_when_linked_then_public_media_content_ok() {
     let tenant_id =

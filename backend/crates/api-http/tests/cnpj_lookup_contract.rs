@@ -58,6 +58,7 @@ impl CnpjLookupProvider for CountingCnpjLookup {
     }
 }
 
+// T-17-018
 #[tokio::test]
 async fn contract_cnpj_lookup_when_valid_known_cnpj_then_200() {
     let env = setup().await;
@@ -77,6 +78,7 @@ async fn contract_cnpj_lookup_when_valid_known_cnpj_then_200() {
     assert_eq!(body["provider"], "mock");
 }
 
+// T-17-018
 #[tokio::test]
 async fn contract_cnpj_lookup_when_unknown_cnpj_then_not_found() {
     let env = setup().await;
@@ -95,6 +97,7 @@ async fn contract_cnpj_lookup_when_unknown_cnpj_then_not_found() {
     assert_eq!(body["error"]["code"], "CNPJ_NOT_FOUND");
 }
 
+// T-17-018
 #[tokio::test]
 async fn contract_cnpj_lookup_when_invalid_check_digits_then_bad_request() {
     let env = setup().await;
@@ -113,6 +116,7 @@ async fn contract_cnpj_lookup_when_invalid_check_digits_then_bad_request() {
     assert_eq!(body["error"]["code"], "INVALID_CNPJ");
 }
 
+// T-17-018
 #[tokio::test]
 async fn contract_cnpj_lookup_when_upstream_unavailable_then_502() {
     let mut env = setup().await;
@@ -132,6 +136,7 @@ async fn contract_cnpj_lookup_when_upstream_unavailable_then_502() {
     assert_eq!(body["error"]["code"], "CNPJ_LOOKUP_UNAVAILABLE");
 }
 
+// T-17-018
 #[tokio::test]
 async fn contract_cnpj_lookup_when_burst_then_rate_limited() {
     let mut env = setup().await;
