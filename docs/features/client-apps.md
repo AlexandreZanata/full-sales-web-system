@@ -9,7 +9,7 @@
 | `@full-sales/portal` | 5175 | CommerceContact | `portal@seed-store.com` / `secret123` |
 | `@full-sales/field` | 5176 | Driver, Seller | `seller@test.com` / `driver-a@test.com` / `secret123` |
 | `apps-mobile/field` | — | Driver, Seller | KMP offline (39F) |
-| `apps-mobile/seller` | — | Seller | KMP seller app — see [seller-mobile-app.md](seller-mobile-app.md) |
+| `apps-mobile/seller` | — | Seller | KMP local-first SQLite (Phase 16) — [seller-mobile-app.md](seller-mobile-app.md) |
 
 ## Stack
 

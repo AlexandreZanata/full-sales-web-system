@@ -70,10 +70,10 @@ Build phases aligned with domain dependencies. Local task breakdown: `.local/pha
 
 ## Phase 7 — Mobile clients ✅ (seller KMP)
 
-- KMP seller app (`apps-mobile/seller`) — Seller-only auth, offline sales, M3 UI
-- Compose Multiplatform shared UI (`composeApp`) — Android + iOS simulator
+- KMP seller app (`apps-mobile/seller`) — Seller-only auth, **local-first SQLite** (Phase 16), M3 UI
+- Compose Multiplatform shared UI (`composeApp`) — Android Room + iOS SQLDelight LocalStore
 - CI: `seller-kmp`, `seller-ios` jobs; quality gate in `pnpm mobile:seller:check`
-- Docs: [features/seller-mobile-app.md](features/seller-mobile-app.md), [ADR-051](adr/ADR-051-seller-kmp-app.md)
+- Docs: [features/seller-mobile-app.md](features/seller-mobile-app.md), [ADR-051](adr/ADR-051-seller-kmp-app.md) (incl. Phase 16 amendment)
 
 **Exit criteria:** Shared unit tests (API, sync, repositories); Android lint + assemble; iOS simulator compile; documented routes and manual acceptance script.
 

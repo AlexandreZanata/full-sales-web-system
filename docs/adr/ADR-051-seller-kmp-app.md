@@ -32,6 +32,21 @@ Shared patterns (not shared Gradle modules yet): `SellerApiClient` mirrors field
 - **Phase 16A:** Room v5 adds commerce CNPJ, product UOM/description, sale origin/driverId, sale-line prices; explicit `MIGRATION_4_5` (no wipe from v4).
 - **Phase 16B:** Sales list is LocalStore-first; `PullSalesSync` mirrors remote sales; online create upserts Room.
 
+### Local-first SQLite + generic outbox (Phase 16C–16G)
+
+Amendment (2026-07-14) — extends the offline-first model beyond Phase 14:
+
+| Decision | Choice |
+|----------|--------|
+| Registration submit offline | Outbox + LocalStore `PendingSync` (OD-16-1=A) |
+| Confirm/cancel before create sync | Chained outbox `dependsOnOutboxId` (OD-16-2=A) |
+| Outbox identity | `entityType` + `aggregateId` (sales + registrations) |
+| Settings / media | Durable `site_settings` + `media_url_cache` URL-only (OD-16-8=A) |
+| Empty UI | Shared `ListEmptyReason` — never blank when LocalStore has rows |
+| iOS durable store | **SQLDelight** shared schema matching Room inventory (OD-16-5=A); no WorkManager — foreground + become-active drain |
+
+**Law:** UI reads LocalStore first; SQLite is the source of truth after at least one successful sync (or offline mutation). Pull failures never clear cache and never abort outbox push.
+
 ## Consequences
 
 ### Positive
