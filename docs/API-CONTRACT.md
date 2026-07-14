@@ -1261,6 +1261,7 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ### `DELETE /v1/settings/domains/{id}`
 
 - **Auth:** Tenant Admin
+- **Precondition:** Domain not already `Detached`; detach allowed from `Pending`, `Verifying`, `Verified`, `Active`, or `Failed`
 - **Response 204:** Domain detached
 
 **Implemented:** Phase 7.

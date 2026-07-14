@@ -8,6 +8,7 @@ use http::StatusCode;
 use support::{request, seed_admin, seed_commerce, seed_commerce_contact, seed_order, setup};
 
 // Contract: admin lists orders across commerces
+// T-17-078
 #[tokio::test]
 async fn contract_admin_when_list_orders_then_pagination_with_items() {
     let env = setup().await;
@@ -31,6 +32,7 @@ async fn contract_admin_when_list_orders_then_pagination_with_items() {
 }
 
 // Contract: commerce contact cannot GET /v1/orders → 403
+// T-17-078 authz
 #[tokio::test]
 async fn contract_commerce_contact_when_get_orders_then_forbidden() {
     let env = setup().await;

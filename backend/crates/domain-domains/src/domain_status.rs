@@ -48,6 +48,7 @@ pub fn can_transition(from: DomainStatus, to: DomainStatus) -> bool {
         (DomainStatus::Pending, DomainStatus::Verifying)
             | (DomainStatus::Verifying, DomainStatus::Verified)
             | (DomainStatus::Verifying, DomainStatus::Failed)
+            | (DomainStatus::Verifying, DomainStatus::Detached)
             | (DomainStatus::Verified, DomainStatus::Active)
             | (DomainStatus::Active, DomainStatus::Detached)
             | (DomainStatus::Failed, DomainStatus::Verifying)

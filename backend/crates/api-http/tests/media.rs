@@ -8,6 +8,7 @@ use http::StatusCode;
 use support::{minimal_webp_bytes, request, request_bytes, seed_admin, setup, upload_multipart};
 
 // Contract: invalid mime → 400 before DB row
+// T-17-093
 #[tokio::test]
 async fn contract_upload_when_invalid_mime_then_400() {
     let env = setup().await;
@@ -64,6 +65,7 @@ async fn contract_upload_when_valid_then_presigned_url_non_empty() {
 }
 
 // Contract: authenticated content download returns image bytes
+// T-17-163
 #[tokio::test]
 async fn contract_upload_when_valid_then_content_endpoint_returns_bytes() {
     let env = setup().await;

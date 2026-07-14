@@ -171,6 +171,7 @@ pub async fn confirm_delivery(
             "items are required",
         ));
     }
+    let proof_file_id = body.proof_file_id.ok_or_else(ApiError::proof_required)?;
     let driver_session = session_from_auth(&auth);
     let admin_session = support::admin_session(&auth);
     let row = support::load_row(&state, &auth, id).await?;
@@ -180,7 +181,7 @@ pub async fn confirm_delivery(
         delivery: support::restore(&row, auth.tenant_id)?,
         order,
         items: support::parse_items(&body.items)?,
-        proof_file_id: FileId::from_uuid(body.proof_file_id),
+        proof_file_id: FileId::from_uuid(proof_file_id),
         latitude: body.latitude,
         longitude: body.longitude,
         received_by_name: body.received_by_name,
@@ -188,7 +189,7 @@ pub async fn confirm_delivery(
         sale_id,
     })
     .map_err(support::map_app_error)?;
-    let tx = support::confirm_tx(&row, &result, body.proof_file_id, sale_id.as_uuid())
+    let tx = support::confirm_tx(&row, &result, proof_file_id, sale_id.as_uuid())
         .map_err(|_| ApiError::internal())?;
     infra_postgres::deliveries::confirm_delivery_transaction(
         &state.app_pool,

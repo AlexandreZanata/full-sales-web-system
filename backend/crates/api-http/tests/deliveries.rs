@@ -261,7 +261,7 @@ async fn given_two_drivers_when_driver_lists_deliveries_then_own_only() {
 
 // Contract: confirm without proofFileId → validation error
 #[tokio::test]
-async fn given_confirm_without_proof_when_post_then_validation_error() {
+async fn given_confirm_without_proof_when_post_then_proof_required() {
     let env = setup().await;
     let (_, admin_token) = seed_admin(&env).await;
     let commerce_id = seed_commerce(&env, "11222333000181").await;
@@ -318,6 +318,6 @@ async fn given_confirm_without_proof_when_post_then_validation_error() {
         Some(json!({ "items": [{ "orderItemId": item_id, "quantityDelivered": 1 }] }).to_string()),
     )
     .await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
-    assert_eq!(body["error"]["code"], "VALIDATION_ERROR");
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(body["error"]["code"], "PROOF_REQUIRED");
 }

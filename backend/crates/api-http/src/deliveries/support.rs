@@ -37,7 +37,7 @@ pub struct ConfirmDeliveryItemRequest {
 #[serde(deny_unknown_fields)]
 pub struct ConfirmDeliveryRequest {
     #[serde(rename = "proofFileId")]
-    pub proof_file_id: Uuid,
+    pub proof_file_id: Option<Uuid>,
     pub items: Vec<ConfirmDeliveryItemRequest>,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,

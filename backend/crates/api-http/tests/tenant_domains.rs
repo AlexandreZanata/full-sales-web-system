@@ -102,6 +102,7 @@ async fn contract_dns_verify_when_txt_matches_then_active_and_host_resolves() {
 }
 
 #[tokio::test]
+// T-17-155
 async fn contract_set_primary_when_second_domain_then_first_detached() {
     let mut env = setup().await;
     set_pro_plan(&env).await;

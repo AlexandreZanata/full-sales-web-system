@@ -569,7 +569,10 @@ pub(crate) fn map_order_error(err: application::orders::OrdersAppError) -> ApiEr
         application::orders::OrdersAppError::Order(
             domain_orders::OrderError::RejectionReasonRequired,
         ) => ApiError::rejection_reason_required(),
-        application::orders::OrdersAppError::InsufficientAvailableStock => {
+        application::orders::OrdersAppError::Order(
+            domain_orders::OrderError::InsufficientAvailableStock,
+        )
+        | application::orders::OrdersAppError::InsufficientAvailableStock => {
             ApiError::insufficient_stock()
         }
         _ => ApiError::internal(),
