@@ -24,6 +24,7 @@ import com.fullsales.seller.shared.repository.StockSnapshotRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.sync.CatalogPullSync
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
+import com.fullsales.seller.shared.sync.PullSalesSync
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 import com.fullsales.seller.shared.sync.SyncTokenRefresher
@@ -48,6 +49,7 @@ class IosAppContainer : SellerAppContainer {
     override val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
     override val syncCoordinator = SellerSyncCoordinator(
         CatalogPullSync(catalogRepository, syncTransport),
+        PullSalesSync(saleRepository, syncTransport),
         SyncEngine(outboxRepository, saleRepository, syncTransport, tokenRefresher),
     )
     override val networkMonitor: NetworkMonitor = IosPathNetworkMonitor()

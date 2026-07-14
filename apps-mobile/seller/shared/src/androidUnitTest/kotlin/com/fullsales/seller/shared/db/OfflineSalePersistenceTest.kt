@@ -31,7 +31,7 @@ class OfflineSalePersistenceTest {
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         database = SellerDatabase.inMemory(context)
-        saleRepository = RoomSaleRepository(database.saleDao())
+        saleRepository = RoomSaleRepository(database.saleDao(), database.catalogDao())
         outboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
         writer = OfflineSaleWriter(saleRepository, outboxRepository)
     }
@@ -63,7 +63,7 @@ class OfflineSalePersistenceTest {
         val dbName = "seller-persistence-test.db"
         context.deleteDatabase(dbName)
         val db1 = SellerDatabase.build(context, dbName)
-        val sales1 = RoomSaleRepository(db1.saleDao())
+        val sales1 = RoomSaleRepository(db1.saleDao(), db1.catalogDao())
         val outbox1 = RoomSyncOutboxRepository(db1.syncOutboxDao())
         val localId = OfflineSaleWriter(sales1, outbox1)
             .createSale(saleRequest(), totalAmount = 15.0)
@@ -71,7 +71,7 @@ class OfflineSalePersistenceTest {
         db1.close()
 
         val db2 = SellerDatabase.build(context, dbName)
-        val restored = RoomSaleRepository(db2.saleDao()).getSale(localId)
+        val restored = RoomSaleRepository(db2.saleDao(), db2.catalogDao()).getSale(localId)
         db2.close()
         context.deleteDatabase(dbName)
 

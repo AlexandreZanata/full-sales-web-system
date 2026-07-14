@@ -45,7 +45,6 @@ class SellerViewModelFactory(
             SettingsViewModel(container.apiClient) as T
         SalesListViewModel::class ->
             SalesListViewModel(
-                container.apiClient,
                 container.saleRepository,
                 container.syncCoordinator,
                 container.networkMonitor,
@@ -97,7 +96,11 @@ class SellerViewModelFactory(
             CreateSaleViewModel(
                 container.apiClient,
                 container.catalogRepository,
-                CreateSaleSubmitter(container.apiClient, container.offlineSaleWriter),
+                CreateSaleSubmitter(
+                    container.apiClient,
+                    container.offlineSaleWriter,
+                    container.saleRepository,
+                ),
                 container.networkMonitor,
                 CreateSaleDraftStore(),
                 stockPrefetcher,

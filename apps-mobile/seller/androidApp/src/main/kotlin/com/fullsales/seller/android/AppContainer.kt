@@ -29,6 +29,7 @@ import com.fullsales.seller.shared.repository.SyncOutboxRepository
 import com.fullsales.seller.shared.connectivity.OnlineSyncTrigger
 import com.fullsales.seller.shared.sync.CatalogPullSync
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
+import com.fullsales.seller.shared.sync.PullSalesSync
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.sync.SyncEngine
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +47,8 @@ class AppContainer(context: Context) : SellerAppContainer {
     private val tokenStoreImpl = TokenStore(androidContext)
     override val tokenStore: SellerTokenStore = tokenStoreImpl
     override val catalogRepository: CatalogRepository = RoomCatalogRepository(database.catalogDao())
-    override val saleRepository: SaleRepository = RoomSaleRepository(database.saleDao())
+    override val saleRepository: SaleRepository =
+        RoomSaleRepository(database.saleDao(), database.catalogDao())
     override val outboxRepository: SyncOutboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
     override val stockSnapshots: StockSnapshotRepository =
         RoomStockSnapshotRepository(database.cacheDao())
@@ -64,6 +66,7 @@ class AppContainer(context: Context) : SellerAppContainer {
     override val offlineSaleWriter = OfflineSaleWriter(saleRepository, outboxRepository)
     override val syncCoordinator = SellerSyncCoordinator(
         CatalogPullSync(catalogRepository, syncTransport),
+        PullSalesSync(saleRepository, syncTransport),
         SyncEngine(outboxRepository, saleRepository, syncTransport, tokenRefresher),
     )
     override val networkMonitor: NetworkMonitor = createNetworkMonitor()

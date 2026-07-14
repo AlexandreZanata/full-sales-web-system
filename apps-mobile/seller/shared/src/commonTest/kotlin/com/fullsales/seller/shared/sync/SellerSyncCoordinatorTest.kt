@@ -6,10 +6,11 @@ import com.fullsales.seller.shared.model.LocalSaleStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 
 /**
- * Contract (Phase 14B): catalog pull failure must not abort outbox push.
+ * Contract (Phase 14B / 16B): pull failures must not abort outbox push.
  */
 class SellerSyncCoordinatorTest {
     @Test
@@ -31,6 +32,7 @@ class SellerSyncCoordinatorTest {
         transport.nextResult = SyncHttpResult(SyncHttpOutcome.Success, remoteId = "srv-1")
         val coordinator = SellerSyncCoordinator(
             CatalogPullSync(catalog, pullClient),
+            PullSalesSync(sales, pullClient),
             SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
         )
 
@@ -42,5 +44,29 @@ class SellerSyncCoordinatorTest {
         assertNotNull(stored)
         assertEquals("srv-1", stored.remoteId)
         assertEquals(LocalSaleStatus.Synced, stored.status)
+    }
+
+    @Test
+    fun given_pullSalesThrows_when_syncPullAndPush_then_outboxStillProcessed() = runTest {
+        val catalog = FakeCatalogRepository()
+        val sales = FakeSaleRepository()
+        val outbox = FakeOutboxRepository()
+        val transport = RecordingTransport()
+        val pullClient = FakeCatalogPullClient().apply { throwOnSalesFetch = true }
+        val writer = OfflineSaleWriter(sales, outbox)
+        writer.createSale(
+            CreateSaleRequest("c1", listOf(CreateSaleItem("p1", 1)), "cash"),
+            10.0,
+        )
+        transport.nextResult = SyncHttpResult(SyncHttpOutcome.Success, remoteId = "srv-2")
+        val coordinator = SellerSyncCoordinator(
+            CatalogPullSync(catalog, pullClient),
+            PullSalesSync(sales, pullClient),
+            SyncEngine(outbox, sales, transport, FakeTokenRefresher()),
+        )
+
+        val result = coordinator.syncPullAndPush()
+        assertEquals(1, result.processedCount)
+        assertTrue(sales.getLastSalesSyncEpochMs() == null)
     }
 }

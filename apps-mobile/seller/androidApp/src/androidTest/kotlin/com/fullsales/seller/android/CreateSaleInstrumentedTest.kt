@@ -30,7 +30,11 @@ class CreateSaleInstrumentedTest {
 
     @Test
     fun offlineCreateSale_enqueuesOutboxRow() = runBlocking {
-        val submitter = CreateSaleSubmitter(container.apiClient, container.offlineSaleWriter)
+        val submitter = CreateSaleSubmitter(
+            container.apiClient,
+            container.offlineSaleWriter,
+            container.saleRepository,
+        )
         val request = CreateSaleRequest(
             commerceId = "commerce-seed",
             paymentMethod = "cash",
@@ -51,7 +55,11 @@ class CreateSaleInstrumentedTest {
         val commerces = container.apiClient.listCommerces(limit = 5).data
         val products = container.apiClient.listProducts(limit = 5).data
         assumeTrue(commerces.isNotEmpty() && products.isNotEmpty())
-        val submitter = CreateSaleSubmitter(container.apiClient, container.offlineSaleWriter)
+        val submitter = CreateSaleSubmitter(
+            container.apiClient,
+            container.offlineSaleWriter,
+            container.saleRepository,
+        )
         val request = CreateSaleRequest(
             commerceId = commerces.first().id,
             paymentMethod = "cash",

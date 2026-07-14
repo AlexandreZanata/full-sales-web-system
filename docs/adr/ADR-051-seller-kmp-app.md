@@ -30,6 +30,7 @@ Shared patterns (not shared Gradle modules yet): `SellerApiClient` mirrors field
 - Outbox **push must not wait** on catalog pull success; auto-push once on stable Online.
 - Detail/read paths are **cache-first** (Room catalog + stock/address snapshots); online enrich is optional.
 - **Phase 16A:** Room v5 adds commerce CNPJ, product UOM/description, sale origin/driverId, sale-line prices; explicit `MIGRATION_4_5` (no wipe from v4).
+- **Phase 16B:** Sales list is LocalStore-first; `PullSalesSync` mirrors remote sales; online create upserts Room.
 
 ## Consequences
 

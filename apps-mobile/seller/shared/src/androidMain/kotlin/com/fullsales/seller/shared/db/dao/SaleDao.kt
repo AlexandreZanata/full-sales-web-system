@@ -30,6 +30,16 @@ interface SaleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLines(lines: List<SaleLineEntity>)
 
+    @Query("DELETE FROM sale_lines WHERE saleLocalId = :saleLocalId")
+    suspend fun deleteLines(saleLocalId: String)
+
+    @Transaction
+    suspend fun upsertSaleWithLines(sale: SaleEntity, lines: List<SaleLineEntity>) {
+        insertSale(sale)
+        deleteLines(sale.localId)
+        if (lines.isNotEmpty()) insertLines(lines)
+    }
+
     @Query("UPDATE sales SET status = :status WHERE localId = :localId")
     suspend fun updateStatus(localId: String, status: String)
 

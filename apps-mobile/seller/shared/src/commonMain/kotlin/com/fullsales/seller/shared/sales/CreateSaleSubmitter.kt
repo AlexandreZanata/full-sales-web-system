@@ -4,6 +4,7 @@ import com.fullsales.seller.shared.api.ApiException
 import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.model.CreateSaleRequest
 import com.fullsales.seller.shared.model.generateUuidV7
+import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.sync.OfflineSaleWriter
 
 sealed class CreateSaleSubmitResult {
@@ -14,6 +15,7 @@ sealed class CreateSaleSubmitResult {
 class CreateSaleSubmitter(
     private val apiClient: SellerApiClient,
     private val offlineWriter: OfflineSaleWriter,
+    private val saleRepository: SaleRepository,
     private val newIdempotencyKey: () -> String = { generateUuidV7() },
 ) {
     suspend fun submit(
@@ -32,6 +34,7 @@ class CreateSaleSubmitter(
     ): CreateSaleSubmitResult =
         runCatching {
             val sale = apiClient.createSale(request, newIdempotencyKey())
+            saleRepository.upsertSyncedRemoteSale(sale)
             CreateSaleSubmitResult.Success(sale.id, isRemote = true)
         }.getOrElse { error ->
             if (isTransportFailure(error)) {

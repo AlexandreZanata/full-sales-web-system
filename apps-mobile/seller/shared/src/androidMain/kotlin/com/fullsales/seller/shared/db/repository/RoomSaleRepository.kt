@@ -1,20 +1,28 @@
 package com.fullsales.seller.shared.db.repository
 
+import com.fullsales.seller.shared.db.dao.CatalogDao
 import com.fullsales.seller.shared.db.dao.SaleDao
+import com.fullsales.seller.shared.db.entity.SaleEntity
+import com.fullsales.seller.shared.db.entity.SyncMetadataEntity
 import com.fullsales.seller.shared.db.mapper.saleEntity
 import com.fullsales.seller.shared.db.mapper.saleLines
 import com.fullsales.seller.shared.db.mapper.toModel
 import com.fullsales.seller.shared.model.CreateSaleRequest
 import com.fullsales.seller.shared.model.LocalSale
 import com.fullsales.seller.shared.model.LocalSaleStatus
+import com.fullsales.seller.shared.model.Sale
 import com.fullsales.seller.shared.model.SaleItem
 import com.fullsales.seller.shared.model.SaleOrigin
 import com.fullsales.seller.shared.model.generateUuidV7
 import com.fullsales.seller.shared.repository.SaleRepository
+import com.fullsales.seller.shared.sales.toMirroredLocalSale
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class RoomSaleRepository(private val dao: SaleDao) : SaleRepository {
+class RoomSaleRepository(
+    private val dao: SaleDao,
+    private val catalogDao: CatalogDao,
+) : SaleRepository {
     override fun observeSales(): Flow<List<LocalSale>> =
         dao.observeSalesWithLines().map { rows -> rows.map { it.toModel() } }
 
@@ -63,5 +71,49 @@ class RoomSaleRepository(private val dao: SaleDao) : SaleRepository {
 
     override suspend fun markSyncFailed(localId: String, reason: String) {
         dao.markSyncFailed(localId, LocalSaleStatus.SyncFailed.name, reason)
+    }
+
+    override suspend fun upsertFromRemoteSales(remoteSales: List<Sale>) {
+        remoteSales.forEach { upsertResolvedMirror(it) }
+    }
+
+    override suspend fun upsertSyncedRemoteSale(sale: Sale) {
+        upsertResolvedMirror(sale)
+    }
+
+    override suspend fun getLastSalesSyncEpochMs(): Long? =
+        catalogDao.getMetadata(KEY_LAST_SALES_SYNC)?.toLongOrNull()
+
+    override suspend fun setLastSalesSyncEpochMs(epochMs: Long) {
+        catalogDao.upsertMetadata(SyncMetadataEntity(KEY_LAST_SALES_SYNC, epochMs.toString()))
+    }
+
+    private suspend fun upsertResolvedMirror(remote: Sale) {
+        val existing = getSaleByRemoteId(remote.id) ?: getSale(remote.id)
+        val mirrored = remote.toMirroredLocalSale(
+            existingLocalId = existing?.localId,
+            existingOrigin = existing?.origin ?: SaleOrigin.RemoteMirror,
+            existingIdempotencyKey = existing?.idempotencyKey,
+        )
+        dao.upsertSaleWithLines(mirrored.toEntity(), saleLines(mirrored.localId, mirrored.items))
+    }
+
+    private fun LocalSale.toEntity() = SaleEntity(
+        localId = localId,
+        remoteId = remoteId,
+        idempotencyKey = idempotencyKey,
+        commerceId = commerceId,
+        paymentMethod = paymentMethod,
+        status = status.name,
+        totalAmount = totalAmount,
+        totalCurrency = totalCurrency,
+        createdAtEpochMs = createdAtEpochMs,
+        syncFailureReason = syncFailureReason,
+        driverId = driverId,
+        origin = origin.name,
+    )
+
+    private companion object {
+        const val KEY_LAST_SALES_SYNC = "lastSalesSync"
     }
 }

@@ -11,6 +11,7 @@ import com.fullsales.seller.shared.model.SyncOutboxEntry
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
+import com.fullsales.seller.shared.sales.toMirroredLocalSale
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.sync.Mutex
@@ -120,6 +121,34 @@ class FakeSaleRepository : SaleRepository {
             }
         }
     }
+
+    override suspend fun upsertFromRemoteSales(remoteSales: List<com.fullsales.seller.shared.model.Sale>) {
+        mutex.withLock {
+            remoteSales.forEach { remote ->
+                val existing = sales.values.firstOrNull { it.remoteId == remote.id }
+                    ?: sales[remote.id]
+                val mirrored = remote.toMirroredLocalSale(
+                    parseCreatedAt = { it?.toLongOrNull() ?: 0L },
+                    existingLocalId = existing?.localId,
+                    existingOrigin = existing?.origin,
+                    existingIdempotencyKey = existing?.idempotencyKey,
+                )
+                sales[mirrored.localId] = mirrored
+            }
+        }
+    }
+
+    override suspend fun upsertSyncedRemoteSale(sale: com.fullsales.seller.shared.model.Sale) {
+        upsertFromRemoteSales(listOf(sale))
+    }
+
+    private var lastSalesSync: Long? = null
+
+    override suspend fun getLastSalesSyncEpochMs(): Long? = lastSalesSync
+
+    override suspend fun setLastSalesSyncEpochMs(epochMs: Long) {
+        lastSalesSync = epochMs
+    }
 }
 
 class FakeOutboxRepository : SyncOutboxRepository {
@@ -168,10 +197,12 @@ class RecordingTransport : SyncTransport {
     }
 }
 
-class FakeCatalogPullClient : CatalogPullClient {
+class FakeCatalogPullClient : CatalogPullClient, SalesPullClient {
     var commerces = listOf<Commerce>()
     var products = listOf<Product>()
+    var sales = listOf<com.fullsales.seller.shared.model.Sale>()
     var throwOnFetch: Boolean = false
+    var throwOnSalesFetch: Boolean = false
 
     override suspend fun fetchCommerces(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListCommerces {
         if (throwOnFetch) error("catalog unavailable")
@@ -197,6 +228,21 @@ class FakeCatalogPullClient : CatalogPullClient {
             )
         } else {
             com.fullsales.seller.shared.model.CursorListProducts(
+                emptyList(),
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        }
+    }
+
+    override suspend fun fetchSales(limit: Int, cursor: String?): com.fullsales.seller.shared.model.CursorListSales {
+        if (throwOnSalesFetch) error("sales unavailable")
+        return if (cursor == null) {
+            com.fullsales.seller.shared.model.CursorListSales(
+                sales,
+                com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
+            )
+        } else {
+            com.fullsales.seller.shared.model.CursorListSales(
                 emptyList(),
                 com.fullsales.seller.shared.model.CursorPaginationMeta(null, false, limit),
             )

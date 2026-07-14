@@ -12,7 +12,8 @@ fun remoteSaleStatusToDisplay(status: String): SaleDisplayStatus = when (status)
 fun localSaleStatusToDisplay(status: LocalSaleStatus): SaleDisplayStatus = when (status) {
     LocalSaleStatus.SyncFailed -> SaleDisplayStatus.SyncFailed
     LocalSaleStatus.Cancelled -> SaleDisplayStatus.Cancelled
-    LocalSaleStatus.Confirmed, LocalSaleStatus.Synced -> SaleDisplayStatus.Confirmed
+    LocalSaleStatus.Confirmed -> SaleDisplayStatus.Confirmed
+    LocalSaleStatus.Synced -> SaleDisplayStatus.Pending
     LocalSaleStatus.PendingSync, LocalSaleStatus.Draft -> SaleDisplayStatus.PendingSync
 }
 

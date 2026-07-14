@@ -4,6 +4,7 @@ import com.fullsales.seller.shared.model.CreateSaleRequest
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.model.SyncOutboxEntry
 import com.fullsales.seller.shared.sync.CatalogPullClient
+import com.fullsales.seller.shared.sync.SalesPullClient
 import com.fullsales.seller.shared.sync.SyncHttpOutcome
 import com.fullsales.seller.shared.sync.SyncHttpResult
 import com.fullsales.seller.shared.sync.SyncTransport
@@ -12,12 +13,15 @@ import kotlinx.serialization.json.Json
 class SellerSyncTransport(
     private val client: SellerApiClient,
     private val json: Json = defaultSellerJson(),
-) : SyncTransport, CatalogPullClient {
+) : SyncTransport, CatalogPullClient, SalesPullClient {
     override suspend fun fetchCommerces(limit: Int, cursor: String?) =
         client.listCommerces(limit, cursor)
 
     override suspend fun fetchProducts(limit: Int, cursor: String?) =
         client.listProducts(limit, cursor)
+
+    override suspend fun fetchSales(limit: Int, cursor: String?) =
+        client.listSales(limit, cursor)
 
     override suspend fun execute(entry: SyncOutboxEntry): SyncHttpResult = try {
         when (entry.method) {
