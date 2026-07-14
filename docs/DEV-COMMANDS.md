@@ -10,6 +10,8 @@ Quick reference for local development.
 pnpm install
 pnpm verify          # lint + test + build + Rust checks
 pnpm validate:openapi # OpenAPI 3.1 schema validation (swagger-cli)
+pnpm verify:api-route-inventory  # API-CONTRACT.md ↔ routes.rs drift (Phase 17A)
+pnpm test:api-route-inventory    # parser/drift unit tests
 pnpm dev             # API (Rust) + web (Vite) in parallel
 ./scripts/dev-frontends.sh   # all Vite frontends only (HMR, no Docker)
 pnpm dev:frontends   # same as the script above
@@ -145,6 +147,8 @@ cargo test -p infra-postgres --test integration rls_
 
 ```bash
 pnpm validate:openapi   # from repo root — validates docs/openapi.yaml
+pnpm verify:api-route-inventory  # API-CONTRACT ↔ routes.rs
+pnpm test:api-route-inventory
 
 cd backend
 cargo fmt --check

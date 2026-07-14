@@ -53,6 +53,16 @@ fn given_insufficient_stock_when_confirm_sale_then_returns_error() {
 | No unwrap in prod | `#![deny(clippy::unwrap_used)]` in lib crates (tests exempt) |
 | Domain coverage | `cargo llvm-cov --workspace` — domain crates 100% |
 | Security audit | `cargo audit` — no high/critical |
+| **API route inventory** | `pnpm verify:api-route-inventory` — `API-CONTRACT.md` ↔ `routes.rs` (Phase 17A) |
+
+Regenerate local inventory / gap baseline:
+
+```bash
+pnpm verify:api-route-inventory -- --write-docs
+# writes .local/phases/17-backend-route-contract-coverage/documentation/{ROUTE-INVENTORY,GAP-BASELINE}.md
+```
+
+Temporary undocumented/unwired exceptions: `scripts/api-route-inventory-allowlist.json` (dated OD-17-3 waivers only).
 
 ---
 

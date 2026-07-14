@@ -50,6 +50,12 @@ jobs:
       - name: cargo fmt
         run: cargo fmt --check
 
+      - name: API route inventory drift
+        working-directory: .
+        run: |
+          python3 scripts/verify-api-route-inventory.py --self-test
+          python3 scripts/verify-api-route-inventory.py
+
       - name: cargo clippy
         run: cargo clippy --workspace -- -D warnings
 
@@ -88,6 +94,9 @@ jobs:
 
       - name: Validate OpenAPI
         run: pnpm validate:openapi
+
+      - name: API route inventory drift
+        run: pnpm test:api-route-inventory && pnpm verify:api-route-inventory
 
       - name: pnpm test
         run: pnpm test

@@ -722,6 +722,14 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Response 200:** `{ "url", "expiresAt" }` — presigned URL (~15 min TTL)
 - **Response 404:** `MEDIA_NOT_FOUND`
 
+### `GET /v1/media/{id}/content`
+
+- **Auth:** Same scope as upload for the file's entity
+- **Response 200:** Binary body with content-type from stored media
+- **Response 404:** `MEDIA_NOT_FOUND`
+
+**Note:** Public catalog uses `GET /v1/public/media/{id}/content` without JWT.
+
 ---
 
 ## Reports
@@ -810,6 +818,13 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 **Implemented:** Phase 9.
 
+### `GET /v1/`
+
+- **Auth:** None
+- **Response 200:** `{ "version": "1", "status": "ok" }` — version stub (reserved for future metadata)
+
+**Implemented:** Phase 1.
+
 ---
 
 ## Platform SaaS (Phases 1–13)
@@ -843,6 +858,19 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Auth:** `mfaToken` from login step
 - **Body:** `{ "code" }`
 - **Response 200:** `{ "accessToken", "refreshToken", "expiresIn" }`
+
+### `POST /v1/platform/auth/refresh`
+
+- **Auth:** Public (refresh token in body)
+- **Body:** `{ "refreshToken" }`
+- **Response 200:** New platform access + refresh tokens
+- **Response 401:** Invalid or revoked refresh token
+
+### `POST /v1/platform/auth/logout`
+
+- **Auth:** PlatformAdmin (Bearer)
+- **Body:** `{ "refreshToken" }` (optional — revokes refresh when present)
+- **Response 204:** Session revoked
 
 ---
 
@@ -1018,6 +1046,11 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Body:** `{ "tenantId", "reason" }`
 - **Response 201:** `{ "impersonationToken", "expiresAt", "tenantId" }` — 15 min TTL (BR-AU-001)
 - **Response 403:** Impersonation disabled or fraud block
+
+### `POST /v1/platform/impersonate/end`
+
+- **Auth:** PlatformAdmin (impersonation or platform Bearer)
+- **Response 204:** Impersonation session ended
 
 ---
 
@@ -1195,6 +1228,8 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 - **Auth:** Tenant Admin
 - **Response 202:** Cancel at period end scheduled
 
+> **Implementation note (Phase 17A):** Documented; HTTP route not yet registered in `routes.rs`. Gateway (`PaymentGateway::cancel_subscription`) exists. Temporary drift waiver in `scripts/api-route-inventory-allowlist.json` (OD-17-3) until Phase 17J.
+
 ---
 
 ## Settings — domains and payments
@@ -1297,6 +1332,8 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 ## OpenAPI
 
 Full schema: [`docs/openapi.yaml`](openapi.yaml) — all implemented `/v1/*` routes (Phases 16–26).
+
+**Testing / drift:** Every `### \`METHOD /path\`` heading in this file must match a `.route(...)` in `backend/crates/api-http/src/routes.rs` (CI: `pnpm verify:api-route-inventory`). See [TESTING-STRATEGY.md](TESTING-STRATEGY.md).
 
 ### Example: create sale
 
