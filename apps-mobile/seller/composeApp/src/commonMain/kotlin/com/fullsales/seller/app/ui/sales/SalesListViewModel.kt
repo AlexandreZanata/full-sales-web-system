@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.connectivity.ConnectivityState
+import com.fullsales.seller.shared.connectivity.isDefinitelyOffline
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.sales.localSalesToListItems
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
@@ -64,7 +65,9 @@ class SalesListViewModel(
                     if (online && !_state.value.everSynced) {
                         refresh()
                     } else if (!online) {
-                        _state.update { it.copy(isOffline = true) }
+                        _state.update {
+                            it.copy(isOffline = networkMonitor.connectivity.value.isDefinitelyOffline())
+                        }
                     }
                 }
         }
@@ -76,7 +79,7 @@ class SalesListViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            if (!networkMonitor.isOnline()) {
+            if (!networkMonitor.canAttemptNetwork()) {
                 _state.update {
                     it.copy(
                         refreshing = false,
@@ -93,7 +96,7 @@ class SalesListViewModel(
                 val keepCacheFail = !pulls.salesOk && it.items.isNotEmpty()
                 it.copy(
                     refreshing = false,
-                    isOffline = !networkMonitor.isOnline(),
+                    isOffline = networkMonitor.connectivity.value.isDefinitelyOffline(),
                     everSynced = pulled || it.everSynced,
                     refreshFailed = keepCacheFail,
                     snackbarCode = if (keepCacheFail) "REFRESH_FAILED" else null,

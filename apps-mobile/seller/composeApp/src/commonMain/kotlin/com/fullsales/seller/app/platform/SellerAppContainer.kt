@@ -28,6 +28,10 @@ interface MediaUrlResolver {
 interface NetworkMonitor {
     val connectivity: StateFlow<ConnectivityState>
     fun isOnline(): Boolean = connectivity.value == ConnectivityState.Online
+    /** False only when Offline — Connecting still attempts pull/sync. */
+    fun canAttemptNetwork(): Boolean =
+        connectivity.value == ConnectivityState.Online ||
+            connectivity.value == ConnectivityState.Connecting
 }
 
 interface SellerAppContainer {

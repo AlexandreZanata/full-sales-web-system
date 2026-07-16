@@ -35,7 +35,7 @@ class SettingsViewModel(
             settingsRepository.get()?.let { snap ->
                 apply(snap.settings, snap.syncedAtEpochMs)
             }
-            if (!networkMonitor.isOnline()) {
+            if (!networkMonitor.canAttemptNetwork()) {
                 _state.updateLoadingFalse()
                 return@launch
             }

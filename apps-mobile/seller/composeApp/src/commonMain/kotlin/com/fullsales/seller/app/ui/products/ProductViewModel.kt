@@ -3,6 +3,7 @@ package com.fullsales.seller.app.ui.products
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.NetworkMonitor
+import com.fullsales.seller.shared.connectivity.isDefinitelyOffline
 import com.fullsales.seller.shared.catalog.StockBalancePrefetcher
 import com.fullsales.seller.shared.catalog.filterProductsBySearch
 import com.fullsales.seller.shared.model.Product
@@ -76,7 +77,7 @@ class ProductViewModel(
                     stockByProductId = stockByProductId,
                     refreshing = refreshing,
                     snackbarCode = _state.value.snackbarCode,
-                    isOffline = !networkMonitor.isOnline(),
+                    isOffline = networkMonitor.connectivity.value.isDefinitelyOffline(),
                     everSynced = everSynced,
                     refreshFailed = _refreshFailed.value,
                 )
@@ -99,7 +100,7 @@ class ProductViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            if (!networkMonitor.isOnline()) {
+            if (!networkMonitor.canAttemptNetwork()) {
                 _state.update {
                     it.copy(snackbarCode = if (it.items.isNotEmpty()) "OFFLINE" else null, refreshing = false)
                 }

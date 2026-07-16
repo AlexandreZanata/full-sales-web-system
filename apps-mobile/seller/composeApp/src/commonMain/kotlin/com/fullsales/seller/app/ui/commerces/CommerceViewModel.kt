@@ -3,6 +3,7 @@ package com.fullsales.seller.app.ui.commerces
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.NetworkMonitor
+import com.fullsales.seller.shared.connectivity.isDefinitelyOffline
 import com.fullsales.seller.shared.model.Commerce
 import com.fullsales.seller.shared.model.displayName
 import com.fullsales.seller.shared.repository.CatalogRepository
@@ -80,7 +81,7 @@ class CommerceViewModel(
                     searchQuery = query,
                     activeOnly = activeOnly,
                     refreshing = refreshing,
-                    isOffline = !networkMonitor.isOnline(),
+                    isOffline = networkMonitor.connectivity.value.isDefinitelyOffline(),
                     everSynced = everSynced,
                     snackbarCode = _state.value.snackbarCode,
                     refreshFailed = _refreshFailed.value,
@@ -103,7 +104,7 @@ class CommerceViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            if (!networkMonitor.isOnline()) {
+            if (!networkMonitor.canAttemptNetwork()) {
                 _state.update {
                     it.copy(snackbarCode = if (it.items.isNotEmpty()) "OFFLINE" else null, refreshing = false)
                 }

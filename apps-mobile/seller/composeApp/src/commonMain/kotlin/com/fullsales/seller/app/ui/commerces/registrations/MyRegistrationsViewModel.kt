@@ -73,7 +73,7 @@ class MyRegistrationsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            if (!networkMonitor.isOnline()) {
+            if (!networkMonitor.canAttemptNetwork()) {
                 _state.update {
                     it.copy(
                         refreshing = false,
