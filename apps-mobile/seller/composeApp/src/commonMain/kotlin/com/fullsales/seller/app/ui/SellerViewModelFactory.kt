@@ -22,6 +22,7 @@ import com.fullsales.seller.app.ui.sales.CreateSaleViewModel
 import com.fullsales.seller.app.ui.sales.SaleDetailViewModel
 import com.fullsales.seller.app.ui.sales.SalesListViewModel
 import com.fullsales.seller.app.ui.settings.SettingsViewModel
+import com.fullsales.seller.app.ui.offline.OfflineHubViewModel
 import com.fullsales.seller.app.ui.sync.SyncStatusViewModel
 import com.fullsales.seller.shared.catalog.CommerceDetailLoader
 import com.fullsales.seller.shared.catalog.ProductDetailLoader
@@ -139,6 +140,15 @@ class SellerViewModelFactory(
             SyncStatusViewModel(
                 container,
                 container.saleRepository,
+                container.outboxRepository,
+                container.networkMonitor,
+            ) as T
+        OfflineHubViewModel::class ->
+            OfflineHubViewModel(
+                container,
+                container.catalogRepository,
+                container.saleRepository,
+                container.registrationRepository,
                 container.outboxRepository,
                 container.networkMonitor,
             ) as T

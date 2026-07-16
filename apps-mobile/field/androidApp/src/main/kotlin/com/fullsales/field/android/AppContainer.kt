@@ -2,6 +2,7 @@ package com.fullsales.field.android
 
 import android.content.Context
 import com.fullsales.field.android.auth.TokenStore
+import com.fullsales.field.android.connectivity.FieldNetworkMonitor
 import com.fullsales.field.android.sync.SyncWorker
 import com.fullsales.field.shared.api.AuthTokenProvider
 import com.fullsales.field.shared.api.FieldApiClient
@@ -21,6 +22,7 @@ import com.fullsales.field.shared.sync.SyncTokenRefresher
 
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
+    val networkMonitor = FieldNetworkMonitor(appContext)
     val tokenStore = TokenStore(appContext)
     private val database = FieldDatabase.build(appContext)
     val catalogRepository: CatalogRepository = RoomCatalogRepository(database.catalogDao())

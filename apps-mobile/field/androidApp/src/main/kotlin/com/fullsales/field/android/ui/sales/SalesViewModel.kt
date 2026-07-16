@@ -2,6 +2,7 @@ package com.fullsales.field.android.ui.sales
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fullsales.field.android.connectivity.FieldNetworkMonitor
 import com.fullsales.field.shared.model.Commerce
 import com.fullsales.field.shared.model.CreateSaleItem
 import com.fullsales.field.shared.model.CreateSaleRequest
@@ -22,17 +23,20 @@ data class NewSaleUiState(
     val loading: Boolean = true,
     val saving: Boolean = false,
     val error: String? = null,
+    val catalogEmptyOffline: Boolean = false,
 )
 
 class SalesViewModel(
     private val catalog: CatalogRepository,
     private val saleRepo: SaleRepository,
     private val offlineWriter: OfflineSaleWriter,
+    private val networkMonitor: FieldNetworkMonitor,
 ) : ViewModel() {
     private val _sales = MutableStateFlow<List<Sale>>(emptyList())
     val sales: StateFlow<List<Sale>> = _sales.asStateFlow()
     private val _newSale = MutableStateFlow(NewSaleUiState())
     val newSale: StateFlow<NewSaleUiState> = _newSale.asStateFlow()
+    val online: StateFlow<Boolean> = networkMonitor.online
 
     init {
         refreshSales()
@@ -46,15 +50,24 @@ class SalesViewModel(
 
     fun loadCatalog() {
         viewModelScope.launch {
-            _newSale.value = _newSale.value.copy(loading = true, error = null)
+            _newSale.value = _newSale.value.copy(loading = true, error = null, catalogEmptyOffline = false)
             runCatching {
+                val commerces = catalog.listActiveCommerces()
+                val products = catalog.listActiveProducts()
+                val emptyOffline = !networkMonitor.isOnline() && commerces.isEmpty() && products.isEmpty()
                 _newSale.value = _newSale.value.copy(
-                    commerces = catalog.listActiveCommerces(),
-                    products = catalog.listActiveProducts(),
+                    commerces = commerces,
+                    products = products,
                     loading = false,
+                    catalogEmptyOffline = emptyOffline,
                 )
             }.onFailure {
-                _newSale.value = _newSale.value.copy(loading = false, error = it.message)
+                val offlineEmpty = !networkMonitor.isOnline()
+                _newSale.value = _newSale.value.copy(
+                    loading = false,
+                    error = if (offlineEmpty) null else it.message,
+                    catalogEmptyOffline = offlineEmpty,
+                )
             }
         }
     }

@@ -54,7 +54,7 @@ fun CnpjLookupScreen(
         }
         if (!state.lookupEnabled && !state.loading) {
             Text(
-                s.registrations.requiresInternet,
+                s.offline.blockedCnpj,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

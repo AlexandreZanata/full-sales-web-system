@@ -14,6 +14,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fullsales.field.shared.model.Sale
+import com.fullsales.field.shared.offline.FieldOfflineMessages
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -32,9 +34,25 @@ fun SalesListScreen(
     onNewSale: () -> Unit,
 ) {
     val sales by viewModel.sales.collectAsState()
+    val online by viewModel.online.collectAsState()
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Sales") })
+            Column {
+                TopAppBar(title = { Text("Sales") })
+                if (!online) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            FieldOfflineMessages.bannerTitle(),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                    }
+                }
+            }
         },
         floatingActionButton = {},
     ) { padding ->
@@ -49,7 +67,10 @@ fun SalesListScreen(
                 Text("New sale")
             }
             if (sales.isEmpty()) {
-                Text("No sales yet", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    FieldOfflineMessages.salesEmpty(online),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
             } else {
                 LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
                     items(sales, key = { it.localId }) { sale ->

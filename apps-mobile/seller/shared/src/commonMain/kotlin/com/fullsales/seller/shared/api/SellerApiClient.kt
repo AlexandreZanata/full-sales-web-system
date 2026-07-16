@@ -25,12 +25,15 @@ import com.fullsales.seller.shared.model.TopSellingProductsResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
 class SellerApiClient(
@@ -38,6 +41,13 @@ class SellerApiClient(
     private val baseUrl: String = apiBaseUrl,
     private val json: Json = defaultSellerJson(),
 ) {
+    /** Lightweight reachability probe (`GET /health` beside `/v1`). */
+    suspend fun probeReachable(): Boolean = runCatching {
+        val origin = baseUrl.removeSuffix("/v1").trimEnd('/')
+        val response: HttpResponse = http.get("$origin/health")
+        response.status.isSuccess()
+    }.getOrDefault(false)
+
     suspend fun login(email: String, password: String): LoginResponse =
         http.apiPost("$baseUrl/auth/login", json) {
             contentType(ContentType.Application.Json)

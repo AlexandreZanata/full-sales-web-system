@@ -16,13 +16,25 @@ http://10.0.2.2:8080/v1
 
 (`10.0.2.2` is the host loopback from the Android emulator.)
 
-Override via `SELLER_API_BASE_URL` in root `.env` when wiring CI or custom backends (see `.env.example`).
+Override at Gradle build time (see root `.env.example`):
+
+```bash
+SELLER_API_BASE_URL=http://<lan-ip>:8080/v1 ./gradlew :androidApp:installDebug
+# or local.properties: seller.api.base.url=http://<lan-ip>:8080/v1
+adb reverse tcp:8080 tcp:8080   # USB alternative
+```
 
 Create `local.properties` (gitignored):
 
 ```properties
 sdk.dir=/path/to/Android/sdk
 ```
+
+### Offline UX (Phase 18)
+
+- Sticky Offline banner when airplane / no route **or** API `GET /health` fails while Wi‑Fi is up
+- Tap banner → Offline hub (`offline` route): last sync, pending outbox, try sync / continue
+- Cached create-sale / detail fields stay visible from LocalStore (see phase `FIELD-VISIBILITY-MATRIX.md`)
 
 ## Build
 

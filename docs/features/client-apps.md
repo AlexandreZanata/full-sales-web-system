@@ -53,7 +53,7 @@ pnpm test:e2e:field
 pnpm test:e2e:integration   # API on :8080 + dev seeds
 ```
 
-## KMP offline app (39F)
+## KMP offline app (39F + Phase 18)
 
 Path: `apps-mobile/field/` · Room + WorkManager + Compose sales UI
 
@@ -63,7 +63,13 @@ cd apps-mobile/field
 ./gradlew :androidApp:connectedDebugAndroidTest   # emulator
 ```
 
-Emulator API: `http://10.0.2.2:8080`
+| Target | API base |
+|--------|----------|
+| Emulator | `http://10.0.2.2:8080/v1` (default BuildConfig) |
+| Physical LAN | `FIELD_API_BASE_URL=http://<lan-ip>:8080/v1 ./gradlew :androidApp:installDebug` |
+| USB reverse | `adb reverse tcp:8080 tcp:8080` |
+
+Offline UX: sticky banner on sales list when device network is down; empty list copy distinguishes “No sales yet” vs “Offline — sync when online”; new sale shows catalog from Room or an explicit empty-cache warning card (Lajanta blue theme).
 
 ## KMP seller app (Phase 52–65)
 

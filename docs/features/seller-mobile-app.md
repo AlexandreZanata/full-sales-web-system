@@ -26,9 +26,21 @@ Requires dev seed (`pnpm seed:dev`) and API on `:8080`. **Driver accounts are re
 |----------|-----|
 | Android emulator | `http://10.0.2.2:8080/v1` |
 | iOS simulator | `http://127.0.0.1:8080/v1` |
-| iOS physical device | `http://<host-lan-ip>:8080/v1` |
+| Physical device (LAN) | `http://<host-lan-ip>:8080/v1` |
 
-Override via `SELLER_API_BASE_URL` in root `.env` (see `.env.example`).
+Override at build time:
+
+```bash
+# Env (preferred for install scripts)
+SELLER_API_BASE_URL=http://172.19.2.162:8080/v1 ./gradlew :androidApp:installDebug
+
+# Or local.properties
+# seller.api.base.url=http://172.19.2.162:8080/v1
+```
+
+USB without LAN: `adb reverse tcp:8080 tcp:8080` then keep emulator default `10.0.2.2` (or `127.0.0.1` on device with reverse).
+
+Wrong/unreachable host → sticky Offline banner (server reason) via periodic `GET /health` probe — not a silent empty UI.
 
 ## Commands
 
@@ -54,6 +66,7 @@ Open `apps-mobile/seller` in Android Studio → run **androidApp**. iOS: see [io
 | Route | Screen | API (when online) |
 |-------|--------|-------------------|
 | `login` | Login + locale switcher | `POST /v1/auth/login` |
+| `offline` | Offline hub (status, last sync, pending outbox) | — (local) |
 | `sales` | Sales list (merged remote + local) | `GET /v1/sales` |
 | `sales/new` | Create sale form | `POST /v1/sales` or offline outbox |
 | `sales/{saleId}` | Sale detail, confirm/cancel | `GET /v1/sales/{id}`, `POST …/confirm`, `POST …/cancel` |
@@ -94,7 +107,7 @@ Phase 14–16 — validated connectivity, push-first sync, **local-first SQLite*
 4. **Sync:** `SellerSyncCoordinator.pushOutbox()` then best-effort `pullCatalog()` + **`pullSales()`** + **`pullRegistrations()`** — pull failures never block push. Stable Offline→Online auto-drains outbox once (`OnlineSyncTrigger`). WorkManager (Android) / become-active (iOS) remain secondary. Exhausted retries (`attempts >= max`) → `SyncFailed` (dead-letter UX).
 5. **Internet-only:** CNPJ lookup CTAs disabled when not Online (“Disponível com internet”). Registration **submit** queues offline (OD-16-1): LocalStore `PendingSync` + outbox `POST /commerces/registrations`. Draft form stays editable.
 6. **Cache-first reads (14D / 16A):** Product/commerce detail load from LocalStore (and address/stock snapshots) first; API enrich when Online. **Room schema v8** (Android) / **SQLDelight** (iOS) store commerce `cnpj`, product `unitOfMeasure`/`description`, sale `driverId`/`origin`, sale-line unit prices, registrations, media/settings. Detail enrich upserts UOM/description; catalog list pull **preserves** those detail fields when the list payload omits them. Stock balances persist until next successful fetch (no hard TTL). Browse/create-sale uses cached stock for backorder warnings; unknown stock does not hide products.
-7. **Offline chrome (14E):** Shell chip shows Offline / Syncing / Online / Sync failed (TalkBack live region); pull-to-refresh offline shows “Sem conexão” and does not spin.
+7. **Offline chrome (14E + 18B/C):** Shell chip shows Offline / Syncing / Online / Sync failed (TalkBack live region); pull-to-refresh offline shows “Sem conexão” and does not spin. Sticky Offline banner under the app bar when `ConnectivityState.Offline` **or** Online + failed `GET /health` probe; pending outbox count chip; tap → `/offline` hub (last sync stamps, queue, try sync / continue offline). i18n en + pt-BR under `SellerMessages.offline`.
 8. **Idempotency:** UUID v7 key on `POST /v1/sales` and `POST /v1/commerces/registrations`; server dedupes retries.
 9. **Migrations (16A / OD-16-4):** `SellerMigrations.MIGRATION_4_5` is explicit; installs from v4 keep sales. Destructive fallback only for versions 1–3. **v5→v6 (16C):** creates `registrations` + `sync_outbox.entityType`. **v6→v7 (16D):** renames outbox `saleLocalId` → `aggregateId`, adds `dependsOnOutboxId`. **v7→v8 (16E):** `media_url_cache` + `site_settings`.
 10. **Sales local-first (16B):** `PullSalesSync` pages `GET /sales` into LocalStore (OD-16-3: mirrors use `localId = remoteId`). Sales list observes LocalStore only; online refresh runs sync pulls (never RAM-only remote list). Online create success upserts LocalStore as `Synced`. Metadata key `lastSalesSync`.
@@ -106,7 +119,7 @@ Phase 14–16 — validated connectivity, push-first sync, **local-first SQLite*
 
 **Manual device script (PO):** sync catalog online → open product with image → airplane → image still loads if URL unexpired → create sale offline (no top-seller chips) → confirm offline (chained) → submit registration offline → go Online → outbox drains. Virgin airplane install → bootstrap empty (not silent blank). Online with cache + API down → list kept + refresh snackbar. **iOS:** create sale offline → force-quit → reopen → sale + pending outbox still present → go Online → drains. Rapid airplane flaps → no blank lists; outbox drains after stable Online.
 
-Tests: `DebouncedConnectivityTest`, `SellerSyncCoordinatorTest`, `CacheFirstDetailLoaderTest`, `ProductDetailEnrichPersistTest`, `PullSalesSyncTest`, `SalesListLocalFirstTest`, `ListEmptyReasonTest` (T-16-13), `SqlDelightLocalStorePersistenceTest` (T-16G reopen), `SyncEngineTest`, `SyncEngineDependencyTest`, `CreateSaleSubmitterTest`, `RegistrationOutboxTest`, `RegistrationRepositoryTest`, `SaleActionSubmitterTest`, `MediaUrlCacheTest`, `OfflineSalePersistenceTest`, `CatalogFieldPersistenceTest`, `SellerDatabaseMigrationTest`, `SyncOutboxMigrationTest`, `MediaSettingsMigrationTest`, `RemoteSalePersistenceTest`, `RegistrationPersistenceTest` (Robolectric), instrumented outbox/create/`OfflineSalesLocalFirstInstrumentedTest`/`OfflineRegistrationInstrumentedTest` (device with install allowed).
+Tests: `DebouncedConnectivityTest`, `SellerSyncCoordinatorTest`, `CacheFirstDetailLoaderTest`, `ProductDetailEnrichPersistTest`, `PullSalesSyncTest`, `SalesListLocalFirstTest`, `ListEmptyReasonTest` (T-16-13), `SqlDelightLocalStorePersistenceTest` (T-16G reopen), `SyncEngineTest`, `SyncEngineDependencyTest`, `CreateSaleSubmitterTest`, `RegistrationOutboxTest`, `RegistrationRepositoryTest`, `SaleActionSubmitterTest`, `MediaUrlCacheTest`, `OfflineSalePersistenceTest`, `CatalogFieldPersistenceTest`, `SellerDatabaseMigrationTest`, `SyncOutboxMigrationTest`, `MediaSettingsMigrationTest`, `RemoteSalePersistenceTest`, `RegistrationPersistenceTest` (Robolectric), `OfflineBannerStateTest`, `OfflineFieldVisibilityTest`, `SellerApiProbeTest` (Phase 18), instrumented outbox/create/`OfflineSalesLocalFirstInstrumentedTest`/`OfflineRegistrationInstrumentedTest` (device with install allowed).
 
 ## Accessibility (Phase 66)
 

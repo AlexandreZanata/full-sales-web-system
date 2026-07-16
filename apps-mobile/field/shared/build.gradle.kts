@@ -5,6 +5,18 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+val fieldApiBaseUrl: String = System.getenv("FIELD_API_BASE_URL")
+    ?: localProperties.getProperty("field.api.base.url")
+    ?: "http://10.0.2.2:8080/v1"
+
 kotlin {
     androidTarget {
         compilations.all {
@@ -51,8 +63,22 @@ android {
     namespace = "com.fullsales.field.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        buildConfigField("String", "API_BASE_URL", "\"$fieldApiBaseUrl\"")
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"$fieldApiBaseUrl\"")
+        }
+        release {
+            buildConfigField("String", "API_BASE_URL", "\"https://api.fullsales.example/v1\"")
+        }
     }
 
     compileOptions {

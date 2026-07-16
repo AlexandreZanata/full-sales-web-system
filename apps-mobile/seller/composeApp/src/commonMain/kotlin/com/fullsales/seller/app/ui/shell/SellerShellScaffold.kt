@@ -1,5 +1,6 @@
 package com.fullsales.seller.app.ui.shell
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
@@ -26,6 +27,8 @@ import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.ui.SellerRoutes
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.i18n.LocaleSwitcher
+import com.fullsales.seller.app.ui.offline.LocalOfflineBannerUi
+import com.fullsales.seller.app.ui.offline.OfflineStickyBanner
 import com.fullsales.seller.app.ui.sync.SyncBadge
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,26 +49,33 @@ fun SellerShellScaffold(
     val locale by localeViewModel.locale.collectAsState()
     val textSizePreset by accessibilityViewModel.preset.collectAsState()
     val showBottomBar = SellerRoutes.showsBottomBar(currentRoute)
+    val offlineBanner = LocalOfflineBannerUi.current
     Scaffold(
         contentWindowInsets = NestedScreenWindowInsets,
         topBar = {
-            TopAppBar(
-                windowInsets = WindowInsets.statusBars,
-                title = { Text(s.nav.sellerFallback) },
-                actions = {
-                    LocaleSwitcher(
-                        locale = locale,
-                        onLocaleChange = localeViewModel::setLocale,
-                        modifier = Modifier.padding(end = 4.dp),
-                    )
-                    SyncBadgeChip(syncBadge, onRefresh = onSyncRefresh)
-                    ShellOverflowMenu(
-                        textSizePreset = textSizePreset,
-                        onTextSizeChange = accessibilityViewModel::setPreset,
-                        onLogout = onLogout,
-                    )
-                },
-            )
+            Column {
+                TopAppBar(
+                    windowInsets = WindowInsets.statusBars,
+                    title = { Text(s.nav.sellerFallback) },
+                    actions = {
+                        LocaleSwitcher(
+                            locale = locale,
+                            onLocaleChange = localeViewModel::setLocale,
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                        SyncBadgeChip(syncBadge, onRefresh = onSyncRefresh)
+                        ShellOverflowMenu(
+                            textSizePreset = textSizePreset,
+                            onTextSizeChange = accessibilityViewModel::setPreset,
+                            onLogout = onLogout,
+                        )
+                    },
+                )
+                OfflineStickyBanner(
+                    state = offlineBanner.state,
+                    onOpenHub = offlineBanner.onOpenHub,
+                )
+            }
         },
         bottomBar = {
             if (showBottomBar) {

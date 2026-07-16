@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,6 +21,10 @@ import com.fullsales.seller.app.ui.auth.LoginScreen
 import com.fullsales.seller.app.ui.commerces.CommerceListScreen
 import com.fullsales.seller.app.ui.commerces.CommerceViewModel
 import com.fullsales.seller.app.ui.i18n.SellerStringsProvider
+import com.fullsales.seller.app.ui.offline.LocalOfflineBannerUi
+import com.fullsales.seller.app.ui.offline.OfflineBannerUi
+import com.fullsales.seller.app.ui.offline.OfflineHubScreen
+import com.fullsales.seller.app.ui.offline.OfflineHubViewModel
 import com.fullsales.seller.app.ui.products.ProductViewModel
 import com.fullsales.seller.app.ui.sales.SaleDetailScreen
 import com.fullsales.seller.app.ui.sales.SaleDetailViewModel
@@ -60,9 +65,16 @@ private fun SellerNavHostContent(
     val syncViewModel: SyncStatusViewModel = viewModel(factory = factory)
     val auth by authViewModel.state.collectAsState()
     val syncBadge by syncViewModel.badge.collectAsState()
+    val offlineBanner by syncViewModel.offlineBanner.collectAsState()
     val navController = rememberNavController()
     val startDestination = if (auth.isAuthenticated) SellerRoutes.SALES else SellerRoutes.LOGIN
+    val openOfflineHub = {
+        navController.navigate(SellerRoutes.OFFLINE) { launchSingleTop = true }
+    }
 
+    CompositionLocalProvider(
+        LocalOfflineBannerUi provides OfflineBannerUi(offlineBanner, openOfflineHub),
+    ) {
     NavHost(navController = navController, startDestination = startDestination) {
         composable(SellerRoutes.LOGIN) {
             LoginScreen(
@@ -75,6 +87,21 @@ private fun SellerNavHostContent(
                         popUpTo(SellerRoutes.LOGIN) { inclusive = true }
                     }
                 },
+            )
+        }
+        shellRoute(
+            SellerRoutes.OFFLINE,
+            navController,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+            onSyncRefresh = syncViewModel::refreshNow,
+        ) {
+            val hubViewModel: OfflineHubViewModel = viewModel(factory = factory)
+            OfflineHubScreen(
+                viewModel = hubViewModel,
+                onContinueOffline = { navController.popBackStack() },
             )
         }
         shellRoute(
@@ -154,5 +181,6 @@ private fun SellerNavHostContent(
             localeViewModel,
             accessibilityViewModel,
         )
+    }
     }
 }

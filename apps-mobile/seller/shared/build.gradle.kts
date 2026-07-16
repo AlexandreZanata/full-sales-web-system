@@ -14,7 +14,8 @@ val localProperties = Properties().apply {
         file.inputStream().use { load(it) }
     }
 }
-val sellerApiBaseUrl: String = localProperties.getProperty("seller.api.base.url")
+val sellerApiBaseUrl: String = System.getenv("SELLER_API_BASE_URL")
+    ?: localProperties.getProperty("seller.api.base.url")
     ?: "http://10.0.2.2:8080/v1"
 
 kotlin {

@@ -64,6 +64,8 @@ cd apps-mobile/seller && ./gradlew :shared:compileKotlinIosSimulatorArm64 :compo
 | Platform | API base URL |
 |----------|----------------|
 | Android emulator | `http://10.0.2.2:8080/v1` |
+| Physical device (LAN) | `SELLER_API_BASE_URL` / `FIELD_API_BASE_URL=http://<lan-ip>:8080/v1` at Gradle install |
+| USB reverse | `adb reverse tcp:8080 tcp:8080` |
 | iOS simulator | `http://127.0.0.1:8080/v1` |
 | iOS physical device | `http://<host-lan-ip>:8080/v1` |
 

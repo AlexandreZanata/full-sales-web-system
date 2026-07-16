@@ -23,4 +23,13 @@ class SellerStringsTest {
         assertEquals("Dinheiro", SellerStrings.paymentMethod(pt, "Cash"))
         assertEquals("PIX", SellerStrings.paymentMethod(pt, "Pix"))
     }
+
+    @Test
+    fun offlineBanner_enAndPtBr() {
+        val en = SellerStrings.forLocale(SellerLocale.En)
+        val pt = SellerStrings.forLocale(SellerLocale.PtBr)
+        assertEquals("You're offline", en.offline.bannerTitle)
+        assertEquals("Você está offline", pt.offline.bannerTitle)
+        assertEquals("Servidor indisponível. Usando dados locais.", pt.offline.bannerServer)
+    }
 }

@@ -1,6 +1,6 @@
-# Full Sales Field — Kotlin Multiplatform (Phase 39E)
+# Full Sales Field — Kotlin Multiplatform
 
-Android shell + `shared` KMP module. Offline sync and sales UI arrive in **Phase 39F**.
+Android shell + `shared` KMP module. Offline sync, sales list, and create-sale UI.
 
 ## Prerequisites
 
@@ -8,15 +8,18 @@ Android shell + `shared` KMP module. Offline sync and sales UI arrive in **Phase
 - Android Studio Ladybug+ (or command-line SDK)
 - Android SDK API 35, min SDK 26
 
-## Local API URL (emulator)
+## Local API URL
 
-Point the future Ktor client at:
+| Target | Base URL |
+|--------|----------|
+| Emulator (default) | `http://10.0.2.2:8080/v1` |
+| Physical device (LAN) | `http://<host-lan-ip>:8080/v1` |
 
-```text
-http://10.0.2.2:8080
+```bash
+FIELD_API_BASE_URL=http://172.19.2.162:8080/v1 ./gradlew :androidApp:installDebug
+# or local.properties: field.api.base.url=http://172.19.2.162:8080/v1
+adb reverse tcp:8080 tcp:8080
 ```
-
-(`10.0.2.2` is the host loopback from the Android emulator.)
 
 Create `local.properties` (gitignored):
 
@@ -33,18 +36,17 @@ cd apps-mobile/field
 
 ## Run
 
-Open `apps-mobile/field` in Android Studio → run **androidApp** on an emulator or device.
+```bash
+adb shell am start -n com.fullsales.field/com.fullsales.field.android.MainActivity
+```
 
-Placeholder screen: app name + “Field app — offline sync in Phase 39F”.
+Offline: banner on sales list; empty copy vs offline-empty; new sale uses Room catalog or empty-cache warning.
 
 ## Structure
 
 | Module | Purpose |
 |--------|---------|
-| `shared` | KMP common code (`Greeting`, `expect/actual` platform hook) |
-| `shared/.../api/` | Ktor client placeholder (39F) |
-| `shared/.../sync/` | Sync engine placeholder (39F) |
-| `androidApp` | Jetpack Compose Activity |
-| `iosApp/` | Stub only — not built in CI v1 |
+| `shared` | API client, Room repos, sync, offline copy helpers |
+| `androidApp` | Compose UI, WorkManager, EncryptedSharedPreferences |
 
-**Updated:** 2026-07-04
+**Updated:** 2026-07-16 (Phase 18)

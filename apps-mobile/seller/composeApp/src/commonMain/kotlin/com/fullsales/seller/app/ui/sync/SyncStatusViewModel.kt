@@ -7,11 +7,15 @@ import com.fullsales.seller.app.platform.SellerAppContainer
 import com.fullsales.seller.shared.connectivity.ConnectivityState
 import com.fullsales.seller.shared.model.LocalSale
 import com.fullsales.seller.shared.model.LocalSaleStatus
+import com.fullsales.seller.shared.offline.OfflineBannerState
+import com.fullsales.seller.shared.offline.resolveOfflineBanner
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 enum class SyncBadge {
@@ -38,19 +42,30 @@ class SyncStatusViewModel(
     val badge: StateFlow<SyncBadge> = _badge.asStateFlow()
     private val _refreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
+    private val _offlineBanner = MutableStateFlow(
+        OfflineBannerState(visible = false, reason = com.fullsales.seller.shared.offline.OfflineBannerReason.None, pendingCount = 0),
+    )
+    val offlineBanner: StateFlow<OfflineBannerState> = _offlineBanner.asStateFlow()
     private var latestSales: List<LocalSale> = emptyList()
+    private var serverUnreachable: Boolean = false
 
     init {
-        // Collect connectivity alone so Offline updates immediately (not gated on sales Flow).
         viewModelScope.launch {
             networkMonitor.connectivity.collect { connectivity ->
                 updateBadge(latestSales, connectivity)
+                refreshBanner(connectivity)
             }
         }
         viewModelScope.launch {
             sales.observeSales().collect { localSales ->
                 latestSales = localSales
                 updateBadge(localSales, networkMonitor.connectivity.value)
+            }
+        }
+        viewModelScope.launch {
+            while (isActive) {
+                delay(15_000)
+                refreshBanner(networkMonitor.connectivity.value)
             }
         }
     }
@@ -60,6 +75,7 @@ class SyncStatusViewModel(
             when (networkMonitor.connectivity.value) {
                 ConnectivityState.Offline -> {
                     _badge.value = SyncBadge.Offline
+                    refreshBanner(ConnectivityState.Offline)
                     return@launch
                 }
                 ConnectivityState.Connecting -> {
@@ -73,14 +89,24 @@ class SyncStatusViewModel(
             runCatching { container.syncCoordinator.syncPullAndPush() }
             _refreshing.value = false
             updateBadge(latestSales, networkMonitor.connectivity.value)
+            refreshBanner(networkMonitor.connectivity.value)
         }
+    }
+
+    private suspend fun refreshBanner(connectivity: ConnectivityState) {
+        if (connectivity == ConnectivityState.Online) {
+            serverUnreachable = !container.apiClient.probeReachable()
+        } else {
+            serverUnreachable = false
+        }
+        val pending = outbox.listPendingFifo().size
+        _offlineBanner.value = resolveOfflineBanner(connectivity, serverUnreachable, pending)
     }
 
     private suspend fun updateBadge(
         localSales: List<LocalSale>,
         connectivity: ConnectivityState,
     ) {
-        // Offline always wins — sync failure must not hide loss of internet.
         _badge.value = when {
             connectivity == ConnectivityState.Offline -> SyncBadge.Offline
             _refreshing.value -> SyncBadge.Syncing
