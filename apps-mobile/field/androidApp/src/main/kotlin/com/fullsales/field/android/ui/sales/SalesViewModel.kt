@@ -3,6 +3,7 @@ package com.fullsales.field.android.ui.sales
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.field.android.connectivity.FieldNetworkMonitor
+import com.fullsales.field.shared.api.FieldApiClient
 import com.fullsales.field.shared.model.Commerce
 import com.fullsales.field.shared.model.CreateSaleItem
 import com.fullsales.field.shared.model.CreateSaleRequest
@@ -12,9 +13,14 @@ import com.fullsales.field.shared.repository.CatalogRepository
 import com.fullsales.field.shared.repository.SaleRepository
 import com.fullsales.field.shared.sync.OfflineSaleWriter
 import java.util.UUID
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 data class NewSaleUiState(
@@ -31,15 +37,31 @@ class SalesViewModel(
     private val saleRepo: SaleRepository,
     private val offlineWriter: OfflineSaleWriter,
     private val networkMonitor: FieldNetworkMonitor,
+    private val apiClient: FieldApiClient,
 ) : ViewModel() {
     private val _sales = MutableStateFlow<List<Sale>>(emptyList())
     val sales: StateFlow<List<Sale>> = _sales.asStateFlow()
     private val _newSale = MutableStateFlow(NewSaleUiState())
     val newSale: StateFlow<NewSaleUiState> = _newSale.asStateFlow()
-    val online: StateFlow<Boolean> = networkMonitor.online
+    private val _serverUnreachable = MutableStateFlow(false)
+    val serverUnreachable: StateFlow<Boolean> = _serverUnreachable.asStateFlow()
+
+    /** Device network + API health — false when Wi‑Fi up but host wrong. */
+    val apiReachable: StateFlow<Boolean> = combine(networkMonitor.online, _serverUnreachable) { online, down ->
+        online && !down
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, networkMonitor.isOnline())
 
     init {
         refreshSales()
+        viewModelScope.launch {
+            while (isActive) {
+                probeServer()
+                delay(15_000)
+            }
+        }
+        viewModelScope.launch {
+            networkMonitor.online.collect { probeServer() }
+        }
     }
 
     fun refreshSales() {
@@ -54,7 +76,7 @@ class SalesViewModel(
             runCatching {
                 val commerces = catalog.listActiveCommerces()
                 val products = catalog.listActiveProducts()
-                val emptyOffline = !networkMonitor.isOnline() && commerces.isEmpty() && products.isEmpty()
+                val emptyOffline = !apiReachable.value && commerces.isEmpty() && products.isEmpty()
                 _newSale.value = _newSale.value.copy(
                     commerces = commerces,
                     products = products,
@@ -62,7 +84,7 @@ class SalesViewModel(
                     catalogEmptyOffline = emptyOffline,
                 )
             }.onFailure {
-                val offlineEmpty = !networkMonitor.isOnline()
+                val offlineEmpty = !apiReachable.value
                 _newSale.value = _newSale.value.copy(
                     loading = false,
                     error = if (offlineEmpty) null else it.message,
@@ -99,5 +121,13 @@ class SalesViewModel(
             }
             _newSale.value = _newSale.value.copy(saving = false)
         }
+    }
+
+    private suspend fun probeServer() {
+        if (!networkMonitor.isOnline()) {
+            _serverUnreachable.value = false
+            return
+        }
+        _serverUnreachable.value = !apiClient.probeReachable()
     }
 }

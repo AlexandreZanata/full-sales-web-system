@@ -16,10 +16,12 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 
 class FieldApiClient(
@@ -27,6 +29,13 @@ class FieldApiClient(
     private val tokenProvider: AuthTokenProvider,
     private val json: Json = Json { ignoreUnknownKeys = true },
 ) : CatalogPullClient, SyncTransport {
+    /** `GET /health` beside `/v1` — Wi‑Fi up but wrong host still counts as offline UX. */
+    suspend fun probeReachable(): Boolean = runCatching {
+        val origin = FIELD_API_BASE_URL.removeSuffix("/v1").trimEnd('/')
+        val response: HttpResponse = http.get("$origin/health")
+        response.status.isSuccess()
+    }.getOrDefault(false)
+
     override suspend fun fetchCommerces(limit: Int, cursor: String?): CursorListCommerces {
         val cursorParam = cursor?.let { "&cursor=$it" } ?: ""
         return authorizedGet("/commerces?limit=$limit$cursorParam")

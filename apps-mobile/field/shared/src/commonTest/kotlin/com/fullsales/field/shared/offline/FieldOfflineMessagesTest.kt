@@ -7,8 +7,8 @@ import kotlin.test.assertTrue
 class FieldOfflineMessagesTest {
     @Test
     fun salesEmpty_online_vs_offline() {
-        assertEquals("No sales yet", FieldOfflineMessages.salesEmpty(online = true))
-        assertEquals("Offline — sync when online", FieldOfflineMessages.salesEmpty(online = false))
+        assertEquals("No sales yet", FieldOfflineMessages.salesEmpty(apiReachable = true))
+        assertEquals("Offline — sync when online", FieldOfflineMessages.salesEmpty(apiReachable = false))
     }
 
     @Test

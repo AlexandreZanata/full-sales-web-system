@@ -34,23 +34,14 @@ fun SalesListScreen(
     onNewSale: () -> Unit,
 ) {
     val sales by viewModel.sales.collectAsState()
-    val online by viewModel.online.collectAsState()
+    val apiReachable by viewModel.apiReachable.collectAsState()
+    val serverUnreachable by viewModel.serverUnreachable.collectAsState()
     Scaffold(
         topBar = {
             Column {
                 TopAppBar(title = { Text("Sales") })
-                if (!online) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            FieldOfflineMessages.bannerTitle(),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
+                if (!apiReachable) {
+                    OfflineBanner(serverUnreachable = serverUnreachable)
                 }
             }
         },
@@ -68,7 +59,7 @@ fun SalesListScreen(
             }
             if (sales.isEmpty()) {
                 Text(
-                    FieldOfflineMessages.salesEmpty(online),
+                    FieldOfflineMessages.salesEmpty(apiReachable),
                     style = MaterialTheme.typography.bodyLarge,
                 )
             } else {
@@ -83,6 +74,26 @@ fun SalesListScreen(
 }
 
 @Composable
+private fun OfflineBanner(serverUnreachable: Boolean) {
+    val reason = if (serverUnreachable) {
+        FieldOfflineMessages.bannerServer()
+    } else {
+        FieldOfflineMessages.bannerTitle()
+    }
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = "${FieldOfflineMessages.bannerTitle()} — $reason",
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.titleSmall,
+        )
+    }
+}
+
+@Composable
 private fun SaleRow(sale: Sale) {
     val money = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         .format(sale.totalAmount)
@@ -92,10 +103,8 @@ private fun SaleRow(sale: Sale) {
             .padding(vertical = 4.dp)
             .clickable { },
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(sale.localId.take(8), style = MaterialTheme.typography.labelSmall)
-            Text(sale.status.name, style = MaterialTheme.typography.titleMedium)
-            Text(money, style = MaterialTheme.typography.bodyLarge)
-        }
+        Text(sale.localId.take(8), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = 12.dp, top = 12.dp, end = 12.dp))
+        Text(sale.status.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 12.dp))
+        Text(money, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp))
     }
 }

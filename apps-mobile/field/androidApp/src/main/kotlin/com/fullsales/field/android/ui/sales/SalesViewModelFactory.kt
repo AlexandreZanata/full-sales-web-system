@@ -15,6 +15,7 @@ class SalesViewModelFactory(
                 container.saleRepository,
                 container.offlineSaleWriter,
                 container.networkMonitor,
+                container.apiClient,
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel ${modelClass.name}")

@@ -30,7 +30,7 @@ class AppContainer(context: Context) {
     val outboxRepository: SyncOutboxRepository = RoomSyncOutboxRepository(database.syncOutboxDao())
     private val tokenProvider = AuthTokenProvider { tokenStore.getAccessToken() }
     private val httpClient = createFieldHttpClient()
-    private val apiClient = FieldApiClient(httpClient, tokenProvider)
+    val apiClient = FieldApiClient(httpClient, tokenProvider)
     private val tokenRefresher = object : SyncTokenRefresher {
         override suspend fun refreshToken(): Boolean = false
     }

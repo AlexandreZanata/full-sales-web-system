@@ -35,13 +35,8 @@ class SellerTokenRefresher(
 }
 
 class TokenStore(context: Context) : SellerTokenStore {
-    private val prefs = EncryptedSharedPreferences.create(
-        context,
-        PREFS_NAME,
-        MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-    )
+    private val appContext = context.applicationContext
+    private val prefs = openPrefs(appContext)
 
     override fun getAccessToken(): String? = prefs.getString(KEY_ACCESS, null)
 
@@ -62,5 +57,21 @@ class TokenStore(context: Context) : SellerTokenStore {
         const val PREFS_NAME = "seller_secure_tokens"
         const val KEY_ACCESS = "access_token"
         const val KEY_REFRESH = "refresh_token"
+
+        fun openPrefs(context: Context) = try {
+            createEncrypted(context)
+        } catch (_: Exception) {
+            // Keystore/prefs desync after reinstall — wipe and recreate.
+            context.deleteSharedPreferences(PREFS_NAME)
+            createEncrypted(context)
+        }
+
+        fun createEncrypted(context: Context) = EncryptedSharedPreferences.create(
+            context,
+            PREFS_NAME,
+            MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
     }
 }
