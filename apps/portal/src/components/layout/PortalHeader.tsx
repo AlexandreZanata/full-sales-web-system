@@ -41,19 +41,9 @@ export function PortalHeader() {
               <span className="portal-header-brand">{brandName}</span>
             )}
           </Link>
-          <div className="flex items-center gap-2.5 lg:hidden">
-            <Link to="/cart" className="portal-cart-pill" aria-label={t('nav.cart')}>
-              <ShoppingBag className="size-5" aria-hidden />
-              <span className="tabular-nums">{cartLabel}</span>
-            </Link>
-            {user ? (
-              <PortalAccountMenu email={user.email} onLogout={() => void logout()} />
-            ) : (
-              <Link to="/login" className="portal-login-pill">
-                <LogIn className="size-5" aria-hidden />
-                <span>{t('auth.signIn')}</span>
-              </Link>
-            )}
+          {/* Mobile: cart + account live in the bottom tab bar (app chrome). */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <LocaleSwitcher variant="pill" />
           </div>
         </div>
 

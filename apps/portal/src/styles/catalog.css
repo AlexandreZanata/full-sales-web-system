@@ -1,0 +1,137 @@
+/* Catalog surface components */
+@reference './theme.css';
+
+@layer components {
+  .catalog-add-pill-btn {
+    @apply inline-flex items-center gap-1.5 rounded-3xl border border-hairline bg-surface px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .catalog-category-chip {
+    @apply flex shrink-0 flex-col items-center gap-2 rounded-2xl border border-hairline bg-surface px-3 py-2 transition-colors;
+  }
+
+  .catalog-category-chip--home {
+    @apply w-32 snap-start border-transparent p-3 bg-surface-muted hover:border-primary/20;
+    background-color: var(--surface-muted);
+  }
+
+  .catalog-category-chip--home:hover {
+    background: color-mix(in oklch, var(--primary) 8%, white);
+  }
+
+  .catalog-category-row--home {
+    @apply flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  }
+
+  .catalog-view-all-pill {
+    @apply inline-flex shrink-0 items-center rounded-3xl bg-primary/10 px-3 py-1.5 text-xs font-medium capitalize text-primary transition-colors hover:bg-primary/15;
+  }
+
+  .catalog-product-card-grid-image {
+    @apply aspect-[4/3] w-full rounded-t-2xl;
+  }
+
+  .catalog-category-chip--menu {
+    @apply min-w-[4.5rem] rounded-xl px-2 py-1.5;
+  }
+
+  .catalog-category-chip--menu.catalog-category-chip--active {
+    @apply border-2 border-primary bg-surface-muted shadow-sm;
+  }
+
+  .catalog-back-home-link {
+    @apply text-sm font-medium text-primary hover:underline;
+  }
+
+  .catalog-breadcrumb {
+    @apply rounded-xl border border-hairline bg-surface-muted/60 px-3 py-2.5 text-sm;
+  }
+
+  .catalog-breadcrumb__list {
+    @apply flex flex-wrap items-center gap-x-2 gap-y-1;
+  }
+
+  .catalog-breadcrumb__link {
+    @apply font-medium text-muted-foreground transition-colors hover:text-primary;
+  }
+
+  .catalog-breadcrumb__current {
+    @apply font-semibold text-foreground;
+  }
+
+  .catalog-breadcrumb__sep {
+    @apply size-3.5 shrink-0 text-muted-foreground/45;
+  }
+
+  .catalog-category-chip--active {
+    @apply border-primary bg-surface-muted shadow-sm;
+  }
+
+  .catalog-category-thumb {
+    @apply flex size-12 items-center justify-center overflow-hidden rounded-full bg-surface-muted text-sm font-semibold text-muted-foreground;
+  }
+
+  .catalog-category-thumb--home {
+    @apply size-14;
+  }
+
+  .catalog-product-card-grid {
+    @apply flex flex-col overflow-hidden rounded-2xl border border-hairline bg-surface shadow-sm transition-shadow hover:shadow-xl focus-within:shadow-xl;
+  }
+
+  .catalog-product-card-list {
+    @apply flex items-start gap-4 overflow-hidden rounded-xl border border-hairline bg-surface p-3.5 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md sm:p-4;
+  }
+
+  .catalog-price {
+    @apply text-sm font-semibold tabular-nums text-foreground;
+  }
+
+  .catalog-price--prominent {
+    @apply text-base font-bold;
+  }
+
+  .catalog-offer-card {
+    @apply relative flex min-h-40 items-stretch overflow-hidden rounded-2xl p-5 sm:min-h-44 sm:p-6;
+  }
+
+  .catalog-offer-card--yellow {
+    background-color: #fff9e6;
+  }
+
+  .catalog-offer-card--green {
+    background-color: #e8f8ef;
+  }
+
+  .catalog-offer-card__content {
+    @apply relative z-10 flex max-w-[60%] flex-col justify-center;
+  }
+
+  .catalog-offer-card__image {
+    @apply absolute bottom-0 right-0 h-full max-h-full w-auto max-w-[45%] object-contain object-bottom;
+  }
+
+  .catalog-offer-cta {
+    @apply mt-4 inline-flex w-fit items-center rounded-3xl bg-surface px-4 py-2 text-xs font-semibold capitalize text-foreground shadow-sm transition-shadow hover:shadow-md sm:text-sm;
+  }
+
+  .product-detail-actions {
+    @apply flex flex-col gap-3 rounded-2xl border border-hairline bg-surface p-4 shadow-sm;
+  }
+
+  .product-detail-actions__primary {
+    @apply inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-base font-semibold;
+  }
+
+  .product-detail-actions__secondary {
+    @apply grid grid-cols-1 gap-2 sm:grid-cols-2;
+  }
+
+  .product-detail-actions__secondary-btn {
+    @apply inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold;
+  }
+
+  .product-detail-actions__link {
+    @apply inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-hairline bg-surface px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted;
+  }
+}

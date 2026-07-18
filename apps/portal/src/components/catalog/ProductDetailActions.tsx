@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
+import { MessageCircle, ShoppingBag, ShoppingCart } from 'lucide-react';
 
 import { useCart } from '@/cart/CartProvider';
 import { Button } from '@/components/ui/Button';
@@ -6,9 +7,6 @@ import type { PortalProductDetail } from '@/lib/api/types';
 import { buildSellerWhatsAppLink } from '@/lib/contact/sellerWhatsAppLink';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils';
-
-const actionLinkClass =
-  'inline-flex h-10 min-h-10 items-center justify-center rounded-md border border-hairline bg-surface px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted';
 
 type ProductDetailActionsProps = {
   product: PortalProductDetail;
@@ -37,41 +35,48 @@ export function ProductDetailActions({
   };
 
   return (
-    <div className={cn('flex flex-col gap-2 sm:flex-row sm:flex-wrap', className)}>
+    <div className={cn('product-detail-actions', className)}>
       <Button
-        className="w-full sm:w-auto sm:min-w-[10rem]"
+        className="product-detail-actions__primary"
         onClick={() => {
           addProduct(product);
         }}
       >
+        <ShoppingCart className="size-4" aria-hidden />
         {t('productDetail.addToCart')}
       </Button>
-      <Button
-        className="w-full sm:w-auto sm:min-w-[10rem]"
-        variant="secondary"
-        onClick={placeOrder}
-      >
-        {t('productDetail.placeOrder')}
-      </Button>
-      {contactHref ? (
-        <a
-          href={contactHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(actionLinkClass, 'w-full sm:w-auto sm:min-w-[10rem]')}
-        >
-          {t('productDetail.contactSeller')}
-        </a>
-      ) : (
+
+      <div className="product-detail-actions__secondary">
         <Button
-          className="w-full sm:w-auto sm:min-w-[10rem]"
+          className="product-detail-actions__secondary-btn"
           variant="secondary"
-          disabled
-          title={t('productDetail.contactUnavailable')}
+          onClick={placeOrder}
         >
-          {t('productDetail.contactSeller')}
+          <ShoppingBag className="size-4" aria-hidden />
+          {t('productDetail.placeOrder')}
         </Button>
-      )}
+        {contactHref ? (
+          <a
+            href={contactHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="product-detail-actions__link"
+          >
+            <MessageCircle className="size-4" aria-hidden />
+            {t('productDetail.contactSeller')}
+          </a>
+        ) : (
+          <Button
+            className="product-detail-actions__secondary-btn"
+            variant="secondary"
+            disabled
+            title={t('productDetail.contactUnavailable')}
+          >
+            <MessageCircle className="size-4" aria-hidden />
+            {t('productDetail.contactSeller')}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

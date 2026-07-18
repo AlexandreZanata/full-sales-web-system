@@ -30,6 +30,8 @@ test.describe('Portal responsive shell', () => {
       if (viewport.expectMobileNav) {
         await expect(mobileNav).toBeVisible();
         await expect(desktopNav).toBeHidden();
+        await expect(mobileNav.getByRole('link', { name: 'Conta', exact: true })).toBeVisible();
+        await expect(mobileNav.getByRole('link', { name: 'Carrinho', exact: true })).toBeVisible();
       } else {
         await expect(mobileNav).toBeHidden();
         await expect(desktopNav).toBeVisible();

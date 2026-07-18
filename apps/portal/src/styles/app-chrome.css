@@ -1,0 +1,54 @@
+/* Mobile app chrome — shell + bottom tab bar (customer catalog). */
+@reference './theme.css';
+
+@layer components {
+  .portal-app-shell {
+    @apply flex min-h-dvh flex-col bg-background;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .portal-app-main {
+    @apply mx-auto w-full max-w-6xl flex-1 px-4 py-4;
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 1024px) {
+    .portal-app-main {
+      padding-bottom: 1.5rem;
+    }
+  }
+
+  .portal-mobile-tabbar {
+    @apply fixed inset-x-0 bottom-0 z-30 lg:hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .portal-mobile-tabbar__panel {
+    @apply mx-auto grid max-w-lg grid-cols-4 border-t border-hairline bg-surface/92 px-1 pt-1.5 shadow-[0_-8px_28px_rgba(26,26,26,0.08)] backdrop-blur-xl;
+    padding-bottom: 0.35rem;
+  }
+
+  .portal-mobile-tab {
+    @apply relative flex flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium tracking-wide text-muted-foreground transition-colors;
+  }
+
+  .portal-mobile-tab--active {
+    @apply font-semibold text-primary;
+  }
+
+  .portal-mobile-tab__icon {
+    @apply relative flex size-9 items-center justify-center rounded-xl transition-colors;
+  }
+
+  .portal-mobile-tab--active .portal-mobile-tab__icon {
+    background: color-mix(in oklch, var(--primary) 12%, white);
+  }
+
+  .portal-mobile-tab__label {
+    @apply leading-none;
+  }
+
+  .portal-mobile-tab__badge {
+    @apply absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground;
+  }
+}

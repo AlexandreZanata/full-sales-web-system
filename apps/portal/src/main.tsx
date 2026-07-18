@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 
 import { App } from './App';
 import './styles/theme.css';
+import './styles/app-chrome.css';
+import './styles/catalog.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

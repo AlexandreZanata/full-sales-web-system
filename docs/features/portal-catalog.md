@@ -94,7 +94,7 @@ pnpm test:e2e:portal          # home sections, menu, cart, visual snapshots, axe
 
 | Component | Role |
 |-----------|------|
-| `PortalShell` | Header + main + footer + mobile bottom nav + `CartFab` |
+| `PortalShell` | Header + main + footer (desktop) + `PortalMobileTabBar` (app chrome below `lg`) |
 | `PortalHeader` | Logo, Home/Menu/Offers, desktop search pill, locale, cart pill, login |
 | `PortalHeaderSearch` | Syncs header search with menu `?q=` and active category |
 | `PortalFooter` | Red band: newsletter stub, links, contact phone, copyright |

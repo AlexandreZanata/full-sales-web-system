@@ -10,7 +10,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchPortalProductById } from '@/lib/api/portal';
 import { useI18n } from '@/lib/i18n/context';
 import { useSiteSettings } from '@/lib/settings/useSiteSettings';
-import { cn } from '@/lib/utils';
 
 type ProductDetailSearch = {
   category?: string;
@@ -55,7 +54,7 @@ function ProductDetailPage() {
       : `/products/${product.id}`;
 
   return (
-    <div className="space-y-6 pb-24 md:pb-0">
+    <div className="space-y-6">
       <nav aria-label="Breadcrumb" className="catalog-breadcrumb">
         <ol className="catalog-breadcrumb__list">
           <li>
@@ -92,19 +91,14 @@ function ProductDetailPage() {
 
       <div className="grid gap-8 lg:grid-cols-2">
         <ProductMediaPanel product={product} />
-        <ProductDetailInfo product={product} />
-      </div>
-
-      <div
-        className={cn(
-          'fixed inset-x-0 bottom-16 z-10 border-t border-hairline bg-surface/95 p-4 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none',
-        )}
-      >
-        <ProductDetailActions
-          product={product}
-          salesContactPhone={settingsQuery.data?.salesContactPhone}
-          productUrl={productUrl}
-        />
+        <div className="flex flex-col gap-6">
+          <ProductDetailInfo product={product} />
+          <ProductDetailActions
+            product={product}
+            salesContactPhone={settingsQuery.data?.salesContactPhone}
+            productUrl={productUrl}
+          />
+        </div>
       </div>
     </div>
   );
