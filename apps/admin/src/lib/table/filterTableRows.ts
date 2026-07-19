@@ -27,7 +27,11 @@ export function rowMatchesSearch(row: unknown, search: string): boolean {
   return collectSearchText(row).includes(normalized);
 }
 
-export function filterTableRows<T>(rows: T[], search: string, getSearchText?: (row: T) => string): T[] {
+export function filterTableRows<T>(
+  rows: T[],
+  search: string,
+  getSearchText?: (row: T) => string,
+): T[] {
   const normalized = search.trim().toLowerCase();
   if (!normalized) {
     return rows;

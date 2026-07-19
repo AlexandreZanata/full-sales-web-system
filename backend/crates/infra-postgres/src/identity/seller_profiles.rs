@@ -147,9 +147,11 @@ pub async fn find_public_seller_by_code(
     .fetch_optional(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(row.map(|(public_code, display_name, contact_phone)| PublicSellerRow {
-        public_code,
-        display_name,
-        contact_phone,
-    }))
+    Ok(row.map(
+        |(public_code, display_name, contact_phone)| PublicSellerRow {
+            public_code,
+            display_name,
+            contact_phone,
+        },
+    ))
 }

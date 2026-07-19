@@ -40,5 +40,5 @@ export function resolveInitialLocale(): Locale {
   if (typeof navigator === 'undefined') {
     return DEFAULT_LOCALE;
   }
-  return localeFromBrowserLanguage(navigator.language ?? navigator.languages?.[0]);
+  return localeFromBrowserLanguage(navigator.language);
 }

@@ -6,11 +6,7 @@ export function formatProductOption(product: Pick<ProductSummary, 'sku' | 'name'
 
 /** Lowercase + strip diacritics so "guarana" matches "Guaraná". */
 export function normalizeSearchText(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '');
+  return value.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
 }
 
 /** Match product name or SKU (case/accent-insensitive substring). Empty query returns all. */

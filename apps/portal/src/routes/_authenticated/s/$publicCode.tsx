@@ -2,10 +2,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 
 import { ApiError } from '@/lib/api/client';
 import { fetchPublicSeller } from '@/lib/api/publicSellers';
-import {
-  clearSellerAttribution,
-  writeSellerAttribution,
-} from '@/lib/seller/attribution';
+import { clearSellerAttribution, writeSellerAttribution } from '@/lib/seller/attribution';
 
 type ShareSearch = {
   product?: string;
@@ -37,6 +34,7 @@ export const Route = createFileRoute('/_authenticated/s/$publicCode')({
     }
 
     if (search.product) {
+      // eslint-disable-next-line @typescript-eslint/only-throw-error -- TanStack Router redirect
       throw redirect({
         to: '/products/$id',
         params: { id: search.product },
@@ -44,6 +42,7 @@ export const Route = createFileRoute('/_authenticated/s/$publicCode')({
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/only-throw-error -- TanStack Router redirect
     throw redirect({
       to: '/',
       search: search.category ? { category: search.category } : undefined,

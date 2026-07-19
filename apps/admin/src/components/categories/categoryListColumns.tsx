@@ -99,18 +99,30 @@ export function categoryListColumns(
           >
             <ArrowDown className="size-4" aria-hidden />
           </TableActionButton>
-          <TableActionButton tone="open" onClick={() => onEdit(row)}>
+          <TableActionButton
+            tone="open"
+            onClick={() => {
+              onEdit(row);
+            }}
+          >
             {t('common.edit')}
           </TableActionButton>
           {row.active ? (
-            <TableActionButton tone="danger" onClick={() => onDeactivate(row)}>
+            <TableActionButton
+              tone="danger"
+              onClick={() => {
+                onDeactivate(row);
+              }}
+            >
               {t('common.deactivate')}
             </TableActionButton>
           ) : (
             <TableActionButton
               tone="success"
               disabled={reactivatePending}
-              onClick={() => onReactivate(row.id)}
+              onClick={() => {
+                onReactivate(row.id);
+              }}
             >
               {t('categories.actions.reactivate')}
             </TableActionButton>

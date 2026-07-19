@@ -37,7 +37,7 @@ export function useSaleDetailActions({
     } catch (error) {
       if (error instanceof ApiError && error.code === 'INSUFFICIENT_STOCK') {
         const productId = await findInsufficientSaleProductId(detail.items);
-        setStockShortProductId(productId ?? detail.items[0]?.productId ?? null);
+        setStockShortProductId(productId ?? null);
         return;
       }
       onError(

@@ -1,13 +1,7 @@
 import { apiRequest, parseApiErrorBody, ApiError } from '@/lib/api/client';
 
 export type MediaEntityType =
-  | 'Product'
-  | 'ProductCategory'
-  | 'User'
-  | 'Commerce'
-  | 'Delivery'
-  | 'Tenant'
-  | 'PortalBanner';
+  'Product' | 'ProductCategory' | 'User' | 'Commerce' | 'Delivery' | 'Tenant' | 'PortalBanner';
 
 export type MediaUploadResponse = {
   id: string;

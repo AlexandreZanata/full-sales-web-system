@@ -145,10 +145,16 @@ fn validate_lead_input(body: &CreatePortalLeadRequest) -> Result<ValidLead, ApiE
     let commerce_name = body.commerce_name.trim().to_string();
     let email = body.email.trim().to_lowercase();
     if contact_name.is_empty() || contact_name.len() > 200 {
-        return Err(ApiError::bad_request("INVALID_INPUT", "contactName is required"));
+        return Err(ApiError::bad_request(
+            "INVALID_INPUT",
+            "contactName is required",
+        ));
     }
     if commerce_name.is_empty() || commerce_name.len() > 200 {
-        return Err(ApiError::bad_request("INVALID_INPUT", "commerceName is required"));
+        return Err(ApiError::bad_request(
+            "INVALID_INPUT",
+            "commerceName is required",
+        ));
     }
     if !email.contains('@') || email.len() > 320 {
         return Err(ApiError::bad_request("INVALID_INPUT", "email is invalid"));

@@ -15,7 +15,9 @@ export function subscribeImpersonation(listener: () => void): () => void {
 }
 
 export function notifyImpersonationChanged(): void {
-  listeners.forEach((listener) => listener());
+  listeners.forEach((listener) => {
+    listener();
+  });
 }
 
 export function setStoredImpersonation(value: StoredImpersonation | null): void {

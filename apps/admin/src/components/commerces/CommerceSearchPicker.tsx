@@ -107,7 +107,9 @@ export function CommerceSearchPicker({
             }
           }}
           onBlur={() => {
-            window.setTimeout(() => setOpen(false), 150);
+            window.setTimeout(() => {
+              setOpen(false);
+            }, 150);
           }}
           onChange={(event) => {
             setOpen(true);
@@ -144,8 +146,12 @@ export function CommerceSearchPicker({
                 <button
                   type="button"
                   className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => selectCommerce(commerce.id)}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                  }}
+                  onClick={() => {
+                    selectCommerce(commerce.id);
+                  }}
                 >
                   {formatCommerceOption(commerce)}
                 </button>

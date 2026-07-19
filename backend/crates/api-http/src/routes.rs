@@ -20,9 +20,10 @@ use crate::categories::{
     update_category, update_category_image,
 };
 use crate::commerces::{
-    approve_registration, create_address, create_commerce, activate_commerce, deactivate_commerce, get_commerce,
-    get_registration, list_addresses, list_commerces, list_registrations, lookup_cnpj,
-    patch_registration, reject_registration, submit_registration, update_address, update_logo,
+    activate_commerce, approve_registration, create_address, create_commerce, deactivate_commerce,
+    get_commerce, get_registration, list_addresses, list_commerces, list_registrations,
+    lookup_cnpj, patch_registration, reject_registration, submit_registration, update_address,
+    update_logo,
 };
 use crate::deliveries::{
     confirm_delivery, create_order_delivery, get_delivery, list_deliveries, start_delivery_transit,
@@ -53,10 +54,11 @@ use crate::platform::{
     schedule_maintenance, start_impersonation, start_tenant_export, suspend_tenant,
 };
 use crate::portal::{
-    cancel_portal_order, create_portal_order, create_public_portal_lead, get_portal_category_by_slug,
-    get_portal_order, get_portal_product_by_id, get_public_category_by_slug, get_public_product_by_id,
-    get_public_seller_by_code, list_portal_categories, list_portal_leads, list_portal_orders,
-    list_portal_products, list_public_banners, list_public_categories, list_public_featured_products,
+    cancel_portal_order, create_portal_order, create_public_portal_lead,
+    get_portal_category_by_slug, get_portal_order, get_portal_product_by_id,
+    get_public_category_by_slug, get_public_product_by_id, get_public_seller_by_code,
+    list_portal_categories, list_portal_leads, list_portal_orders, list_portal_products,
+    list_public_banners, list_public_categories, list_public_featured_products,
     list_public_popular_products, list_public_products, list_public_promotions, review_portal_lead,
     submit_portal_order, update_portal_order,
 };
@@ -203,14 +205,8 @@ pub fn v1_router(state: AppState) -> Router {
             "/v1/commerces/registrations/{id}/reject",
             post(reject_registration),
         )
-        .route(
-            "/v1/commerces/portal-leads",
-            get(list_portal_leads),
-        )
-        .route(
-            "/v1/commerces/portal-leads/{id}",
-            patch(review_portal_lead),
-        )
+        .route("/v1/commerces/portal-leads", get(list_portal_leads))
+        .route("/v1/commerces/portal-leads/{id}", patch(review_portal_lead))
         .route("/v1/commerces/{id}", get(get_commerce))
         .route("/v1/commerces/{id}/deactivate", patch(deactivate_commerce))
         .route("/v1/commerces/{id}/activate", patch(activate_commerce))

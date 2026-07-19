@@ -48,7 +48,9 @@ describe('toAdjustmentPayload — API contract', () => {
   });
 
   it('given_saida_when_to_payload_then_negative_quantity', () => {
-    expect(toAdjustmentPayload({ ...base, direction: 'out', quantity: '10', reason: 'Damaged' })).toEqual({
+    expect(
+      toAdjustmentPayload({ ...base, direction: 'out', quantity: '10', reason: 'Damaged' }),
+    ).toEqual({
       productId: base.productId,
       movementType: 'Adjustment',
       quantity: -10,

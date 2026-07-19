@@ -75,7 +75,9 @@ function CommerceRowActions({
       await queryClient.invalidateQueries({ queryKey: ['commerces'] });
       toast.success(t('commerces.toast.reactivated'));
     },
-    onError: () => toast.error(t('errors.actionFailed')),
+    onError: () => {
+      toast.error(t('errors.actionFailed'));
+    },
   });
 
   return (
@@ -85,7 +87,9 @@ function CommerceRowActions({
           to="/commerces/registrations/$id"
           params={{ id: row.id }}
           className={tableActionClass('warning')}
-          onClick={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
         >
           {t('common.review')}
         </Link>
@@ -94,7 +98,9 @@ function CommerceRowActions({
           to="/commerces/$id"
           params={{ id: row.id }}
           className={tableActionClass('open')}
-          onClick={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
         >
           {t('common.open')}
         </Link>

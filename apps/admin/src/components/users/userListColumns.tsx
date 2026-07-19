@@ -49,11 +49,21 @@ export function userListColumns(
             {t('common.open')}
           </Link>
           {row.active ? (
-            <TableActionButton tone="danger" onClick={() => onDeactivate(row)}>
+            <TableActionButton
+              tone="danger"
+              onClick={() => {
+                onDeactivate(row);
+              }}
+            >
               {t('common.deactivate')}
             </TableActionButton>
           ) : (
-            <TableActionButton tone="success" onClick={() => onReactivate(row)}>
+            <TableActionButton
+              tone="success"
+              onClick={() => {
+                onReactivate(row);
+              }}
+            >
               {t('common.reactivate')}
             </TableActionButton>
           )}

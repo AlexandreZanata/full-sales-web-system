@@ -9,7 +9,8 @@ export type ImpersonationStartResult = {
   grantId?: string;
 };
 
-const ADMIN_ORIGIN = import.meta.env.VITE_ADMIN_ORIGIN ?? 'http://127.0.0.1:5174';
+const ADMIN_ORIGIN =
+  (import.meta.env.VITE_ADMIN_ORIGIN as string | undefined) ?? 'http://127.0.0.1:5174';
 
 export async function startImpersonation(body: {
   tenantId: string;

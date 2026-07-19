@@ -109,7 +109,9 @@ export function AdjustmentForm({ initialProductId }: AdjustmentFormProps) {
                   : 'border-input bg-surface text-foreground hover:bg-surface-muted',
               )}
               aria-pressed={values.direction === 'in'}
-              onClick={() => setDirection('in')}
+              onClick={() => {
+                setDirection('in');
+              }}
             >
               {t('inventory.adjustments.directionIn')}
             </button>
@@ -122,7 +124,9 @@ export function AdjustmentForm({ initialProductId }: AdjustmentFormProps) {
                   : 'border-input bg-surface text-foreground hover:bg-surface-muted',
               )}
               aria-pressed={values.direction === 'out'}
-              onClick={() => setDirection('out')}
+              onClick={() => {
+                setDirection('out');
+              }}
             >
               {t('inventory.adjustments.directionOut')}
             </button>

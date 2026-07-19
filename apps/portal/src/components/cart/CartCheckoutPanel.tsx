@@ -87,7 +87,12 @@ export function CartCheckoutPanel({
           {t('cart.contactSeller')}
         </a>
       ) : (
-        <Button className="w-full" variant="secondary" disabled title={t('cart.contactUnavailable')}>
+        <Button
+          className="w-full"
+          variant="secondary"
+          disabled
+          title={t('cart.contactUnavailable')}
+        >
           <MessageCircle className="size-4" aria-hidden />
           {t('cart.contactSeller')}
         </Button>

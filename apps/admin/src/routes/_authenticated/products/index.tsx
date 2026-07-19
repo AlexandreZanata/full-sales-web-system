@@ -79,10 +79,7 @@ function ProductsListPage() {
     setCursors([undefined]);
   }
 
-  const columns = useMemo(
-    () => productListColumns(t, catalogRevision),
-    [catalogRevision, t],
-  );
+  const columns = useMemo(() => productListColumns(t, catalogRevision), [catalogRevision, t]);
   const hasFilters = Boolean(activeFilter || categoryFilter);
 
   return (

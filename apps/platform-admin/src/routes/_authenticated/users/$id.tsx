@@ -12,10 +12,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Textarea } from '@/components/ui/Textarea';
-import {
-  openTenantAdminWithImpersonation,
-  startImpersonation,
-} from '@/lib/api/impersonate';
+import { openTenantAdminWithImpersonation, startImpersonation } from '@/lib/api/impersonate';
 import {
   disablePlatformUser,
   enablePlatformUser,
@@ -43,17 +40,25 @@ function UserDetailPage() {
   const disable = useMutation({
     mutationFn: () => disablePlatformUser(id),
     onSuccess: invalidate,
-    onError: () => toast.error(t('common.somethingWentWrong')),
+    onError: () => {
+      toast.error(t('common.somethingWentWrong'));
+    },
   });
   const enable = useMutation({
     mutationFn: () => enablePlatformUser(id),
     onSuccess: invalidate,
-    onError: () => toast.error(t('common.somethingWentWrong')),
+    onError: () => {
+      toast.error(t('common.somethingWentWrong'));
+    },
   });
   const resetPassword = useMutation({
     mutationFn: () => resetPlatformUserPassword(id),
-    onSuccess: (result) => toast.success(`Temporary password: ${result.temporaryPassword}`),
-    onError: () => toast.error(t('common.somethingWentWrong')),
+    onSuccess: (result) => {
+      toast.success(`Temporary password: ${result.temporaryPassword}`);
+    },
+    onError: () => {
+      toast.error(t('common.somethingWentWrong'));
+    },
   });
   const impersonate = useMutation({
     mutationFn: () => {
@@ -72,7 +77,9 @@ function UserDetailPage() {
       setReason('');
       toast.success(t('users.impersonateOpened'));
     },
-    onError: () => toast.error(t('users.impersonateFailed')),
+    onError: () => {
+      toast.error(t('users.impersonateFailed'));
+    },
   });
 
   if (user.isLoading) {
@@ -101,10 +108,18 @@ function UserDetailPage() {
         t={t}
         user={user.data}
         busy={busy}
-        onDisable={() => disable.mutate()}
-        onEnable={() => enable.mutate()}
-        onResetPassword={() => resetPassword.mutate()}
-        onImpersonate={() => setImpersonateOpen(true)}
+        onDisable={() => {
+          disable.mutate();
+        }}
+        onEnable={() => {
+          enable.mutate();
+        }}
+        onResetPassword={() => {
+          resetPassword.mutate();
+        }}
+        onImpersonate={() => {
+          setImpersonateOpen(true);
+        }}
       />
       <ConfirmDialog
         open={impersonateOpen}
@@ -117,13 +132,17 @@ function UserDetailPage() {
           setImpersonateOpen(false);
           setReason('');
         }}
-        onConfirm={() => impersonate.mutate()}
+        onConfirm={() => {
+          impersonate.mutate();
+        }}
       >
         <Textarea
           label={t('users.impersonateReason')}
           value={reason}
           placeholder={t('users.impersonateReasonPlaceholder')}
-          onChange={(event) => setReason(event.target.value)}
+          onChange={(event) => {
+            setReason(event.target.value);
+          }}
         />
       </ConfirmDialog>
     </div>

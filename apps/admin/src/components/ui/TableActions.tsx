@@ -23,7 +23,9 @@ export function tableActionClass(tone: TableActionTone = 'open', className?: str
 
 export function TableActions({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('flex flex-wrap items-center justify-end gap-1.5', className)}>{children}</div>
+    <div className={cn('flex flex-wrap items-center justify-end gap-1.5', className)}>
+      {children}
+    </div>
   );
 }
 

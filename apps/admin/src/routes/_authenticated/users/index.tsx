@@ -85,8 +85,12 @@ function UsersListPage() {
     () =>
       userListColumns(
         t,
-        (user) => setPending({ user, kind: 'deactivate' }),
-        (user) => setPending({ user, kind: 'reactivate' }),
+        (user) => {
+          setPending({ user, kind: 'deactivate' });
+        },
+        (user) => {
+          setPending({ user, kind: 'reactivate' });
+        },
       ),
     [t],
   );

@@ -4,10 +4,7 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import { fetchProductsForPicker } from '@/lib/api/products';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { useI18n } from '@/lib/i18n/context';
-import {
-  filterProductsBySearch,
-  formatProductOption,
-} from '@/lib/products/filterProductsBySearch';
+import { filterProductsBySearch, formatProductOption } from '@/lib/products/filterProductsBySearch';
 import { cn } from '@/lib/utils';
 
 const DEBOUNCE_MS = 200;
@@ -108,7 +105,9 @@ export function ProductSearchPicker({
             }
           }}
           onBlur={() => {
-            window.setTimeout(() => setOpen(false), 150);
+            window.setTimeout(() => {
+              setOpen(false);
+            }, 150);
           }}
           onChange={(event) => {
             setOpen(true);
@@ -145,8 +144,12 @@ export function ProductSearchPicker({
                 <button
                   type="button"
                   className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => selectProduct(product.id)}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                  }}
+                  onClick={() => {
+                    selectProduct(product.id);
+                  }}
                 >
                   {formatProductOption(product)}
                 </button>

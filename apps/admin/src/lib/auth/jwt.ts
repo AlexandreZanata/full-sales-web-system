@@ -56,10 +56,7 @@ export function decodeAccessTokenClaims(token: string): AccessTokenClaims | null
     };
   }
 
-  if (
-    typeof decoded.tenant_id !== 'string' ||
-    typeof decoded.role !== 'string'
-  ) {
+  if (typeof decoded.tenant_id !== 'string' || typeof decoded.role !== 'string') {
     return null;
   }
 

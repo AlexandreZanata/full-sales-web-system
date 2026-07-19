@@ -71,11 +71,7 @@ export function DataTable<T>({
   return (
     <div className={cn('overflow-hidden rounded-lg border border-hairline bg-surface', className)}>
       {searchable ? (
-        <DataTableSearch
-          value={search}
-          placeholder={searchPlaceholder}
-          onChange={setSearch}
-        />
+        <DataTableSearch value={search} placeholder={searchPlaceholder} onChange={setSearch} />
       ) : null}
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
@@ -105,9 +101,7 @@ export function DataTable<T>({
                   colSpan={columns.length}
                   className={cn(padding, 'text-center text-sm text-muted-foreground')}
                 >
-                  {rows.length === 0
-                    ? t('common.table.empty')
-                    : t('common.table.noSearchMatches')}
+                  {rows.length === 0 ? t('common.table.empty') : t('common.table.noSearchMatches')}
                 </td>
               </tr>
             ) : (

@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import {
-  resolveCategoryThumbUrl,
-  withCatalogImageCacheBust,
-} from '@/lib/api/uploads';
+import { resolveCategoryThumbUrl, withCatalogImageCacheBust } from '@/lib/api/uploads';
 import { useI18n } from '@/lib/i18n/context';
 
 type ProductThumbProps = {

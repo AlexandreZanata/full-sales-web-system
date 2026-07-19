@@ -23,12 +23,7 @@ export function StockBalanceCard({ productId }: StockBalanceCardProps) {
   const isEmpty = available === 0;
 
   return (
-    <Card
-      className={cn(
-        'space-y-3',
-        isEmpty && 'border-destructive/30 bg-destructive/5',
-      )}
-    >
+    <Card className={cn('space-y-3', isEmpty && 'border-destructive/30 bg-destructive/5')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -55,9 +50,7 @@ export function StockBalanceCard({ productId }: StockBalanceCardProps) {
           </Button>
         </Link>
       </div>
-      {isEmpty ? (
-        <p className="text-sm text-destructive">{t('products.stock.emptyHint')}</p>
-      ) : null}
+      {isEmpty ? <p className="text-sm text-destructive">{t('products.stock.emptyHint')}</p> : null}
     </Card>
   );
 }

@@ -119,9 +119,9 @@ function UserDetailPage() {
         {activeTab === 'overview' ? (
           <EditUserOverviewForm
             user={detail}
-            onSaved={async (updated) => {
+            onSaved={(updated) => {
               queryClient.setQueryData(['users', id], updated);
-              await queryClient.invalidateQueries({ queryKey: ['users'] });
+              void queryClient.invalidateQueries({ queryKey: ['users'] });
               toast.success(t('users.toast.updated'));
             }}
           />

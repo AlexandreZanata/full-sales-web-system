@@ -40,7 +40,9 @@ function CategoriesListPage() {
 
   const { reorderMutation, deactivateMutation, reactivateMutation } = useCategoryListMutations(
     t,
-    () => setDeactivatingCategory(undefined),
+    () => {
+      setDeactivatingCategory(undefined);
+    },
   );
 
   const items = categories.data?.data ?? [];
@@ -73,7 +75,9 @@ function CategoriesListPage() {
           setDialogOpen(true);
         },
         onDeactivate: setDeactivatingCategory,
-        onReactivate: (id) => reactivateMutation.mutate(id),
+        onReactivate: (id) => {
+          reactivateMutation.mutate(id);
+        },
       }),
     [t, orderedIds, catalogRevision, reorderMutation.isPending, reactivateMutation, handleReorder],
   );
@@ -95,7 +99,9 @@ function CategoriesListPage() {
         <Select
           label={t('categories.list.filterByStatus')}
           value={activeFilter}
-          onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}
+          onChange={(event) => {
+            setActiveFilter(event.target.value as ActiveFilter);
+          }}
         >
           {ACTIVE_FILTERS.map((value) => (
             <option key={value || 'all'} value={value}>
@@ -152,7 +158,9 @@ function CategoriesListPage() {
         confirmLabel={t('categories.deactivateDialog.confirm')}
         destructive
         isLoading={deactivateMutation.isPending}
-        onCancel={() => setDeactivatingCategory(undefined)}
+        onCancel={() => {
+          setDeactivatingCategory(undefined);
+        }}
         onConfirm={() => {
           if (deactivatingCategory) {
             deactivateMutation.mutate(deactivatingCategory.id);

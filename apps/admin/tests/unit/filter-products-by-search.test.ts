@@ -4,10 +4,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ProductSummary } from '@/lib/api/types';
-import {
-  filterProductsBySearch,
-  formatProductOption,
-} from '@/lib/products/filterProductsBySearch';
+import { filterProductsBySearch, formatProductOption } from '@/lib/products/filterProductsBySearch';
 
 function product(partial: Pick<ProductSummary, 'id' | 'sku' | 'name'>): ProductSummary {
   return {

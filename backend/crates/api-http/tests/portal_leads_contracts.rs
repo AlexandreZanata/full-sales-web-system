@@ -64,11 +64,21 @@ async fn given_lead_when_admin_approves_then_approved() {
     assert_eq!(create_status, StatusCode::CREATED);
     let id = created["id"].as_str().expect("id");
 
-    let (list_status, list) =
-        request(&env, "GET", "/v1/commerces/portal-leads?status=pending", Some(&admin), None)
-            .await;
+    let (list_status, list) = request(
+        &env,
+        "GET",
+        "/v1/commerces/portal-leads?status=pending",
+        Some(&admin),
+        None,
+    )
+    .await;
     assert_eq!(list_status, StatusCode::OK);
-    assert!(list.as_array().expect("array").iter().any(|row| row["id"] == id));
+    assert!(
+        list.as_array()
+            .expect("array")
+            .iter()
+            .any(|row| row["id"] == id)
+    );
 
     let (patch_status, patched) = request(
         &env,

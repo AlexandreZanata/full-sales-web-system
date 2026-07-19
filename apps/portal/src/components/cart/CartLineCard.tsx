@@ -33,8 +33,12 @@ export function CartLineCard({ line, onSetQuantity, onRemove }: CartLineCardProp
           quantityLabel={t('common.quantity')}
           decreaseLabel={t('cart.decreaseQuantity')}
           increaseLabel={t('cart.increaseQuantity')}
-          onDecrease={() => onSetQuantity(line.productId, line.quantity - 1)}
-          onIncrease={() => onSetQuantity(line.productId, line.quantity + 1)}
+          onDecrease={() => {
+            onSetQuantity(line.productId, line.quantity - 1);
+          }}
+          onIncrease={() => {
+            onSetQuantity(line.productId, line.quantity + 1);
+          }}
         />
       </div>
 
@@ -42,7 +46,9 @@ export function CartLineCard({ line, onSetQuantity, onRemove }: CartLineCardProp
         type="button"
         className="cart-line-card__actions"
         aria-label={t('cart.removeItem')}
-        onClick={() => onRemove(line.productId)}
+        onClick={() => {
+          onRemove(line.productId);
+        }}
       >
         <span className="cart-line-card__remove-icon">
           <Trash2 className="size-4" aria-hidden />

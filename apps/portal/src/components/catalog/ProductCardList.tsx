@@ -42,7 +42,10 @@ export function ProductCardList({
       tabIndex={canOpen ? 0 : undefined}
       aria-label={canOpen ? product.name : undefined}
     >
-      <ProductImage product={product} className="size-28 shrink-0 self-start rounded-lg sm:size-32" />
+      <ProductImage
+        product={product}
+        className="size-28 shrink-0 self-start rounded-lg sm:size-32"
+      />
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <ProductCardTitleRow
           product={product}

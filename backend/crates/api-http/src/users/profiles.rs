@@ -8,9 +8,7 @@ use uuid::Uuid;
 use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::state::AppState;
-use crate::users::types::{
-    DriverProfileRequest, DriverProfileResponse, load_user,
-};
+use crate::users::types::{DriverProfileRequest, DriverProfileResponse, load_user};
 
 pub async fn upsert_driver_profile(
     State(state): State<AppState>,

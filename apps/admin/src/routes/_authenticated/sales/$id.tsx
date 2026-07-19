@@ -36,12 +36,24 @@ function SaleDetailPage() {
   const sale = useQuery({ queryKey: ['sales', id], queryFn: () => fetchSale(id) });
   const commerce = useQuery({
     queryKey: ['commerces', sale.data?.commerceId],
-    queryFn: () => fetchCommerce(sale.data!.commerceId),
+    queryFn: () => {
+      const commerceId = sale.data?.commerceId;
+      if (!commerceId) {
+        return Promise.reject(new Error('Missing commerceId'));
+      }
+      return fetchCommerce(commerceId);
+    },
     enabled: Boolean(sale.data?.commerceId),
   });
   const driver = useQuery({
     queryKey: ['users', sale.data?.driverId],
-    queryFn: () => fetchUser(sale.data!.driverId),
+    queryFn: () => {
+      const driverId = sale.data?.driverId;
+      if (!driverId) {
+        return Promise.reject(new Error('Missing driverId'));
+      }
+      return fetchUser(driverId);
+    },
     enabled: Boolean(sale.data?.driverId),
   });
   const products = useQuery({ queryKey: ['products', 'picker'], queryFn: fetchProductsForPicker });
@@ -64,8 +76,12 @@ function SaleDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ['sales'] });
       await queryClient.invalidateQueries({ queryKey: ['sales', id] });
     },
-    onSuccess: (message) => toast.success(message),
-    onError: (message) => toast.error(message),
+    onSuccess: (message) => {
+      toast.success(message);
+    },
+    onError: (message) => {
+      toast.error(message);
+    },
   });
 
   if (sale.isLoading) {
@@ -110,7 +126,9 @@ function SaleDetailPage() {
               <Button
                 variant="danger"
                 disabled={actionLoading}
-                onClick={() => setCancelOpen(true)}
+                onClick={() => {
+                  setCancelOpen(true);
+                }}
               >
                 {t('sales.detail.actions.cancel')}
               </Button>
@@ -145,8 +163,14 @@ function SaleDetailPage() {
         confirmLabel={t('sales.cancelDialog.confirm')}
         destructive
         isLoading={actionLoading}
-        onCancel={() => setCancelOpen(false)}
-        onConfirm={() => void handleCancel(() => setCancelOpen(false))}
+        onCancel={() => {
+          setCancelOpen(false);
+        }}
+        onConfirm={() =>
+          void handleCancel(() => {
+            setCancelOpen(false);
+          })
+        }
       />
     </div>
   );

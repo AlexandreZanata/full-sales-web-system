@@ -43,13 +43,17 @@ export function ConfirmDialog({
         aria-modal="true"
         aria-labelledby="confirm-title"
         aria-describedby="confirm-message"
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
       >
         <div className="flex gap-3">
           <span
             className={cn(
               'flex size-10 shrink-0 items-center justify-center rounded-full',
-              destructive ? 'bg-destructive/10 text-destructive' : 'bg-status-active/10 text-status-active',
+              destructive
+                ? 'bg-destructive/10 text-destructive'
+                : 'bg-status-active/10 text-status-active',
             )}
             aria-hidden
           >

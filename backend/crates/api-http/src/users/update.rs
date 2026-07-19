@@ -36,7 +36,12 @@ pub async fn update_user(
     let email = Email::parse(&body.email)
         .map_err(|err| map_user_app_error(application::AppError::Identity(err)))?;
 
-    let password_hash = match body.password.as_deref().map(str::trim).filter(|p| !p.is_empty()) {
+    let password_hash = match body
+        .password
+        .as_deref()
+        .map(str::trim)
+        .filter(|p| !p.is_empty())
+    {
         Some(raw) if raw.len() < 8 => {
             return Err(ApiError::bad_request(
                 "INVALID_INPUT",

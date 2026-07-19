@@ -43,7 +43,9 @@ function PortalLeadsPage() {
       );
       void queryClient.invalidateQueries({ queryKey: ['portal-leads'] });
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
   });
 
   const columns = useMemo((): DataTableColumn<PortalLead>[] => {
@@ -88,7 +90,9 @@ function PortalLeadsPage() {
                 type="button"
                 className={tableActionClass('success')}
                 disabled={review.isPending}
-                onClick={() => review.mutate({ id: row.id, status: 'approved' })}
+                onClick={() => {
+                  review.mutate({ id: row.id, status: 'approved' });
+                }}
               >
                 {t('commerces.leads.approve')}
               </button>
@@ -96,7 +100,9 @@ function PortalLeadsPage() {
                 type="button"
                 className={tableActionClass('danger')}
                 disabled={review.isPending}
-                onClick={() => review.mutate({ id: row.id, status: 'rejected' })}
+                onClick={() => {
+                  review.mutate({ id: row.id, status: 'rejected' });
+                }}
               >
                 {t('commerces.leads.reject')}
               </button>

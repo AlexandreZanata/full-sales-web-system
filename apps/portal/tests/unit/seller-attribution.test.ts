@@ -43,9 +43,9 @@ describe('seller attribution', () => {
         '11999998888',
       ),
     ).toBe('11911112222');
-    expect(
-      resolveContactPhone({ publicCode: 'a', displayName: 'A' }, '11999998888'),
-    ).toBe('11999998888');
+    expect(resolveContactPhone({ publicCode: 'a', displayName: 'A' }, '11999998888')).toBe(
+      '11999998888',
+    );
     expect(resolveContactPhone(null, '11999998888')).toBe('11999998888');
     expect(resolveContactPhone(null, undefined)).toBeUndefined();
   });

@@ -76,7 +76,10 @@ pub async fn get_my_seller_share(
     .map_err(|_| ApiError::internal())?
     .ok_or_else(ApiError::not_found)?;
 
-    let code = profile.public_code.clone().ok_or_else(ApiError::not_found)?;
+    let code = profile
+        .public_code
+        .clone()
+        .ok_or_else(ApiError::not_found)?;
     let share_path = format!("/s/{code}");
     let share_url = absolute_catalog_share_url(&state.portal_public_origin, &share_path);
     Ok(Json(SellerShareResponse {

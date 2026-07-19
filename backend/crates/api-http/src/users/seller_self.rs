@@ -43,14 +43,11 @@ pub async fn patch_my_seller_profile(
     Json(body): Json<SellerSelfProfileRequest>,
 ) -> Result<Json<SellerProfileResponse>, ApiError> {
     require_roles(&auth, &[Role::Seller])?;
-    let user = infra_postgres::identity::find_user_by_id(
-        &state.app_pool,
-        auth.tenant_id,
-        auth.user_id,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?
-    .ok_or_else(ApiError::user_not_found)?;
+    let user =
+        infra_postgres::identity::find_user_by_id(&state.app_pool, auth.tenant_id, auth.user_id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::user_not_found)?;
 
     let existing = infra_postgres::identity::find_seller_profile_by_user_id(
         &state.app_pool,
@@ -61,9 +58,9 @@ pub async fn patch_my_seller_profile(
     .map_err(|_| ApiError::internal())?;
 
     let admin_body = SellerProfileRequest {
-        operating_region: body.operating_region.or_else(|| {
-            existing.as_ref().and_then(|e| e.operating_region.clone())
-        }),
+        operating_region: body
+            .operating_region
+            .or_else(|| existing.as_ref().and_then(|e| e.operating_region.clone())),
         monthly_target_amount: existing.as_ref().and_then(|e| e.monthly_target_amount),
         public_code: None,
         contact_phone: body.contact_phone,

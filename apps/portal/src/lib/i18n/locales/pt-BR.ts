@@ -22,8 +22,7 @@ export const ptBR: Messages = {
     portalLabel: 'Portal',
     registerLink: 'Quero me cadastrar',
     registerTitle: 'Cadastro do comércio',
-    registerDescription:
-      'Envie seus dados. Nossa equipe analisa e libera o acesso ao portal.',
+    registerDescription: 'Envie seus dados. Nossa equipe analisa e libera o acesso ao portal.',
     registerSubmit: 'Enviar solicitação',
     registering: 'Enviando…',
     registerSuccess:
@@ -153,8 +152,7 @@ export const ptBR: Messages = {
     contactSeller: 'Falar com vendedor',
     contactUnavailable: 'Telefone comercial não configurado',
     productInfo: 'Informações do produto',
-    whatsappInterest:
-      'Olá, tenho interesse em {name} (SKU: {sku})\n{url}',
+    whatsappInterest: 'Olá, tenho interesse em {name} (SKU: {sku})\n{url}',
   },
   sellerAttribution: {
     assistedBy: 'Você está falando com {name}',

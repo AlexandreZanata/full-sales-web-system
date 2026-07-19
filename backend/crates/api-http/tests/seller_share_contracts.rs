@@ -40,14 +40,7 @@ async fn given_seller_with_code_when_public_get_then_200() {
     .await;
     assert_eq!(put_status, StatusCode::OK);
 
-    let (status, body) = request(
-        &env,
-        "GET",
-        "/v1/public/sellers/maria-share",
-        None,
-        None,
-    )
-    .await;
+    let (status, body) = request(&env, "GET", "/v1/public/sellers/maria-share", None, None).await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["publicCode"], "maria-share");
     assert_eq!(body["contactPhone"], "11999998888");
@@ -129,7 +122,14 @@ async fn given_seller_when_get_my_share_then_200() {
     )
     .await;
 
-    let (status, body) = request(&env, "GET", "/v1/me/seller-share", Some(&seller_token), None).await;
+    let (status, body) = request(
+        &env,
+        "GET",
+        "/v1/me/seller-share",
+        Some(&seller_token),
+        None,
+    )
+    .await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(body["publicCode"], "me-seller");
     assert_eq!(body["sharePath"], "/s/me-seller");
@@ -163,8 +163,14 @@ async fn given_seller_when_patch_own_phone_then_200() {
     assert_eq!(body["contactPhone"], "11988887777");
     assert_eq!(body["publicCode"], "self-phone");
 
-    let (get_status, get_body) =
-        request(&env, "GET", "/v1/me/seller-profile", Some(&seller_token), None).await;
+    let (get_status, get_body) = request(
+        &env,
+        "GET",
+        "/v1/me/seller-profile",
+        Some(&seller_token),
+        None,
+    )
+    .await;
     assert_eq!(get_status, StatusCode::OK);
     assert_eq!(get_body["contactPhone"], "11988887777");
 }

@@ -29,14 +29,11 @@ pub async fn get_public_seller_by_code(
         return Err(ApiError::not_found());
     }
 
-    let row = infra_postgres::identity::find_public_seller_by_code(
-        &state.app_pool,
-        tenant_id,
-        code,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?
-    .ok_or_else(ApiError::not_found)?;
+    let row =
+        infra_postgres::identity::find_public_seller_by_code(&state.app_pool, tenant_id, code)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::not_found)?;
 
     Ok(Json(PublicSellerResponse {
         public_code: row.public_code,

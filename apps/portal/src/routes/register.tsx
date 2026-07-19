@@ -74,14 +74,18 @@ function RegisterPage() {
               name="contactName"
               required
               value={contactName}
-              onChange={(event) => setContactName(event.target.value)}
+              onChange={(event) => {
+                setContactName(event.target.value);
+              }}
             />
             <Input
               label={t('auth.commerceName')}
               name="commerceName"
               required
               value={commerceName}
-              onChange={(event) => setCommerceName(event.target.value)}
+              onChange={(event) => {
+                setCommerceName(event.target.value);
+              }}
             />
             <Input
               label={t('auth.phone')}
@@ -89,7 +93,9 @@ function RegisterPage() {
               type="tel"
               required
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
+              onChange={(event) => {
+                setPhone(event.target.value);
+              }}
             />
             <Input
               label={t('auth.email')}
@@ -98,7 +104,9 @@ function RegisterPage() {
               autoComplete="email"
               required
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+              }}
             />
             {error ? (
               <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">

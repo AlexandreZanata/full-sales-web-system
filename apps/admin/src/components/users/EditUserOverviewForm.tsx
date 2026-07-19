@@ -79,7 +79,9 @@ export function EditUserOverviewForm({ user, onSaved }: EditUserOverviewFormProp
           name="name"
           required
           value={name}
-          onChange={(event) => setName(event.target.value)}
+          onChange={(event) => {
+            setName(event.target.value);
+          }}
         />
         <Input
           label={t('forms.fields.email')}
@@ -87,7 +89,9 @@ export function EditUserOverviewForm({ user, onSaved }: EditUserOverviewFormProp
           type="email"
           required
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          onChange={(event) => {
+            setEmail(event.target.value);
+          }}
         />
         <Input
           label={t('users.detail.newPassword')}
@@ -95,7 +99,9 @@ export function EditUserOverviewForm({ user, onSaved }: EditUserOverviewFormProp
           type="password"
           autoComplete="new-password"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          onChange={(event) => {
+            setPassword(event.target.value);
+          }}
         />
         <p className="-mt-2 text-xs text-muted-foreground">{t('users.detail.newPasswordHint')}</p>
         <DetailRow label={t('forms.fields.role')} value={translateRole(t, user.role)} />
@@ -110,7 +116,9 @@ export function EditUserOverviewForm({ user, onSaved }: EditUserOverviewFormProp
             type="button"
             variant="secondary"
             disabled={submitting}
-            onClick={() => setEditing(false)}
+            onClick={() => {
+              setEditing(false);
+            }}
           >
             {t('common.cancel')}
           </Button>

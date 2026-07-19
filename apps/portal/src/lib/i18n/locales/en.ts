@@ -22,12 +22,10 @@ export const en: Messages = {
     portalLabel: 'Portal',
     registerLink: 'Request access',
     registerTitle: 'Commerce signup',
-    registerDescription:
-      'Send your details. Our team reviews and enables portal access.',
+    registerDescription: 'Send your details. Our team reviews and enables portal access.',
     registerSubmit: 'Submit request',
     registering: 'Sending…',
-    registerSuccess:
-      'Request sent. We will contact you after review (no immediate login).',
+    registerSuccess: 'Request sent. We will contact you after review (no immediate login).',
     registerFailed: 'Could not submit. Please try again.',
     backToSignIn: 'Back to sign in',
     contactName: 'Your name',
@@ -153,8 +151,7 @@ export const en: Messages = {
     contactSeller: 'Contact seller',
     contactUnavailable: 'Sales contact phone is not configured',
     productInfo: 'Product information',
-    whatsappInterest:
-      "Hi, I'm interested in {name} (SKU: {sku})\n{url}",
+    whatsappInterest: "Hi, I'm interested in {name} (SKU: {sku})\n{url}",
   },
   sellerAttribution: {
     assistedBy: 'You are talking to {name}',

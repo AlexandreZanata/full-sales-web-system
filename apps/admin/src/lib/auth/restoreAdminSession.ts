@@ -3,12 +3,7 @@ import {
   consumeImpersonationHandoff,
   isImpersonationRefreshToken,
 } from '@/lib/auth/impersonationHandoff';
-import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  hasSession,
-} from '@/lib/auth/tokens';
+import { clearTokens, getAccessToken, getRefreshToken, hasSession } from '@/lib/auth/tokens';
 import { tryRefreshTokens } from '@/lib/api/client';
 
 export type RestoredAdminUser = { email: string; role: string };

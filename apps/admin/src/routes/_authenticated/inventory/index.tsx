@@ -88,9 +88,7 @@ function InventoryHubPage() {
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            {t('inventory.overview.title')}
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('inventory.overview.title')}</h2>
           <p className="text-sm text-muted-foreground">{t('inventory.overview.description')}</p>
         </div>
 
