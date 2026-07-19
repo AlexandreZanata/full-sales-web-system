@@ -115,7 +115,7 @@ mod registrations;
 pub use addresses_handlers::{create_address, list_addresses};
 pub use addresses_manage::{update_address, update_logo};
 pub use cnpj_lookup_handler::lookup_cnpj;
-pub use read::{deactivate_commerce, get_commerce, list_commerces};
+pub use read::{activate_commerce, deactivate_commerce, get_commerce, list_commerces};
 pub use registrations::{
     approve_registration, get_registration, list_registrations, patch_registration,
     reject_registration, submit_registration,

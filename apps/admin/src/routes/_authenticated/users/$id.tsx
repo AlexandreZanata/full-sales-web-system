@@ -13,7 +13,7 @@ import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/hooks/useToast';
-import { deactivateUser, fetchUser } from '@/lib/api/users';
+import { deactivateUser, fetchUser, reactivateUser } from '@/lib/api/users';
 import { useI18n } from '@/lib/i18n/context';
 import { translateRole } from '@/lib/i18n/labels';
 
@@ -27,8 +27,8 @@ function UserDetailPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('overview');
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deactivating, setDeactivating] = useState(false);
+  const [confirmKind, setConfirmKind] = useState<'deactivate' | 'reactivate' | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const user = useQuery({
     queryKey: ['users', id],
@@ -46,18 +46,26 @@ function UserDetailPage() {
     return items;
   }, [t, user.data?.role]);
 
-  async function handleDeactivate() {
-    setDeactivating(true);
+  async function handleConfirm() {
+    if (!confirmKind) {
+      return;
+    }
+    setBusy(true);
     try {
-      await deactivateUser(id);
+      if (confirmKind === 'deactivate') {
+        await deactivateUser(id);
+        toast.success(t('users.toast.deactivated'));
+      } else {
+        await reactivateUser(id);
+        toast.success(t('users.toast.reactivated'));
+      }
       await queryClient.invalidateQueries({ queryKey: ['users'] });
       await queryClient.invalidateQueries({ queryKey: ['users', id] });
-      toast.success(t('users.toast.deactivated'));
-      setConfirmOpen(false);
+      setConfirmKind(null);
     } catch {
       toast.error(t('errors.actionFailed'));
     } finally {
-      setDeactivating(false);
+      setBusy(false);
     }
   }
 
@@ -79,6 +87,7 @@ function UserDetailPage() {
   }
 
   const detail = user.data;
+  const isDeactivate = confirmKind === 'deactivate';
 
   return (
     <div>
@@ -91,12 +100,20 @@ function UserDetailPage() {
             <Button
               variant="danger"
               onClick={() => {
-                setConfirmOpen(true);
+                setConfirmKind('deactivate');
               }}
             >
               {t('users.detail.deactivate')}
             </Button>
-          ) : null
+          ) : (
+            <Button
+              onClick={() => {
+                setConfirmKind('reactivate');
+              }}
+            >
+              {t('users.detail.reactivate')}
+            </Button>
+          )
         }
       />
 
@@ -121,16 +138,28 @@ function UserDetailPage() {
       </Tabs>
 
       <ConfirmDialog
-        open={confirmOpen}
-        title={t('users.detail.deactivateDialog.title')}
-        message={t('users.detail.deactivateDialog.message')}
-        confirmLabel={t('users.detail.deactivateDialog.confirm')}
-        destructive
-        isLoading={deactivating}
+        open={confirmKind !== null}
+        title={
+          isDeactivate
+            ? t('users.detail.deactivateDialog.title')
+            : t('users.detail.reactivateDialog.title')
+        }
+        message={
+          isDeactivate
+            ? t('users.detail.deactivateDialog.message')
+            : t('users.detail.reactivateDialog.message')
+        }
+        confirmLabel={
+          isDeactivate
+            ? t('users.detail.deactivateDialog.confirm')
+            : t('users.detail.reactivateDialog.confirm')
+        }
+        destructive={isDeactivate}
+        isLoading={busy}
         onCancel={() => {
-          setConfirmOpen(false);
+          setConfirmKind(null);
         }}
-        onConfirm={() => void handleDeactivate()}
+        onConfirm={() => void handleConfirm()}
       />
     </div>
   );

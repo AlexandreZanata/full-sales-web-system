@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { useProductLineColumns } from '@/components/detail/productLineColumns';
 import { SaleDetailSummary } from '@/components/sales/SaleDetailSummary';
+import { SaleInsufficientStockAlert } from '@/components/sales/SaleInsufficientStockAlert';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { DataTable } from '@/components/ui/DataTable';
@@ -12,14 +13,14 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useToast } from '@/hooks/useToast';
-import { ApiError } from '@/lib/api/client';
 import { fetchCommerce } from '@/lib/api/commerces';
 import { fetchProductsForPicker } from '@/lib/api/products';
-import { cancelSale, confirmSale, fetchSale } from '@/lib/api/sales';
+import { fetchSale } from '@/lib/api/sales';
 import { fetchUser } from '@/lib/api/users';
 import { useI18n } from '@/lib/i18n/context';
-import { saleActionErrorKey } from '@/lib/i18n/labels';
 import { buildProductNameMap } from '@/lib/products/productNameMap';
+import { saleDisplayCode } from '@/lib/sales/saleDisplayCode';
+import { useSaleDetailActions } from '@/lib/sales/useSaleDetailActions';
 
 export const Route = createFileRoute('/_authenticated/sales/$id')({
   component: SaleDetailPage,
@@ -31,29 +32,16 @@ function SaleDetailPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
 
   const sale = useQuery({ queryKey: ['sales', id], queryFn: () => fetchSale(id) });
   const commerce = useQuery({
     queryKey: ['commerces', sale.data?.commerceId],
-    queryFn: () => {
-      const commerceId = sale.data?.commerceId;
-      if (!commerceId) {
-        return Promise.reject(new Error('commerceId required'));
-      }
-      return fetchCommerce(commerceId);
-    },
+    queryFn: () => fetchCommerce(sale.data!.commerceId),
     enabled: Boolean(sale.data?.commerceId),
   });
   const driver = useQuery({
     queryKey: ['users', sale.data?.driverId],
-    queryFn: () => {
-      const driverId = sale.data?.driverId;
-      if (!driverId) {
-        return Promise.reject(new Error('driverId required'));
-      }
-      return fetchUser(driverId);
-    },
+    queryFn: () => fetchUser(sale.data!.driverId),
     enabled: Boolean(sale.data?.driverId),
   });
   const products = useQuery({ queryKey: ['products', 'picker'], queryFn: fetchProductsForPicker });
@@ -69,25 +57,16 @@ function SaleDetailPage() {
   );
   const lineItemColumns = useProductLineColumns(lineLabels, productNames);
 
-  async function invalidateSale() {
-    await queryClient.invalidateQueries({ queryKey: ['sales'] });
-    await queryClient.invalidateQueries({ queryKey: ['sales', id] });
-  }
-
-  async function runAction(action: () => Promise<unknown>, successMessage: string) {
-    setActionLoading(true);
-    try {
-      await action();
-      await invalidateSale();
-      toast.success(successMessage);
-    } catch (error) {
-      const message =
-        error instanceof ApiError ? t(saleActionErrorKey(error.code)) : t('errors.actionFailed');
-      toast.error(message);
-    } finally {
-      setActionLoading(false);
-    }
-  }
+  const { actionLoading, stockShortProductId, handleConfirm, handleCancel } = useSaleDetailActions({
+    saleId: id,
+    t,
+    invalidateSale: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['sales'] });
+      await queryClient.invalidateQueries({ queryKey: ['sales', id] });
+    },
+    onSuccess: (message) => toast.success(message),
+    onError: (message) => toast.error(message),
+  });
 
   if (sale.isLoading) {
     return (
@@ -112,8 +91,10 @@ function SaleDetailPage() {
 
   return (
     <div className="space-y-6">
+      {stockShortProductId ? <SaleInsufficientStockAlert productId={stockShortProductId} /> : null}
+
       <PageHeader
-        title={`${t('forms.fields.sale')} ${detail.id.slice(0, 8)}…`}
+        title={`${t('forms.fields.sale')} ${saleDisplayCode(detail)}`}
         description={commerceName || undefined}
         back={<PageBackLink label={t('common.backTo.sales')} to="/sales" />}
         actions={
@@ -122,16 +103,14 @@ function SaleDetailPage() {
               <Button
                 variant="success"
                 disabled={actionLoading}
-                onClick={() => void runAction(() => confirmSale(id), t('sales.toast.confirmed'))}
+                onClick={() => void handleConfirm(detail)}
               >
                 {t('sales.detail.actions.confirm')}
               </Button>
               <Button
                 variant="danger"
                 disabled={actionLoading}
-                onClick={() => {
-                  setCancelOpen(true);
-                }}
+                onClick={() => setCancelOpen(true)}
               >
                 {t('sales.detail.actions.cancel')}
               </Button>
@@ -166,15 +145,8 @@ function SaleDetailPage() {
         confirmLabel={t('sales.cancelDialog.confirm')}
         destructive
         isLoading={actionLoading}
-        onCancel={() => {
-          setCancelOpen(false);
-        }}
-        onConfirm={() => {
-          void (async () => {
-            await runAction(() => cancelSale(id), t('sales.toast.cancelled'));
-            setCancelOpen(false);
-          })();
-        }}
+        onCancel={() => setCancelOpen(false)}
+        onConfirm={() => void handleCancel(() => setCancelOpen(false))}
       />
     </div>
   );

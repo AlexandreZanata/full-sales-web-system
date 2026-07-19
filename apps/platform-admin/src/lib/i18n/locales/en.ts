@@ -105,6 +105,21 @@ export const en: Messages = {
     resetPassword: 'Reset password',
     impersonate: 'Impersonate',
     impersonateReason: 'Reason for impersonation',
+    impersonateReasonPlaceholder: 'Support ticket or incident reference (min. 3 characters)',
+    impersonateDialogBody:
+      'Opens the tenant Admin panel as that tenant’s Admin for 15 minutes. The reason is audited.',
+    impersonateHint:
+      'Impersonation opens the tenant Admin app as an active Admin of this tenant (not as Driver/Seller).',
+    impersonateOpened: 'Impersonation started — tenant Admin opened in a new tab',
+    impersonateFailed: 'Could not start impersonation. Check the reason and try again.',
+    profile: 'Profile',
+    actions: 'Actions',
+    email: 'Email',
+    tenant: 'Tenant',
+    role: 'Role',
+    status: 'Status',
+    active: 'Active',
+    inactive: 'Inactive',
   },
   billing: {
     title: 'Billing',

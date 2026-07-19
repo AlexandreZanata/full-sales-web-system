@@ -73,9 +73,11 @@ export type Messages = {
     edit: string;
     remove: string;
     deactivate: string;
+    reactivate: string;
     search: string;
     viewAll: string;
     review: string;
+    open: string;
     all: string;
     tryAgain: string;
     backToDashboard: string;
@@ -98,6 +100,7 @@ export type Messages = {
     };
     table: {
       date: string;
+      code: string;
       status: string;
       total: string;
       name: string;
@@ -109,6 +112,10 @@ export type Messages = {
       lineTotal: string;
       paginationAria: string;
       actions: string;
+      image: string;
+      searchPlaceholder: string;
+      noSearchMatches: string;
+      empty: string;
     };
     pagination: {
       summary: string;
@@ -173,6 +180,9 @@ export type Messages = {
       rejectionReason: string;
       operatingRegion: string;
       monthlyTarget: string;
+      contactPhone: string;
+      publicCode: string;
+      shareLinkActive: string;
       cnhNumber: string;
       cnhCategory: string;
       cnhPhoto: string;
@@ -202,12 +212,22 @@ export type Messages = {
       selectRole: string;
       selectCommerce: string;
       selectProduct: string;
+      searchProduct: string;
+      searchCommerce: string;
       selectDriver: string;
       selectCategory: string;
       selectPaymentMethod: string;
       selectReportType: string;
       selectAddressType: string;
       price: string;
+    };
+    productSearch: {
+      noMatches: string;
+      clear: string;
+    };
+    commerceSearch: {
+      noMatches: string;
+      clear: string;
     };
     sections: {
       address: string;
@@ -368,7 +388,13 @@ export type Messages = {
         sellerProfile: string;
       };
       deactivate: string;
+      reactivate: string;
       deactivateDialog: {
+        title: string;
+        message: string;
+        confirm: string;
+      };
+      reactivateDialog: {
         title: string;
         message: string;
         confirm: string;
@@ -381,9 +407,11 @@ export type Messages = {
     sellerProfile: {
       save: string;
       saving: string;
+      sharePathHint: string;
     };
     toast: {
       deactivated: string;
+      reactivated: string;
       driverProfileSaved: string;
       sellerProfileSaved: string;
     };
@@ -414,6 +442,7 @@ export type Messages = {
         addresses: string;
       };
       deactivate: string;
+      reactivate: string;
       deactivateDialog: {
         title: string;
         message: string;
@@ -484,6 +513,7 @@ export type Messages = {
     };
     toast: {
       deactivated: string;
+      reactivated: string;
       addressAdded: string;
       addressUpdated: string;
       logoUpdated: string;
@@ -554,6 +584,8 @@ export type Messages = {
       available: string;
       units: string;
       loadError: string;
+      goToStock: string;
+      emptyHint: string;
     };
     toast: {
       deactivated: string;
@@ -716,7 +748,11 @@ export type Messages = {
     description: string;
     banners: string;
     promotions: string;
+    bannerImage: string;
     bannerImageFileId: string;
+    bannerImageUrl: string;
+    bannerLinkUrl: string;
+    bannerPreview: string;
     addBanner: string;
     promoHeadline: string;
     promoDiscount: string;
@@ -763,6 +799,9 @@ export type Messages = {
     adjustments: {
       title: string;
       description: string;
+      direction: string;
+      directionIn: string;
+      directionOut: string;
       quantityHint: string;
       submit: string;
       submitting: string;
@@ -881,6 +920,7 @@ export type Messages = {
     detail: {
       notFound: string;
       lineItems: string;
+      goToStock: string;
       actions: {
         confirm: string;
         cancel: string;

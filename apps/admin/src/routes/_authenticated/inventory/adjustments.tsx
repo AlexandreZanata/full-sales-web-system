@@ -5,12 +5,20 @@ import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useI18n } from '@/lib/i18n/context';
 
+type AdjustmentsSearch = {
+  productId?: string;
+};
+
 export const Route = createFileRoute('/_authenticated/inventory/adjustments')({
+  validateSearch: (search: Record<string, unknown>): AdjustmentsSearch => ({
+    productId: typeof search.productId === 'string' ? search.productId : undefined,
+  }),
   component: InventoryAdjustmentsPage,
 });
 
 function InventoryAdjustmentsPage() {
   const { t } = useI18n();
+  const { productId } = Route.useSearch();
 
   return (
     <div>
@@ -20,7 +28,7 @@ function InventoryAdjustmentsPage() {
         back={<PageBackLink label={t('common.backTo.inventory')} to="/inventory" />}
       />
 
-      <AdjustmentForm />
+      <AdjustmentForm initialProductId={productId} />
     </div>
   );
 }

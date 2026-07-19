@@ -7,6 +7,7 @@ import { DetailField, DetailFieldGrid, DetailSummaryCard } from '@/components/ui
 import type { SaleDetail } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
 import { formatMoney } from '@/lib/products/formatPrice';
+import { saleDisplayCode } from '@/lib/sales/saleDisplayCode';
 
 type SaleDetailSummaryProps = {
   detail: SaleDetail;
@@ -33,6 +34,10 @@ export function SaleDetailSummary({
       totalValue={formatMoney(detail.totalAmount, detail.totalCurrency)}
     >
       <DetailFieldGrid>
+        <DetailField
+          label={t('common.table.code')}
+          value={<span className="font-mono text-sm">{saleDisplayCode(detail)}</span>}
+        />
         <DetailField
           label={t('forms.fields.commerce')}
           value={

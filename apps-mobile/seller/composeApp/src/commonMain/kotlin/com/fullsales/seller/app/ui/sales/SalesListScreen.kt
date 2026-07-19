@@ -54,9 +54,16 @@ fun SalesListScreen(
     val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        viewModel.reloadCatalogShare()
+    }
     LaunchedEffect(state.snackbarCode) {
         state.snackbarCode?.let { code ->
-            snackbarHostState.showSnackbar(listSnackbarMessage(s, code))
+            val message = when (code) {
+                "CATALOG_COPIED" -> s.sales.catalogLinkCopied
+                else -> listSnackbarMessage(s, code)
+            }
+            snackbarHostState.showSnackbar(message)
             viewModel.clearSnackbar()
         }
     }
@@ -76,28 +83,54 @@ fun SalesListScreen(
                 .padding(padding)
                 .semantics { contentDescription = s.a11y.pullToRefresh },
         ) {
-            val reason = state.emptyReason
-            when {
-                state.items.isEmpty() && reason != null && reason != ListEmptyReason.RefreshFailedKeepCache -> {
-                    val copy = listEmptyCopy(s, reason, ListEmptyDomain.Sales)
-                    SellerEmptyState(
-                        title = copy.title,
-                        message = copy.message,
-                        actionLabel = if (reason == ListEmptyReason.SyncedEmpty) s.sales.emptyAction else null,
-                        onAction = if (reason == ListEmptyReason.SyncedEmpty) onNewSale else null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .semantics { contentDescription = copy.announcement },
-                    )
-                }
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(state.items, key = { it.navigationId }) { sale ->
-                        SaleRow(sale = sale, onClick = { onSaleClick(sale.navigationId) })
-                    }
-                }
+            Column(modifier = Modifier.fillMaxSize()) {
+                CatalogShareBar(
+                    catalogUrl = state.catalogUrl,
+                    enabled = state.catalogShareActive,
+                    onShare = viewModel::shareCatalogLink,
+                    onCopy = viewModel::copyCatalogLink,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+                SalesListBody(
+                    state = state,
+                    onSaleClick = onSaleClick,
+                    onNewSale = onNewSale,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SalesListBody(
+    state: SalesListUiState,
+    onSaleClick: (String) -> Unit,
+    onNewSale: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val s = LocalSellerStrings.current
+    val reason = state.emptyReason
+    when {
+        state.items.isEmpty() && reason != null && reason != ListEmptyReason.RefreshFailedKeepCache -> {
+            val copy = listEmptyCopy(s, reason, ListEmptyDomain.Sales)
+            SellerEmptyState(
+                title = copy.title,
+                message = copy.message,
+                actionLabel = if (reason == ListEmptyReason.SyncedEmpty) s.sales.emptyAction else null,
+                onAction = if (reason == ListEmptyReason.SyncedEmpty) onNewSale else null,
+                modifier = modifier
+                    .fillMaxSize()
+                    .semantics { contentDescription = copy.announcement },
+            )
+        }
+        else -> LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(state.items, key = { it.navigationId }) { sale ->
+                SaleRow(sale = sale, onClick = { onSaleClick(sale.navigationId) })
             }
         }
     }

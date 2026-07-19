@@ -108,6 +108,33 @@ async fn given_admin_when_deactivate_commerce_then_200_inactive() {
     assert_eq!(body["active"], false);
 }
 
+#[tokio::test]
+async fn given_admin_when_activate_inactive_commerce_then_200_active() {
+    let env = setup().await;
+    let (_, admin) = seed_admin(&env).await;
+    let id = seed_commerce(&env, "11222333000181").await;
+    let (deact_status, _) = request(
+        &env,
+        "PATCH",
+        &format!("/v1/commerces/{id}/deactivate"),
+        Some(&admin),
+        None,
+    )
+    .await;
+    assert_eq!(deact_status, StatusCode::OK);
+
+    let (status, body) = request(
+        &env,
+        "PATCH",
+        &format!("/v1/commerces/{id}/activate"),
+        Some(&admin),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["active"], true);
+}
+
 // T-17-015 / T-17-016
 #[tokio::test]
 async fn given_admin_when_create_and_patch_address_then_ok() {

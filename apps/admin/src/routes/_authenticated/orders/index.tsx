@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
+import { CommerceSearchPicker } from '@/components/commerces/CommerceSearchPicker';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -131,21 +132,14 @@ function OrdersListPage() {
           ))}
         </Select>
 
-        <Select
+        <CommerceSearchPicker
           label={t('forms.fields.commerce')}
           value={commerceFilter}
-          onChange={(event) => {
-            setCommerceFilter(event.target.value);
+          onChange={(commerceId) => {
+            setCommerceFilter(commerceId);
             resetPagination();
           }}
-        >
-          <option value="">{t('common.filter.allCommerces')}</option>
-          {(commerces.data ?? []).map((commerce) => (
-            <option key={commerce.id} value={commerce.id}>
-              {commerce.tradeName || commerce.legalName}
-            </option>
-          ))}
-        </Select>
+        />
 
         <Input
           label={t('forms.fields.from')}

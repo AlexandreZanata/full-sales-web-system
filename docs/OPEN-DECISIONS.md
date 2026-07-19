@@ -37,6 +37,7 @@ When deciding, create `docs/adr/NNN-short-title.md` using `agent-rules/11-docume
 | [ADR-016](adr/ADR-016-platform-admin-rls-bypass.md) | `app.bypass_rls` session flag for `/v1/platform/*` only | 2026-07-10 |
 | [ADR-017](adr/ADR-017-custom-domain-verification.md) | DNS TXT verify; Caddy TLS; portal+admin only | 2026-07-10 |
 | [ADR-018](adr/ADR-018-tenant-asaas-payments.md) | Pro+ tenant own Asaas key; no platform fee v1 | 2026-07-10 |
+| [ADR-052](adr/ADR-052-seller-catalog-share-link.md) | Seller `/s/{publicCode}` share → session attribution + WhatsApp phone precedence | 2026-07-19 |
 
 ### Platform SaaS (0-OD-001 … 0-OD-020)
 

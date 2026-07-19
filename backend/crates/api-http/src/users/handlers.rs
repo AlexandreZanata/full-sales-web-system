@@ -151,3 +151,26 @@ pub async fn deactivate_user(
         },
     )))
 }
+
+pub async fn reactivate_user(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<Uuid>,
+) -> Result<Json<UserResponse>, ApiError> {
+    require_admin(&auth)?;
+    let existing = infra_postgres::identity::find_user_by_id(&state.app_pool, auth.tenant_id, id)
+        .await
+        .map_err(|_| ApiError::internal())?
+        .ok_or_else(ApiError::user_not_found)?;
+
+    let _ = infra_postgres::identity::reactivate_user_tenant(&state.app_pool, auth.tenant_id, id)
+        .await
+        .map_err(|_| ApiError::internal())?;
+
+    Ok(Json(user_response_from_detail(
+        &infra_postgres::identity::UserDetailRow {
+            active: true,
+            ..existing
+        },
+    )))
+}

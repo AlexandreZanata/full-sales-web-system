@@ -37,6 +37,40 @@ describe('ProductCardGrid — Phase 71F contract', () => {
     expect(onAddToCart).toHaveBeenCalledWith(product);
   });
 
+  it('opens_detail_when_white_body_clicked', () => {
+    const onOpenDetail = vi.fn();
+    renderWithI18n(
+      <ProductCardGrid
+        product={product}
+        onAddToCart={vi.fn()}
+        onOpenDetail={onOpenDetail}
+        addToCartLabel="Add to cart"
+        skuLabel="SKU"
+      />,
+    );
+
+    screen.getByText('Crispy snack').click();
+    expect(onOpenDetail).toHaveBeenCalledWith(product);
+  });
+
+  it('add_pill_does_not_open_detail', () => {
+    const onOpenDetail = vi.fn();
+    const onAddToCart = vi.fn();
+    renderWithI18n(
+      <ProductCardGrid
+        product={product}
+        onAddToCart={onAddToCart}
+        onOpenDetail={onOpenDetail}
+        addToCartLabel="Add to cart"
+        skuLabel="SKU"
+      />,
+    );
+
+    screen.getByRole('button', { name: 'Add to cart' }).click();
+    expect(onAddToCart).toHaveBeenCalledWith(product);
+    expect(onOpenDetail).not.toHaveBeenCalled();
+  });
+
   it('opens_info_dialog_when_info_icon_clicked', async () => {
     renderWithI18n(
       <ProductCardGrid

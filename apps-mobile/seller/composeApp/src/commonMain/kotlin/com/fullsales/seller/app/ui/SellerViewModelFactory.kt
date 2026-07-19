@@ -23,6 +23,7 @@ import com.fullsales.seller.app.ui.sales.SaleDetailViewModel
 import com.fullsales.seller.app.ui.sales.SalesListViewModel
 import com.fullsales.seller.app.ui.settings.SettingsViewModel
 import com.fullsales.seller.app.ui.offline.OfflineHubViewModel
+import com.fullsales.seller.app.ui.profile.ProfileViewModel
 import com.fullsales.seller.app.ui.sync.SyncStatusViewModel
 import com.fullsales.seller.shared.catalog.CommerceDetailLoader
 import com.fullsales.seller.shared.catalog.ProductDetailLoader
@@ -49,11 +50,14 @@ class SellerViewModelFactory(
                 container.siteSettingsRepository,
                 container.networkMonitor,
             ) as T
+        ProfileViewModel::class ->
+            ProfileViewModel(container.apiClient, container.networkMonitor) as T
         SalesListViewModel::class ->
             SalesListViewModel(
                 container.saleRepository,
                 container.syncCoordinator,
                 container.networkMonitor,
+                container.apiClient,
             ) as T
         CommerceViewModel::class ->
             CommerceViewModel(

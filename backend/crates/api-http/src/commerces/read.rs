@@ -81,3 +81,27 @@ pub async fn deactivate_commerce(
         },
     )))
 }
+
+pub async fn activate_commerce(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<uuid::Uuid>,
+) -> Result<Json<CommerceResponse>, ApiError> {
+    require_admin(&auth)?;
+    let existing =
+        infra_postgres::commerces::find_commerce_by_id(&state.app_pool, auth.tenant_id, id)
+            .await
+            .map_err(|_| ApiError::internal())?
+            .ok_or_else(ApiError::commerce_not_found)?;
+
+    let _ = infra_postgres::commerces::activate_commerce(&state.app_pool, auth.tenant_id, id)
+        .await
+        .map_err(|_| ApiError::internal())?;
+
+    Ok(Json(commerce_response_from_row(
+        &infra_postgres::commerces::CommerceRow {
+            active: true,
+            ..existing
+        },
+    )))
+}

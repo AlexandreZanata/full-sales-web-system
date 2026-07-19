@@ -21,6 +21,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { saleStatusFilterLabel } from '@/lib/i18n/labels';
 import { formatMoney } from '@/lib/products/formatPrice';
 import { SALE_STATUS_FILTERS, type SaleStatusFilter } from '@/lib/sales/constants';
+import { saleDisplayCode } from '@/lib/sales/saleDisplayCode';
 import { cursorToTableState } from '@/lib/cursorPagination';
 
 export const Route = createFileRoute('/_authenticated/sales/')({
@@ -109,6 +110,11 @@ function SalesListPage() {
 
   const columns: DataTableColumn<SaleSummary>[] = useMemo(
     () => [
+      {
+        id: 'code',
+        header: t('common.table.code'),
+        cell: (row) => <span className="font-mono text-xs">{saleDisplayCode(row)}</span>,
+      },
       {
         id: 'createdAt',
         header: t('common.table.date'),

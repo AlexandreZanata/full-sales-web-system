@@ -9,8 +9,7 @@ use crate::auth::{AuthUser, require_admin};
 use crate::error::ApiError;
 use crate::state::AppState;
 use crate::users::types::{
-    DriverProfileRequest, DriverProfileResponse, SellerProfileRequest, SellerProfileResponse,
-    load_user,
+    DriverProfileRequest, DriverProfileResponse, load_user,
 };
 
 pub async fn upsert_driver_profile(
@@ -60,48 +59,5 @@ pub async fn upsert_driver_profile(
         cnh_photo_file_id: profile.cnh_photo_file_id,
         vehicle_plate: profile.vehicle_plate,
         vehicle_model: profile.vehicle_model,
-    }))
-}
-
-pub async fn upsert_seller_profile(
-    State(state): State<AppState>,
-    auth: AuthUser,
-    Path(id): Path<Uuid>,
-    Json(body): Json<SellerProfileRequest>,
-) -> Result<Json<SellerProfileResponse>, ApiError> {
-    require_admin(&auth)?;
-    let user = load_user(&state, auth.tenant_id, id).await?;
-    if user.role != Role::Seller.as_str() {
-        return Err(ApiError::bad_request(
-            "INVALID_INPUT",
-            "Seller profile applies only to Seller role",
-        ));
-    }
-
-    infra_postgres::identity::upsert_seller_profile(
-        &state.app_pool,
-        auth.tenant_id,
-        infra_postgres::identity::SellerProfileInsert {
-            user_id: id,
-            operating_region: body.operating_region,
-            monthly_target_amount: body.monthly_target_amount,
-        },
-    )
-    .await
-    .map_err(|_| ApiError::internal())?;
-
-    let profile = infra_postgres::identity::find_seller_profile_by_user_id(
-        &state.app_pool,
-        auth.tenant_id,
-        id,
-    )
-    .await
-    .map_err(|_| ApiError::internal())?
-    .ok_or_else(ApiError::internal)?;
-
-    Ok(Json(SellerProfileResponse {
-        user_id: profile.user_id,
-        operating_region: profile.operating_region,
-        monthly_target_amount: profile.monthly_target_amount,
     }))
 }

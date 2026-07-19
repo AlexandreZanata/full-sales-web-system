@@ -78,6 +78,7 @@ async fn setup() -> TestEnv {
         velocity_counter: AppState::in_memory_velocity_counter(),
         dns_resolver: AppState::empty_dns_resolver(),
         health_config: AppState::health_config_from_env(),
+        portal_public_origin: AppState::default_portal_public_origin(),
         tenant_asaas_base_url: None,
     };
 

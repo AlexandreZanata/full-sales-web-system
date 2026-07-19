@@ -49,6 +49,10 @@ pnpm test:e2e:portal          # home sections, menu, cart, visual snapshots, axe
 | `/?category={slug}` | `CatalogPageContent` | Category bar (menu variant), toolbar, product grid/list |
 | `/?category={slug}&q={term}` | `CatalogPageContent` | Menu + debounced client search (header or toolbar) |
 | `/products/{id}?category={slug}` | Product detail route | Gallery, specs, cart / order / WhatsApp CTAs |
+| `/s/{publicCode}` | Share entry (Phase 19) | Resolve seller → `sessionStorage` attribution → redirect `/` |
+| `/s/{publicCode}?product={id}` | Share + product | Attribution then `/products/{id}` |
+
+**Contact phone precedence:** attributed seller phone → tenant `salesContactPhone` → CTA disabled. Seed code: `dev-seller`.
 
 **Routing file:** `routes/_authenticated/index.tsx` — renders home when `?category=` is absent; menu otherwise.
 

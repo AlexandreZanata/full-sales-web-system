@@ -2,14 +2,20 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import {
+  UserDetailActions,
+  UserProfileCard,
+  impersonationTargetUserId,
+} from '@/components/users/UserDetailPanels';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Textarea } from '@/components/ui/Textarea';
-import { startImpersonation } from '@/lib/api/impersonate';
+import {
+  openTenantAdminWithImpersonation,
+  startImpersonation,
+} from '@/lib/api/impersonate';
 import {
   disablePlatformUser,
   enablePlatformUser,
@@ -32,109 +38,94 @@ function UserDetailPage() {
   const [reason, setReason] = useState('');
 
   const user = useQuery({ queryKey: ['platform-user', id], queryFn: () => fetchPlatformUser(id) });
+  const invalidate = () => void queryClient.invalidateQueries({ queryKey: ['platform-user', id] });
 
   const disable = useMutation({
     mutationFn: () => disablePlatformUser(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['platform-user', id] }),
+    onSuccess: invalidate,
+    onError: () => toast.error(t('common.somethingWentWrong')),
   });
   const enable = useMutation({
     mutationFn: () => enablePlatformUser(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['platform-user', id] }),
+    onSuccess: invalidate,
+    onError: () => toast.error(t('common.somethingWentWrong')),
   });
   const resetPassword = useMutation({
     mutationFn: () => resetPlatformUserPassword(id),
-    onSuccess: (result) => {
-      toast.success(`Temporary password: ${result.temporaryPassword}`);
-    },
+    onSuccess: (result) => toast.success(`Temporary password: ${result.temporaryPassword}`),
+    onError: () => toast.error(t('common.somethingWentWrong')),
   });
   const impersonate = useMutation({
     mutationFn: () => {
       if (!user.data) {
         throw new Error('User not loaded');
       }
-      return startImpersonation({ tenantId: user.data.tenantId, userId: id, reason });
+      return startImpersonation({
+        tenantId: user.data.tenantId,
+        userId: impersonationTargetUserId(user.data),
+        reason: reason.trim(),
+      });
     },
-    onSuccess: () => {
-      toast.success('Impersonation started');
+    onSuccess: (result) => {
+      openTenantAdminWithImpersonation(result.impersonationToken);
       setImpersonateOpen(false);
+      setReason('');
+      toast.success(t('users.impersonateOpened'));
     },
+    onError: () => toast.error(t('users.impersonateFailed')),
   });
 
   if (user.isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex justify-center py-16">
+        <LoadingSpinner />
+      </div>
+    );
   }
   if (!user.data) {
     return null;
   }
 
+  const busy =
+    disable.isPending || enable.isPending || resetPassword.isPending || impersonate.isPending;
+
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
         title={user.data.name}
+        description={user.data.email}
         back={<PageBackLink to="/users" label={t('users.title')} />}
       />
-      <Card className="space-y-2 p-4 text-sm">
-        <p>{user.data.email}</p>
-        <p>{user.data.tenant.displayName}</p>
-        <p>
-          {user.data.role} · {user.data.active ? 'Active' : 'Inactive'}
-        </p>
-      </Card>
-      <div className="flex flex-wrap gap-2">
-        {user.data.active ? (
-          <Button
-            variant="secondary"
-            onClick={() => {
-              disable.mutate();
-            }}
-          >
-            {t('users.disable')}
-          </Button>
-        ) : (
-          <Button
-            variant="secondary"
-            onClick={() => {
-              enable.mutate();
-            }}
-          >
-            {t('users.enable')}
-          </Button>
-        )}
-        <Button
-          variant="secondary"
-          onClick={() => {
-            resetPassword.mutate();
-          }}
-        >
-          {t('users.resetPassword')}
-        </Button>
-        <Button
-          onClick={() => {
-            setImpersonateOpen(true);
-          }}
-        >
-          {t('users.impersonate')}
-        </Button>
-      </div>
+      <UserProfileCard t={t} user={user.data} />
+      <UserDetailActions
+        t={t}
+        user={user.data}
+        busy={busy}
+        onDisable={() => disable.mutate()}
+        onEnable={() => enable.mutate()}
+        onResetPassword={() => resetPassword.mutate()}
+        onImpersonate={() => setImpersonateOpen(true)}
+      />
       <ConfirmDialog
         open={impersonateOpen}
         title={t('users.impersonate')}
-        message={t('users.impersonateReason')}
+        message={t('users.impersonateDialogBody')}
+        confirmLabel={t('users.impersonate')}
+        isLoading={impersonate.isPending}
+        confirmDisabled={reason.trim().length < 3}
         onCancel={() => {
           setImpersonateOpen(false);
+          setReason('');
         }}
-        onConfirm={() => {
-          impersonate.mutate();
-        }}
-      />
-      {impersonateOpen ? (
+        onConfirm={() => impersonate.mutate()}
+      >
         <Textarea
+          label={t('users.impersonateReason')}
           value={reason}
-          onChange={(e) => {
-            setReason(e.target.value);
-          }}
+          placeholder={t('users.impersonateReasonPlaceholder')}
+          onChange={(event) => setReason(event.target.value)}
         />
-      ) : null}
+      </ConfirmDialog>
     </div>
   );
 }

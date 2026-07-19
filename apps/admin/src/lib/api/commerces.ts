@@ -54,6 +54,10 @@ export async function deactivateCommerce(id: string): Promise<Commerce> {
   return apiPatch<Commerce>(`/commerces/${id}/deactivate`);
 }
 
+export async function activateCommerce(id: string): Promise<Commerce> {
+  return apiPatch<Commerce>(`/commerces/${id}/activate`);
+}
+
 export async function fetchCommerceAddresses(commerceId: string): Promise<CommerceAddress[]> {
   return fetchAllCursorPages(async (cursor) =>
     apiFetch<CursorListResponse<CommerceAddress>>(

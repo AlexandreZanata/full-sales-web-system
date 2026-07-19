@@ -161,21 +161,19 @@ async fn seed_profiles(
         )
         .await?;
     }
-    if identity::find_seller_profile_by_user_id(app_pool, tenant, seller_id())
-        .await?
-        .is_none()
-    {
-        identity::upsert_seller_profile(
-            app_pool,
-            tenant,
-            SellerProfileInsert {
-                user_id: seller_id(),
-                operating_region: Some("Greater São Paulo".into()),
-                monthly_target_amount: Some(50_000_00),
-            },
-        )
-        .await?;
-    }
+    identity::upsert_seller_profile(
+        app_pool,
+        tenant,
+        SellerProfileInsert {
+            user_id: seller_id(),
+            operating_region: Some("Greater São Paulo".into()),
+            monthly_target_amount: Some(50_000_00),
+            public_code: Some("dev-seller".into()),
+            contact_phone: Some("11987654321".into()),
+            share_link_active: true,
+        },
+    )
+    .await?;
     Ok(())
 }
 

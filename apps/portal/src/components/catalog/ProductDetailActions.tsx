@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import type { PortalProductDetail } from '@/lib/api/types';
 import { buildSellerWhatsAppLink } from '@/lib/contact/sellerWhatsAppLink';
 import { useI18n } from '@/lib/i18n/context';
+import { resolveContactPhone } from '@/lib/seller/attribution';
+import { useSellerAttribution } from '@/lib/seller/useSellerAttribution';
 import { cn } from '@/lib/utils';
 
 type ProductDetailActionsProps = {
@@ -24,9 +26,11 @@ export function ProductDetailActions({
   const { t } = useI18n();
   const navigate = useNavigate();
   const { addProduct } = useCart();
+  const { attribution } = useSellerAttribution();
+  const phone = resolveContactPhone(attribution, salesContactPhone);
 
-  const contactHref = salesContactPhone?.trim()
-    ? buildSellerWhatsAppLink(salesContactPhone, product, productUrl)
+  const contactHref = phone?.trim()
+    ? buildSellerWhatsAppLink(phone, product, productUrl)
     : null;
 
   const placeOrder = () => {

@@ -1,3 +1,6 @@
+import { createPortal } from 'react-dom';
+import type { ReactNode } from 'react';
+
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useI18n } from '@/lib/i18n/context';
@@ -11,6 +14,8 @@ type ConfirmDialogProps = {
   onCancel: () => void;
   destructive?: boolean;
   isLoading?: boolean;
+  confirmDisabled?: boolean;
+  children?: ReactNode;
 };
 
 export function ConfirmDialog({
@@ -22,39 +27,50 @@ export function ConfirmDialog({
   onCancel,
   destructive = false,
   isLoading = false,
+  confirmDisabled = false,
+  children,
 }: ConfirmDialogProps) {
   const { t } = useI18n();
   const resolvedConfirmLabel = confirmLabel ?? t('common.confirm');
 
-  if (!open) return null;
+  if (!open || typeof document === 'undefined') {
+    return null;
+  }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex min-h-dvh items-center justify-center bg-black/55 p-4"
+      role="presentation"
+      onClick={onCancel}
+    >
       <Card
-        className="flex aspect-square w-full max-w-md flex-col justify-between p-6"
+        className="relative z-[101] w-full max-w-md p-6 shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <h2 id="confirm-title" className="text-lg font-semibold text-foreground">
-            {title}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-        </div>
-        <div className="mt-6 flex shrink-0 justify-end gap-2">
+        <h2 id="confirm-title" className="text-lg font-semibold text-foreground">
+          {title}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+        {children ? <div className="mt-4">{children}</div> : null}
+        <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
             {t('common.cancel')}
           </Button>
           <Button
             variant={destructive ? 'danger' : 'primary'}
             onClick={onConfirm}
-            disabled={isLoading}
+            disabled={isLoading || confirmDisabled}
           >
             {isLoading ? t('common.working') : resolvedConfirmLabel}
           </Button>
         </div>
       </Card>
-    </div>
+    </div>,
+    document.body,
   );
 }

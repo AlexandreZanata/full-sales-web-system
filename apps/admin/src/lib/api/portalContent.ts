@@ -4,7 +4,8 @@ import type { CursorListResponse } from '@/lib/api/types';
 export type PortalBanner = {
   id: string;
   placement: string;
-  imageFileId: string;
+  imageFileId?: string;
+  imageUrl?: string;
   linkUrl?: string;
   altText?: string;
   sortOrder: number;
@@ -25,7 +26,8 @@ export type PortalPromotion = {
 
 export type CreatePortalBannerRequest = {
   placement?: string;
-  imageFileId: string;
+  imageFileId?: string;
+  imageUrl?: string;
   linkUrl?: string;
   altText?: string;
   sortOrder?: number;

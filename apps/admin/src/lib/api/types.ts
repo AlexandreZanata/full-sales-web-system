@@ -49,6 +49,7 @@ export type OrderDetail = {
 
 export type SaleSummary = {
   id: string;
+  displayCode?: string;
   commerceId: string;
   driverId: string;
   status: string;
@@ -70,6 +71,7 @@ export type SaleItem = {
 
 export type SaleDetail = {
   id: string;
+  displayCode?: string;
   commerceId: string;
   driverId: string;
   orderId?: string;
@@ -147,11 +149,17 @@ export type SellerProfile = {
   userId: string;
   operatingRegion?: string;
   monthlyTargetAmount?: number;
+  publicCode?: string;
+  contactPhone?: string;
+  shareLinkActive?: boolean;
 };
 
 export type SellerProfileRequest = {
   operatingRegion?: string;
   monthlyTargetAmount?: number;
+  publicCode?: string;
+  contactPhone?: string;
+  shareLinkActive?: boolean;
 };
 
 export type Commerce = {
@@ -247,11 +255,22 @@ export type Product = {
   unitOfMeasure?: string;
   description?: string;
   isFeatured?: boolean;
+  primaryImageFileId?: string;
+  primaryImageUrl?: string;
 };
 
 export type ProductSummary = Pick<
   Product,
-  'id' | 'name' | 'sku' | 'priceAmount' | 'priceCurrency' | 'active' | 'categoryId' | 'categoryName'
+  | 'id'
+  | 'name'
+  | 'sku'
+  | 'priceAmount'
+  | 'priceCurrency'
+  | 'active'
+  | 'categoryId'
+  | 'categoryName'
+  | 'primaryImageFileId'
+  | 'primaryImageUrl'
 >;
 
 export type CategorySummary = {

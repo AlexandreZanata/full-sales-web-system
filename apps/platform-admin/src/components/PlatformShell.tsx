@@ -31,8 +31,9 @@ export function PlatformShell({ children }: PlatformShellProps) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background md:grid md:grid-cols-[15rem_1fr] md:grid-rows-[auto_6.25rem_minmax(0,1fr)]">
+    <div className="flex min-h-dvh flex-col bg-background">
       <ImpersonationBanner />
+      <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[15rem_1fr] md:grid-rows-[6.25rem_minmax(0,1fr)]">
       <header className={cn(platformTokens.shellHeaderBar, 'md:hidden')}>
         <Button
           type="button"
@@ -57,9 +58,9 @@ export function PlatformShell({ children }: PlatformShellProps) {
         </Button>
       </header>
 
-      <PlatformBrand className="col-start-1 row-start-2 hidden md:flex" />
+      <PlatformBrand className="col-start-1 row-start-1 hidden md:flex" />
       <header
-        className={cn('col-start-2 row-start-2 hidden md:flex', platformTokens.shellHeaderBar)}
+        className={cn('col-start-2 row-start-1 hidden md:flex', platformTokens.shellHeaderBar)}
       >
         <LocaleSwitcher className="mr-auto" />
         <span className="text-sm text-muted-foreground">{user?.email}</span>
@@ -68,7 +69,7 @@ export function PlatformShell({ children }: PlatformShellProps) {
         </Button>
       </header>
 
-      <aside className="col-start-1 row-start-3 hidden border-r border-hairline bg-surface-muted md:block">
+      <aside className="col-start-1 row-start-2 hidden border-r border-hairline bg-surface-muted md:block">
         <PlatformNavLinks pathname={pathname} />
       </aside>
 
@@ -104,7 +105,8 @@ export function PlatformShell({ children }: PlatformShellProps) {
         </div>
       ) : null}
 
-      <main className="col-start-1 row-start-3 min-w-0 p-4 md:col-start-2 md:p-6">{children}</main>
+      <main className="col-start-1 row-start-2 min-w-0 p-4 md:col-start-2 md:p-6">{children}</main>
+      </div>
     </div>
   );
 }

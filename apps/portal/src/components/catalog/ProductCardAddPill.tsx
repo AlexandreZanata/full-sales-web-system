@@ -1,9 +1,10 @@
 import { ShoppingBag } from 'lucide-react';
+import type { MouseEvent } from 'react';
 
 type ProductCardAddPillProps = {
   label: string;
   ariaLabel: string;
-  onClick: () => void;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function ProductCardAddPill({ label, ariaLabel, onClick }: ProductCardAddPillProps) {

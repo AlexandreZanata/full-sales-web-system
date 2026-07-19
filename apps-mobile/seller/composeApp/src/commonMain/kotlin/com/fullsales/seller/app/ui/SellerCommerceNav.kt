@@ -102,6 +102,9 @@ internal fun NavGraphBuilder.commerceRoutes(
                         ?.set(SELECTED_COMMERCE_ID, id)
                     navController.popBackStack()
                 },
+                onRegisterCommerce = {
+                    navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_MODE)
+                },
                 title = s.commerces.selectTitle,
             )
         }

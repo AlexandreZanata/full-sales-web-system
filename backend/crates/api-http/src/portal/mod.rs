@@ -5,6 +5,7 @@ mod orders;
 mod product_detail;
 mod products;
 mod promotions;
+mod sellers;
 
 pub use banners::list_public_banners;
 pub use categories::{
@@ -23,3 +24,4 @@ pub use product_detail::{get_portal_product_by_id, get_public_product_by_id};
 pub(crate) use products::resolve_public_catalog_tenant;
 pub use products::{list_portal_products, list_public_products};
 pub use promotions::list_public_promotions;
+pub use sellers::get_public_seller_by_code;

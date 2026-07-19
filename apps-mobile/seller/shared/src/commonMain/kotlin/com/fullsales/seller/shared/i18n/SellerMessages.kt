@@ -12,6 +12,7 @@ data class SellerMessages(
     val commerces: Commerces = Commerces(),
     val registrations: Registrations = Registrations(),
     val products: Products = Products(),
+    val profile: Profile = Profile(),
     val a11y: A11y = A11y(),
 ) {
     data class Offline(
@@ -41,6 +42,7 @@ data class SellerMessages(
         val newSale: String = "",
         val commerces: String = "",
         val logout: String = "",
+        val profile: String = "",
         /** App title in the shell header — always "Vendedor" / "Seller", never site settings. */
         val sellerFallback: String = "",
     )
@@ -145,6 +147,11 @@ data class SellerMessages(
         val saveOfflineFailed: String = "",
         val networkError: String = "",
         val awaitingSync: String = "",
+        val catalogLinkTitle: String = "",
+        val catalogLinkShare: String = "",
+        val catalogLinkCopy: String = "",
+        val catalogLinkCopied: String = "",
+        val catalogLinkUnavailable: String = "",
     )
 
     data class Status(
@@ -243,6 +250,21 @@ data class SellerMessages(
         val notFound: String = "",
         val sessionExpired: String = "",
         val loadFailed: String = "",
+    )
+
+    data class Profile(
+        val title: String = "",
+        val contactPhone: String = "",
+        val contactPhoneHint: String = "",
+        val operatingRegion: String = "",
+        val publicCode: String = "",
+        val publicCodeHint: String = "",
+        val shareLinkActive: String = "",
+        val save: String = "",
+        val saved: String = "",
+        val saveFailed: String = "",
+        val loadFailed: String = "",
+        val phoneInvalid: String = "",
     )
 
     data class A11y(

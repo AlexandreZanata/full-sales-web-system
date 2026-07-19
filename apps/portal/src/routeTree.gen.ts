@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedCartRouteImport } from './routes/_authenticated/cart'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders/index'
+import { Route as AuthenticatedSPublicCodeRouteImport } from './routes/_authenticated/s/$publicCode'
 import { Route as AuthenticatedProductsIdRouteImport } from './routes/_authenticated/products/$id'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders/$id'
 
@@ -42,6 +43,12 @@ const AuthenticatedOrdersIndexRoute =
     path: '/orders/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSPublicCodeRoute =
+  AuthenticatedSPublicCodeRouteImport.update({
+    id: '/s/$publicCode',
+    path: '/s/$publicCode',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedProductsIdRoute = AuthenticatedProductsIdRouteImport.update({
   id: '/products/$id',
   path: '/products/$id',
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof AuthenticatedCartRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/$id': typeof AuthenticatedProductsIdRoute
+  '/s/$publicCode': typeof AuthenticatedSPublicCodeRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/$id': typeof AuthenticatedProductsIdRoute
+  '/s/$publicCode': typeof AuthenticatedSPublicCodeRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesById {
@@ -77,14 +86,28 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/products/$id': typeof AuthenticatedProductsIdRoute
+  '/_authenticated/s/$publicCode': typeof AuthenticatedSPublicCodeRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/cart' | '/orders/$id' | '/products/$id' | '/orders/'
+    | '/'
+    | '/login'
+    | '/cart'
+    | '/orders/$id'
+    | '/products/$id'
+    | '/s/$publicCode'
+    | '/orders/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/cart' | '/' | '/orders/$id' | '/products/$id' | '/orders'
+  to:
+    | '/login'
+    | '/cart'
+    | '/'
+    | '/orders/$id'
+    | '/products/$id'
+    | '/s/$publicCode'
+    | '/orders'
   id:
     | '__root__'
     | '/_authenticated'
@@ -93,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/orders/$id'
     | '/_authenticated/products/$id'
+    | '/_authenticated/s/$publicCode'
     | '/_authenticated/orders/'
   fileRoutesById: FileRoutesById
 }
@@ -138,6 +162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/s/$publicCode': {
+      id: '/_authenticated/s/$publicCode'
+      path: '/s/$publicCode'
+      fullPath: '/s/$publicCode'
+      preLoaderRoute: typeof AuthenticatedSPublicCodeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/products/$id': {
       id: '/_authenticated/products/$id'
       path: '/products/$id'
@@ -160,6 +191,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
   AuthenticatedProductsIdRoute: typeof AuthenticatedProductsIdRoute
+  AuthenticatedSPublicCodeRoute: typeof AuthenticatedSPublicCodeRoute
   AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
 }
 
@@ -168,6 +200,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
   AuthenticatedProductsIdRoute: AuthenticatedProductsIdRoute,
+  AuthenticatedSPublicCodeRoute: AuthenticatedSPublicCodeRoute,
   AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
 }
 

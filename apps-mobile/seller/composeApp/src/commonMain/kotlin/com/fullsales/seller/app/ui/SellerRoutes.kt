@@ -3,6 +3,7 @@ package com.fullsales.seller.app.ui
 object SellerRoutes {
     const val LOGIN = "login"
     const val OFFLINE = "offline"
+    const val PROFILE = "profile"
     const val SALES = "sales"
     const val SALES_NEW = "sales/new"
     const val SALE_DETAIL = "sales/{saleId}"

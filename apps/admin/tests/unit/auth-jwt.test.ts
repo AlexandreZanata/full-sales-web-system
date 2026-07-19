@@ -66,4 +66,27 @@ describe('decodeAccessTokenClaims — JWT payload contract', () => {
     }
     expect(tokenExpiresWithinMs(claims, 60_000, now)).toBe(true);
   });
+
+  it('given_platform_impersonation_jwt_when_decode_then_tenant_admin_claims', () => {
+    const exp = Math.floor(Date.now() / 1000) + 900;
+    const token = makeJwt({
+      sub: '550e8400-e29b-41d4-a716-446655440000',
+      role: 'PlatformAdmin',
+      exp,
+      impersonating: true,
+      actingTenantId: '660e8400-e29b-41d4-a716-446655440001',
+      actingRole: 'Admin',
+      actingUserId: '770e8400-e29b-41d4-a716-446655440002',
+    });
+
+    const claims = decodeAccessTokenClaims(token);
+    expect(claims).toMatchObject({
+      role: 'Admin',
+      tenant_id: '660e8400-e29b-41d4-a716-446655440001',
+      sub: '770e8400-e29b-41d4-a716-446655440002',
+      impersonating: true,
+      exp,
+    });
+    expect(isAdminRole(claims?.role ?? '')).toBe(true);
+  });
 });

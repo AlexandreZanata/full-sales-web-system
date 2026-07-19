@@ -47,8 +47,11 @@ Admin UI coverage: `.local/phases/_reference/UI-ROUTE-MATRIX.md`
 | GET | `/v1/users` | Admin | ✅ | `201` | pagination | 17 |
 | GET | `/v1/users/{id}` | Admin | ✅ | `201` | — | 17 |
 | PATCH | `/v1/users/{id}/deactivate` | Admin | ✅ | `201` | soft delete | 17 |
+| PATCH | `/v1/users/{id}/reactivate` | Admin | ✅ | `201` | soft reactivate | 19 |
 | PUT | `/v1/users/{id}/driver-profile` | Admin | ✅ | `224` | CNH photo → media | 17 |
-| PUT | `/v1/users/{id}/seller-profile` | Admin | ✅ | `225` | — | 17 |
+| GET | `/v1/users/{id}/seller-profile` | Admin | ✅ | `225`, `seller_share` | share fields | 19 |
+| PUT | `/v1/users/{id}/seller-profile` | Admin | ✅ | `225`, `seller_share` | optional share fields | 19 |
+| GET | `/v1/me/seller-share` | Seller | ✅ | `seller_share` | copy catalog link | 19 |
 
 ---
 
@@ -200,6 +203,7 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 |--------|------|------|--------|------------|-------|------|
 | GET | `/v1/settings` | Any authenticated tenant role | ✅ | `236`, `sales_contact_phone` | presigned logo URL + sales phone | 41, 50 |
 | GET | `/v1/public/settings` | Public | ✅ | `sales_contact_phone` | guest portal branding subset | 50 |
+| GET | `/v1/public/sellers/{publicCode}` | Public | ✅ | `seller_share` | catalog share resolve | 19 |
 | PATCH | `/v1/settings` | Admin | ✅ | `236`, `sales_contact_phone` | display name + sales phone | 41, 50 |
 | PUT | `/v1/settings/logo` | Admin | ✅ | `236` | `logo_file_id` → media | 41 |
 

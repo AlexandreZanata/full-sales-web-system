@@ -1,15 +1,17 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
-import { ActiveBadge } from '@/components/users/ActiveBadge';
+import { userListColumns } from '@/components/users/userListColumns';
 import { Button } from '@/components/ui/Button';
-import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
-import { fetchUsers } from '@/lib/api/users';
+import { useToast } from '@/hooks/useToast';
+import { deactivateUser, fetchUsers, reactivateUser } from '@/lib/api/users';
 import type { User, UserRole } from '@/lib/api/types';
 import { cursorToTableState } from '@/lib/cursorPagination';
 import { useI18n } from '@/lib/i18n/context';
@@ -20,11 +22,17 @@ export const Route = createFileRoute('/_authenticated/users/')({
   component: UsersListPage,
 });
 
+type PendingAction = { user: User; kind: 'deactivate' | 'reactivate' };
+
 function UsersListPage() {
   const { t } = useI18n();
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [roleFilter, setRoleFilter] = useState<UserRole | ''>('');
+  const [pending, setPending] = useState<PendingAction | null>(null);
+  const [busy, setBusy] = useState(false);
   const pageSize = 20;
 
   const users = useQuery({
@@ -51,42 +59,39 @@ function UsersListPage() {
     setPage(nextPage);
   }
 
-  function resetPagination() {
-    setPage(1);
-    setCursors([undefined]);
+  async function handleConfirm() {
+    if (!pending) {
+      return;
+    }
+    setBusy(true);
+    try {
+      if (pending.kind === 'deactivate') {
+        await deactivateUser(pending.user.id);
+        toast.success(t('users.toast.deactivated'));
+      } else {
+        await reactivateUser(pending.user.id);
+        toast.success(t('users.toast.reactivated'));
+      }
+      await queryClient.invalidateQueries({ queryKey: ['users'] });
+      setPending(null);
+    } catch {
+      toast.error(t('errors.actionFailed'));
+    } finally {
+      setBusy(false);
+    }
   }
 
-  const columns: DataTableColumn<User>[] = useMemo(
-    () => [
-      {
-        id: 'name',
-        header: t('common.table.name'),
-        cell: (row) => (
-          <Link to="/users/$id" params={{ id: row.id }} className="font-medium hover:underline">
-            {row.name}
-          </Link>
-        ),
-      },
-      {
-        id: 'email',
-        header: t('common.table.email'),
-        cell: (row) => row.email,
-      },
-      {
-        id: 'role',
-        header: t('common.table.role'),
-        cell: (row) => translateRole(t, row.role),
-      },
-      {
-        id: 'active',
-        header: t('forms.fields.status'),
-        cell: (row) => <ActiveBadge active={row.active} />,
-      },
-    ],
+  const columns = useMemo(
+    () =>
+      userListColumns(
+        t,
+        (user) => setPending({ user, kind: 'deactivate' }),
+        (user) => setPending({ user, kind: 'reactivate' }),
+      ),
     [t],
   );
-
   const items = users.data?.data ?? [];
+  const isDeactivate = pending?.kind === 'deactivate';
 
   return (
     <div>
@@ -106,7 +111,8 @@ function UsersListPage() {
           value={roleFilter}
           onChange={(event) => {
             setRoleFilter(event.target.value as UserRole | '');
-            resetPagination();
+            setPage(1);
+            setCursors([undefined]);
           }}
         >
           <option value="">{t('common.filter.allRoles')}</option>
@@ -141,6 +147,35 @@ function UsersListPage() {
           }
         />
       )}
+
+      <ConfirmDialog
+        open={pending !== null}
+        title={
+          isDeactivate
+            ? t('users.detail.deactivateDialog.title')
+            : t('users.detail.reactivateDialog.title')
+        }
+        message={
+          pending
+            ? `${
+                isDeactivate
+                  ? t('users.detail.deactivateDialog.message')
+                  : t('users.detail.reactivateDialog.message')
+              } (${pending.user.name})`
+            : ''
+        }
+        confirmLabel={
+          isDeactivate
+            ? t('users.detail.deactivateDialog.confirm')
+            : t('users.detail.reactivateDialog.confirm')
+        }
+        destructive={isDeactivate}
+        isLoading={busy}
+        onCancel={() => {
+          setPending(null);
+        }}
+        onConfirm={() => void handleConfirm()}
+      />
     </div>
   );
 }

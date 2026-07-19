@@ -19,6 +19,9 @@ import com.fullsales.seller.shared.model.CursorListSales
 import com.fullsales.seller.shared.model.ProductDetail
 import com.fullsales.seller.shared.model.RefreshRequest
 import com.fullsales.seller.shared.model.Sale
+import com.fullsales.seller.shared.model.SellerProfile
+import com.fullsales.seller.shared.model.SellerShare
+import com.fullsales.seller.shared.model.PatchSellerProfileRequest
 import com.fullsales.seller.shared.model.SiteSettings
 import com.fullsales.seller.shared.model.StockBalance
 import com.fullsales.seller.shared.model.TopSellingProductsResponse
@@ -66,6 +69,18 @@ class SellerApiClient(
 
     suspend fun getSettings(): SiteSettings =
         http.apiGet("$baseUrl/settings", json)
+
+    suspend fun getSellerShare(): SellerShare =
+        http.apiGet("$baseUrl/me/seller-share", json)
+
+    suspend fun getMySellerProfile(): SellerProfile =
+        http.apiGet("$baseUrl/me/seller-profile", json)
+
+    suspend fun patchMySellerProfile(request: PatchSellerProfileRequest): SellerProfile =
+        http.apiPatch("$baseUrl/me/seller-profile", json) {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
 
     suspend fun listCommerces(
         limit: Int = 50,

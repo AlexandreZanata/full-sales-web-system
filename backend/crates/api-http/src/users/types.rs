@@ -62,6 +62,12 @@ pub struct SellerProfileRequest {
     pub operating_region: Option<String>,
     #[serde(rename = "monthlyTargetAmount")]
     pub monthly_target_amount: Option<i64>,
+    #[serde(rename = "publicCode")]
+    pub public_code: Option<String>,
+    #[serde(rename = "contactPhone")]
+    pub contact_phone: Option<String>,
+    #[serde(rename = "shareLinkActive")]
+    pub share_link_active: Option<bool>,
 }
 
 #[derive(Serialize)]
@@ -72,6 +78,27 @@ pub struct SellerProfileResponse {
     pub operating_region: Option<String>,
     #[serde(rename = "monthlyTargetAmount")]
     pub monthly_target_amount: Option<i64>,
+    #[serde(rename = "publicCode")]
+    pub public_code: Option<String>,
+    #[serde(rename = "contactPhone")]
+    pub contact_phone: Option<String>,
+    #[serde(rename = "shareLinkActive")]
+    pub share_link_active: bool,
+}
+
+#[derive(Serialize)]
+pub struct SellerShareResponse {
+    #[serde(rename = "publicCode")]
+    pub public_code: String,
+    #[serde(rename = "sharePath")]
+    pub share_path: String,
+    /// Absolute catalog URL (`portal origin` + `sharePath`) for copy/share.
+    #[serde(rename = "shareUrl")]
+    pub share_url: String,
+    #[serde(rename = "contactPhone", skip_serializing_if = "Option::is_none")]
+    pub contact_phone: Option<String>,
+    #[serde(rename = "shareLinkActive")]
+    pub share_link_active: bool,
 }
 
 pub(crate) fn user_response_from_list(row: &infra_postgres::identity::UserListRow) -> UserResponse {

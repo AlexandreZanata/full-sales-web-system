@@ -14,7 +14,8 @@ export default defineConfig({
     react(),
   ],
   server: {
-    host: '127.0.0.1',
+    // LAN bind so seller share links (http://<host-ip>:5175/s/…) work on real devices.
+    host: true,
     port: 5175,
     strictPort: true,
     proxy: {

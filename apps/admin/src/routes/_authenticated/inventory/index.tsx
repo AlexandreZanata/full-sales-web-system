@@ -6,7 +6,6 @@ import { useMemo, useState } from 'react';
 import { StockOverviewTable } from '@/components/inventory/StockOverviewTable';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { fetchStockOverview } from '@/lib/api/inventory';
@@ -21,7 +20,6 @@ function InventoryHubPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
-  const [search, setSearch] = useState('');
   const pageSize = 20;
 
   const links = useMemo(
@@ -44,12 +42,11 @@ function InventoryHubPage() {
   );
 
   const overviewQuery = useQuery({
-    queryKey: ['inventory', 'balances', page, pageSize, search],
+    queryKey: ['inventory', 'balances', page, pageSize],
     queryFn: () =>
       fetchStockOverview({
         limit: pageSize,
         cursor: cursors[page - 1],
-        search: search.trim() || undefined,
       }),
   });
 
@@ -90,24 +87,11 @@ function InventoryHubPage() {
       </div>
 
       <section className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              {t('inventory.overview.title')}
-            </h2>
-            <p className="text-sm text-muted-foreground">{t('inventory.overview.description')}</p>
-          </div>
-          <Input
-            label={t('common.search')}
-            placeholder={t('inventory.overview.searchPlaceholder')}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-              setCursors([undefined]);
-            }}
-            className="sm:max-w-xs"
-          />
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">
+            {t('inventory.overview.title')}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t('inventory.overview.description')}</p>
         </div>
 
         {overviewQuery.isLoading ? <LoadingSpinner className="py-12" /> : null}

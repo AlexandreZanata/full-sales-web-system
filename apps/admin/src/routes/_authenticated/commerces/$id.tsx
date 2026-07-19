@@ -13,7 +13,12 @@ import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/hooks/useToast';
-import { deactivateCommerce, fetchCommerce, fetchCommerceAddresses } from '@/lib/api/commerces';
+import {
+  activateCommerce,
+  deactivateCommerce,
+  fetchCommerce,
+  fetchCommerceAddresses,
+} from '@/lib/api/commerces';
 import { formatCnpj } from '@/lib/commerces/cnpj';
 import { useI18n } from '@/lib/i18n/context';
 
@@ -28,7 +33,7 @@ function CommerceDetailPage() {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deactivating, setDeactivating] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const commerce = useQuery({
     queryKey: ['commerces', id],
@@ -49,18 +54,35 @@ function CommerceDetailPage() {
     [t],
   );
 
+  async function invalidateCommerce() {
+    await queryClient.invalidateQueries({ queryKey: ['commerces'] });
+    await queryClient.invalidateQueries({ queryKey: ['commerces', id] });
+  }
+
   async function handleDeactivate() {
-    setDeactivating(true);
+    setBusy(true);
     try {
       await deactivateCommerce(id);
-      await queryClient.invalidateQueries({ queryKey: ['commerces'] });
-      await queryClient.invalidateQueries({ queryKey: ['commerces', id] });
+      await invalidateCommerce();
       toast.success(t('commerces.toast.deactivated'));
       setConfirmOpen(false);
     } catch {
       toast.error(t('errors.actionFailed'));
     } finally {
-      setDeactivating(false);
+      setBusy(false);
+    }
+  }
+
+  async function handleReactivate() {
+    setBusy(true);
+    try {
+      await activateCommerce(id);
+      await invalidateCommerce();
+      toast.success(t('commerces.toast.reactivated'));
+    } catch {
+      toast.error(t('errors.actionFailed'));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -93,13 +115,18 @@ function CommerceDetailPage() {
           detail.active ? (
             <Button
               variant="danger"
+              disabled={busy}
               onClick={() => {
                 setConfirmOpen(true);
               }}
             >
               {t('commerces.detail.deactivate')}
             </Button>
-          ) : null
+          ) : (
+            <Button variant="success" disabled={busy} onClick={() => void handleReactivate()}>
+              {t('commerces.detail.reactivate')}
+            </Button>
+          )
         }
       />
 
@@ -144,7 +171,7 @@ function CommerceDetailPage() {
         message={t('commerces.detail.deactivateDialog.message')}
         confirmLabel={t('commerces.detail.deactivateDialog.confirm')}
         destructive
-        isLoading={deactivating}
+        isLoading={busy}
         onCancel={() => {
           setConfirmOpen(false);
         }}

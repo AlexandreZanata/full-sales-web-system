@@ -16,6 +16,7 @@ import {
 } from '@/lib/api/dashboard';
 import type { SaleSummary } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
+import { saleDisplayCode } from '@/lib/sales/saleDisplayCode';
 
 export const Route = createFileRoute('/_authenticated/')({
   component: DashboardPage,
@@ -92,6 +93,11 @@ function DashboardPage() {
   });
 
   const saleColumns: DataTableColumn<SaleSummary>[] = [
+    {
+      id: 'code',
+      header: t('common.table.code'),
+      cell: (row) => <span className="font-mono text-xs">{saleDisplayCode(row)}</span>,
+    },
     {
       id: 'createdAt',
       header: t('common.table.date'),

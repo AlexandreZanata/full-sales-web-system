@@ -8,8 +8,6 @@ import type {
   CreateUserRequest,
   DriverProfile,
   DriverProfileRequest,
-  SellerProfile,
-  SellerProfileRequest,
   User,
   UserRole,
 } from '@/lib/api/types';
@@ -50,6 +48,10 @@ export async function deactivateUser(id: string): Promise<User> {
   return apiPatch<User>(`/users/${id}/deactivate`);
 }
 
+export async function reactivateUser(id: string): Promise<User> {
+  return apiPatch<User>(`/users/${id}/reactivate`);
+}
+
 export async function upsertDriverProfile(
   id: string,
   body: DriverProfileRequest,
@@ -57,12 +59,7 @@ export async function upsertDriverProfile(
   return apiPut<DriverProfile>(`/users/${id}/driver-profile`, body);
 }
 
-export async function upsertSellerProfile(
-  id: string,
-  body: SellerProfileRequest,
-): Promise<SellerProfile> {
-  return apiPut<SellerProfile>(`/users/${id}/seller-profile`, body);
-}
+export { fetchSellerProfile, upsertSellerProfile } from '@/lib/api/sellerProfile';
 
 export async function fetchDriversForPicker(): Promise<User[]> {
   const data = await fetchAllCursorPages(async (cursor) =>

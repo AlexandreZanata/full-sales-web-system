@@ -2,14 +2,13 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
+import { ProductSearchPicker } from '@/components/products/ProductSearchPicker';
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { Select } from '@/components/ui/Select';
 import { fetchMovements } from '@/lib/api/inventory';
-import { fetchProductsForPicker } from '@/lib/api/products';
 import type { StockMovement } from '@/lib/api/types';
 import { useI18n } from '@/lib/i18n/context';
 import { cursorToTableState } from '@/lib/cursorPagination';
@@ -24,11 +23,6 @@ function InventoryLedgerPage() {
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const pageSize = 20;
-
-  const products = useQuery({
-    queryKey: ['products', 'picker'],
-    queryFn: fetchProductsForPicker,
-  });
 
   const movements = useQuery({
     queryKey: ['inventory', 'movements', productId, page, pageSize],
@@ -92,24 +86,16 @@ function InventoryLedgerPage() {
       />
 
       <div className="mb-4 max-w-md">
-        <Select
+        <ProductSearchPicker
           label={t('inventory.ledger.productFilter')}
           name="productId"
           value={productId}
-          disabled={products.isLoading}
-          onChange={(event) => {
-            setProductId(event.target.value);
+          onChange={(nextProductId) => {
+            setProductId(nextProductId);
             setPage(1);
             setCursors([undefined]);
           }}
-        >
-          <option value="">{t('forms.placeholders.selectProduct')}</option>
-          {products.data?.map((product) => (
-            <option key={product.id} value={product.id}>
-              {product.sku} — {product.name}
-            </option>
-          ))}
-        </Select>
+        />
       </div>
 
       {!productId ? (

@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { AdminLoginError, loginErrorMessage } from '@/lib/auth/authErrors';
-import { resolveSessionFromAccessToken } from '@/lib/auth/authSession';
 import { DEV_STUB_ACCESS, DEV_STUB_EMAIL, DEV_STUB_REFRESH } from '@/lib/auth/devStub';
 import { decodeAccessTokenClaims, isAdminRole } from '@/lib/auth/jwt';
+import { restoreAdminSession } from '@/lib/auth/restoreAdminSession';
 import { clearStoredUserEmail, setStoredUserEmail } from '@/lib/auth/sessionUser';
 import {
   clearTokens,
-  getAccessToken,
   getTokenExpiresAt,
   hasSession,
   msUntilTokenRefresh,
@@ -45,7 +44,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     if (!expiresAt) {
       return;
     }
-
     refreshTimer.current = setTimeout(() => {
       void (async () => {
         const refreshed = await tryRefreshTokens();
@@ -70,51 +68,11 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   );
 
   const loadSession = useCallback((): Promise<AdminUserSummary | null> => {
-    if (!hasSession()) {
-      applySession(null);
-      return Promise.resolve(null);
-    }
-
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      clearTokens();
-      applySession(null);
-      return Promise.resolve(null);
-    }
-
-    const restored = resolveSessionFromAccessToken(accessToken);
-    if (restored.kind === 'missing' || restored.kind === 'invalid') {
-      clearTokens();
-      applySession(null);
-      return Promise.resolve(null);
-    }
-
-    if (restored.needsRefresh) {
-      return tryRefreshTokens().then((refreshed) => {
-        if (!refreshed) {
-          applySession(null);
-          return null;
-        }
-        const token = getAccessToken();
-        if (!token) {
-          applySession(null);
-          return null;
-        }
-        const afterRefresh = resolveSessionFromAccessToken(token);
-        if (afterRefresh.kind !== 'ok') {
-          clearTokens();
-          applySession(null);
-          return null;
-        }
-        const nextUser = toUserSummary(afterRefresh.user.email, afterRefresh.user.role);
-        applySession(nextUser);
-        return nextUser;
-      });
-    }
-
-    const nextUser = toUserSummary(restored.user.email, restored.user.role);
-    applySession(nextUser);
-    return Promise.resolve(nextUser);
+    return restoreAdminSession().then((restored) => {
+      const next = restored ? toUserSummary(restored.email, restored.role) : null;
+      applySession(next);
+      return next;
+    });
   }, [applySession]);
 
   const ensureSession = useCallback(async (): Promise<AdminUserSummary | null> => {
@@ -152,7 +110,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (credentials: { email: string; password: string }) => {
       const email = credentials.email.trim().toLowerCase();
-
       let tokens: TokenResponse;
       try {
         tokens = await apiPost<TokenResponse>(

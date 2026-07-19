@@ -105,6 +105,21 @@ export const ptBR: Messages = {
     resetPassword: 'Redefinir senha',
     impersonate: 'Personificar',
     impersonateReason: 'Motivo da personificação',
+    impersonateReasonPlaceholder: 'Ticket de suporte ou referência (mín. 3 caracteres)',
+    impersonateDialogBody:
+      'Abre o painel Admin do tenant como Admin desse tenant por 15 minutos. O motivo é auditado.',
+    impersonateHint:
+      'A personificação abre o Admin do tenant como um Admin ativo (não como Motorista/Vendedor).',
+    impersonateOpened: 'Personificação iniciada — Admin do tenant aberto em nova aba',
+    impersonateFailed: 'Não foi possível personificar. Verifique o motivo e tente de novo.',
+    profile: 'Perfil',
+    actions: 'Ações',
+    email: 'E-mail',
+    tenant: 'Tenant',
+    role: 'Função',
+    status: 'Status',
+    active: 'Ativo',
+    inactive: 'Inativo',
   },
   billing: {
     title: 'Cobrança',

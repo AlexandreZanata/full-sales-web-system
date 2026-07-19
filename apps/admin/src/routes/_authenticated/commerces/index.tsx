@@ -2,17 +2,16 @@ import { Link, createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
-import { ActiveBadge } from '@/components/users/ActiveBadge';
+import { commerceListColumns } from '@/components/commerces/commerceListColumns';
 import { Button } from '@/components/ui/Button';
-import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
+import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
+import { fetchCommerceRegistrations } from '@/lib/api/commerceRegistrations';
 import { fetchCommerces } from '@/lib/api/commerces';
-import type { CommerceSummary } from '@/lib/api/types';
 import { ACTIVE_FILTERS, type ActiveFilter } from '@/lib/commerces/constants';
-import { formatCnpj } from '@/lib/commerces/cnpj';
 import { cursorToTableState } from '@/lib/cursorPagination';
 import { useI18n } from '@/lib/i18n/context';
 import { activeFilterLabel } from '@/lib/i18n/labels';
@@ -38,6 +37,16 @@ function CommercesListPage() {
       }),
   });
 
+  const pendingReviews = useQuery({
+    queryKey: ['commerce-registrations', 'pending'],
+    queryFn: () => fetchCommerceRegistrations({ limit: 100, status: 'PendingReview' }),
+  });
+
+  const pendingIds = useMemo(
+    () => new Set((pendingReviews.data?.data ?? []).map((row) => row.id)),
+    [pendingReviews.data?.data],
+  );
+
   const pagination = commerces.data
     ? cursorToTableState(page, commerces.data.pagination.has_more)
     : null;
@@ -54,41 +63,7 @@ function CommercesListPage() {
     setPage(nextPage);
   }
 
-  function resetPagination() {
-    setPage(1);
-    setCursors([undefined]);
-  }
-
-  const columns: DataTableColumn<CommerceSummary>[] = useMemo(
-    () => [
-      {
-        id: 'cnpj',
-        header: t('forms.fields.cnpj'),
-        cell: (row) => formatCnpj(row.cnpj),
-      },
-      {
-        id: 'tradeName',
-        header: t('forms.fields.tradeName'),
-        cell: (row) => (
-          <Link to="/commerces/$id" params={{ id: row.id }} className="font-medium hover:underline">
-            {row.tradeName || row.legalName}
-          </Link>
-        ),
-      },
-      {
-        id: 'legalName',
-        header: t('forms.fields.legalName'),
-        cell: (row) => row.legalName,
-      },
-      {
-        id: 'active',
-        header: t('forms.fields.status'),
-        cell: (row) => <ActiveBadge active={row.active} />,
-      },
-    ],
-    [t],
-  );
-
+  const columns = useMemo(() => commerceListColumns(t, pendingIds), [pendingIds, t]);
   const items = commerces.data?.data ?? [];
 
   return (
@@ -97,14 +72,9 @@ function CommercesListPage() {
         title={t('commerces.list.title')}
         description={t('commerces.list.description')}
         actions={
-          <div className="flex gap-2">
-            <Link to="/commerces/registrations">
-              <Button variant="secondary">{t('commerces.registrations.queueLink')}</Button>
-            </Link>
-            <Link to="/commerces/new">
-              <Button>{t('commerces.list.register')}</Button>
-            </Link>
-          </div>
+          <Link to="/commerces/new">
+            <Button>{t('commerces.list.register')}</Button>
+          </Link>
         }
       />
 
@@ -114,7 +84,8 @@ function CommercesListPage() {
           value={activeFilter}
           onChange={(event) => {
             setActiveFilter(event.target.value as ActiveFilter);
-            resetPagination();
+            setPage(1);
+            setCursors([undefined]);
           }}
         >
           {ACTIVE_FILTERS.map((value) => (

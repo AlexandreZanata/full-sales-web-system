@@ -25,8 +25,8 @@ pub use platform_users::{
     touch_last_login, update_user_password, update_user_role,
 };
 pub use seller_profiles::{
-    SellerProfileInsert, SellerProfileRow, find_seller_profile_by_user_id, insert_seller_profile,
-    upsert_seller_profile,
+    PublicSellerRow, SellerProfileInsert, SellerProfileRow, find_public_seller_by_code,
+    find_seller_profile_by_user_id, insert_seller_profile, upsert_seller_profile,
 };
 
 /// Row persisted in `identity.users`.
@@ -207,6 +207,23 @@ pub async fn deactivate_user_tenant(
     apply_tenant_context(&mut tx, tenant_id).await?;
     let result =
         sqlx::query("UPDATE identity.users SET active = false WHERE id = $1 AND active = true")
+            .bind(user_id)
+            .execute(&mut *tx)
+            .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}
+
+/// Reactivates a user under tenant RLS (sets `active = true`).
+pub async fn reactivate_user_tenant(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    user_id: Uuid,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result =
+        sqlx::query("UPDATE identity.users SET active = true WHERE id = $1 AND active = false")
             .bind(user_id)
             .execute(&mut *tx)
             .await?;

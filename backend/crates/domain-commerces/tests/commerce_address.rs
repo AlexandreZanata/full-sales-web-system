@@ -109,6 +109,15 @@ fn given_delivery_address_when_validate_order_delivery_then_ok() {
 }
 
 #[test]
+fn given_inactive_commerce_when_activate_then_active() {
+    let tenant = TenantId::generate();
+    let commerce = sample_commerce(tenant).deactivate();
+    assert!(!commerce.is_active());
+    let reactivated = commerce.activate();
+    assert!(reactivated.is_active());
+}
+
+#[test]
 fn given_inactive_commerce_when_validate_order_delivery_then_inactive() {
     let tenant = TenantId::generate();
     let commerce = sample_commerce(tenant);

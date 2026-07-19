@@ -131,6 +131,12 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Effect:** Sets `active = false` (idempotent)
 - **Response 200:** User (no password fields)
 
+### `PATCH /v1/users/{id}/reactivate`
+
+- **Auth:** Admin
+- **Effect:** Sets `active = true` (idempotent)
+- **Response 200:** User with `active: true`
+
 ### `PUT /v1/users/{id}/driver-profile`
 
 - **Auth:** Admin
@@ -138,12 +144,43 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Precondition:** User role `Driver`
 - **Response 200:** DriverProfile
 
+### `GET /v1/users/{id}/seller-profile`
+
+- **Auth:** Admin
+- **Precondition:** User role `Seller`
+- **Response 200:** SellerProfile (`operatingRegion?`, `monthlyTargetAmount?`, `publicCode?`, `contactPhone?`, `shareLinkActive`)
+
 ### `PUT /v1/users/{id}/seller-profile`
 
 - **Auth:** Admin
-- **Body:** `{ "operatingRegion?", "monthlyTargetAmount?" }`
+- **Body:** `{ "operatingRegion?", "monthlyTargetAmount?", "publicCode?", "contactPhone?", "shareLinkActive?" }`
+- **Semantics:** Omitting `publicCode` / `contactPhone` / `shareLinkActive` leaves existing values; empty `contactPhone` clears phone; missing `publicCode` on first save auto-generates from name
 - **Precondition:** User role `Seller`
 - **Response 200:** SellerProfile
+
+### `GET /v1/me/seller-share`
+
+- **Auth:** Seller
+- **Response 200:** `{ "publicCode", "sharePath", "shareUrl", "contactPhone?", "shareLinkActive" }`
+- **`shareUrl`:** Absolute catalog URL from server `PORTAL_PUBLIC_ORIGIN` + `sharePath` (clients MUST use this for copy/share — do not hardcode portal host)
+- **404:** No profile or no `publicCode`
+
+### `GET /v1/me/seller-profile`
+
+- **Auth:** Seller
+- **Response 200:** SellerProfile for the authenticated seller
+
+### `PATCH /v1/me/seller-profile`
+
+- **Auth:** Seller
+- **Body:** `{ "operatingRegion?", "contactPhone?", "shareLinkActive?" }` — omit = leave unchanged; empty `contactPhone` clears
+- **Response 200:** SellerProfile (auto-creates profile + `publicCode` when missing)
+
+### `GET /v1/public/sellers/{publicCode}`
+
+- **Auth:** Public (tenant via host / `PUBLIC_CATALOG_TENANT_ID`)
+- **Response 200:** `{ "publicCode", "displayName", "contactPhone?" }`
+- **404:** Unknown, inactive share, deactivated user, or not Seller
 
 ---
 
@@ -170,6 +207,12 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 
 - **Auth:** Admin
 - **Effect:** Sets `active = false` (BR-CO-002)
+- **Response 200:** Commerce
+
+### `PATCH /v1/commerces/{id}/activate`
+
+- **Auth:** Admin
+- **Effect:** Sets `active = true` for an inactive commerce
 - **Response 200:** Commerce
 
 ### `GET /v1/commerces/{id}/addresses`

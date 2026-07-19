@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,7 @@ import com.fullsales.seller.shared.a11y.TextSizePreset
 fun ShellOverflowMenu(
     textSizePreset: TextSizePreset,
     onTextSizeChange: (TextSizePreset) -> Unit,
+    onProfile: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -54,8 +57,8 @@ fun ShellOverflowMenu(
             onDismissRequest = { expanded = false },
             modifier = Modifier.widthIn(min = 272.dp),
             shape = MaterialTheme.shapes.extraLarge,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 8.dp,
+            containerColor = Color(0xFFF5F5F5),
+            tonalElevation = 0.dp,
             shadowElevation = 4.dp,
         ) {
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
@@ -77,6 +80,25 @@ fun ShellOverflowMenu(
                 DropdownMenuItem(
                     text = {
                         Text(
+                            s.nav.profile,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = null)
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = MaterialTheme.colorScheme.onSurface,
+                        leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    onClick = {
+                        expanded = false
+                        onProfile()
+                    },
+                )
+                DropdownMenuItem(
+                    text = {
+                        Text(
                             s.nav.logout,
                             style = MaterialTheme.typography.bodyLarge,
                         )
@@ -88,8 +110,8 @@ fun ShellOverflowMenu(
                         )
                     },
                     colors = MenuDefaults.itemColors(
-                        textColor = MaterialTheme.colorScheme.error,
-                        leadingIconColor = MaterialTheme.colorScheme.error,
+                        textColor = MaterialTheme.colorScheme.onSurface,
+                        leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     ),
                     onClick = {
                         expanded = false

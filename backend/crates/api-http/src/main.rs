@@ -111,6 +111,7 @@ async fn build_app() -> Result<axum::Router, Box<dyn std::error::Error>> {
         velocity_counter,
         dns_resolver: AppState::empty_dns_resolver(),
         health_config: AppState::health_config_from_env(),
+        portal_public_origin: AppState::portal_public_origin_from_env(),
         tenant_asaas_base_url: None,
     };
 

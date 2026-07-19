@@ -1,3 +1,5 @@
+import type { KeyboardEvent } from 'react';
+
 import { ProductCardAddPill } from '@/components/catalog/ProductCardAddPill';
 import { ProductCardPrice } from '@/components/catalog/ProductCardPrice';
 import { ProductCardTitleRow } from '@/components/catalog/ProductCardTitleRow';
@@ -5,6 +7,7 @@ import type { ProductCardProps } from '@/components/catalog/productCardProps';
 import { ProductImage } from '@/components/catalog/ProductImage';
 import { productCardDescription } from '@/lib/catalog/stripHtml';
 import { useI18n } from '@/lib/i18n/context';
+import { cn } from '@/lib/utils';
 
 export function ProductCardList({
   product,
@@ -14,26 +17,35 @@ export function ProductCardList({
 }: ProductCardProps) {
   const { t } = useI18n();
   const description = productCardDescription(product.description);
+  const canOpen = Boolean(onOpenDetail);
 
   const openDetail = () => {
     onOpenDetail?.(product);
   };
 
+  const onCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (!canOpen) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openDetail();
+    }
+  };
+
   return (
-    <article className="catalog-product-card-list">
-      <button
-        type="button"
-        className="shrink-0 self-start focus-visible:outline-none"
-        onClick={openDetail}
-        disabled={!onOpenDetail}
-        aria-label={product.name}
-      >
-        <ProductImage product={product} className="size-28 rounded-lg sm:size-32" />
-      </button>
+    <article
+      className={cn('catalog-product-card-list', canOpen && 'cursor-pointer')}
+      onClick={canOpen ? openDetail : undefined}
+      onKeyDown={canOpen ? onCardKeyDown : undefined}
+      role={canOpen ? 'link' : undefined}
+      tabIndex={canOpen ? 0 : undefined}
+      aria-label={canOpen ? product.name : undefined}
+    >
+      <ProductImage product={product} className="size-28 shrink-0 self-start rounded-lg sm:size-32" />
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <ProductCardTitleRow
           product={product}
-          onOpenDetail={onOpenDetail}
           titleClassName="text-base font-semibold leading-snug"
         />
         {description ? (
@@ -48,7 +60,8 @@ export function ProductCardList({
           <ProductCardAddPill
             label={t('catalog.addShort')}
             ariaLabel={addToCartLabel}
-            onClick={() => {
+            onClick={(event) => {
+              event.stopPropagation();
               onAddToCart(product);
             }}
           />

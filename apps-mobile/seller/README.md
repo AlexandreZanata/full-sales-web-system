@@ -24,6 +24,17 @@ SELLER_API_BASE_URL=http://<lan-ip>:8080/v1 ./gradlew :androidApp:installDebug
 adb reverse tcp:8080 tcp:8080   # USB alternative
 ```
 
+### Catalog share link
+
+Share URLs come from the API: `GET /v1/me/seller-share` → `shareUrl` (built from backend `PORTAL_PUBLIC_ORIGIN` + `/s/{code}`).
+
+Configure on the API (not in the Android app):
+
+```bash
+# backend/.env
+PORTAL_PUBLIC_ORIGIN=http://192.168.15.15:5175
+```
+
 Create `local.properties` (gitignored):
 
 ```properties

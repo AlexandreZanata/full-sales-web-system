@@ -85,6 +85,7 @@ internal fun ShellScaffold(
         onNavigateSales = { navController.navigate(SellerRoutes.SALES) { launchSingleTop = true } },
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
         onNavigateCommerces = { navController.navigate(SellerRoutes.COMMERCES) { launchSingleTop = true } },
+        onProfile = { navController.navigate(SellerRoutes.PROFILE) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },
         onSyncRefresh = onSyncRefresh,
     ) { padding ->
@@ -110,6 +111,7 @@ internal fun DetailShell(
         onNavigateSales = { navController.navigate(SellerRoutes.SALES) { launchSingleTop = true } },
         onNavigateNewSale = { navController.navigate(SellerRoutes.SALES_NEW) { launchSingleTop = true } },
         onNavigateCommerces = { navController.navigate(SellerRoutes.COMMERCES) { launchSingleTop = true } },
+        onProfile = { navController.navigate(SellerRoutes.PROFILE) { launchSingleTop = true } },
         onLogout = { logout(authViewModel, navController) },
         onSyncRefresh = onSyncRefresh,
     ) { padding ->

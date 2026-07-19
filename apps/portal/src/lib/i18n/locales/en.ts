@@ -133,4 +133,7 @@ export const en: Messages = {
     contactUnavailable: 'Sales contact phone is not configured',
     productInfo: 'Product information',
   },
+  sellerAttribution: {
+    assistedBy: 'You are talking to {name}',
+  },
 };

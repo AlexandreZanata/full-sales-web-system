@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ProductCardList } from '@/components/catalog/ProductCardList';
@@ -36,7 +36,7 @@ describe('ProductCardList — Phase 71F contract', () => {
     expect(onAddToCart).toHaveBeenCalledWith(product);
   });
 
-  it('opens_product_detail_when_title_is_clicked', () => {
+  it('opens_product_detail_when_card_body_clicked', () => {
     const onOpenDetail = vi.fn();
     renderWithI18n(
       <ProductCardList
@@ -48,9 +48,7 @@ describe('ProductCardList — Phase 71F contract', () => {
       />,
     );
 
-    within(screen.getByRole('heading', { name: 'Premium Widget' }))
-      .getByRole('button')
-      .click();
+    screen.getByText('Cold beverage').click();
     expect(onOpenDetail).toHaveBeenCalledWith(product);
   });
 });

@@ -211,23 +211,23 @@ function TenantDetailPage() {
         open={suspendOpen}
         title={t('tenants.suspend')}
         message={t('tenants.suspendReason')}
+        confirmDisabled={reason.trim().length < 3}
         onCancel={() => {
           setSuspendOpen(false);
+          setReason('');
         }}
         onConfirm={() => {
           suspend.mutate();
         }}
-      />
-      {suspendOpen ? (
-        <div className="max-w-md">
-          <Textarea
-            value={reason}
-            onChange={(e) => {
-              setReason(e.target.value);
-            }}
-          />
-        </div>
-      ) : null}
+      >
+        <Textarea
+          label={t('tenants.suspendReason')}
+          value={reason}
+          onChange={(e) => {
+            setReason(e.target.value);
+          }}
+        />
+      </ConfirmDialog>
     </div>
   );
 }

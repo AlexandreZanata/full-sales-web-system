@@ -5,6 +5,7 @@ import {
   setTokens,
   type AuthTokens,
 } from '@/lib/auth/tokens';
+import { isImpersonationRefreshToken } from '@/lib/auth/impersonationHandoff';
 
 const DEFAULT_API_BASE = '/v1';
 
@@ -104,7 +105,7 @@ export async function tryRefreshTokens(): Promise<boolean> {
   }
 
   const refreshToken = getRefreshToken();
-  if (!refreshToken) {
+  if (!refreshToken || isImpersonationRefreshToken(refreshToken)) {
     return false;
   }
 

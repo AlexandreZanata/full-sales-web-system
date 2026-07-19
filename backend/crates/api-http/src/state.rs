@@ -46,6 +46,8 @@ pub struct AppState {
     pub velocity_counter: Arc<dyn VelocityCounter>,
     pub dns_resolver: Arc<dyn DnsTxtResolver>,
     pub health_config: crate::health_config::HealthConfig,
+    /// Public catalog (portal) origin for seller share links — no trailing slash.
+    pub portal_public_origin: String,
     /// ponytail: integration tests point tenant Asaas client at wiremock without env mutation.
     pub tenant_asaas_base_url: Option<String>,
 }
@@ -176,5 +178,18 @@ impl AppState {
 
     pub fn empty_dns_resolver() -> Arc<dyn DnsTxtResolver> {
         Arc::new(crate::domains::EmptyDnsTxtResolver)
+    }
+
+    /// Catalog frontend origin used in seller share URLs (`PORTAL_PUBLIC_ORIGIN`).
+    pub fn portal_public_origin_from_env() -> String {
+        std::env::var("PORTAL_PUBLIC_ORIGIN")
+            .ok()
+            .map(|s| s.trim().trim_end_matches('/').to_string())
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| "http://127.0.0.1:5175".into())
+    }
+
+    pub fn default_portal_public_origin() -> String {
+        "http://127.0.0.1:5175".into()
     }
 }

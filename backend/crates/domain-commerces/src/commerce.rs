@@ -214,4 +214,11 @@ impl Commerce {
             ..self
         }
     }
+
+    pub fn activate(self) -> Self {
+        Self {
+            active: true,
+            ..self
+        }
+    }
 }

@@ -44,7 +44,9 @@ export function resolveSessionFromAccessToken(accessToken: string): SessionResto
     return { kind: 'invalid' };
   }
 
-  const needsRefresh = isTokenExpired(claims) || tokenExpiresWithinMs(claims, REFRESH_LEAD_MS);
+  const needsRefresh =
+    !claims.impersonating &&
+    (isTokenExpired(claims) || tokenExpiresWithinMs(claims, REFRESH_LEAD_MS));
 
   return {
     kind: 'ok',

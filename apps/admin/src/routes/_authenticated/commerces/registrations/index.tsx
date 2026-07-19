@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Select } from '@/components/ui/Select';
+import { TableActions, tableActionClass } from '@/components/ui/TableActions';
 import { fetchCommerceRegistrations } from '@/lib/api/commerceRegistrations';
 import type { CommerceRegistration, RegistrationStatus } from '@/lib/api/types';
 import { formatCnpj } from '@/lib/commerces/cnpj';
@@ -60,15 +61,18 @@ function CommerceRegistrationsPage() {
       },
       {
         id: 'actions',
-        header: '',
+        header: t('common.table.actions'),
+        align: 'right',
         cell: (row) => (
-          <Link
-            className="text-sm font-medium text-primary hover:underline"
-            to="/commerces/registrations/$id"
-            params={{ id: row.id }}
-          >
-            {t('common.review')}
-          </Link>
+          <TableActions>
+            <Link
+              className={tableActionClass('warning')}
+              to="/commerces/registrations/$id"
+              params={{ id: row.id }}
+            >
+              {t('common.review')}
+            </Link>
+          </TableActions>
         ),
       },
     ],

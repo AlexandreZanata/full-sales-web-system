@@ -1,5 +1,8 @@
+export type AdjustmentDirection = 'in' | 'out';
+
 export type AdjustmentFormValues = {
   productId: string;
+  direction: AdjustmentDirection;
   quantity: string;
   reason: string;
 };
@@ -16,7 +19,7 @@ export function validateAdjustmentForm(
   }
 
   const quantity = Number.parseInt(values.quantity, 10);
-  if (!values.quantity.trim() || Number.isNaN(quantity) || quantity === 0) {
+  if (!values.quantity.trim() || Number.isNaN(quantity) || quantity <= 0) {
     errors.quantity = 'forms.validation.quantityAdjustment';
   }
 
@@ -32,10 +35,11 @@ export function hasFormErrors<T extends string>(errors: FormErrors<T>): boolean 
 }
 
 export function toAdjustmentPayload(values: AdjustmentFormValues) {
+  const absolute = Number.parseInt(values.quantity, 10);
   return {
     productId: values.productId,
     movementType: 'Adjustment' as const,
-    quantity: Number.parseInt(values.quantity, 10),
+    quantity: values.direction === 'out' ? -absolute : absolute,
     reason: values.reason.trim(),
   };
 }

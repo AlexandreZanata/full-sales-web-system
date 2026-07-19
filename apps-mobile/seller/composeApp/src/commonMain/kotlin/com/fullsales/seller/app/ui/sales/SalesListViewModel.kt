@@ -2,7 +2,9 @@ package com.fullsales.seller.app.ui.sales
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fullsales.seller.app.platform.CatalogLinkShare
 import com.fullsales.seller.app.platform.NetworkMonitor
+import com.fullsales.seller.shared.api.SellerApiClient
 import com.fullsales.seller.shared.connectivity.ConnectivityState
 import com.fullsales.seller.shared.connectivity.isDefinitelyOffline
 import com.fullsales.seller.shared.repository.SaleRepository
@@ -22,10 +24,11 @@ data class SalesListUiState(
     val items: List<com.fullsales.seller.shared.model.SalesListItem> = emptyList(),
     val refreshing: Boolean = false,
     val isOffline: Boolean = false,
-    /** True after at least one successful sales pull (durable metadata). */
     val everSynced: Boolean = false,
     val snackbarCode: String? = null,
     val refreshFailed: Boolean = false,
+    val catalogUrl: String? = null,
+    val catalogShareActive: Boolean = false,
 ) {
     val emptyReason: ListEmptyReason? get() = resolveListEmptyReason(
         hasLocalRows = items.isNotEmpty(),
@@ -35,13 +38,11 @@ data class SalesListUiState(
     )
 }
 
-/**
- * LocalStore-first list (Phase 16B/16F): observe Room only; online refresh runs pullSales.
- */
 class SalesListViewModel(
     private val saleRepository: SaleRepository,
     private val syncCoordinator: SellerSyncCoordinator,
     private val networkMonitor: NetworkMonitor,
+    private val apiClient: SellerApiClient,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SalesListUiState())
     val state: StateFlow<SalesListUiState> = _state.asStateFlow()
@@ -62,9 +63,10 @@ class SalesListViewModel(
                 .map { it == ConnectivityState.Online }
                 .distinctUntilChanged()
                 .collect { online ->
-                    if (online && !_state.value.everSynced) {
-                        refresh()
-                    } else if (!online) {
+                    if (online) {
+                        loadCatalogShare()
+                        if (!_state.value.everSynced) refresh()
+                    } else {
                         _state.update {
                             it.copy(isOffline = networkMonitor.connectivity.value.isDefinitelyOffline())
                         }
@@ -75,6 +77,21 @@ class SalesListViewModel(
 
     fun clearSnackbar() {
         _state.update { it.copy(snackbarCode = null) }
+    }
+
+    fun shareCatalogLink() {
+        val url = _state.value.catalogUrl ?: return
+        CatalogLinkShare.shareText(url, "catalog")
+    }
+
+    fun copyCatalogLink() {
+        val url = _state.value.catalogUrl ?: return
+        CatalogLinkShare.copyToClipboard(url, "catalog")
+        _state.update { it.copy(snackbarCode = "CATALOG_COPIED") }
+    }
+
+    fun reloadCatalogShare() {
+        viewModelScope.launch { loadCatalogShare() }
     }
 
     fun refresh() {
@@ -90,6 +107,7 @@ class SalesListViewModel(
                 return@launch
             }
             _state.update { it.copy(refreshing = true, isOffline = false, refreshFailed = false) }
+            loadCatalogShare()
             val pulls = syncCoordinator.syncPullAndPushWithPullFlags()
             val pulled = saleRepository.getLastSalesSyncEpochMs() != null
             _state.update {
@@ -103,5 +121,19 @@ class SalesListViewModel(
                 )
             }
         }
+    }
+
+    private suspend fun loadCatalogShare() {
+        if (!networkMonitor.canAttemptNetwork()) return
+        runCatching { apiClient.getSellerShare() }
+            .onSuccess { share ->
+                val url = share.shareUrl.takeIf { share.shareLinkActive && it.isNotBlank() }
+                _state.update {
+                    it.copy(catalogUrl = url, catalogShareActive = url != null)
+                }
+            }
+            .onFailure {
+                _state.update { it.copy(catalogUrl = null, catalogShareActive = false) }
+            }
     }
 }

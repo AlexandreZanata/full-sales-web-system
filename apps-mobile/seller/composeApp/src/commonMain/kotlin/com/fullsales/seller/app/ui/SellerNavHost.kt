@@ -30,6 +30,8 @@ import com.fullsales.seller.app.ui.sales.SaleDetailScreen
 import com.fullsales.seller.app.ui.sales.SaleDetailViewModel
 import com.fullsales.seller.app.ui.sales.SalesListScreen
 import com.fullsales.seller.app.ui.sales.SalesListViewModel
+import com.fullsales.seller.app.ui.profile.ProfileScreen
+import com.fullsales.seller.app.ui.profile.ProfileViewModel
 import com.fullsales.seller.app.ui.sync.SyncStatusViewModel
 import com.fullsales.seller.app.ui.theme.SellerTheme
 
@@ -103,6 +105,18 @@ private fun SellerNavHostContent(
                 viewModel = hubViewModel,
                 onContinueOffline = { navController.popBackStack() },
             )
+        }
+        shellRoute(
+            SellerRoutes.PROFILE,
+            navController,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+            onSyncRefresh = syncViewModel::refreshNow,
+        ) {
+            val profileViewModel: ProfileViewModel = viewModel(factory = factory)
+            ProfileScreen(viewModel = profileViewModel)
         }
         shellRoute(
             SellerRoutes.SALES,

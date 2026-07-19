@@ -114,6 +114,22 @@
 
 ---
 
+## Seller Public Code
+
+**Definition:** Tenant-unique URL slug on a Seller profile used in portal share links (`/s/{publicCode}`).
+**Code name:** `publicCode`  
+**Table:** `identity.seller_profiles.public_code`
+
+---
+
+## Seller Attribution
+
+**Definition:** Portal session context from a seller share link — selects WhatsApp/contact phone for the visit (seller phone → tenant `sales_contact_phone` fallback).
+**Code name:** `SellerAttribution`  
+**Persistence:** Browser `sessionStorage` key `portal.sellerAttribution`
+
+---
+
 ## UnitOfMeasure
 
 **Definition:** Catalog unit for a Product — how quantity is expressed on orders and in stock.

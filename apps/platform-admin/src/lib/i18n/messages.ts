@@ -107,6 +107,19 @@ export type Messages = {
     resetPassword: string;
     impersonate: string;
     impersonateReason: string;
+    impersonateReasonPlaceholder: string;
+    impersonateDialogBody: string;
+    impersonateHint: string;
+    impersonateOpened: string;
+    impersonateFailed: string;
+    profile: string;
+    actions: string;
+    email: string;
+    tenant: string;
+    role: string;
+    status: string;
+    active: string;
+    inactive: string;
   };
   billing: {
     title: string;

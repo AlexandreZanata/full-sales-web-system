@@ -133,4 +133,7 @@ export const ptBR: Messages = {
     contactUnavailable: 'Telefone comercial não configurado',
     productInfo: 'Informações do produto',
   },
+  sellerAttribution: {
+    assistedBy: 'Você está falando com {name}',
+  },
 };

@@ -97,3 +97,20 @@ pub async fn deactivate_commerce(
     tx.commit().await?;
     Ok(result.rows_affected() == 1)
 }
+
+pub async fn activate_commerce(
+    pool: &PgPool,
+    tenant_id: TenantId,
+    commerce_id: Uuid,
+) -> Result<bool, PostgresError> {
+    let mut tx = pool.begin().await?;
+    apply_tenant_context(&mut tx, tenant_id).await?;
+    let result = sqlx::query(
+        "UPDATE commerces.commerces SET active = true WHERE id = $1 AND active = false",
+    )
+    .bind(commerce_id)
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(result.rows_affected() == 1)
+}

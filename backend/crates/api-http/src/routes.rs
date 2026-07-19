@@ -20,7 +20,7 @@ use crate::categories::{
     update_category, update_category_image,
 };
 use crate::commerces::{
-    approve_registration, create_address, create_commerce, deactivate_commerce, get_commerce,
+    approve_registration, create_address, create_commerce, activate_commerce, deactivate_commerce, get_commerce,
     get_registration, list_addresses, list_commerces, list_registrations, lookup_cnpj,
     patch_registration, reject_registration, submit_registration, update_address, update_logo,
 };
@@ -55,9 +55,10 @@ use crate::platform::{
 use crate::portal::{
     cancel_portal_order, create_portal_order, get_portal_category_by_slug, get_portal_order,
     get_portal_product_by_id, get_public_category_by_slug, get_public_product_by_id,
-    list_portal_categories, list_portal_orders, list_portal_products, list_public_banners,
-    list_public_categories, list_public_featured_products, list_public_popular_products,
-    list_public_products, list_public_promotions, submit_portal_order, update_portal_order,
+    get_public_seller_by_code, list_portal_categories, list_portal_orders, list_portal_products,
+    list_public_banners, list_public_categories, list_public_featured_products,
+    list_public_popular_products, list_public_products, list_public_promotions, submit_portal_order,
+    update_portal_order,
 };
 use crate::portal_content::{
     create_admin_banner, create_admin_promotion, delete_admin_banner, delete_admin_promotion,
@@ -80,7 +81,8 @@ use crate::state::AppState;
 use crate::status::public_status;
 use crate::tenant_gate::tenant_gate_middleware;
 use crate::users::{
-    create_user, deactivate_user, get_user, list_users, upsert_driver_profile,
+    create_user, deactivate_user, get_my_seller_profile, get_my_seller_share, get_seller_profile,
+    get_user, list_users, patch_my_seller_profile, reactivate_user, upsert_driver_profile,
     upsert_seller_profile,
 };
 
@@ -149,6 +151,10 @@ pub fn v1_router(state: AppState) -> Router {
         )
         .route("/v1/public/catalog/events", get(stream_catalog_events))
         .route("/v1/public/settings", get(get_public_settings))
+        .route(
+            "/v1/public/sellers/{publicCode}",
+            get(get_public_seller_by_code),
+        )
         .route("/v1/status", get(public_status))
         .route("/v1/reports/{id}/verify", get(verify_report))
         .route("/v1/billing/webhooks/asaas", post(asaas_webhook))
@@ -167,8 +173,17 @@ pub fn v1_router(state: AppState) -> Router {
         .route("/v1/users", post(create_user).get(list_users))
         .route("/v1/users/{id}", get(get_user))
         .route("/v1/users/{id}/deactivate", patch(deactivate_user))
+        .route("/v1/users/{id}/reactivate", patch(reactivate_user))
         .route("/v1/users/{id}/driver-profile", put(upsert_driver_profile))
-        .route("/v1/users/{id}/seller-profile", put(upsert_seller_profile))
+        .route(
+            "/v1/users/{id}/seller-profile",
+            get(get_seller_profile).put(upsert_seller_profile),
+        )
+        .route("/v1/me/seller-share", get(get_my_seller_share))
+        .route(
+            "/v1/me/seller-profile",
+            get(get_my_seller_profile).patch(patch_my_seller_profile),
+        )
         .route("/v1/commerces", post(create_commerce).get(list_commerces))
         .route("/v1/commerces/cnpj-lookup", get(lookup_cnpj))
         .route(
@@ -189,6 +204,7 @@ pub fn v1_router(state: AppState) -> Router {
         )
         .route("/v1/commerces/{id}", get(get_commerce))
         .route("/v1/commerces/{id}/deactivate", patch(deactivate_commerce))
+        .route("/v1/commerces/{id}/activate", patch(activate_commerce))
         .route(
             "/v1/commerces/{id}/addresses",
             get(list_addresses).post(create_address),

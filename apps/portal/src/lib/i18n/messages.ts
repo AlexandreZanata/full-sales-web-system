@@ -116,6 +116,9 @@ export type Messages = {
     contactUnavailable: string;
     productInfo: string;
   };
+  sellerAttribution: {
+    assistedBy: string;
+  };
 };
 
 export type MessageKey =
@@ -219,4 +222,5 @@ export type MessageKey =
   | 'productDetail.placeOrder'
   | 'productDetail.contactSeller'
   | 'productDetail.contactUnavailable'
-  | 'productDetail.productInfo';
+  | 'productDetail.productInfo'
+  | 'sellerAttribution.assistedBy';
