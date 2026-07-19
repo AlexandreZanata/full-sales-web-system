@@ -21,8 +21,14 @@ const catalogs: Record<Locale, Messages> = {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => resolveInitialLocale());
+export function I18nProvider({
+  children,
+  initialLocale,
+}: {
+  children: ReactNode;
+  initialLocale?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(() => initialLocale ?? resolveInitialLocale());
 
   const setLocale = useCallback((next: Locale) => {
     writeStoredLocale(next);

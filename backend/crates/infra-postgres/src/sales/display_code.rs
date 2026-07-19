@@ -15,7 +15,7 @@ pub fn format_display_code(sequence: u64) -> String {
         buf[i] = ALPHABET[(n % 36) as usize];
         n /= 36;
     }
-    String::from_utf8(buf.to_vec()).expect("ascii alphabet")
+    buf.iter().map(|&b| char::from(b)).collect()
 }
 
 /// Allocates the next per-tenant display code inside an open transaction (RLS context applied).

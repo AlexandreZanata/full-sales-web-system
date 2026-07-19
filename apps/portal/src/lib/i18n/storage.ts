@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/types';
+import type { Locale } from '@/lib/i18n/types';
 
 const STORAGE_KEY = 'portal-locale';
 
@@ -29,7 +29,7 @@ export function localeFromBrowserLanguage(language: string | undefined | null): 
   if (normalized.startsWith('pt')) {
     return 'pt-BR';
   }
-  return DEFAULT_LOCALE;
+  return 'pt-BR';
 }
 
 export function resolveInitialLocale(): Locale {
@@ -38,7 +38,7 @@ export function resolveInitialLocale(): Locale {
     return stored;
   }
   if (typeof navigator === 'undefined') {
-    return DEFAULT_LOCALE;
+    return 'pt-BR';
   }
   return localeFromBrowserLanguage(navigator.language);
 }
