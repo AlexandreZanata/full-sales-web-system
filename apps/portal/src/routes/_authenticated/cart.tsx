@@ -1,20 +1,25 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { usePortalAuth } from '@/auth/usePortalAuth';
 import { useCart } from '@/cart/CartProvider';
+import { CartCheckoutPanel } from '@/components/cart/CartCheckoutPanel';
+import { CartLineCard } from '@/components/cart/CartLineCard';
+import { CartSecureNotice } from '@/components/cart/CartSecureNotice';
+import { CartTotalField } from '@/components/cart/CartTotalField';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { createPortalOrder, submitPortalOrder } from '@/lib/api/portal';
 import { ApiError } from '@/lib/api/client';
 import { setPostLoginRedirect } from '@/lib/auth/postLoginRedirect';
+import { formatCartWhatsAppMessage } from '@/lib/contact/cartWhatsAppMessage';
+import { buildSellerWhatsAppLink } from '@/lib/contact/sellerWhatsAppLink';
 import { useI18n } from '@/lib/i18n/context';
 import { addressesForCommerce } from '@/lib/orders/constants';
-import { formatMoney } from '@/lib/products/formatPrice';
+import { resolveContactPhone } from '@/lib/seller/attribution';
+import { useSellerAttribution } from '@/lib/seller/useSellerAttribution';
+import { useSiteSettings } from '@/lib/settings/useSiteSettings';
 
 export const Route = createFileRoute('/_authenticated/cart')({
   component: CartPage,
@@ -30,6 +35,25 @@ function CartPage() {
   const [deliveryAddressId, setDeliveryAddressId] = useState(addresses[0]?.id ?? '');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const { attribution } = useSellerAttribution();
+  const settingsQuery = useSiteSettings(true);
+  const phone = resolveContactPhone(attribution, settingsQuery.data?.salesContactPhone);
+
+  const contactHref = useMemo(() => {
+    if (!phone?.trim() || lines.length === 0) {
+      return null;
+    }
+    const message = formatCartWhatsAppMessage(
+      t('cart.whatsappIntro'),
+      t('cart.whatsappItem'),
+      lines,
+    );
+    try {
+      return buildSellerWhatsAppLink(phone, message);
+    } catch {
+      return null;
+    }
+  }, [phone, lines, t]);
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
@@ -77,92 +101,48 @@ function CartPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold text-foreground">{t('cart.title')}</h1>
+        <h1 className="sr-only lg:not-sr-only lg:text-2xl lg:font-semibold lg:text-foreground">
+          {t('cart.title')}
+        </h1>
         <ul className="space-y-3">
           {lines.map((line) => (
-            <li key={line.productId} className="rounded-lg border border-hairline bg-surface p-4">
-              <div className="flex gap-3">
-                <div className="size-16 shrink-0 overflow-hidden rounded-md bg-surface-muted">
-                  {line.primaryImageUrl ? (
-                    <img src={line.primaryImageUrl} alt="" className="size-full object-cover" />
-                  ) : null}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{line.name}</p>
-                  <p className="text-xs text-muted-foreground">{line.sku}</p>
-                  <p className="mt-1 text-sm font-semibold">
-                    {formatMoney(line.unitPriceAmount * line.quantity, line.unitPriceCurrency)}
-                  </p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min={1}
-                      value={line.quantity}
-                      aria-label={t('common.quantity')}
-                      className="w-20"
-                      onChange={(event) => {
-                        setQuantity(line.productId, Number(event.target.value));
-                      }}
-                    />
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        removeLine(line.productId);
-                      }}
-                    >
-                      {t('cart.removeItem')}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </li>
+            <CartLineCard
+              key={line.productId}
+              line={line}
+              onSetQuantity={setQuantity}
+              onRemove={removeLine}
+            />
           ))}
         </ul>
+        <CartSecureNotice />
+        <CartTotalField totalAmount={totalAmount} currency={currency} />
       </div>
 
-      <Card className="h-fit space-y-4 lg:sticky lg:top-20">
-        <h2 className="text-lg font-semibold">{t('cart.checkout')}</h2>
-        <Select
-          label={t('cart.deliveryAddress')}
-          value={deliveryAddressId}
-          onChange={(event) => {
-            setDeliveryAddressId(event.target.value);
-          }}
-        >
-          {addresses.map((address) => (
-            <option key={address.id} value={address.id}>
-              {address.label}
-            </option>
-          ))}
-        </Select>
-        <Input
-          label={t('cart.notes')}
-          placeholder={t('cart.notesPlaceholder')}
-          value={notes}
-          onChange={(event) => {
-            setNotes(event.target.value);
-          }}
-        />
-        <div className="flex items-center justify-between border-t border-hairline pt-3 text-sm">
-          <span className="text-muted-foreground">{t('common.total')}</span>
-          <span className="text-lg font-semibold">{formatMoney(totalAmount, currency)}</span>
-        </div>
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        {!user ? (
-          <p className="text-sm text-muted-foreground">{t('cart.loginRequiredMessage')}</p>
-        ) : null}
-        <Button
-          className="w-full"
-          disabled={checkoutMutation.isPending || !deliveryAddressId}
-          onClick={handleSubmitOrder}
-        >
-          {checkoutMutation.isPending
+      <CartCheckoutPanel
+        addresses={addresses}
+        deliveryAddressId={deliveryAddressId}
+        onDeliveryAddressChange={setDeliveryAddressId}
+        notes={notes}
+        onNotesChange={setNotes}
+        totalAmount={totalAmount}
+        currency={currency}
+        error={error}
+        loginHint={
+          !user ? (
+            <p className="text-sm text-muted-foreground">{t('cart.loginRequiredMessage')}</p>
+          ) : null
+        }
+        contactHref={contactHref}
+        submitLabel={
+          checkoutMutation.isPending
             ? t('common.working')
             : user
               ? t('cart.submitOrder')
-              : t('cart.loginToCheckout')}
-        </Button>
-      </Card>
+              : t('cart.loginToCheckout')
+        }
+        submitDisabled={checkoutMutation.isPending || !deliveryAddressId}
+        onSubmit={handleSubmitOrder}
+      />
     </div>
   );
 }

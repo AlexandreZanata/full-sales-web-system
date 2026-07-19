@@ -394,6 +394,12 @@ export const en: Messages = {
         message: 'This user will be able to sign in again.',
         confirm: 'Reactivate',
       },
+      edit: 'Edit',
+      save: 'Save changes',
+      saving: 'Saving…',
+      newPassword: 'New password',
+      newPasswordHint: 'Leave blank to keep the current password.',
+      roleReadonly: 'Role cannot be changed after creation.',
     },
     driverProfile: {
       save: 'Save driver profile',
@@ -407,6 +413,7 @@ export const en: Messages = {
     toast: {
       deactivated: 'User deactivated',
       reactivated: 'User reactivated',
+      updated: 'User updated',
       driverProfileSaved: 'Driver profile saved',
       sellerProfileSaved: 'Seller profile saved',
     },
@@ -506,6 +513,37 @@ export const en: Messages = {
         rejected: 'Registration rejected',
       },
       queueLink: 'Review queue',
+    },
+    leads: {
+      title: 'Portal interest leads',
+      description:
+        'Self-serve signup requests from the catalog. Approve, then create the CommerceContact user.',
+      filterStatus: 'Filter by status',
+      approve: 'Approve',
+      reject: 'Reject',
+      openLeads: 'Portal leads',
+      columns: {
+        contactName: 'Contact',
+        commerceName: 'Commerce',
+        phone: 'Phone',
+        email: 'Email',
+        status: 'Status',
+        createdAt: 'Submitted',
+      },
+      status: {
+        pending: 'Pending',
+        approved: 'Approved',
+        rejected: 'Rejected',
+        all: 'All',
+      },
+      empty: {
+        title: 'No leads yet',
+        description: 'When a merchant requests signup on the portal, it appears here.',
+      },
+      toast: {
+        approved: 'Lead approved',
+        rejected: 'Lead rejected',
+      },
     },
     toast: {
       deactivated: 'Commerce deactivated',

@@ -399,6 +399,12 @@ export type Messages = {
         message: string;
         confirm: string;
       };
+      edit: string;
+      save: string;
+      saving: string;
+      newPassword: string;
+      newPasswordHint: string;
+      roleReadonly: string;
     };
     driverProfile: {
       save: string;
@@ -412,6 +418,7 @@ export type Messages = {
     toast: {
       deactivated: string;
       reactivated: string;
+      updated: string;
       driverProfileSaved: string;
       sellerProfileSaved: string;
     };
@@ -510,6 +517,36 @@ export type Messages = {
         rejected: string;
       };
       queueLink: string;
+    };
+    leads: {
+      title: string;
+      description: string;
+      filterStatus: string;
+      approve: string;
+      reject: string;
+      openLeads: string;
+      columns: {
+        contactName: string;
+        commerceName: string;
+        phone: string;
+        email: string;
+        status: string;
+        createdAt: string;
+      };
+      status: {
+        pending: string;
+        approved: string;
+        rejected: string;
+        all: string;
+      };
+      empty: {
+        title: string;
+        description: string;
+      };
+      toast: {
+        approved: string;
+        rejected: string;
+      };
     };
     toast: {
       deactivated: string;

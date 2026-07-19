@@ -142,3 +142,30 @@ async fn given_admin_when_deactivate_then_200_active_false() {
     assert_eq!(body["active"], false);
     assert_user_no_password(&body);
 }
+
+#[tokio::test]
+async fn given_admin_when_patch_user_then_200_updated_name_email() {
+    let env = setup().await;
+    let (_, admin) = seed_admin(&env).await;
+    let (user_id, _) = seed_driver(&env, "edit-me@test.com").await;
+
+    let (status, body) = request(
+        &env,
+        "PATCH",
+        &format!("/v1/users/{user_id}"),
+        Some(&admin),
+        Some(
+            json!({
+                "name": "Edited Driver",
+                "email": "edited-driver@test.com"
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["name"], "Edited Driver");
+    assert_eq!(body["email"], "edited-driver@test.com");
+    assert_user_no_password(&body);
+}

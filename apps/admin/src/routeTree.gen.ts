@@ -43,6 +43,7 @@ import { Route as AuthenticatedDeliveriesIdRouteImport } from './routes/_authent
 import { Route as AuthenticatedCommercesNewRouteImport } from './routes/_authenticated/commerces/new'
 import { Route as AuthenticatedCommercesIdRouteImport } from './routes/_authenticated/commerces/$id'
 import { Route as AuthenticatedCommercesRegistrationsIndexRouteImport } from './routes/_authenticated/commerces/registrations/index'
+import { Route as AuthenticatedCommercesLeadsIndexRouteImport } from './routes/_authenticated/commerces/leads/index'
 import { Route as AuthenticatedCommercesRegistrationsIdRouteImport } from './routes/_authenticated/commerces/registrations/$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -233,6 +234,12 @@ const AuthenticatedCommercesRegistrationsIndexRoute =
     path: '/commerces/registrations/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCommercesLeadsIndexRoute =
+  AuthenticatedCommercesLeadsIndexRouteImport.update({
+    id: '/commerces/leads/',
+    path: '/commerces/leads/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCommercesRegistrationsIdRoute =
   AuthenticatedCommercesRegistrationsIdRouteImport.update({
     id: '/commerces/registrations/$id',
@@ -274,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
   '/commerces/registrations/$id': typeof AuthenticatedCommercesRegistrationsIdRoute
+  '/commerces/leads/': typeof AuthenticatedCommercesLeadsIndexRoute
   '/commerces/registrations/': typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -309,6 +317,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/commerces/registrations/$id': typeof AuthenticatedCommercesRegistrationsIdRoute
+  '/commerces/leads': typeof AuthenticatedCommercesLeadsIndexRoute
   '/commerces/registrations': typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 export interface FileRoutesById {
@@ -347,6 +356,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/commerces/registrations/$id': typeof AuthenticatedCommercesRegistrationsIdRoute
+  '/_authenticated/commerces/leads/': typeof AuthenticatedCommercesLeadsIndexRoute
   '/_authenticated/commerces/registrations/': typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 export interface FileRouteTypes {
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/users/'
     | '/commerces/registrations/$id'
+    | '/commerces/leads/'
     | '/commerces/registrations/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/users'
     | '/commerces/registrations/$id'
+    | '/commerces/leads'
     | '/commerces/registrations'
   id:
     | '__root__'
@@ -457,6 +469,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/users/'
     | '/_authenticated/commerces/registrations/$id'
+    | '/_authenticated/commerces/leads/'
     | '/_authenticated/commerces/registrations/'
   fileRoutesById: FileRoutesById
 }
@@ -705,6 +718,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommercesRegistrationsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/commerces/leads/': {
+      id: '/_authenticated/commerces/leads/'
+      path: '/commerces/leads'
+      fullPath: '/commerces/leads/'
+      preLoaderRoute: typeof AuthenticatedCommercesLeadsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/commerces/registrations/$id': {
       id: '/_authenticated/commerces/registrations/$id'
       path: '/commerces/registrations/$id'
@@ -763,6 +783,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedCommercesRegistrationsIdRoute: typeof AuthenticatedCommercesRegistrationsIdRoute
+  AuthenticatedCommercesLeadsIndexRoute: typeof AuthenticatedCommercesLeadsIndexRoute
   AuthenticatedCommercesRegistrationsIndexRoute: typeof AuthenticatedCommercesRegistrationsIndexRoute
 }
 
@@ -797,6 +818,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedCommercesRegistrationsIdRoute:
     AuthenticatedCommercesRegistrationsIdRoute,
+  AuthenticatedCommercesLeadsIndexRoute: AuthenticatedCommercesLeadsIndexRoute,
   AuthenticatedCommercesRegistrationsIndexRoute:
     AuthenticatedCommercesRegistrationsIndexRoute,
 }

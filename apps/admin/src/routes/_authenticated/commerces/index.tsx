@@ -72,9 +72,14 @@ function CommercesListPage() {
         title={t('commerces.list.title')}
         description={t('commerces.list.description')}
         actions={
-          <Link to="/commerces/new">
-            <Button>{t('commerces.list.register')}</Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/commerces/leads">
+              <Button variant="secondary">{t('commerces.leads.openLeads')}</Button>
+            </Link>
+            <Link to="/commerces/new">
+              <Button>{t('commerces.list.register')}</Button>
+            </Link>
+          </div>
         }
       />
 

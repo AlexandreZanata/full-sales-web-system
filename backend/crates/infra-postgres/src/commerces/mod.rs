@@ -6,9 +6,13 @@ use crate::PostgresError;
 use crate::rls::apply_tenant_context;
 
 pub mod addresses;
+pub mod portal_leads;
 pub mod read;
 pub mod registrations;
 
+pub use portal_leads::{
+    PortalLeadInsert, PortalLeadRow, insert_portal_lead, list_portal_leads, update_portal_lead_status,
+};
 pub use read::{
     count_commerces, find_commerce_by_id, list_commerce_ids, list_commerces, list_commerces_cursor,
 };

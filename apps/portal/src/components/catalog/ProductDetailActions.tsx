@@ -4,7 +4,10 @@ import { MessageCircle, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/cart/CartProvider';
 import { Button } from '@/components/ui/Button';
 import type { PortalProductDetail } from '@/lib/api/types';
-import { buildSellerWhatsAppLink } from '@/lib/contact/sellerWhatsAppLink';
+import {
+  buildSellerWhatsAppLink,
+  formatSellerWhatsAppMessage,
+} from '@/lib/contact/sellerWhatsAppLink';
 import { useI18n } from '@/lib/i18n/context';
 import { resolveContactPhone } from '@/lib/seller/attribution';
 import { useSellerAttribution } from '@/lib/seller/useSellerAttribution';
@@ -30,7 +33,10 @@ export function ProductDetailActions({
   const phone = resolveContactPhone(attribution, salesContactPhone);
 
   const contactHref = phone?.trim()
-    ? buildSellerWhatsAppLink(phone, product, productUrl)
+    ? buildSellerWhatsAppLink(
+        phone,
+        formatSellerWhatsAppMessage(t('productDetail.whatsappInterest'), product, productUrl),
+      )
     : null;
 
   const placeOrder = () => {

@@ -204,6 +204,9 @@ System-generated movements (sale confirm, delivery) — **no public POST**; wire
 | GET | `/v1/settings` | Any authenticated tenant role | ✅ | `236`, `sales_contact_phone` | presigned logo URL + sales phone | 41, 50 |
 | GET | `/v1/public/settings` | Public | ✅ | `sales_contact_phone` | guest portal branding subset | 50 |
 | GET | `/v1/public/sellers/{publicCode}` | Public | ✅ | `seller_share` | catalog share resolve | 19 |
+| POST | `/v1/public/commerce-leads` | Public | ✅ | `portal_leads` | merchant interest lead | — |
+| GET | `/v1/commerces/portal-leads` | Admin | ✅ | `portal_leads` | list interest leads | — |
+| PATCH | `/v1/commerces/portal-leads/{id}` | Admin | ✅ | `portal_leads` | approve/reject lead | — |
 | PATCH | `/v1/settings` | Admin | ✅ | `236`, `sales_contact_phone` | display name + sales phone | 41, 50 |
 | PUT | `/v1/settings/logo` | Admin | ✅ | `236` | `logo_file_id` → media | 41 |
 

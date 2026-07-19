@@ -1,12 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 
-import { ActiveBadge } from '@/components/users/ActiveBadge';
 import { DriverProfileTab } from '@/components/users/DriverProfileTab';
+import { EditUserOverviewForm } from '@/components/users/EditUserOverviewForm';
 import { SellerProfileTab } from '@/components/users/SellerProfileTab';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
@@ -15,7 +14,6 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/hooks/useToast';
 import { deactivateUser, fetchUser, reactivateUser } from '@/lib/api/users';
 import { useI18n } from '@/lib/i18n/context';
-import { translateRole } from '@/lib/i18n/labels';
 
 export const Route = createFileRoute('/_authenticated/users/$id')({
   component: UserDetailPage,
@@ -119,18 +117,14 @@ function UserDetailPage() {
 
       <Tabs tabs={tabs} activeId={activeTab} onChange={setActiveTab}>
         {activeTab === 'overview' ? (
-          <Card className="space-y-3">
-            <DetailRow label={t('forms.fields.name')} value={detail.name} />
-            <DetailRow label={t('forms.fields.email')} value={detail.email} />
-            <DetailRow label={t('forms.fields.role')} value={translateRole(t, detail.role)} />
-            <DetailRow
-              label={t('forms.fields.status')}
-              value={<ActiveBadge active={detail.active} />}
-            />
-            {detail.commerceId ? (
-              <DetailRow label={t('forms.fields.commerceId')} value={detail.commerceId} />
-            ) : null}
-          </Card>
+          <EditUserOverviewForm
+            user={detail}
+            onSaved={async (updated) => {
+              queryClient.setQueryData(['users', id], updated);
+              await queryClient.invalidateQueries({ queryKey: ['users'] });
+              toast.success(t('users.toast.updated'));
+            }}
+          />
         ) : null}
 
         {activeTab === 'driver' ? <DriverProfileTab userId={id} /> : null}
@@ -161,17 +155,6 @@ function UserDetailPage() {
         }}
         onConfirm={() => void handleConfirm()}
       />
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-      <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
-      </span>
-      <span className="text-sm text-foreground">{value}</span>
     </div>
   );
 }

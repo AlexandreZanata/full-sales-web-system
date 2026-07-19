@@ -20,6 +20,19 @@ export const ptBR: Messages = {
     logout: 'Sair',
     devEnter: 'Entrar no portal (dev)',
     portalLabel: 'Portal',
+    registerLink: 'Quero me cadastrar',
+    registerTitle: 'Cadastro do comércio',
+    registerDescription:
+      'Envie seus dados. Nossa equipe analisa e libera o acesso ao portal.',
+    registerSubmit: 'Enviar solicitação',
+    registering: 'Enviando…',
+    registerSuccess:
+      'Solicitação enviada. Entraremos em contato após a análise (sem login imediato).',
+    registerFailed: 'Não foi possível enviar. Tente novamente.',
+    backToSignIn: 'Voltar ao login',
+    contactName: 'Seu nome',
+    commerceName: 'Nome do comércio',
+    phone: 'Telefone / WhatsApp',
   },
   shell: {
     locale: 'Idioma',
@@ -89,9 +102,17 @@ export const ptBR: Messages = {
     emptyDescription: 'Adicione produtos do catálogo para começar.',
     itemCount: '{count} itens',
     removeItem: 'Remover',
+    decreaseQuantity: 'Diminuir quantidade',
+    increaseQuantity: 'Aumentar quantidade',
+    secureNotice: 'Ambiente seguro e seus dados protegidos',
+    totalValue: 'Valor total',
     orderSubmitted: 'Pedido enviado para aprovação.',
     loginToCheckout: 'Entrar para enviar',
     loginRequiredMessage: 'Entre na sua conta para enviar o pedido.',
+    contactSeller: 'Falar com o vendedor',
+    contactUnavailable: 'Telefone do vendedor não disponível',
+    whatsappIntro: 'Olá, tenho interesse nestes produtos:\n\n{items}\n',
+    whatsappItem: '- {name} — qtd: {qty}',
   },
   orders: {
     title: 'Meus pedidos',
@@ -132,6 +153,8 @@ export const ptBR: Messages = {
     contactSeller: 'Falar com vendedor',
     contactUnavailable: 'Telefone comercial não configurado',
     productInfo: 'Informações do produto',
+    whatsappInterest:
+      'Olá, tenho interesse em {name} (SKU: {sku})\n{url}',
   },
   sellerAttribution: {
     assistedBy: 'Você está falando com {name}',

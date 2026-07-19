@@ -106,6 +106,7 @@ function CommerceRegistrationDetailPage() {
           pending ? (
             <div className="flex gap-2">
               <Button
+                variant="success"
                 disabled={acting}
                 onClick={() => {
                   void handleApprove();

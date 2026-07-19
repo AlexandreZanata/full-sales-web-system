@@ -52,6 +52,18 @@ export async function reactivateUser(id: string): Promise<User> {
   return apiPatch<User>(`/users/${id}/reactivate`);
 }
 
+export type UpdateUserRequest = {
+  name: string;
+  email: string;
+  password?: string;
+};
+
+export async function updateUser(id: string, body: UpdateUserRequest): Promise<User> {
+  return apiPatch<User>(`/users/${id}`, {
+    body: JSON.stringify(body),
+  });
+}
+
 export async function upsertDriverProfile(
   id: string,
   body: DriverProfileRequest,

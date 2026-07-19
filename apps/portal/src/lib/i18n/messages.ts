@@ -18,6 +18,17 @@ export type Messages = {
     logout: string;
     devEnter: string;
     portalLabel: string;
+    registerLink: string;
+    registerTitle: string;
+    registerDescription: string;
+    registerSubmit: string;
+    registering: string;
+    registerSuccess: string;
+    registerFailed: string;
+    backToSignIn: string;
+    contactName: string;
+    commerceName: string;
+    phone: string;
   };
   shell: {
     locale: string;
@@ -83,9 +94,17 @@ export type Messages = {
     emptyDescription: string;
     itemCount: string;
     removeItem: string;
+    decreaseQuantity: string;
+    increaseQuantity: string;
+    secureNotice: string;
+    totalValue: string;
     orderSubmitted: string;
     loginToCheckout: string;
     loginRequiredMessage: string;
+    contactSeller: string;
+    contactUnavailable: string;
+    whatsappIntro: string;
+    whatsappItem: string;
   };
   orders: {
     title: string;
@@ -115,6 +134,7 @@ export type Messages = {
     contactSeller: string;
     contactUnavailable: string;
     productInfo: string;
+    whatsappInterest: string;
   };
   sellerAttribution: {
     assistedBy: string;
@@ -138,6 +158,17 @@ export type MessageKey =
   | 'auth.logout'
   | 'auth.devEnter'
   | 'auth.portalLabel'
+  | 'auth.registerLink'
+  | 'auth.registerTitle'
+  | 'auth.registerDescription'
+  | 'auth.registerSubmit'
+  | 'auth.registering'
+  | 'auth.registerSuccess'
+  | 'auth.registerFailed'
+  | 'auth.backToSignIn'
+  | 'auth.contactName'
+  | 'auth.commerceName'
+  | 'auth.phone'
   | 'shell.locale'
   | 'shell.openNav'
   | 'shell.closeNav'
@@ -195,9 +226,17 @@ export type MessageKey =
   | 'cart.emptyDescription'
   | 'cart.itemCount'
   | 'cart.removeItem'
+  | 'cart.decreaseQuantity'
+  | 'cart.increaseQuantity'
+  | 'cart.secureNotice'
+  | 'cart.totalValue'
   | 'cart.orderSubmitted'
   | 'cart.loginToCheckout'
   | 'cart.loginRequiredMessage'
+  | 'cart.contactSeller'
+  | 'cart.contactUnavailable'
+  | 'cart.whatsappIntro'
+  | 'cart.whatsappItem'
   | 'orders.title'
   | 'orders.detail'
   | 'orders.submit'
@@ -223,4 +262,5 @@ export type MessageKey =
   | 'productDetail.contactSeller'
   | 'productDetail.contactUnavailable'
   | 'productDetail.productInfo'
+  | 'productDetail.whatsappInterest'
   | 'sellerAttribution.assistedBy';

@@ -53,12 +53,12 @@ use crate::platform::{
     schedule_maintenance, start_impersonation, start_tenant_export, suspend_tenant,
 };
 use crate::portal::{
-    cancel_portal_order, create_portal_order, get_portal_category_by_slug, get_portal_order,
-    get_portal_product_by_id, get_public_category_by_slug, get_public_product_by_id,
-    get_public_seller_by_code, list_portal_categories, list_portal_orders, list_portal_products,
-    list_public_banners, list_public_categories, list_public_featured_products,
-    list_public_popular_products, list_public_products, list_public_promotions, submit_portal_order,
-    update_portal_order,
+    cancel_portal_order, create_portal_order, create_public_portal_lead, get_portal_category_by_slug,
+    get_portal_order, get_portal_product_by_id, get_public_category_by_slug, get_public_product_by_id,
+    get_public_seller_by_code, list_portal_categories, list_portal_leads, list_portal_orders,
+    list_portal_products, list_public_banners, list_public_categories, list_public_featured_products,
+    list_public_popular_products, list_public_products, list_public_promotions, review_portal_lead,
+    submit_portal_order, update_portal_order,
 };
 use crate::portal_content::{
     create_admin_banner, create_admin_promotion, delete_admin_banner, delete_admin_promotion,
@@ -82,8 +82,8 @@ use crate::status::public_status;
 use crate::tenant_gate::tenant_gate_middleware;
 use crate::users::{
     create_user, deactivate_user, get_my_seller_profile, get_my_seller_share, get_seller_profile,
-    get_user, list_users, patch_my_seller_profile, reactivate_user, upsert_driver_profile,
-    upsert_seller_profile,
+    get_user, list_users, patch_my_seller_profile, reactivate_user, update_user,
+    upsert_driver_profile, upsert_seller_profile,
 };
 
 /// API contract: `GET /health` → `{ "status": "ok" }`.
@@ -155,6 +155,7 @@ pub fn v1_router(state: AppState) -> Router {
             "/v1/public/sellers/{publicCode}",
             get(get_public_seller_by_code),
         )
+        .route("/v1/public/commerce-leads", post(create_public_portal_lead))
         .route("/v1/status", get(public_status))
         .route("/v1/reports/{id}/verify", get(verify_report))
         .route("/v1/billing/webhooks/asaas", post(asaas_webhook))
@@ -171,7 +172,7 @@ pub fn v1_router(state: AppState) -> Router {
     let protected = Router::new()
         .route("/v1/auth/logout", post(logout))
         .route("/v1/users", post(create_user).get(list_users))
-        .route("/v1/users/{id}", get(get_user))
+        .route("/v1/users/{id}", get(get_user).patch(update_user))
         .route("/v1/users/{id}/deactivate", patch(deactivate_user))
         .route("/v1/users/{id}/reactivate", patch(reactivate_user))
         .route("/v1/users/{id}/driver-profile", put(upsert_driver_profile))
@@ -201,6 +202,14 @@ pub fn v1_router(state: AppState) -> Router {
         .route(
             "/v1/commerces/registrations/{id}/reject",
             post(reject_registration),
+        )
+        .route(
+            "/v1/commerces/portal-leads",
+            get(list_portal_leads),
+        )
+        .route(
+            "/v1/commerces/portal-leads/{id}",
+            patch(review_portal_lead),
         )
         .route("/v1/commerces/{id}", get(get_commerce))
         .route("/v1/commerces/{id}/deactivate", patch(deactivate_commerce))

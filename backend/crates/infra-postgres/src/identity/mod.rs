@@ -9,6 +9,7 @@ pub mod driver_profiles;
 pub mod platform;
 pub mod platform_users;
 pub mod seller_profiles;
+pub mod users_update;
 
 pub use driver_profiles::{
     DriverProfileInsert, DriverProfileRow, find_driver_profile_by_user_id, insert_driver_profile,
@@ -28,6 +29,7 @@ pub use seller_profiles::{
     PublicSellerRow, SellerProfileInsert, SellerProfileRow, find_public_seller_by_code,
     find_seller_profile_by_user_id, insert_seller_profile, upsert_seller_profile,
 };
+pub use users_update::update_user_profile_tenant;
 
 /// Row persisted in `identity.users`.
 #[derive(Debug, Clone)]

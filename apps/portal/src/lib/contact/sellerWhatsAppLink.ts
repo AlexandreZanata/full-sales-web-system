@@ -5,17 +5,24 @@ export type SellerWhatsAppProduct = {
   sku: string;
 };
 
-export function buildSellerWhatsAppLink(
-  phone: string,
+/** Fills `{name}`, `{sku}`, `{url}` in a locale-specific interest template. */
+export function formatSellerWhatsAppMessage(
+  template: string,
   product: SellerWhatsAppProduct,
   productUrl: string,
 ): string {
+  return template
+    .replaceAll('{name}', product.name)
+    .replaceAll('{sku}', product.sku)
+    .replaceAll('{url}', productUrl);
+}
+
+export function buildSellerWhatsAppLink(phone: string, message: string): string {
   const digits = normalizeSalesContactPhone(phone);
   if (!isValidSalesContactPhone(digits)) {
     throw new Error('Invalid sales contact phone');
   }
 
   const waPhone = digits.length <= 11 ? `55${digits}` : digits;
-  const message = `Hi, I'm interested in ${product.name} (SKU: ${product.sku})\n${productUrl}`;
   return `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
 }

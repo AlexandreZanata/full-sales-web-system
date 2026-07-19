@@ -20,6 +20,19 @@ export const en: Messages = {
     logout: 'Sign out',
     devEnter: 'Enter portal (dev)',
     portalLabel: 'Portal',
+    registerLink: 'Request access',
+    registerTitle: 'Commerce signup',
+    registerDescription:
+      'Send your details. Our team reviews and enables portal access.',
+    registerSubmit: 'Submit request',
+    registering: 'Sending…',
+    registerSuccess:
+      'Request sent. We will contact you after review (no immediate login).',
+    registerFailed: 'Could not submit. Please try again.',
+    backToSignIn: 'Back to sign in',
+    contactName: 'Your name',
+    commerceName: 'Commerce name',
+    phone: 'Phone / WhatsApp',
   },
   shell: {
     locale: 'Language',
@@ -89,9 +102,17 @@ export const en: Messages = {
     emptyDescription: 'Add products from the catalog to get started.',
     itemCount: '{count} items',
     removeItem: 'Remove',
+    decreaseQuantity: 'Decrease quantity',
+    increaseQuantity: 'Increase quantity',
+    secureNotice: 'Secure environment and your data protected',
+    totalValue: 'Total value',
     orderSubmitted: 'Order submitted for approval.',
     loginToCheckout: 'Sign in to checkout',
     loginRequiredMessage: 'Sign in to submit your order.',
+    contactSeller: 'Contact seller',
+    contactUnavailable: 'Seller phone is not available',
+    whatsappIntro: "Hi, I'm interested in these products:\n\n{items}\n",
+    whatsappItem: '- {name} — qty: {qty}',
   },
   orders: {
     title: 'My orders',
@@ -132,6 +153,8 @@ export const en: Messages = {
     contactSeller: 'Contact seller',
     contactUnavailable: 'Sales contact phone is not configured',
     productInfo: 'Product information',
+    whatsappInterest:
+      "Hi, I'm interested in {name} (SKU: {sku})\n{url}",
   },
   sellerAttribution: {
     assistedBy: 'You are talking to {name}',

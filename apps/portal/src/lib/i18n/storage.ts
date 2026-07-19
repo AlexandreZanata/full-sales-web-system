@@ -17,6 +17,28 @@ export function writeStoredLocale(locale: Locale): void {
   window.localStorage.setItem(STORAGE_KEY, locale);
 }
 
+/**
+ * Map browser / OS language to a supported portal locale.
+ * Unrecognized → Portuguese (never default to English).
+ */
+export function localeFromBrowserLanguage(language: string | undefined | null): Locale {
+  const normalized = language?.trim().toLowerCase() ?? '';
+  if (normalized.startsWith('en')) {
+    return 'en';
+  }
+  if (normalized.startsWith('pt')) {
+    return 'pt-BR';
+  }
+  return DEFAULT_LOCALE;
+}
+
 export function resolveInitialLocale(): Locale {
-  return readStoredLocale() ?? DEFAULT_LOCALE;
+  const stored = readStoredLocale();
+  if (stored) {
+    return stored;
+  }
+  if (typeof navigator === 'undefined') {
+    return DEFAULT_LOCALE;
+  }
+  return localeFromBrowserLanguage(navigator.language ?? navigator.languages?.[0]);
 }

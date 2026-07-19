@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { useState, type SubmitEvent } from 'react';
 
 import { usePortalAuth } from '@/auth/usePortalAuth';
@@ -108,6 +108,12 @@ function LoginPage() {
             {submitting ? t('auth.signingIn') : t('auth.signIn')}
           </Button>
         </form>
+
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          <Link to="/register" className="font-medium text-primary underline">
+            {t('auth.registerLink')}
+          </Link>
+        </p>
 
         {import.meta.env.DEV ? (
           <div className="mt-4 border-t border-hairline pt-4">

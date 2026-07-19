@@ -125,6 +125,13 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Auth:** Admin
 - **Response 200 / 404:** `USER_NOT_FOUND`
 
+### `PATCH /v1/users/{id}`
+
+- **Auth:** Admin
+- **Body:** `{ "name", "email", "password?" }` — omit/empty `password` leaves hash unchanged; non-empty must be ≥ 8 chars
+- **Response 200:** User (no password fields)
+- **Errors:** `INVALID_NAME`, `INVALID_EMAIL`, `CONFLICT` (email in use)
+
 ### `PATCH /v1/users/{id}/deactivate`
 
 - **Auth:** Admin
@@ -164,6 +171,25 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Response 200:** `{ "publicCode", "sharePath", "shareUrl", "contactPhone?", "shareLinkActive" }`
 - **`shareUrl`:** Absolute catalog URL from server `PORTAL_PUBLIC_ORIGIN` + `sharePath` (clients MUST use this for copy/share — do not hardcode portal host)
 - **404:** No profile or no `publicCode`
+
+### `POST /v1/public/commerce-leads`
+
+- **Auth:** Public (tenant via host / `PUBLIC_CATALOG_TENANT_ID`)
+- **Body:** `{ "contactName", "phone", "commerceName", "email" }` — phone digits 10–15
+- **Response 201:** `{ "id", "contactName", "phone", "commerceName", "email", "status": "pending", "createdAt" }`
+- **Semantics:** Lead only — no user account until Admin creates CommerceContact after review
+
+### `GET /v1/commerces/portal-leads`
+
+- **Auth:** Admin
+- **Query:** `status?` = `pending` | `approved` | `rejected`
+- **Response 200:** PortalLead[]
+
+### `PATCH /v1/commerces/portal-leads/{id}`
+
+- **Auth:** Admin
+- **Body:** `{ "status": "approved" | "rejected" }`
+- **Response 200:** PortalLead (manual follow-up: Admin still creates the CommerceContact user)
 
 ### `GET /v1/me/seller-profile`
 

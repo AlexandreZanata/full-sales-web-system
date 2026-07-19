@@ -1,6 +1,7 @@
 pub mod banners;
 pub mod categories;
 mod featured_popular;
+mod leads;
 mod orders;
 mod product_detail;
 mod products;
@@ -13,6 +14,7 @@ pub use categories::{
     list_public_categories,
 };
 pub use featured_popular::{list_public_featured_products, list_public_popular_products};
+pub use leads::{create_public_portal_lead, list_portal_leads, review_portal_lead};
 pub(crate) use orders::{
     PortalOrderResponse, load_order, map_order_error, map_postgres_order_error, order_to_response,
 };

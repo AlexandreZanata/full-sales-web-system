@@ -1,0 +1,88 @@
+/* Cart line cards — mobile catalog cart */
+@reference './theme.css';
+
+@layer components {
+  .cart-line-card {
+    @apply flex gap-3 rounded-2xl bg-surface p-3.5 shadow-[0_2px_12px_rgba(26,26,26,0.08)];
+  }
+
+  .cart-line-card__image {
+    @apply size-20 shrink-0 overflow-hidden rounded-xl bg-surface-muted sm:size-24;
+  }
+
+  .cart-line-card__body {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+
+  .cart-line-card__name {
+    @apply text-sm font-bold leading-snug text-foreground;
+  }
+
+  .cart-line-card__sku {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .cart-line-card__price {
+    @apply text-sm font-bold tabular-nums text-accent;
+  }
+
+  .cart-qty-stepper {
+    @apply mt-auto inline-flex h-9 w-fit items-stretch overflow-hidden rounded-lg border border-hairline bg-surface;
+  }
+
+  .cart-qty-stepper__btn {
+    @apply flex w-9 items-center justify-center text-base font-semibold text-accent transition-colors hover:bg-surface-muted disabled:opacity-40;
+  }
+
+  .cart-qty-stepper__value {
+    @apply flex min-w-9 items-center justify-center border-x border-hairline px-2 text-sm font-semibold tabular-nums text-foreground;
+  }
+
+  .cart-line-card__actions {
+    @apply flex shrink-0 flex-col items-center justify-between gap-2 self-stretch border-l border-hairline pl-3;
+  }
+
+  .cart-line-card__remove-icon {
+    @apply flex size-9 items-center justify-center rounded-lg border border-hairline text-destructive;
+  }
+
+  .cart-line-card__actions:hover .cart-line-card__remove-icon {
+    @apply bg-destructive/5;
+  }
+
+  .cart-line-card__remove-label {
+    @apply text-xs font-medium text-destructive;
+  }
+
+  .cart-secure-notice {
+    @apply flex items-center justify-center gap-1.5 pt-2 text-xs text-muted-foreground;
+  }
+
+  .cart-secure-notice__icon {
+    @apply size-3.5 shrink-0 text-accent;
+  }
+
+  .cart-total-field {
+    @apply flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-[0_2px_12px_rgba(26,26,26,0.08)];
+  }
+
+  .cart-total-field__label {
+    @apply text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground;
+  }
+
+  .cart-total-field__amount {
+    @apply text-xl font-bold tabular-nums text-accent;
+  }
+
+  .cart-checkout-total {
+    @apply flex items-center justify-between gap-3 rounded-xl bg-surface-muted/80 px-3 py-3;
+  }
+
+  .cart-checkout-total__label {
+    @apply text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground;
+  }
+
+  .cart-checkout-total__amount {
+    @apply text-lg font-bold tabular-nums text-accent;
+  }
+}

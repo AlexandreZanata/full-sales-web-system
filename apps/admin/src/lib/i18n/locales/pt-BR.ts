@@ -395,6 +395,12 @@ export const ptBR: Messages = {
         message: 'Este usuário poderá entrar novamente.',
         confirm: 'Reativar',
       },
+      edit: 'Editar',
+      save: 'Salvar alterações',
+      saving: 'Salvando…',
+      newPassword: 'Nova senha',
+      newPasswordHint: 'Deixe em branco para manter a senha atual.',
+      roleReadonly: 'O papel não pode ser alterado após a criação.',
     },
     driverProfile: {
       save: 'Salvar perfil de motorista',
@@ -408,6 +414,7 @@ export const ptBR: Messages = {
     toast: {
       deactivated: 'Usuário desativado',
       reactivated: 'Usuário reativado',
+      updated: 'Usuário atualizado',
       driverProfileSaved: 'Perfil de motorista salvo',
       sellerProfileSaved: 'Perfil de vendedor salvo',
     },
@@ -507,6 +514,37 @@ export const ptBR: Messages = {
         rejected: 'Cadastro rejeitado',
       },
       queueLink: 'Fila de revisão',
+    },
+    leads: {
+      title: 'Interesses do portal',
+      description:
+        'Solicitações de cadastro enviadas pelo comerciante no catálogo. Aprove e depois crie o usuário CommerceContact.',
+      filterStatus: 'Filtrar por status',
+      approve: 'Aprovar',
+      reject: 'Rejeitar',
+      openLeads: 'Interesses do portal',
+      columns: {
+        contactName: 'Contato',
+        commerceName: 'Comércio',
+        phone: 'Telefone',
+        email: 'E-mail',
+        status: 'Status',
+        createdAt: 'Enviado em',
+      },
+      status: {
+        pending: 'Pendente',
+        approved: 'Aprovado',
+        rejected: 'Rejeitado',
+        all: 'Todos',
+      },
+      empty: {
+        title: 'Nenhum interesse',
+        description: 'Quando um comerciante pedir cadastro no portal, a solicitação aparece aqui.',
+      },
+      toast: {
+        approved: 'Interesse aprovado',
+        rejected: 'Interesse rejeitado',
+      },
     },
     toast: {
       deactivated: 'Comércio desativado',
