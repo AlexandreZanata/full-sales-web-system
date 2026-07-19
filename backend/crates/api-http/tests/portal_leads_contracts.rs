@@ -1,4 +1,7 @@
 //! Portal commerce lead contracts (public submit + admin review).
+//! T-17-167 GET /v1/commerces/portal-leads
+//! T-17-172 PATCH /v1/commerces/portal-leads/{id}
+//! T-17-177 POST /v1/public/commerce-leads
 
 #[path = "support/mod.rs"]
 mod support;

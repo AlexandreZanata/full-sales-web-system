@@ -1,4 +1,5 @@
 //! Phase 17B — Users create/get/deactivate contracts (T-17-004..007).
+//! T-17-175 PATCH /v1/users/{id}
 
 #[path = "support/mod.rs"]
 mod support;

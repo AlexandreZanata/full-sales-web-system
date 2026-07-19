@@ -167,3 +167,14 @@ T-17-163 GET /v1/media/{id}/content
 T-17-164 POST /v1/platform/auth/logout
 T-17-165 POST /v1/platform/auth/refresh
 T-17-166 POST /v1/platform/impersonate/end
+T-17-167 GET /v1/commerces/portal-leads
+T-17-168 GET /v1/me/seller-profile
+T-17-169 GET /v1/me/seller-share
+T-17-170 GET /v1/public/sellers/{publicCode}
+T-17-171 GET /v1/users/{id}/seller-profile
+T-17-172 PATCH /v1/commerces/portal-leads/{id}
+T-17-173 PATCH /v1/commerces/{id}/activate
+T-17-174 PATCH /v1/me/seller-profile
+T-17-175 PATCH /v1/users/{id}
+T-17-176 PATCH /v1/users/{id}/reactivate
+T-17-177 POST /v1/public/commerce-leads

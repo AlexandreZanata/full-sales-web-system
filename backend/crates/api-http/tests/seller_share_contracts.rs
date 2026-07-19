@@ -1,4 +1,10 @@
 //! Phase 19 — Public seller share resolve + seller-profile share fields.
+//! T-17-168 GET /v1/me/seller-profile
+//! T-17-169 GET /v1/me/seller-share
+//! T-17-170 GET /v1/public/sellers/{publicCode}
+//! T-17-171 GET /v1/users/{id}/seller-profile
+//! T-17-174 PATCH /v1/me/seller-profile
+//! T-17-176 PATCH /v1/users/{id}/reactivate
 
 #[path = "support/mod.rs"]
 mod support;

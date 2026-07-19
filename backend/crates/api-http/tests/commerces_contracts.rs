@@ -1,4 +1,5 @@
 //! Phase 17C — Commerces CRUD / addresses / logo (T-17-010..017).
+//! T-17-173 PATCH /v1/commerces/{id}/activate
 
 #[path = "support/mod.rs"]
 mod support;
