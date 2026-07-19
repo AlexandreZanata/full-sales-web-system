@@ -50,6 +50,7 @@ fun SaleWithLines.toModel(): LocalSale = LocalSale(
     syncFailureReason = sale.syncFailureReason,
     driverId = sale.driverId,
     origin = runCatching { SaleOrigin.valueOf(sale.origin) }.getOrDefault(SaleOrigin.Local),
+    displayCode = sale.displayCode,
 )
 
 fun SyncOutboxEntity.toModel() = SyncOutboxEntry(

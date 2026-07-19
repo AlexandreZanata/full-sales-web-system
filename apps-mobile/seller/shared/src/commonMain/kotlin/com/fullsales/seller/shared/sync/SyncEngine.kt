@@ -64,7 +64,7 @@ class SyncEngine(
         return when (result.outcome) {
             SyncHttpOutcome.Success -> {
                 outbox.markCompleted(entry.id)
-                applySuccess(entry, result.remoteId)
+                applySuccess(entry, result.remoteId, result.displayCode)
                 false
             }
             SyncHttpOutcome.InsufficientStock -> {
@@ -87,7 +87,11 @@ class SyncEngine(
         }
     }
 
-    private suspend fun applySuccess(entry: SyncOutboxEntry, remoteId: String?) {
+    private suspend fun applySuccess(
+        entry: SyncOutboxEntry,
+        remoteId: String?,
+        displayCode: String?,
+    ) {
         when {
             entry.path == "/commerces/registrations" && remoteId != null ->
                 registrations?.setRemoteSynced(
@@ -97,7 +101,12 @@ class SyncEngine(
                     active = false,
                 )
             entry.path == "/sales" && remoteId != null ->
-                sales.setRemoteId(entry.aggregateId, remoteId, LocalSaleStatus.Synced)
+                sales.setRemoteId(
+                    entry.aggregateId,
+                    remoteId,
+                    LocalSaleStatus.Synced,
+                    displayCode = displayCode,
+                )
             entry.path.endsWith("/confirm") ->
                 sales.updateStatus(entry.aggregateId, LocalSaleStatus.Confirmed)
             entry.path.endsWith("/cancel") ->

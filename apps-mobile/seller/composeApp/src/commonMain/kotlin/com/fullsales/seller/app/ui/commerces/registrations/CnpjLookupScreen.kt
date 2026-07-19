@@ -5,7 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -14,8 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.screenTitle
+import com.fullsales.seller.app.ui.components.SellerPrimaryButton
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.CnpjLookupResult
@@ -33,7 +36,12 @@ fun CnpjLookupScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(s.registrations.cnpjLookupTitle, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.screenTitle())
+        Text(
+            s.registrations.cnpjLookupTitle,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.screenTitle(),
+        )
         OutlinedTextField(
             value = state.cnpj,
             onValueChange = viewModel::setCnpj,
@@ -42,13 +50,13 @@ fun CnpjLookupScreen(
             singleLine = true,
             isError = state.errorCode != null,
             supportingText = state.errorCode?.let {
-                { Text(SellerStrings.registrationError(s, it)) }
+                { Text(SellerStrings.cnpjLookupError(s, it)) }
             },
         )
-        Button(
+        SellerPrimaryButton(
             onClick = { viewModel.lookup(onContinue) },
             enabled = state.lookupEnabled,
-            modifier = Modifier.fillMaxWidth(),
+            leadingIcon = if (state.loading) null else Icons.Default.Search,
         ) {
             Text(if (state.loading) s.common.loading else s.registrations.lookupAction)
         }

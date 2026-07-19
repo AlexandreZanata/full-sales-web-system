@@ -33,6 +33,8 @@ data class SaleDetailModel(
     val totalAmountMinor: Double,
     val totalCurrency: String,
     val items: List<SaleDetailLine>,
+    /** Visual-only 8-char sequential code for sellers (not a UUID). */
+    val displayCode: String = formatSaleDisplayCode(1),
 ) {
     val showActions: Boolean = showSaleDetailActions(status, remoteId)
 }
@@ -55,6 +57,7 @@ fun buildSaleDetailFromRemote(
     commerces: List<Commerce>,
     products: List<Product>,
     hasPendingOutbox: Boolean = false,
+    displayCode: String = formatSaleDisplayCode(1),
 ): SaleDetailModel = SaleDetailModel(
     navigationId = sale.id,
     localId = local?.localId,
@@ -71,6 +74,7 @@ fun buildSaleDetailFromRemote(
     totalAmountMinor = sale.totalAmount,
     totalCurrency = sale.totalCurrency,
     items = sale.items.map { it.toDetailLine(products) },
+    displayCode = displayCode,
 )
 
 fun buildSaleDetailFromLocal(
@@ -78,6 +82,7 @@ fun buildSaleDetailFromLocal(
     commerces: List<Commerce>,
     products: List<Product>,
     hasPendingOutbox: Boolean = false,
+    displayCode: String = formatSaleDisplayCode(1),
 ): SaleDetailModel {
     val displayStatus = when (local.status) {
         LocalSaleStatus.Confirmed -> SaleDisplayStatus.Confirmed
@@ -98,6 +103,7 @@ fun buildSaleDetailFromLocal(
         totalAmountMinor = local.totalAmount,
         totalCurrency = local.totalCurrency,
         items = local.items.map { it.toDetailLine(products) },
+        displayCode = displayCode,
     )
 }
 

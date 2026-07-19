@@ -31,6 +31,7 @@ fun Sales.toLocalSale(lines: List<Sale_lines>): LocalSale = LocalSale(
     syncFailureReason = syncFailureReason,
     driverId = driverId,
     origin = runCatching { SaleOrigin.valueOf(origin) }.getOrDefault(SaleOrigin.Local),
+    displayCode = displayCode,
 )
 
 fun Sale_lines.toSaleItem() = SaleItem(
@@ -103,6 +104,7 @@ internal fun SalesQueries.upsertSaleRow(sale: LocalSale) {
         syncFailureReason = sale.syncFailureReason,
         driverId = sale.driverId,
         origin = sale.origin.name,
+        displayCode = sale.displayCode,
     )
 }
 

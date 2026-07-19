@@ -59,6 +59,9 @@ pub struct SaleResponse {
     pub total_amount: i64,
     #[serde(rename = "totalCurrency")]
     pub total_currency: String,
+    /// Visual-only 8-char sequential alphanumeric code for sellers (not a UUID).
+    #[serde(rename = "displayCode")]
+    pub display_code: String,
     pub items: Vec<SaleItemResponse>,
 }
 
@@ -82,9 +85,14 @@ pub struct SaleSummaryResponse {
     pub declared_payment_received: bool,
     #[serde(rename = "createdAt")]
     pub created_at: chrono::DateTime<chrono::Utc>,
+    #[serde(rename = "displayCode")]
+    pub display_code: String,
 }
 
-pub(crate) fn sale_response_from_dto(dto: &application::sales::SaleDto) -> SaleResponse {
+pub(crate) fn sale_response_from_dto(
+    dto: &application::sales::SaleDto,
+    display_code: String,
+) -> SaleResponse {
     SaleResponse {
         id: dto.id.as_uuid(),
         commerce_id: dto.commerce_id,
@@ -96,6 +104,7 @@ pub(crate) fn sale_response_from_dto(dto: &application::sales::SaleDto) -> SaleR
         declared_payment_received: false,
         total_amount: dto.total.amount_minor(),
         total_currency: dto.total.currency().as_str().to_owned(),
+        display_code,
         items: dto
             .items
             .iter()

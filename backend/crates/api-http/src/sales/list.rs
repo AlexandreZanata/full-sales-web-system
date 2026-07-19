@@ -78,5 +78,6 @@ pub(crate) fn sale_summary_from_row(
         declared_payment_method: row.declared_payment_method,
         declared_payment_received: row.declared_payment_received,
         created_at: row.created_at,
+        display_code: row.display_code,
     })
 }

@@ -36,7 +36,7 @@ import com.fullsales.seller.shared.db.entity.SyncOutboxEntity
         MediaUrlCacheEntity::class,
         SiteSettingsEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = false,
 )
 abstract class SellerDatabase : RoomDatabase() {
@@ -55,6 +55,7 @@ abstract class SellerDatabase : RoomDatabase() {
                     SellerMigrations.MIGRATION_5_6,
                     SellerMigrations.MIGRATION_6_7,
                     SellerMigrationsV8.MIGRATION_7_8,
+                    SellerMigrationsV9.MIGRATION_8_9,
                 )
                 .fallbackToDestructiveMigrationFrom(1, 2, 3)
                 .build()

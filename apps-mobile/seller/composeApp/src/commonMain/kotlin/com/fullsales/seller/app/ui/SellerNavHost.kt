@@ -161,6 +161,14 @@ private fun SellerNavHostContent(
                 saleId = id,
                 viewModel = viewModel,
                 mediaUrlResolver = factory.mediaUrlResolver,
+                onCancelledNavigateToNewSale = {
+                    if (!navController.popBackStack(SellerRoutes.SALES_NEW, inclusive = false)) {
+                        navController.navigate(SellerRoutes.SALES_NEW) {
+                            popUpTo(SellerRoutes.SALES) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
             )
         }
         commerceRoutes(

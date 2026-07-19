@@ -1,15 +1,14 @@
 package com.fullsales.seller.app.ui.sales
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -45,63 +44,58 @@ internal fun SaleProductListSection(
     onAddLine: () -> Unit,
 ) {
     val s = LocalSellerStrings.current
-    Card(
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+        Text(
+            text = s.sales.productList,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        linesError?.let {
             Text(
-                text = s.sales.productList,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
+                SellerStrings.formatValidation(s, it),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
             )
-            linesError?.let {
-                Text(
-                    SellerStrings.formatValidation(s, it),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                lines.forEachIndexed { index, line ->
-                    SaleProductListRow(
-                        line = line,
-                        products = products,
-                        topSellingProducts = topSellingProducts,
-                        stockByProductId = stockByProductId,
-                        stock = visualStockRemaining(
-                            stockByProductId[line.productId],
-                            lines,
-                            line.productId,
-                        ),
-                        isBackorder = needsBackorderWarning(
-                            line.productId,
-                            lines,
-                            stockByProductId,
-                        ),
-                        quantityError = lineErrors.getOrNull(index)?.quantityError,
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            lines.forEachIndexed { index, line ->
+                SaleProductListRow(
+                    line = line,
+                    products = products,
+                    topSellingProducts = topSellingProducts,
+                    stockByProductId = stockByProductId,
+                    stock = visualStockRemaining(
+                        stockByProductId[line.productId],
+                        lines,
+                        line.productId,
+                    ),
+                    isBackorder = needsBackorderWarning(
+                        line.productId,
+                        lines,
+                        stockByProductId,
+                    ),
+                    quantityError = lineErrors.getOrNull(index)?.quantityError,
                     mediaUrlResolver = mediaUrlResolver,
                     onChange = { onUpdateLine(index, it) },
-                        onRemove = { onRemoveLine(index) },
-                        canRemove = lines.size > 1,
-                    )
-                }
+                    onRemove = { onRemoveLine(index) },
+                    canRemove = lines.size > 1,
+                )
             }
-            FilledTonalButton(
-                onClick = onAddLine,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 48.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Text(s.sales.addLine, modifier = Modifier.padding(start = 8.dp))
-            }
+        }
+        FilledTonalButton(
+            onClick = onAddLine,
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 52.dp),
+            shape = RoundedCornerShape(14.dp),
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(s.sales.addLine)
         }
     }
 }

@@ -31,6 +31,7 @@ fun SaleDetailScreen(
     saleId: String,
     viewModel: SaleDetailViewModel,
     mediaUrlResolver: MediaUrlResolver,
+    onCancelledNavigateToNewSale: () -> Unit,
 ) {
     val s = LocalSellerStrings.current
     val state by viewModel.state.collectAsState()
@@ -40,6 +41,12 @@ fun SaleDetailScreen(
         state.snackbarCode?.let { code ->
             snackbarHostState.showSnackbar(SellerStrings.saleActionError(s, code))
             viewModel.clearSnackbar()
+        }
+    }
+    LaunchedEffect(state.navigateToNewSale) {
+        if (state.navigateToNewSale) {
+            viewModel.consumeNavigateToNewSale()
+            onCancelledNavigateToNewSale()
         }
     }
     val detail = state.detail

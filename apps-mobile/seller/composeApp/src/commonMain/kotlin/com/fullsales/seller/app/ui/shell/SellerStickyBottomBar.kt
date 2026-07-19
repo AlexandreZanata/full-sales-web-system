@@ -24,9 +24,9 @@ fun SellerStickyBottomBar(
             .fillMaxWidth()
             .navigationBarsPadding()
             .imePadding(),
-        shadowElevation = 8.dp,
-        tonalElevation = 3.dp,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 6.dp,
+        tonalElevation = 0.dp,
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Column(
             modifier = Modifier

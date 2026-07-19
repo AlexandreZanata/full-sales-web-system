@@ -6,7 +6,9 @@ use crate::PostgresError;
 use crate::inventory::StockMovementInsert;
 use crate::rls::{SessionContext, apply_session_context, apply_tenant_context};
 
+mod display_code;
 mod product_metrics;
+pub use display_code::{allocate_display_code, format_display_code};
 pub use product_metrics::{
     TopSellingProductRow, list_top_selling_products, record_product_sales_in_tx,
 };
@@ -30,6 +32,7 @@ pub struct SaleListRow {
     pub total_amount: i64,
     pub total_currency: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
+    pub display_code: String,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -76,6 +79,7 @@ pub struct SaleRow {
     pub declared_payment_received: bool,
     pub total_amount: i64,
     pub total_currency: String,
+    pub display_code: String,
 }
 
 pub struct DeclarePaymentUpdate {
@@ -109,13 +113,14 @@ pub async fn insert_sale_with_items(
     pool: &PgPool,
     tenant_id: TenantId,
     sale: SaleInsert,
-) -> Result<(), PostgresError> {
+) -> Result<String, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
+    let display_code = allocate_display_code(&mut tx, tenant_id.as_uuid()).await?;
     sqlx::query(
         "INSERT INTO sales.sales
-         (id, tenant_id, driver_id, commerce_id, payment_method, total_amount, total_currency)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)",
+         (id, tenant_id, driver_id, commerce_id, payment_method, total_amount, total_currency, display_code)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
     )
     .bind(sale.sale_id)
     .bind(tenant_id.as_uuid())
@@ -124,6 +129,7 @@ pub async fn insert_sale_with_items(
     .bind(&sale.payment_method)
     .bind(sale.total_amount)
     .bind(&sale.total_currency)
+    .bind(&display_code)
     .execute(&mut *tx)
     .await?;
 
@@ -146,7 +152,7 @@ pub async fn insert_sale_with_items(
     }
 
     tx.commit().await?;
-    Ok(())
+    Ok(display_code)
 }
 
 pub async fn find_sale_by_id(
@@ -169,10 +175,12 @@ pub async fn find_sale_by_id(
             bool,
             i64,
             String,
+            String,
         ),
     >(
         "SELECT id, driver_id, commerce_id, order_id, status, payment_method,
-                declared_payment_method, declared_payment_received, total_amount, total_currency
+                declared_payment_method, declared_payment_received, total_amount, total_currency,
+                display_code
          FROM sales.sales WHERE id = $1",
     )
     .bind(id)
@@ -191,6 +199,7 @@ pub async fn find_sale_by_id(
             declared_payment_received,
             total_amount,
             total_currency,
+            display_code,
         )| {
             SaleRow {
                 id,
@@ -203,6 +212,7 @@ pub async fn find_sale_by_id(
                 declared_payment_received,
                 total_amount,
                 total_currency,
+                display_code,
             }
         },
     ))
@@ -356,22 +366,24 @@ pub async fn insert_sale(
     driver_id: Uuid,
     commerce_id: Uuid,
     payment_method: &str,
-) -> Result<(), PostgresError> {
+) -> Result<String, PostgresError> {
     let mut tx = pool.begin().await?;
     apply_tenant_context(&mut tx, tenant_id).await?;
+    let display_code = allocate_display_code(&mut tx, tenant_id.as_uuid()).await?;
     sqlx::query(
-        "INSERT INTO sales.sales (id, tenant_id, driver_id, commerce_id, payment_method)
-         VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO sales.sales (id, tenant_id, driver_id, commerce_id, payment_method, display_code)
+         VALUES ($1, $2, $3, $4, $5, $6)",
     )
     .bind(id)
     .bind(tenant_id.as_uuid())
     .bind(driver_id)
     .bind(commerce_id)
     .bind(payment_method)
+    .bind(&display_code)
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
-    Ok(())
+    Ok(display_code)
 }
 
 pub async fn list_sale_ids(pool: &PgPool, tenant_id: TenantId) -> Result<Vec<Uuid>, PostgresError> {
@@ -406,11 +418,12 @@ pub async fn list_sales(
             i64,
             String,
             chrono::DateTime<chrono::Utc>,
+            String,
         ),
     >(
         "SELECT id, driver_id, commerce_id, status, payment_method,
                 declared_payment_method, declared_payment_received,
-                total_amount, total_currency, created_at
+                total_amount, total_currency, created_at, display_code
          FROM sales.sales
          WHERE ($1::uuid IS NULL OR commerce_id = $1)
            AND ($2::uuid IS NULL OR driver_id = $2)
@@ -444,6 +457,7 @@ pub async fn list_sales(
                 total_amount,
                 total_currency,
                 created_at,
+                display_code,
             )| SaleListRow {
                 id,
                 driver_id,
@@ -455,6 +469,7 @@ pub async fn list_sales(
                 total_amount,
                 total_currency,
                 created_at,
+                display_code,
             },
         )
         .collect())
@@ -482,11 +497,12 @@ pub async fn list_sales_cursor(
             i64,
             String,
             chrono::DateTime<chrono::Utc>,
+            String,
         ),
     >(
         "SELECT id, driver_id, commerce_id, status, payment_method,
                 declared_payment_method, declared_payment_received,
-                total_amount, total_currency, created_at
+                total_amount, total_currency, created_at, display_code
          FROM sales.sales
          WHERE ($1::uuid IS NULL OR commerce_id = $1)
            AND ($2::uuid IS NULL OR driver_id = $2)
@@ -521,6 +537,7 @@ pub async fn list_sales_cursor(
                 total_amount,
                 total_currency,
                 created_at,
+                display_code,
             )| SaleListRow {
                 id,
                 driver_id,
@@ -532,6 +549,7 @@ pub async fn list_sales_cursor(
                 total_amount,
                 total_currency,
                 created_at,
+                display_code,
             },
         )
         .collect())

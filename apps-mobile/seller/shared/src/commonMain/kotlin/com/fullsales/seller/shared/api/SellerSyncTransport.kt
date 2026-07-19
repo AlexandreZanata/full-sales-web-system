@@ -52,7 +52,11 @@ class SellerSyncTransport(
     private suspend fun createSale(entry: SyncOutboxEntry): SyncHttpResult {
         val request = json.decodeFromString<CreateSaleRequest>(entry.bodyJson)
         val sale = client.createSale(request, entry.idempotencyKey)
-        return SyncHttpResult(SyncHttpOutcome.Success, remoteId = sale.id)
+        return SyncHttpResult(
+            SyncHttpOutcome.Success,
+            remoteId = sale.id,
+            displayCode = sale.displayCode,
+        )
     }
 
     private suspend fun createRegistration(entry: SyncOutboxEntry): SyncHttpResult {

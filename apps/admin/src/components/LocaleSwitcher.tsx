@@ -1,3 +1,5 @@
+import { Globe } from 'lucide-react';
+
 import { useI18n, LOCALE_LABELS } from '@/lib/i18n/context';
 import { LOCALES, type Locale } from '@/lib/i18n/types';
 import { cn } from '@/lib/utils';
@@ -13,6 +15,7 @@ export function LocaleSwitcher({ className }: LocaleSwitcherProps) {
     <label
       className={cn('inline-flex items-center gap-2 text-sm text-muted-foreground', className)}
     >
+      <Globe className="h-4 w-4 shrink-0" aria-hidden />
       <span className="sr-only">{t('shell.locale')}</span>
       <select
         aria-label={t('shell.locale')}

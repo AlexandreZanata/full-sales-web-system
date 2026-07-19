@@ -2,17 +2,17 @@ package com.fullsales.seller.app.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -25,11 +25,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
 import com.fullsales.seller.app.platform.isDebugBuild
 import com.fullsales.seller.app.ui.a11y.screenTitle
+import com.fullsales.seller.app.ui.components.SellerPrimaryButton
+import com.fullsales.seller.app.ui.components.SellerSurfaceCard
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.i18n.LoginAccessibilityPanel
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -55,6 +58,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
             .verticalScroll(rememberScrollState())
@@ -72,49 +76,50 @@ fun LoginScreen(
         Text(
             s.auth.signInTitle,
             style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .fillMaxWidth()
                 .screenTitle(),
         )
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(s.auth.email) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(s.auth.password) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-        state.error?.let { code ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                ),
+        SellerSurfaceCard(contentPadding = false) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    text = SellerStrings.authError(s, code, state.errorDetail),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(12.dp),
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text(s.auth.email) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text(s.auth.password) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
                 )
             }
         }
-        Button(
+        state.error?.let { code ->
+            SellerSurfaceCard(contentPadding = false) {
+                Text(
+                    text = SellerStrings.authError(s, code, state.errorDetail),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(14.dp),
+                )
+            }
+        }
+        SellerPrimaryButton(
             onClick = { viewModel.login(email, password, onLoggedIn) },
             enabled = !state.loading && email.isNotBlank() && password.isNotBlank(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 48.dp),
+            leadingIcon = if (state.loading) null else Icons.AutoMirrored.Filled.Login,
         ) {
             if (state.loading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.padding(4.dp),
+                    modifier = Modifier.size(20.dp).padding(2.dp),
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
             } else {

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -23,10 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.listItemSummary
 import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.components.SellerEmptyState
+import com.fullsales.seller.app.ui.components.SellerSurfaceCard
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -104,16 +105,27 @@ private fun RegistrationRow(item: CommerceRegistration) {
         status,
         maskCnpj(item.cnpj),
     )
-    Card(
+    SellerSurfaceCard(
         modifier = Modifier
-            .fillMaxWidth()
             .padding(vertical = 4.dp)
             .listItemSummary(summary),
+        contentPadding = false,
     ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(item.displayName(), style = MaterialTheme.typography.titleMedium)
-            Text(maskCnpj(item.cnpj), style = MaterialTheme.typography.bodySmall)
-            Text(status, style = MaterialTheme.typography.labelMedium)
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                item.displayName(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                maskCnpj(item.cnpj),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(status, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             item.rejectionReason?.takeIf { it.isNotBlank() }?.let { reason ->
                 Text(
                     SellerStrings.format(s.registrations.rejectionReason, "reason" to reason),

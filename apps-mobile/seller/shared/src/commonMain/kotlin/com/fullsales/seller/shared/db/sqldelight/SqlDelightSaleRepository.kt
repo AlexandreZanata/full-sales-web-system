@@ -59,8 +59,13 @@ class SqlDelightSaleRepository(
         sales.updateSaleStatus(status.name, localId)
     }
 
-    override suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus) {
-        sales.setSaleRemoteId(remoteId, status.name, localId)
+    override suspend fun setRemoteId(
+        localId: String,
+        remoteId: String,
+        status: LocalSaleStatus,
+        displayCode: String?,
+    ) {
+        sales.setSaleRemoteId(remoteId, status.name, displayCode, localId)
     }
 
     override suspend fun markSyncFailed(localId: String, reason: String) {
@@ -91,6 +96,7 @@ class SqlDelightSaleRepository(
                 runCatching { SaleOrigin.valueOf(it.origin) }.getOrDefault(SaleOrigin.RemoteMirror)
             } ?: SaleOrigin.RemoteMirror,
             existingIdempotencyKey = existing?.idempotencyKey,
+            existingDisplayCode = existing?.displayCode,
         )
         upsertSaleWithLines(mirrored)
     }

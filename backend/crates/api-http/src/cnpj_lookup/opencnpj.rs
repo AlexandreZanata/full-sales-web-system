@@ -5,7 +5,7 @@ use super::opencnpj_map::{PublicCnpjResponse, map_opencnpj_response};
 use super::{CnpjLookupError, CnpjLookupProvider, CnpjLookupResult};
 
 pub(crate) const DEFAULT_BASE_URL: &str = "https://api.comerc.app.br";
-const TIMEOUT_SECS: u64 = 15;
+const TIMEOUT_SECS: u64 = 20;
 const RETRY_BACKOFF_MS: u64 = 500;
 
 pub struct OpenCnpjLookup {
@@ -82,7 +82,14 @@ impl OpenCnpjLookup {
             .header("X-Request-ID", Uuid::now_v7().to_string())
             .send()
             .await
-            .map_err(|_| FetchFailure::Unavailable)?;
+            .map_err(|err| {
+                // Transient network/timeout — retry once (same as upstream 504).
+                if err.is_timeout() || err.is_connect() {
+                    FetchFailure::GatewayTimeout
+                } else {
+                    FetchFailure::Unavailable
+                }
+            })?;
         let status = response.status();
         if status.is_success() {
             let bytes = response

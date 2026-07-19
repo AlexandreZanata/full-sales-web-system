@@ -1,6 +1,5 @@
 package com.fullsales.seller.app.ui.sales
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -30,9 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.listItemSummary
 import com.fullsales.seller.app.ui.components.SellerEmptyState
+import com.fullsales.seller.app.ui.components.SellerSurfaceCard
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -110,27 +110,38 @@ private fun SaleRow(sale: SalesListItem, onClick: () -> Unit) {
     val dateLabel = formatSalesListDateTime(sale.createdAtEpochMs)
     val statusLabel = SellerStrings.saleStatus(s, sale.status)
     val summary = SellerStrings.saleListItem(s, sale.shortId, dateLabel, statusLabel, money)
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .listItemSummary(summary)
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.medium,
+    SellerSurfaceCard(
+        modifier = Modifier.listItemSummary(summary),
+        onClick = onClick,
+        contentPadding = false,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(sale.shortId, style = MaterialTheme.typography.labelSmall)
-                Text(dateLabel, style = MaterialTheme.typography.bodySmall)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    sale.shortId,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    dateLabel,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-            Column(horizontalAlignment = Alignment.End) {
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 SaleStatusChip(status = sale.status)
-                Text(money, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    money,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
         }
     }

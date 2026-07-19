@@ -68,7 +68,8 @@ CREATE TABLE sales (
   createdAtEpochMs INTEGER NOT NULL,
   syncFailureReason TEXT,
   driverId TEXT,
-  origin TEXT NOT NULL
+  origin TEXT NOT NULL,
+  displayCode TEXT
 );
 
 CREATE TABLE sale_lines (

@@ -12,8 +12,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.ui.a11y.selectableChipA11y
+import com.fullsales.seller.app.ui.components.SellerSurfaceCard
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.ime.bringIntoViewOnFocus
 import com.fullsales.seller.shared.catalog.filterProductsForSalePickerSearch
@@ -41,11 +43,15 @@ internal fun ProductSearchPicker(
         if (showSelectedLabel) {
             Text(s.sales.product, style = MaterialTheme.typography.labelLarge)
             selected?.let {
-                Text(
-                    "${it.name} (${it.sku})",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                SellerSurfaceCard(highlighted = true, contentPadding = false) {
+                    Text(
+                        "${it.name} (${it.sku})",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(14.dp),
+                    )
+                }
             }
         }
         OutlinedTextField(
@@ -111,7 +117,6 @@ private fun TopSellingSection(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SearchResultsSection(
     products: List<Product>,
@@ -121,7 +126,7 @@ private fun SearchResultsSection(
 ) {
     val s = LocalSellerStrings.current
     val results = filterProductsForSalePickerSearch(products, searchQuery)
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (results.isEmpty()) {
             Text(
                 s.sales.noProductResults,
@@ -131,21 +136,23 @@ private fun SearchResultsSection(
             )
             return
         }
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            results.forEach { product ->
-                val label = "${product.name} (${product.sku})"
-                FilterChip(
-                    selected = productId == product.id,
-                    onClick = { onSelect(product.id) },
-                    label = { Text(label, maxLines = 1) },
-                    modifier = Modifier.selectableChipA11y(
-                        label,
-                        productId == product.id,
-                        s.a11y.selected,
-                    ),
+        results.forEach { product ->
+            val selected = productId == product.id
+            SellerSurfaceCard(
+                onClick = { onSelect(product.id) },
+                highlighted = selected,
+                contentPadding = false,
+            ) {
+                Text(
+                    "${product.name} (${product.sku})",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                    modifier = Modifier.padding(14.dp),
                 )
             }
         }

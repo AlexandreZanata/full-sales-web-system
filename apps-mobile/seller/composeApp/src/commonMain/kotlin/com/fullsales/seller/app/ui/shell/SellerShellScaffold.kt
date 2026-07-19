@@ -3,20 +3,14 @@ package com.fullsales.seller.app.ui.shell
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,6 +51,11 @@ fun SellerShellScaffold(
                 TopAppBar(
                     windowInsets = WindowInsets.statusBars,
                     title = { Text(s.nav.sellerFallback) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.primary,
+                    ),
                     actions = {
                         LocaleSwitcher(
                             locale = locale,
@@ -79,26 +78,12 @@ fun SellerShellScaffold(
         },
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(windowInsets = WindowInsets.navigationBars) {
-                    NavigationBarItem(
-                        selected = currentRoute == SellerRoutes.SALES,
-                        onClick = onNavigateSales,
-                        icon = { Icon(Icons.Default.Receipt, contentDescription = s.a11y.sales) },
-                        label = { Text(s.nav.sales) },
-                    )
-                    NavigationBarItem(
-                        selected = currentRoute == SellerRoutes.SALES_NEW,
-                        onClick = onNavigateNewSale,
-                        icon = { Icon(Icons.Default.Add, contentDescription = s.a11y.newSale) },
-                        label = { Text(s.nav.newSale) },
-                    )
-                    NavigationBarItem(
-                        selected = currentRoute == SellerRoutes.COMMERCES,
-                        onClick = onNavigateCommerces,
-                        icon = { Icon(Icons.Default.Store, contentDescription = s.a11y.commerces) },
-                        label = { Text(s.nav.commerces) },
-                    )
-                }
+                SellerBottomNav(
+                    currentRoute = currentRoute,
+                    onNavigateSales = onNavigateSales,
+                    onNavigateNewSale = onNavigateNewSale,
+                    onNavigateCommerces = onNavigateCommerces,
+                )
             }
         },
         content = content,

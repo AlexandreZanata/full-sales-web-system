@@ -59,9 +59,18 @@ class CnpjLookupViewModel(
                     onSuccess(result)
                 }
                 .onFailure { err ->
-                    val code = (err as? ApiException)?.detail?.code ?: "LOOKUP_FAILED"
-                    _state.update { it.copy(loading = false, errorCode = code) }
+                    _state.update { it.copy(loading = false, errorCode = lookupErrorCode(err)) }
                 }
         }
     }
+}
+
+internal fun lookupErrorCode(err: Throwable): String {
+    var current: Throwable? = err
+    while (current != null) {
+        val api = current as? ApiException
+        if (api != null) return api.detail.code
+        current = current.cause
+    }
+    return "LOOKUP_FAILED"
 }

@@ -29,4 +29,6 @@ data class LocalSale(
     val syncFailureReason: String? = null,
     val driverId: String? = null,
     val origin: SaleOrigin = SaleOrigin.Local,
+    /** Server `displayCode` when known; provisional local code until sync. */
+    val displayCode: String? = null,
 )

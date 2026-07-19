@@ -32,4 +32,19 @@ class SellerStringsTest {
         assertEquals("Você está offline", pt.offline.bannerTitle)
         assertEquals("Servidor indisponível. Usando dados locais.", pt.offline.bannerServer)
     }
+
+    @Test
+    fun cnpjLookupError_neverShowsSubmitFailed() {
+        val pt = SellerStrings.forLocale(SellerLocale.PtBr)
+        assertEquals("CNPJ não encontrado", SellerStrings.cnpjLookupError(pt, "CNPJ_NOT_FOUND"))
+        assertEquals("CNPJ não encontrado", SellerStrings.cnpjLookupError(pt, "HTTP_404"))
+        assertEquals(
+            "Consulta CNPJ temporariamente indisponível",
+            SellerStrings.cnpjLookupError(pt, "LOOKUP_FAILED"),
+        )
+        assertEquals(
+            "Consulta CNPJ temporariamente indisponível",
+            SellerStrings.cnpjLookupError(pt, "UNKNOWN_CODE"),
+        )
+    }
 }

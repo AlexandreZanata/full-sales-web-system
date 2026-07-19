@@ -65,8 +65,13 @@ class RoomSaleRepository(
         dao.updateStatus(localId, status.name)
     }
 
-    override suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus) {
-        dao.setRemoteId(localId, remoteId, status.name)
+    override suspend fun setRemoteId(
+        localId: String,
+        remoteId: String,
+        status: LocalSaleStatus,
+        displayCode: String?,
+    ) {
+        dao.setRemoteId(localId, remoteId, status.name, displayCode)
     }
 
     override suspend fun markSyncFailed(localId: String, reason: String) {
@@ -94,6 +99,7 @@ class RoomSaleRepository(
             existingLocalId = existing?.localId,
             existingOrigin = existing?.origin ?: SaleOrigin.RemoteMirror,
             existingIdempotencyKey = existing?.idempotencyKey,
+            existingDisplayCode = existing?.displayCode,
         )
         dao.upsertSaleWithLines(mirrored.toEntity(), saleLines(mirrored.localId, mirrored.items))
     }
@@ -111,6 +117,7 @@ class RoomSaleRepository(
         syncFailureReason = syncFailureReason,
         driverId = driverId,
         origin = origin.name,
+        displayCode = displayCode,
     )
 
     private companion object {

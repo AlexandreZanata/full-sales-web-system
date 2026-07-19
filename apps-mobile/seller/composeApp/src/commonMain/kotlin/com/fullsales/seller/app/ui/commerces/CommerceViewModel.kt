@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.connectivity.isDefinitelyOffline
+import com.fullsales.seller.shared.catalog.filterCommercesBySearch
 import com.fullsales.seller.shared.model.Commerce
-import com.fullsales.seller.shared.model.displayName
 import com.fullsales.seller.shared.repository.CatalogRepository
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.ui.ListEmptyReason
@@ -27,12 +27,10 @@ data class CommerceListUiState(
     val snackbarCode: String? = null,
     val refreshFailed: Boolean = false,
 ) {
-    val filtered: List<Commerce> = items
-        .asSequence()
-        .filter { !activeOnly || it.active }
-        .filter { commerceMatchesSearch(it, searchQuery) }
-        .sortedBy { it.displayName().lowercase() }
-        .toList()
+    val filtered: List<Commerce> = filterCommercesBySearch(
+        items.filter { !activeOnly || it.active },
+        searchQuery,
+    )
 
     val emptyReason: ListEmptyReason? get() = resolveListEmptyReason(
         hasLocalRows = items.isNotEmpty(),
@@ -42,13 +40,6 @@ data class CommerceListUiState(
     )
 
     val isFilterEmpty: Boolean get() = !refreshing && items.isNotEmpty() && filtered.isEmpty()
-}
-
-private fun commerceMatchesSearch(commerce: Commerce, query: String): Boolean {
-    val term = query.trim().lowercase()
-    if (term.isEmpty()) return true
-    return commerce.legalName.lowercase().contains(term) ||
-        commerce.tradeName?.lowercase()?.contains(term) == true
 }
 
 class CommerceViewModel(

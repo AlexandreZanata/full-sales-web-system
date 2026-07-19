@@ -7,6 +7,7 @@ import com.fullsales.seller.shared.model.LocalSale
 import com.fullsales.seller.shared.model.Product
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.repository.SyncOutboxRepository
+import kotlinx.coroutines.flow.first
 
 class SaleDetailLoader(
     private val apiClient: SellerApiClient,
@@ -42,7 +43,12 @@ class SaleDetailLoader(
         val remote = apiClient.getSale(remoteId)
         val enriched = enrichForSale(remote.commerceId, remote.items.map { it.productId }, commerces, products, online)
         val pending = hasPendingOutbox(local?.localId)
-        Result.success(buildSaleDetailFromRemote(remote, local, enriched.first, enriched.second, pending))
+        val code = remote.displayCode
+            ?: local?.displayCode
+            ?: displayCodeFor(remoteId, local)
+        Result.success(
+            buildSaleDetailFromRemote(remote, local, enriched.first, enriched.second, pending, code),
+        )
     } catch (error: ApiException) {
         if (error.detail.code == "SALE_NOT_FOUND" && local != null) {
             buildLocalResult(local, commerces, products, online)
@@ -59,7 +65,20 @@ class SaleDetailLoader(
     ): Result<SaleDetailModel> {
         val enriched = enrichForSale(local.commerceId, local.items.map { it.productId }, commerces, products, online)
         val pending = hasPendingOutbox(local.localId)
-        return Result.success(buildSaleDetailFromLocal(local, enriched.first, enriched.second, pending))
+        val code = local.displayCode
+            ?: displayCodeFor(local.remoteId ?: local.localId, local)
+        return Result.success(
+            buildSaleDetailFromLocal(local, enriched.first, enriched.second, pending, code),
+        )
+    }
+
+    private suspend fun displayCodeFor(navigationId: String, local: LocalSale?): String {
+        local?.displayCode?.let { return it }
+        val all = saleRepository.observeSales().first()
+        if (all.isNotEmpty()) {
+            return saleDisplayCodeFor(all, navigationId)
+        }
+        return local?.let { saleDisplayCodeFor(listOf(it), navigationId) } ?: formatSaleDisplayCode(1)
     }
 
     private suspend fun hasPendingOutbox(localId: String?): Boolean {

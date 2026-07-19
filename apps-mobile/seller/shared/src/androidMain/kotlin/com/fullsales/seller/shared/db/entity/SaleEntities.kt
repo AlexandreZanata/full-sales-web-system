@@ -22,6 +22,7 @@ data class SaleEntity(
     val syncFailureReason: String? = null,
     val driverId: String? = null,
     val origin: String = "Local",
+    val displayCode: String? = null,
 )
 
 @Entity(

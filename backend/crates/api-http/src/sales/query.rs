@@ -50,6 +50,7 @@ pub(crate) fn build_sale_response(
         declared_payment_received: row.declared_payment_received,
         total_amount: row.total_amount,
         total_currency: row.total_currency.clone(),
+        display_code: row.display_code.clone(),
         items: items
             .into_iter()
             .map(|item| SaleItemResponse {

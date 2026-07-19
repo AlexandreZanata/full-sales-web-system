@@ -108,9 +108,20 @@ class FakeSaleRepository : SaleRepository {
         }
     }
 
-    override suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus) {
+    override suspend fun setRemoteId(
+        localId: String,
+        remoteId: String,
+        status: LocalSaleStatus,
+        displayCode: String?,
+    ) {
         mutex.withLock {
-            sales[localId]?.let { sales[localId] = it.copy(remoteId = remoteId, status = status) }
+            sales[localId]?.let {
+                sales[localId] = it.copy(
+                    remoteId = remoteId,
+                    status = status,
+                    displayCode = displayCode ?: it.displayCode,
+                )
+            }
         }
     }
 
@@ -132,6 +143,7 @@ class FakeSaleRepository : SaleRepository {
                     existingLocalId = existing?.localId,
                     existingOrigin = existing?.origin,
                     existingIdempotencyKey = existing?.idempotencyKey,
+                    existingDisplayCode = existing?.displayCode,
                 )
                 sales[mirrored.localId] = mirrored
             }

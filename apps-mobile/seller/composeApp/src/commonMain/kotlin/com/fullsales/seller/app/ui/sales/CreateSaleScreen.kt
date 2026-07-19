@@ -12,12 +12,11 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
-import com.fullsales.seller.app.ui.shell.SellerStickyBottomBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -32,8 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.shell.NestedScreenScaffold
+import com.fullsales.seller.app.ui.shell.SellerStickyBottomBar
 import com.fullsales.seller.app.platform.MediaUrlResolver
 import com.fullsales.seller.app.ui.a11y.screenTitle
+import com.fullsales.seller.app.ui.components.SellerPrimaryButton
+import com.fullsales.seller.app.ui.components.SellerSecondaryButton
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.model.formatMoneyMinorUnits
@@ -108,7 +111,6 @@ fun CreateSaleScreen(
                 commerceId = state.commerceId,
                 error = state.errors.commerceError,
                 onOpenPicker = onOpenCommercePicker,
-                onSelect = viewModel::setCommerceId,
             )
             PaymentMethodChips(
                 selected = state.paymentMethod,
@@ -158,20 +160,20 @@ private fun CreateSaleBottomBar(
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(
+            SellerSecondaryButton(
                 onClick = onBack,
-                modifier = Modifier
-                    .weight(1f)
-                    .defaultMinSize(minHeight = 48.dp),
+                modifier = Modifier.weight(1f),
+                leadingIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                fillMaxWidth = false,
             ) {
                 Text(s.common.back)
             }
-            Button(
+            SellerPrimaryButton(
                 onClick = onSubmit,
                 enabled = !submitting,
-                modifier = Modifier
-                    .weight(1f)
-                    .defaultMinSize(minHeight = 48.dp),
+                modifier = Modifier.weight(1f),
+                leadingIcon = Icons.Default.Check,
+                fillMaxWidth = false,
             ) {
                 Text(if (submitting) s.common.saving else s.sales.confirmShort)
             }

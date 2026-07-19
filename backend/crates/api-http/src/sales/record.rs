@@ -113,7 +113,6 @@ pub async fn create_sale(
     let sale = application::sales::create_sale(commerce, products, command)
         .map_err(map_sales_app_error)?;
     let dto = application::sales::sale_to_dto(&sale).map_err(|_| ApiError::internal())?;
-    let response = sale_response_from_dto(&dto);
 
     let db_items: Vec<infra_postgres::sales::NewSaleItem> = sale
         .items()
@@ -129,7 +128,7 @@ pub async fn create_sale(
         })
         .collect();
 
-    infra_postgres::sales::insert_sale_with_items(
+    let display_code = infra_postgres::sales::insert_sale_with_items(
         &state.app_pool,
         auth.tenant_id,
         infra_postgres::sales::SaleInsert {
@@ -144,6 +143,7 @@ pub async fn create_sale(
     )
     .await
     .map_err(|_| ApiError::internal())?;
+    let response = sale_response_from_dto(&dto, display_code);
 
     let location = format!("/v1/sales/{}", sale.id());
     let body_bytes = to_json_bytes(&response)?;

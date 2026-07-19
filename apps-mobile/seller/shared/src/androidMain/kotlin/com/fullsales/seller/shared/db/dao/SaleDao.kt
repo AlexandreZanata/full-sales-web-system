@@ -44,9 +44,20 @@ interface SaleDao {
     suspend fun updateStatus(localId: String, status: String)
 
     @Query(
-        "UPDATE sales SET remoteId = :remoteId, status = :status WHERE localId = :localId",
+        """
+        UPDATE sales
+        SET remoteId = :remoteId,
+            status = :status,
+            displayCode = COALESCE(:displayCode, displayCode)
+        WHERE localId = :localId
+        """,
     )
-    suspend fun setRemoteId(localId: String, remoteId: String, status: String)
+    suspend fun setRemoteId(
+        localId: String,
+        remoteId: String,
+        status: String,
+        displayCode: String? = null,
+    )
 
     @Query(
         "UPDATE sales SET status = :status, syncFailureReason = :reason WHERE localId = :localId",

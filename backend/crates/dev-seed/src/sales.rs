@@ -158,17 +158,20 @@ async fn seed_order_linked_sale(
     let item_id = Uuid::parse_str("01900001-0051-7000-8000-000000000099").expect("item");
     let mut tx = app_pool.begin().await.map_err(PostgresError::from)?;
     infra_postgres::rls::apply_tenant_context(&mut tx, tenant).await?;
+    let display_code =
+        infra_postgres::sales::allocate_display_code(&mut tx, tenant.as_uuid()).await?;
     sqlx::query(
         "INSERT INTO sales.sales
          (id, tenant_id, driver_id, commerce_id, order_id, payment_method, status,
-          total_amount, total_currency, declared_payment_method, declared_payment_received, confirmed_at)
-         VALUES ($1, $2, $3, $4, $5, 'Pix', 'Confirmed', 250000, 'BRL', 'Pix', true, now())",
+          total_amount, total_currency, declared_payment_method, declared_payment_received, confirmed_at, display_code)
+         VALUES ($1, $2, $3, $4, $5, 'Pix', 'Confirmed', 250000, 'BRL', 'Pix', true, now(), $6)",
     )
     .bind(sale_id)
     .bind(tenant.as_uuid())
     .bind(users.driver_a_id)
     .bind(commerces.commerce_a_id)
     .bind(order_id)
+    .bind(&display_code)
     .execute(&mut *tx)
     .await
     .map_err(PostgresError::from)?;

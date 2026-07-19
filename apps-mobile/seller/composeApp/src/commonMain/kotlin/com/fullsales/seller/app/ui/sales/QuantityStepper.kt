@@ -3,13 +3,17 @@ package com.fullsales.seller.app.ui.sales
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -44,11 +48,12 @@ internal fun QuantityStepper(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         FilledTonalIconButton(
             onClick = { onValueChange(adjustQuantity(value, -1)) },
-            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
+            modifier = Modifier.size(44.dp),
+            shape = CircleShape,
         ) {
             Icon(Icons.Default.Remove, contentDescription = s.a11y.decreaseQuantity)
         }
@@ -61,14 +66,22 @@ internal fun QuantityStepper(
             },
             isError = isError,
             colors = warningColors,
-            modifier = Modifier.widthIn(min = 72.dp, max = 112.dp),
+            modifier = Modifier
+                .widthIn(min = 64.dp, max = 88.dp)
+                .defaultMinSize(minHeight = 48.dp),
             singleLine = true,
+            shape = MaterialTheme.shapes.medium,
             textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Center),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        FilledTonalIconButton(
+        FilledIconButton(
             onClick = { onValueChange(adjustQuantity(value, 1)) },
-            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
+            modifier = Modifier.size(44.dp),
+            shape = CircleShape,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
         ) {
             Icon(Icons.Default.Add, contentDescription = s.a11y.increaseQuantity)
         }

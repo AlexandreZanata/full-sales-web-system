@@ -3,7 +3,6 @@ package com.fullsales.seller.app.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -22,43 +21,43 @@ private val SellerLightColors = lightColorScheme(
     onPrimaryContainer = SellerOnPrimaryContainer,
     secondary = SellerSecondary,
     onSecondary = SellerOnSecondary,
-    secondaryContainer = Color(0xFFCCE8E4),
-    onSecondaryContainer = Color(0xFF05201C),
-    background = Color(0xFFFAFDFC),
-    onBackground = Color(0xFF191C1C),
-    surface = Color(0xFFFAFDFC),
-    onSurface = Color(0xFF191C1C),
-    surfaceVariant = Color(0xFFDAE5E3),
-    onSurfaceVariant = Color(0xFF3F4948),
-    outline = Color(0xFF6F7978),
-    outlineVariant = Color(0xFFBEC9C7),
+    secondaryContainer = Color(0xFFE2E8F0),
+    onSecondaryContainer = Color(0xFF0F172A),
+    background = Color(0xFFF8FAFC),
+    onBackground = Color(0xFF0F172A),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF0F172A),
+    surfaceVariant = Color(0xFFE2E8F0),
+    onSurfaceVariant = Color(0xFF475569),
+    outline = Color(0xFF94A3B8),
+    outlineVariant = Color(0xFFCBD5E1),
     error = SellerError,
     onError = SellerOnError,
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002),
+    errorContainer = Color(0xFFFFEBEE),
+    onErrorContainer = Color(0xFFB71C1C),
 )
 
 private val SellerDarkColors = darkColorScheme(
-    primary = SellerPrimaryContainer,
-    onPrimary = SellerOnPrimaryContainer,
-    primaryContainer = SellerPrimary,
-    onPrimaryContainer = SellerOnPrimaryContainer,
-    secondary = Color(0xFFB0CCC7),
-    onSecondary = Color(0xFF1B3531),
-    secondaryContainer = Color(0xFF324B47),
-    onSecondaryContainer = Color(0xFFCCE8E4),
-    background = Color(0xFF0F1413),
-    onBackground = Color(0xFFE0E3E2),
-    surface = Color(0xFF0F1413),
-    onSurface = Color(0xFFE0E3E2),
-    surfaceVariant = Color(0xFF3F4948),
-    onSurfaceVariant = Color(0xFFBEC9C7),
-    outline = Color(0xFF899392),
-    outlineVariant = Color(0xFF3F4948),
-    error = Color(0xFFFFB4AB),
-    onError = Color(0xFF690005),
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
+    primary = Color(0xFF4C9AFF),
+    onPrimary = Color(0xFF002F6C),
+    primaryContainer = Color(0xFF0B5BD3),
+    onPrimaryContainer = Color(0xFFE7F0FF),
+    secondary = Color(0xFFCBD5E1),
+    onSecondary = Color(0xFF1E293B),
+    secondaryContainer = Color(0xFF334155),
+    onSecondaryContainer = Color(0xFFE2E8F0),
+    background = Color(0xFF0F172A),
+    onBackground = Color(0xFFE2E8F0),
+    surface = Color(0xFF1E293B),
+    onSurface = Color(0xFFE2E8F0),
+    surfaceVariant = Color(0xFF334155),
+    onSurfaceVariant = Color(0xFFCBD5E1),
+    outline = Color(0xFF64748B),
+    outlineVariant = Color(0xFF475569),
+    error = Color(0xFFFF6B6B),
+    onError = Color(0xFF3B0A0A),
+    errorContainer = Color(0xFFB71C1C),
+    onErrorContainer = Color(0xFFFFEBEE),
 )
 
 @Composable
@@ -78,14 +77,14 @@ fun SellerTheme(
         density = systemDensity.density,
         fontScale = effectiveFontScale(systemDensity.fontScale, textSizePreset),
     )
-    val dynamic = sellerDynamicColorScheme(darkTheme)
-    val colorScheme = dynamic ?: if (darkTheme) SellerDarkColors else SellerLightColors
+    val colorScheme = sellerDynamicColorScheme(darkTheme)
+        ?: if (darkTheme) SellerDarkColors else SellerLightColors
     SellerSystemBarsEffect(darkTheme)
     CompositionLocalProvider(LocalDensity provides scaledDensity) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography(),
-            shapes = Shapes(),
+            shapes = SellerShapes,
             content = content,
         )
     }

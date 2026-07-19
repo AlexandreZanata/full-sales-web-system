@@ -61,6 +61,7 @@ fun createSellerHttpClient(
     json: Json = defaultSellerJson(),
     config: HttpClientConfig<*>.() -> Unit = {},
 ): HttpClient = HttpClient {
+    expectSuccess = false
     installSellerDefaults(tokenProvider, tokenRefreshHandler, json)
     config()
 }

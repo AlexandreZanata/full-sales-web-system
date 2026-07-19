@@ -10,14 +10,14 @@ SELECT * FROM sales WHERE remoteId = ? LIMIT 1;
 upsertSale:
 INSERT OR REPLACE INTO sales(
   localId, remoteId, idempotencyKey, commerceId, paymentMethod, status,
-  totalAmount, totalCurrency, createdAtEpochMs, syncFailureReason, driverId, origin
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  totalAmount, totalCurrency, createdAtEpochMs, syncFailureReason, driverId, origin, displayCode
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateSaleStatus:
 UPDATE sales SET status = ? WHERE localId = ?;
 
 setSaleRemoteId:
-UPDATE sales SET remoteId = ?, status = ? WHERE localId = ?;
+UPDATE sales SET remoteId = ?, status = ?, displayCode = coalesce(?, displayCode) WHERE localId = ?;
 
 markSaleSyncFailed:
 UPDATE sales SET status = ?, syncFailureReason = ? WHERE localId = ?;

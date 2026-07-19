@@ -22,6 +22,8 @@ data class Sale(
     val totalCurrency: String,
     val items: List<SaleItem> = emptyList(),
     val createdAt: String? = null,
+    /** Server-assigned 8-char sequential visual code (not a UUID). */
+    val displayCode: String? = null,
 )
 
 @Serializable

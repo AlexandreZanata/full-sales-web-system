@@ -1,19 +1,18 @@
 package com.fullsales.seller.app.ui.sales
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.platform.MediaUrlResolver
+import com.fullsales.seller.app.ui.components.SellerSurfaceCard
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.theme.SellerWarningColor
 import com.fullsales.seller.shared.i18n.CreateSaleValidationError
@@ -49,69 +49,21 @@ internal fun SaleProductListRow(
     val hasProduct = product != null
     val showRemove = hasProduct || canRemove
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        tonalElevation = 2.dp,
-    ) {
+    SellerSurfaceCard(contentPadding = false) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.Top,
-            ) {
-                if (hasProduct) {
-                    SaleLineProductImage(
-                        product = product,
-                        mediaUrlResolver = mediaUrlResolver,
-                        contentDescription = product.name,
-                    )
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    if (hasProduct) {
-                        Text(
-                            text = product.name,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        ProductSkuBadge(sku = product.sku)
-                        if (isBackorder) {
-                            BackorderBadge()
-                        } else {
-                            stock?.let {
-                                Text(
-                                    SellerStrings.stockBadge(s, it),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    } else {
-                        Text(
-                            text = s.sales.selectProduct,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-                if (showRemove) {
-                    FilledTonalIconButton(
-                        onClick = onRemove,
-                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = s.a11y.removeLine)
-                    }
-                }
-            }
+            ProductRowHeader(
+                product = product,
+                stock = stock,
+                isBackorder = isBackorder,
+                showRemove = showRemove,
+                mediaUrlResolver = mediaUrlResolver,
+                selectProductLabel = s.sales.selectProduct,
+                onRemove = onRemove,
+                removeContentDescription = s.a11y.removeLine,
+            )
             if (hasProduct) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -123,7 +75,6 @@ internal fun SaleProductListRow(
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f, fill = false),
                     )
                     QuantityStepper(
                         value = line.quantityText,
@@ -164,34 +115,60 @@ internal fun SaleProductListRow(
 }
 
 @Composable
-internal fun BackorderBadge() {
-    val s = LocalSellerStrings.current
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = SellerWarningColor.copy(alpha = 0.18f),
+private fun ProductRowHeader(
+    product: Product?,
+    stock: Int?,
+    isBackorder: Boolean,
+    showRemove: Boolean,
+    mediaUrlResolver: MediaUrlResolver,
+    selectProductLabel: String,
+    onRemove: () -> Unit,
+    removeContentDescription: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
     ) {
-        Text(
-            text = SellerStrings.stockBackorderBadge(s),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = SellerWarningColor,
-        )
-    }
-}
-
-@Composable
-private fun ProductSkuBadge(sku: String) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.primaryContainer,
-    ) {
-        Text(
-            text = sku,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
+        if (product != null) {
+            SaleLineProductImage(
+                product = product,
+                mediaUrlResolver = mediaUrlResolver,
+                contentDescription = product.name,
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (product != null) {
+                Text(
+                    text = product.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                ProductSkuBadge(sku = product.sku)
+                if (isBackorder) BackorderBadge() else stock?.let { AvailableStockLabel(it) }
+            } else {
+                Text(
+                    text = selectProductLabel,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+        if (showRemove) {
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.size(40.dp),
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.error,
+                ),
+            ) {
+                Icon(Icons.Default.Close, contentDescription = removeContentDescription)
+            }
+        }
     }
 }

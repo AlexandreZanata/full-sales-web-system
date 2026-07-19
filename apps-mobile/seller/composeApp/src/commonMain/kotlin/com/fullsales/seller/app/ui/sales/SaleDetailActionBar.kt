@@ -2,19 +2,22 @@ package com.fullsales.seller.app.ui.sales
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.components.SellerDangerButton
+import com.fullsales.seller.app.ui.components.SellerPrimaryButton
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.shell.SellerStickyBottomBar
 import com.fullsales.seller.shared.model.formatMoneyMinorUnits
@@ -49,29 +52,26 @@ internal fun SaleDetailActionBar(
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(
+            SellerDangerButton(
                 onClick = onCancel,
                 enabled = !acting,
-                modifier = Modifier
-                    .weight(1f)
-                    .defaultMinSize(minHeight = 48.dp),
-                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
+                modifier = Modifier.weight(1f),
+                leadingIcon = Icons.Default.Close,
+                fillMaxWidth = false,
             ) {
                 Text(s.sales.cancelShort)
             }
-            Button(
+            SellerPrimaryButton(
                 onClick = onConfirm,
                 enabled = !acting,
-                modifier = Modifier
-                    .weight(1f)
-                    .defaultMinSize(minHeight = 48.dp),
+                modifier = Modifier.weight(1f),
+                leadingIcon = if (acting) null else Icons.Default.Check,
+                fillMaxWidth = false,
             ) {
                 if (acting) {
-                    CircularProgressIndicator(modifier = Modifier.padding(4.dp))
+                    CircularProgressIndicator(modifier = Modifier.padding(4.dp).size(20.dp))
                 } else {
-                    Text(s.sales.confirm)
+                    Text(s.sales.confirmShort)
                 }
             }
         }

@@ -1,13 +1,10 @@
 package com.fullsales.seller.app.ui.sales
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.platform.MediaUrlResolver
+import com.fullsales.seller.app.ui.components.SellerSectionTitle
+import com.fullsales.seller.app.ui.components.SellerSurfaceCard
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.app.ui.theme.SellerWarningColor
 import com.fullsales.seller.shared.i18n.SellerStrings
@@ -39,22 +38,14 @@ internal fun SaleDetailItemsCard(
 ) {
     val s = LocalSellerStrings.current
     val itemCount = items.sumOf { it.quantity }
-    Card(
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
+    SellerSurfaceCard(contentPadding = false) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    s.sales.productList,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
+                SellerSectionTitle(s.sales.productList)
                 Text(
                     SellerStrings.format(s.sales.itemsCountLabel, "count" to itemCount.toString()),
                     style = MaterialTheme.typography.labelLarge,

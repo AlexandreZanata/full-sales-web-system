@@ -136,11 +136,20 @@ object SellerStrings {
 
     fun registrationError(messages: SellerMessages, code: String): String = when (code) {
         "INVALID_CNPJ" -> messages.registrations.cnpjInvalid
-        "CNPJ_NOT_FOUND" -> messages.registrations.lookupNotFound
-        "CNPJ_LOOKUP_UNAVAILABLE" -> messages.registrations.lookupUnavailable
+        "CNPJ_NOT_FOUND", "HTTP_404" -> messages.registrations.lookupNotFound
+        "CNPJ_LOOKUP_UNAVAILABLE", "LOOKUP_FAILED", "HTTP_502", "HTTP_503" ->
+            messages.registrations.lookupUnavailable
         "CNPJ_ALREADY_REGISTERED" -> messages.registrations.cnpjAlreadyRegistered
         "NETWORK_ERROR" -> messages.registrations.networkError
         else -> messages.registrations.submitFailed
+    }
+
+    /** CNPJ lookup screen — never show registration submit copy. */
+    fun cnpjLookupError(messages: SellerMessages, code: String): String = when (code) {
+        "INVALID_CNPJ" -> messages.registrations.cnpjInvalid
+        "CNPJ_NOT_FOUND", "HTTP_404" -> messages.registrations.lookupNotFound
+        "RATE_LIMITED", "HTTP_429" -> messages.auth.rateLimited
+        else -> messages.registrations.lookupUnavailable
     }
 
     fun registrationFieldError(messages: SellerMessages, code: String): String = when (code) {

@@ -27,6 +27,7 @@ data class SaleDetailUiState(
     val stockByProductId: Map<String, Int> = emptyMap(),
     val errorCode: String? = null,
     val snackbarCode: String? = null,
+    val navigateToNewSale: Boolean = false,
 )
 
 class SaleDetailViewModel(
@@ -69,12 +70,22 @@ class SaleDetailViewModel(
         fetchDetail(id, showLoading = true)
     }
 
-    fun confirm() = runAction { detail -> actionSubmitter.confirm(detail, networkMonitor.isOnline()) }
+    fun confirm() = runAction(
+        block = { detail -> actionSubmitter.confirm(detail, networkMonitor.isOnline()) },
+        onSuccess = { saleId?.let { fetchDetail(it, showLoading = false) } },
+    )
 
-    fun cancel() = runAction { detail -> actionSubmitter.cancel(detail, networkMonitor.isOnline()) }
+    fun cancel() = runAction(
+        block = { detail -> actionSubmitter.cancel(detail, networkMonitor.isOnline()) },
+        onSuccess = { _state.update { it.copy(navigateToNewSale = true) } },
+    )
 
     fun clearSnackbar() {
         _state.update { it.copy(snackbarCode = null) }
+    }
+
+    fun consumeNavigateToNewSale() {
+        _state.update { it.copy(navigateToNewSale = false) }
     }
 
     private fun fetchDetail(id: String, showLoading: Boolean) {
@@ -97,14 +108,17 @@ class SaleDetailViewModel(
         }
     }
 
-    private fun runAction(block: suspend (SaleDetailModel) -> SaleActionResult) {
+    private fun runAction(
+        block: suspend (SaleDetailModel) -> SaleActionResult,
+        onSuccess: () -> Unit,
+    ) {
         val detail = _state.value.detail ?: return
         viewModelScope.launch {
             _state.update { it.copy(acting = true) }
             when (val result = block(detail)) {
                 SaleActionResult.Success -> {
                     _state.update { it.copy(acting = false) }
-                    saleId?.let { fetchDetail(it, showLoading = false) }
+                    onSuccess()
                 }
                 is SaleActionResult.Failure -> {
                     _state.update {

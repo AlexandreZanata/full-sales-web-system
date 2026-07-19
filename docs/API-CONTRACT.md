@@ -382,7 +382,7 @@ Admin report history supports arbitrary page jumps. Uses legacy offset params:
 - **Body (allow-list):** `{ "commerceId", "driverId?", "items": [{ "productId", "quantity" }], "paymentMethod" }` — `paymentMethod`: `"cash"` \| `"pix"` \| `"credit"` \| `"debit"` (ADR-006)
 - **driverId:** Required when caller is **Admin** (must reference an active Driver). Omitted for Driver/Seller — server uses JWT user. Rejected if Driver/Seller sends a value that does not match JWT user.
 - **Idempotency:** `Idempotency-Key` header recommended
-- **Response 201:** Sale in `Pending` status — **total computed server-side**
+- **Response 201:** Sale in `Pending` status — **total computed server-side**; includes `displayCode` (8-char sequential alphanumeric per tenant, visual-only — UUID `id` remains the resource key)
 
 ### `POST /v1/sales/{id}/confirm`
 

@@ -1,6 +1,5 @@
 package com.fullsales.seller.app.ui.sales
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,8 +10,6 @@ import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.components.SellerHighlightCard
+import com.fullsales.seller.app.ui.components.SellerSurfaceCard
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.i18n.SyncChipStatus
@@ -35,7 +34,6 @@ internal fun SaleDetailHeader(
     modifier: Modifier = Modifier,
 ) {
     val s = LocalSellerStrings.current
-    val shortId = detail.remoteId?.takeLast(8)?.uppercase() ?: detail.navigationId.takeLast(8).uppercase()
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             s.sales.detail,
@@ -48,7 +46,7 @@ internal fun SaleDetailHeader(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            SellerStrings.format(s.sales.saleIdLabel, "id" to shortId),
+            SellerStrings.format(s.sales.saleIdLabel, "id" to detail.displayCode),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
         )
@@ -58,11 +56,7 @@ internal fun SaleDetailHeader(
 @Composable
 internal fun SaleDetailSummaryCard(detail: SaleDetailModel) {
     val s = LocalSellerStrings.current
-    Card(
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
+    SellerHighlightCard(contentPadding = false) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -94,11 +88,7 @@ internal fun SaleDetailSummaryCard(detail: SaleDetailModel) {
 @Composable
 internal fun SaleDetailMetaCard(detail: SaleDetailModel) {
     val s = LocalSellerStrings.current
-    Card(
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
+    SellerSurfaceCard(contentPadding = false) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),

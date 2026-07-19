@@ -32,6 +32,20 @@ export type Messages = {
     logout: string;
     devEnter: string;
     adminLabel: string;
+    rememberMe: string;
+    forgotPassword: string;
+    orDivider: string;
+    showPassword: string;
+    hidePassword: string;
+    heroTitle: string;
+    heroTitleAccent: string;
+    heroDescription: string;
+    featureSecure: string;
+    featureSecureDesc: string;
+    featureComplete: string;
+    featureCompleteDesc: string;
+    featureFast: string;
+    featureFastDesc: string;
   };
   shell: {
     menu: string;

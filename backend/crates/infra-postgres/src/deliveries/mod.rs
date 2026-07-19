@@ -264,10 +264,12 @@ pub async fn confirm_delivery_transaction(
         .map(|item| item.line_total_amount)
         .sum();
 
+    let display_code =
+        crate::sales::allocate_display_code(&mut tx, tenant_uuid).await?;
     sqlx::query(
         "INSERT INTO sales.sales
-         (id, tenant_id, driver_id, commerce_id, order_id, payment_method, status, total_amount, total_currency, confirmed_at)
-         VALUES ($1, $2, $3, $4, $5, 'NotDeclared', 'Confirmed', $6, 'BRL', now())",
+         (id, tenant_id, driver_id, commerce_id, order_id, payment_method, status, total_amount, total_currency, confirmed_at, display_code)
+         VALUES ($1, $2, $3, $4, $5, 'NotDeclared', 'Confirmed', $6, 'BRL', now(), $7)",
     )
     .bind(input.sale_id)
     .bind(tenant_uuid)
@@ -275,6 +277,7 @@ pub async fn confirm_delivery_transaction(
     .bind(input.commerce_id)
     .bind(input.order_id)
     .bind(total_amount)
+    .bind(&display_code)
     .execute(&mut *tx)
     .await?;
 

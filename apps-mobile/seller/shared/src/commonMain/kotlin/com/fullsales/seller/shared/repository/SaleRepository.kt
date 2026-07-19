@@ -12,7 +12,12 @@ interface SaleRepository {
     suspend fun getSaleByRemoteId(remoteId: String): LocalSale?
     suspend fun createLocalSale(request: CreateSaleRequest, totalAmount: Double): LocalSale
     suspend fun updateStatus(localId: String, status: LocalSaleStatus)
-    suspend fun setRemoteId(localId: String, remoteId: String, status: LocalSaleStatus)
+    suspend fun setRemoteId(
+        localId: String,
+        remoteId: String,
+        status: LocalSaleStatus,
+        displayCode: String? = null,
+    )
     suspend fun markSyncFailed(localId: String, reason: String)
     /** Upsert remote sales pages into LocalStore (OD-16-3 identity). */
     suspend fun upsertFromRemoteSales(remoteSales: List<Sale>)

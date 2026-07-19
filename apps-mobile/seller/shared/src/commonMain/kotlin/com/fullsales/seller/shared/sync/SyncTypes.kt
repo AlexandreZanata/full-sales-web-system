@@ -14,6 +14,7 @@ data class SyncHttpResult(
     val outcome: SyncHttpOutcome,
     val remoteId: String? = null,
     val errorCode: String? = null,
+    val displayCode: String? = null,
 )
 
 interface SyncTransport {

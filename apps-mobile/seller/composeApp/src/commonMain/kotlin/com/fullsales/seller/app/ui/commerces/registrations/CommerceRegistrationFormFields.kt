@@ -3,12 +3,12 @@ package com.fullsales.seller.app.ui.commerces.registrations
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fullsales.seller.app.ui.components.SellerSectionTitle
 import com.fullsales.seller.app.ui.i18n.LocalSellerStrings
 import com.fullsales.seller.shared.i18n.SellerStrings
 import com.fullsales.seller.shared.registrations.CommerceRegistrationDraft
@@ -66,7 +66,7 @@ fun CommerceRegistrationFormFields(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        Text(s.registrations.addressSection, style = MaterialTheme.typography.titleMedium)
+        SellerSectionTitle(s.registrations.addressSection)
         AddressField(draft.street, errors.streetError, s.registrations.street) { value ->
             onDraftChange { it.copy(street = value) }
         }

@@ -133,6 +133,26 @@ async fn contract_opencnpj_when_504_then_retries_once() {
     assert!(result.is_ok());
 }
 
+#[tokio::test]
+async fn contract_opencnpj_when_client_timeout_then_retries_once() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/api/v1/cnpj/00000000000191"))
+        .respond_with(ResponseTemplate::new(200).set_delay(Duration::from_secs(3)))
+        .up_to_n_times(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/api/v1/cnpj/00000000000191"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(sample_cnpj_json()))
+        .mount(&server)
+        .await;
+
+    let provider = OpenCnpjLookup::new(server.uri(), "test-key".into(), test_client());
+    let result = provider.lookup("00000000000191").await;
+    assert!(result.is_ok(), "timeout should retry once: {result:?}");
+}
+
 #[test]
 fn contract_env_when_opencnpj_selected_then_builds_provider() {
     let result =

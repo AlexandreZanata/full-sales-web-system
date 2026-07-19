@@ -13,6 +13,7 @@ fun Sale.toMirroredLocalSale(
     existingLocalId: String? = null,
     existingOrigin: SaleOrigin? = null,
     existingIdempotencyKey: String? = null,
+    existingDisplayCode: String? = null,
 ): LocalSale = LocalSale(
     localId = existingLocalId ?: id,
     remoteId = id,
@@ -26,6 +27,7 @@ fun Sale.toMirroredLocalSale(
     createdAtEpochMs = parseCreatedAt(createdAt),
     driverId = driverId,
     origin = existingOrigin ?: SaleOrigin.RemoteMirror,
+    displayCode = displayCode ?: existingDisplayCode,
 )
 
 fun remoteStatusToLocal(status: String): LocalSaleStatus = when (status) {
