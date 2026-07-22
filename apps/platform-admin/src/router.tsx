@@ -11,6 +11,7 @@ export type RouterContext = {
 
 export const router = createRouter({
   routeTree,
+  basepath: import.meta.env.BASE_URL.replace(/\/$/, '') || '/',
   context: {
     auth: undefined as never,
     queryClient: undefined as never,

@@ -1,9 +1,11 @@
 import type { Page, Route } from '@playwright/test';
 
 import { buildPortalAccessToken, loginResponse } from './client-auth';
+import { seedPortalPtBrLocale } from './locale';
 import { handlePortalCatalogRoutes, fulfillPortalApiNotFound } from './portal-catalog-mock';
 
 export async function mockPortalApi(page: Page): Promise<void> {
+  await seedPortalPtBrLocale(page);
   const accessToken = buildPortalAccessToken();
 
   await page.route('**/v1/**', async (route: Route) => {
@@ -38,6 +40,7 @@ export async function mockPortalApi(page: Page): Promise<void> {
 }
 
 export async function loginPortal(page: Page): Promise<void> {
+  await seedPortalPtBrLocale(page);
   await page.goto('/login');
   await page.getByLabel('E-mail').fill('portal@seed-store.com');
   await page.getByLabel('Senha').fill('secret123');

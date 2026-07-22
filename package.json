@@ -10,6 +10,7 @@
     ]
   },
   "scripts": {
+    "prepare": "bash scripts/install-git-hooks.sh",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
@@ -19,6 +20,10 @@
     "test:e2e:field": "playwright test e2e/field-*.spec.ts --config=playwright.field.config.ts",
     "test:e2e:integration": "playwright test --config=playwright.integration.config.ts",
     "verify": "pnpm lint && pnpm test && pnpm build && pnpm verify:api-route-inventory && pnpm verify:route-contract-manifest && pnpm verify:backend",
+    "verify:changed": "bash scripts/verify-changed.sh",
+    "verify:changed:commit": "bash scripts/verify-changed.sh commit",
+    "verify:changed:push": "bash scripts/verify-changed.sh push",
+    "hooks:install": "bash scripts/install-git-hooks.sh",
     "verify:backend": "cd backend && cargo fmt --check && cargo clippy --workspace -- -D warnings && cargo test --workspace",
     "validate:openapi": "npx --yes @apidevtools/swagger-cli validate docs/openapi.yaml",
     "verify:api-route-inventory": "python3 scripts/verify-api-route-inventory.py",

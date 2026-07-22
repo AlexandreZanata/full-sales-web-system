@@ -15,36 +15,40 @@ source "${VPS_ENV}"
 
 : "${VPS_HOST:?}"
 DOMAIN="${DOMAIN:-${VPS_HOST}}"
+CATALOG_HOST="${CATALOG_HOST:-catalogo.comerc.app.br}"
 VPS_USE_HTTPS="${VPS_USE_HTTPS:-0}"
-ADMIN_HOST="${ADMIN_HOST:-admin.${DOMAIN}}"
-API_PUBLIC_HOST="${API_HOST:-api.${DOMAIN}}"
-PLATFORM_HOST="${PLATFORM_HOST:-platform.${DOMAIN}}"
+API_PUBLIC_HOST="${API_HOST:-${DOMAIN}}"
 
 if [[ "${VPS_USE_HTTPS}" == "1" ]]; then
-  PORTAL_ORIGIN="https://${DOMAIN}"
+  PORTAL_ORIGIN="https://${CATALOG_HOST}"
+  APP_ORIGIN="https://${DOMAIN}"
   SCHEME=https
 else
-  PORTAL_ORIGIN="http://${DOMAIN}"
+  PORTAL_ORIGIN="http://${CATALOG_HOST}"
+  APP_ORIGIN="http://${DOMAIN}"
   SCHEME=http
-  ADMIN_HOST="${DOMAIN}"
   API_PUBLIC_HOST="${DOMAIN}"
-  PLATFORM_HOST="${DOMAIN}"
 fi
 
 if [[ ! -f "${ENV_DIR}/docker.env" ]]; then
   "${ROOT}/infra/scripts/generate-secrets.sh"
 fi
 
+FS_POSTGRES_HOST_PORT="${POSTGRES_HOST_PORT:-5436}"
+FS_REDIS_HOST_PORT="${REDIS_HOST_PORT:-6382}"
+FS_MINIO_API_HOST_PORT="${MINIO_API_HOST_PORT:-9012}"
+FS_MINIO_CONSOLE_HOST_PORT="${MINIO_CONSOLE_HOST_PORT:-9013}"
+FS_API_HOST_PORT="${API_HOST_PORT:-8108}"
+
 # shellcheck disable=SC1090
 source "${ENV_DIR}/docker.env"
 
-POSTGRES_HOST_PORT="${POSTGRES_HOST_PORT:-5435}"
-REDIS_HOST_PORT="${REDIS_HOST_PORT:-6381}"
-MINIO_API_HOST_PORT="${MINIO_API_HOST_PORT:-9010}"
-MINIO_CONSOLE_HOST_PORT="${MINIO_CONSOLE_HOST_PORT:-9011}"
-API_HOST_PORT="${API_HOST_PORT:-8108}"
+POSTGRES_HOST_PORT="${FS_POSTGRES_HOST_PORT}"
+REDIS_HOST_PORT="${FS_REDIS_HOST_PORT}"
+MINIO_API_HOST_PORT="${FS_MINIO_API_HOST_PORT}"
+MINIO_CONSOLE_HOST_PORT="${FS_MINIO_CONSOLE_HOST_PORT}"
+API_HOST_PORT="${FS_API_HOST_PORT}"
 
-# Keep secrets; rewrite ports in docker.env
 grep -vE '^(POSTGRES_HOST_PORT|REDIS_HOST_PORT|MINIO_API_HOST_PORT|MINIO_CONSOLE_HOST_PORT|API_HOST_PORT)=' \
   "${ENV_DIR}/docker.env" > "${ENV_DIR}/docker.env.tmp" || true
 mv "${ENV_DIR}/docker.env.tmp" "${ENV_DIR}/docker.env"
@@ -56,7 +60,6 @@ mv "${ENV_DIR}/docker.env.tmp" "${ENV_DIR}/docker.env"
   echo "API_HOST_PORT=${API_HOST_PORT}"
 } >> "${ENV_DIR}/docker.env"
 
-# Preserve secrets in api.env; refresh public origins + ensure docker DNS URLs
 # shellcheck disable=SC1090
 source "${ENV_DIR}/api.env"
 DB_PASS="${POSTGRES_PASSWORD}"
@@ -81,13 +84,12 @@ STORAGE_BUCKET=${MINIO_BUCKET:-media}
 STORAGE_REGION=us-east-1
 MEDIA_BUCKET=${MINIO_BUCKET:-media}
 PORTAL_PUBLIC_ORIGIN=${PORTAL_ORIGIN}
-PLATFORM_APEX_HOST=${DOMAIN}
+PLATFORM_APEX_HOST=${DOMAIN},${CATALOG_HOST}
 EOF
 
-# SPA same-origin /v1 via nginx
 printf 'VITE_API_BASE_URL=/v1\n' > "${ENV_DIR}/portal.env"
-printf 'VITE_API_BASE_URL=/v1\n' > "${ENV_DIR}/admin.env"
-printf 'VITE_API_BASE_URL=/v1\n' > "${ENV_DIR}/platform-admin.env"
+printf 'VITE_API_BASE_URL=/v1\nVITE_BASE=/admin/\n' > "${ENV_DIR}/admin.env"
+printf 'VITE_API_BASE_URL=/v1\nVITE_BASE=/platform/\n' > "${ENV_DIR}/platform-admin.env"
 
 chmod 600 "${ENV_DIR}/"*.env
-echo "prepare-env.sh: ${SCHEME} portal=${PORTAL_ORIGIN} api_host=${API_PUBLIC_HOST} admin=${ADMIN_HOST}"
+echo "prepare-env.sh: ${SCHEME} portal=${PORTAL_ORIGIN} app=${APP_ORIGIN} api=${API_PUBLIC_HOST}"

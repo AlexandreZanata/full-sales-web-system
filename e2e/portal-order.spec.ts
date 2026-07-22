@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { buildPortalAccessToken, loginResponse } from './fixtures/client-auth';
+import { seedPortalPtBrLocale } from './fixtures/locale';
 import {
   MOCK_CATEGORY,
   MOCK_PRODUCT,
@@ -15,6 +16,7 @@ test.describe('Portal order flow', () => {
     const orderId = '01900001-0030-7000-8000-000000000099';
     const accessToken = buildPortalAccessToken();
 
+    await seedPortalPtBrLocale(page);
     await page.route('**/v1/**', async (route) => {
       const url = new URL(route.request().url());
       const path = url.pathname.replace(/^\/v1/, '');

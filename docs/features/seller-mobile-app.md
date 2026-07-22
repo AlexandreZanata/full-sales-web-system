@@ -27,7 +27,7 @@ Requires dev seed (`pnpm seed:dev`) and API on `:8080`. **Driver accounts are re
 | Android emulator (debug) | `http://10.0.2.2:8080/v1` |
 | iOS simulator | `http://127.0.0.1:8080/v1` |
 | Physical device (LAN debug) | `http://<host-lan-ip>:8080/v1` |
-| **Android release (Play)** | `https://api.vendas.comerc.app.br/v1` |
+| **Android release (Play)** | `https://vendas.comerc.app.br/v1` |
 
 Override at build time:
 

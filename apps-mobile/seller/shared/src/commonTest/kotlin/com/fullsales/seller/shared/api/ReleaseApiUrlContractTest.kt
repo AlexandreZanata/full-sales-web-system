@@ -12,7 +12,7 @@ class ReleaseApiUrlContractTest {
     @Test
     fun productionDefault_isHttpsAndMatchesOd213() {
         assertEquals(
-            "https://api.vendas.comerc.app.br/v1",
+            "https://vendas.comerc.app.br/v1",
             ApiReleaseDefaults.PRODUCTION_BASE_URL,
         )
         assertTrue(ApiReleaseDefaults.isHttpsApiBaseUrl(ApiReleaseDefaults.PRODUCTION_BASE_URL))

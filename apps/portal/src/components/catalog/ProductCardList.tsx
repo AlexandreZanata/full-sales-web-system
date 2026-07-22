@@ -1,5 +1,3 @@
-import type { KeyboardEvent } from 'react';
-
 import { ProductCardAddPill } from '@/components/catalog/ProductCardAddPill';
 import { ProductCardPrice } from '@/components/catalog/ProductCardPrice';
 import { ProductCardTitleRow } from '@/components/catalog/ProductCardTitleRow';
@@ -23,24 +21,10 @@ export function ProductCardList({
     onOpenDetail?.(product);
   };
 
-  const onCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (!canOpen) {
-      return;
-    }
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      openDetail();
-    }
-  };
-
   return (
     <article
       className={cn('catalog-product-card-list', canOpen && 'cursor-pointer')}
       onClick={canOpen ? openDetail : undefined}
-      onKeyDown={canOpen ? onCardKeyDown : undefined}
-      role={canOpen ? 'link' : undefined}
-      tabIndex={canOpen ? 0 : undefined}
-      aria-label={canOpen ? product.name : undefined}
     >
       <ProductImage
         product={product}
@@ -50,6 +34,7 @@ export function ProductCardList({
         <ProductCardTitleRow
           product={product}
           titleClassName="text-base font-semibold leading-snug"
+          onOpenDetail={canOpen ? openDetail : undefined}
         />
         {description ? (
           <p className="line-clamp-2 text-xs text-muted-foreground">{description}</p>

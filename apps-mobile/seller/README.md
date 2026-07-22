@@ -29,7 +29,7 @@ adb reverse tcp:8080 tcp:8080   # USB alternative
 | Item | Value |
 |------|-------|
 | `applicationId` | `com.fullsales.seller` |
-| Release API | `https://api.vendas.comerc.app.br/v1` |
+| Release API | `https://vendas.comerc.app.br/v1` |
 | Version | `versionCode=1` / `versionName=1.0.0` |
 | `allowBackup` | `false` |
 | Privacy | `https://vendas.comerc.app.br/privacy-seller.html` |

@@ -5,7 +5,7 @@ package com.fullsales.seller.shared.api
  * Staging override via `SELLER_RELEASE_API_BASE_URL` / `seller.release.api.base.url`.
  */
 object ApiReleaseDefaults {
-    const val PRODUCTION_BASE_URL: String = "https://api.vendas.comerc.app.br/v1"
+    const val PRODUCTION_BASE_URL: String = "https://vendas.comerc.app.br/v1"
 
     fun isHttpsApiBaseUrl(url: String): Boolean =
         url.startsWith("https://") &&

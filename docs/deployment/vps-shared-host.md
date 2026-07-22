@@ -6,10 +6,10 @@
 
 | Surface | Hostname |
 |---------|----------|
-| Portal | `https://vendas.comerc.app.br` |
-| Admin | `https://admin.vendas.comerc.app.br` |
-| API | `https://api.vendas.comerc.app.br` |
-| Platform admin | `https://platform.vendas.comerc.app.br` |
+| Portal (catalog) | `https://catalogo.comerc.app.br` |
+| Admin | `https://vendas.comerc.app.br/admin/` |
+| API | `https://vendas.comerc.app.br/v1` (same-origin `/health`, `/v1`) |
+| Platform admin | `https://vendas.comerc.app.br/platform/` |
 
 App directory on VPS: `/var/www/fullsales`. Origin IP: `YOUR_VPS_IP` (shared with other sites — do not remove their nginx vhosts).
 

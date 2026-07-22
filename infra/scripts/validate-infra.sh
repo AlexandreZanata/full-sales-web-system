@@ -43,12 +43,13 @@ fi
 bash infra/scripts/generate-secrets.sh
 bash infra/scripts/prepare-env.sh
 grep -q 'postgres://fullsales:' production/env/api.env
-grep -q 'PORTAL_PUBLIC_ORIGIN=https://vendas.comerc.app.br' production/env/api.env
+grep -q 'PORTAL_PUBLIC_ORIGIN=https://catalogo.comerc.app.br' production/env/api.env
 if grep -q 'CHANGE_ME' production/env/api.env production/env/docker.env; then
   echo "CHANGE_ME still present in env files" >&2
   exit 1
 fi
 grep -q 'VITE_API_BASE_URL=/v1' production/env/portal.env
+grep -q 'VITE_BASE=/admin/' production/env/admin.env
 
 if command -v docker >/dev/null 2>&1; then
   docker compose -f infra/docker-compose.prod.yml \
@@ -59,14 +60,15 @@ else
 fi
 
 sed \
-  -e 's/DOMAIN_APEX/vendas.comerc.app.br/g' \
-  -e 's/DOMAIN_ADMIN/admin.vendas.comerc.app.br/g' \
-  -e 's/DOMAIN_API/api.vendas.comerc.app.br/g' \
-  -e 's/DOMAIN_PLATFORM/platform.vendas.comerc.app.br/g' \
+  -e 's/DOMAIN_APP/vendas.comerc.app.br/g' \
+  -e 's/DOMAIN_CATALOG/catalogo.comerc.app.br/g' \
   -e 's/API_PORT/8108/g' \
   -e 's|APP_DIR|/var/www/fullsales|g' \
   infra/nginx/fullsales.domain-bootstrap.conf > /tmp/fullsales-nginx-test.conf
-grep -q 'server_name api.vendas.comerc.app.br' /tmp/fullsales-nginx-test.conf
+grep -q 'server_name vendas.comerc.app.br' /tmp/fullsales-nginx-test.conf
+grep -q 'server_name catalogo.comerc.app.br' /tmp/fullsales-nginx-test.conf
+grep -q 'location ^~ /admin/' /tmp/fullsales-nginx-test.conf
+! grep -q 'admin.vendas.comerc.app.br' /tmp/fullsales-nginx-test.conf
 rm -f /tmp/fullsales-nginx-test.conf
 
 # Line-count guard for scripts/nginx (soft warning)

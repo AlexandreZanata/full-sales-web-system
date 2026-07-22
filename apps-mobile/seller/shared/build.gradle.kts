@@ -19,7 +19,7 @@ val sellerApiBaseUrl: String = System.getenv("SELLER_API_BASE_URL")
     ?: "http://10.0.2.2:8080/v1"
 val sellerReleaseApiBaseUrl: String = System.getenv("SELLER_RELEASE_API_BASE_URL")
     ?: localProperties.getProperty("seller.release.api.base.url")
-    ?: "https://api.vendas.comerc.app.br/v1"
+    ?: "https://vendas.comerc.app.br/v1"
 
 kotlin {
     androidTarget {

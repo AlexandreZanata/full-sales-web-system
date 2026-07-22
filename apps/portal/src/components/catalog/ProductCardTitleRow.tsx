@@ -9,11 +9,13 @@ import { useI18n } from '@/lib/i18n/context';
 type ProductCardTitleRowProps = {
   product: PortalProduct;
   titleClassName?: string;
+  onOpenDetail?: () => void;
 };
 
 export function ProductCardTitleRow({
   product,
   titleClassName = 'text-sm font-semibold',
+  onOpenDetail,
 }: ProductCardTitleRowProps) {
   const { t } = useI18n();
   const [infoOpen, setInfoOpen] = useState(false);
@@ -23,7 +25,21 @@ export function ProductCardTitleRow({
     <>
       <div className="flex items-start justify-between gap-2">
         <h3 className={`min-w-0 flex-1 ${titleClassName}`}>
-          <span className="line-clamp-2">{product.name}</span>
+          {onOpenDetail ? (
+            <button
+              type="button"
+              className="line-clamp-2 w-full text-left"
+              aria-label={product.name}
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenDetail();
+              }}
+            >
+              {product.name}
+            </button>
+          ) : (
+            <span className="line-clamp-2">{product.name}</span>
+          )}
         </h3>
         {hasInfo ? (
           <button

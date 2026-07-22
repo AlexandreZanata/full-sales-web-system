@@ -27,8 +27,9 @@ If GitHub secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` are set, `.github/workfl
 ## Verify
 
 ```bash
-curl -fsS https://api.vendas.comerc.app.br/health
-curl -fsSI https://vendas.comerc.app.br/
+curl -fsS https://vendas.comerc.app.br/health
+curl -fsSI https://vendas.comerc.app.br/admin/
+curl -fsSI https://catalogo.comerc.app.br/
 ```
 
 On VPS: `./infra/scripts/diagnose-nginx-vhosts.sh`

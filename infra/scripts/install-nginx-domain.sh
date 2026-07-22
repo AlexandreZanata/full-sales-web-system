@@ -10,11 +10,9 @@ if [[ -f "${VPS_ENV}" ]]; then
 fi
 
 DOMAIN="${DOMAIN:?set DOMAIN}"
+CATALOG_HOST="${CATALOG_HOST:-catalogo.comerc.app.br}"
 APP_DIR="${VPS_APP_DIR:-/var/www/fullsales}"
 API_PORT="${API_HOST_PORT:-8108}"
-ADMIN_HOST="${ADMIN_HOST:-admin.${DOMAIN}}"
-API_PUBLIC="${API_HOST:-api.${DOMAIN}}"
-PLATFORM_HOST="${PLATFORM_HOST:-platform.${DOMAIN}}"
 dst="/etc/nginx/sites-available/fullsales.conf"
 cert_path="/etc/letsencrypt/live/${DOMAIN}/fullchain.pem"
 
@@ -28,10 +26,8 @@ template="fullsales.domain-bootstrap.conf"
 src="${APP_DIR}/infra/nginx/${template}"
 
 sed \
-  -e "s/DOMAIN_APEX/${DOMAIN}/g" \
-  -e "s/DOMAIN_ADMIN/${ADMIN_HOST}/g" \
-  -e "s/DOMAIN_API/${API_PUBLIC}/g" \
-  -e "s/DOMAIN_PLATFORM/${PLATFORM_HOST}/g" \
+  -e "s/DOMAIN_APP/${DOMAIN}/g" \
+  -e "s/DOMAIN_CATALOG/${CATALOG_HOST}/g" \
   -e "s/API_PORT/${API_PORT}/g" \
   -e "s|APP_DIR|${APP_DIR}|g" \
   "${src}" > "${dst}"
@@ -43,8 +39,9 @@ nginx -t
 systemctl reload nginx
 
 if [[ "${template}" == "fullsales.domain-bootstrap.conf" ]]; then
-  echo "install-nginx-domain.sh: HTTP bootstrap — run certbot then re-run this script"
-  echo "  certbot --nginx -d ${DOMAIN} -d ${ADMIN_HOST} -d ${API_PUBLIC} -d ${PLATFORM_HOST}"
+  echo "install-nginx-domain.sh: HTTP bootstrap"
+  echo "  certbot --nginx -d ${DOMAIN} -d ${CATALOG_HOST}"
 else
-  echo "install-nginx-domain.sh: HTTPS enabled for ${DOMAIN}"
+  echo "install-nginx-domain.sh: HTTPS enabled"
 fi
+echo "install-nginx-domain.sh: app=${DOMAIN} catalog=${CATALOG_HOST} admin=https://${DOMAIN}/admin"

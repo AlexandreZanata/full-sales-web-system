@@ -39,10 +39,16 @@ pub async fn ensure_custom_domain_plan(
 }
 
 pub fn reserved_platform_hosts() -> Vec<String> {
-    std::env::var("PLATFORM_APEX_HOST")
-        .ok()
-        .map(|v| vec![v.to_lowercase(), "localhost".into(), "127.0.0.1".into()])
-        .unwrap_or_else(|| vec!["localhost".into(), "127.0.0.1".into()])
+    let mut hosts = vec!["localhost".into(), "127.0.0.1".into()];
+    if let Ok(raw) = std::env::var("PLATFORM_APEX_HOST") {
+        for part in raw.split(',') {
+            let host = part.trim().to_lowercase();
+            if !host.is_empty() {
+                hosts.push(host);
+            }
+        }
+    }
+    hosts
 }
 
 pub fn verification_token() -> String {

@@ -35,7 +35,7 @@ cd apps-mobile/seller
 # output: androidApp/build/outputs/bundle/release/*.aab
 ```
 
-Release API defaults to `https://api.vendas.comerc.app.br/v1`. Override:
+Release API defaults to `https://vendas.comerc.app.br/v1`. Override:
 
 ```bash
 SELLER_RELEASE_API_BASE_URL=https://staging.example/v1 ./gradlew :androidApp:bundleRelease

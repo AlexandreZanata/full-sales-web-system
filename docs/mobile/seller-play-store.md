@@ -8,7 +8,7 @@
 |----|----------|
 | OD-21-1 | Seller app only |
 | OD-21-2 | `applicationId` = `com.fullsales.seller` |
-| OD-21-3 | Release API = `https://api.vendas.comerc.app.br/v1` |
+| OD-21-3 | Release API = `https://vendas.comerc.app.br/v1` |
 | OD-21-4 | First Internal: `versionCode=1`, `versionName=1.0.0` |
 | OD-21-5 | R8 minify + shrink **on** for release |
 | OD-21-6 | `android:allowBackup=false` (tokens on device) |
@@ -44,7 +44,7 @@ First Internal upload: `1` / `1.0.0`.
 
 ## Release API
 
-- Default release BuildConfig: `https://api.vendas.comerc.app.br/v1`
+- Default release BuildConfig: `https://vendas.comerc.app.br/v1`
 - Staging override (internal QA only):
 
 ```bash

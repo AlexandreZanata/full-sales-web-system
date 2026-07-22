@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Runs verify-changed on staged files. Skip: SKIP_VERIFY=1 git commit ...
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+if [[ "${SKIP_VERIFY:-}" == "1" ]]; then
+  echo "pre-commit: SKIP_VERIFY=1 — skipping"
+  exit 0
+fi
+exec bash "${ROOT}/scripts/verify-changed.sh" commit

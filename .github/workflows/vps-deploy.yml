@@ -85,4 +85,4 @@ jobs:
 
       - name: Smoke health
         if: steps.gate.outputs.configured == 'true'
-        run: curl -fsS --retry 5 --retry-delay 5 https://api.vendas.comerc.app.br/health
+        run: curl -fsS --retry 5 --retry-delay 5 https://vendas.comerc.app.br/health
