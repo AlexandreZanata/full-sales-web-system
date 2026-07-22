@@ -13,7 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-/** Sticky bottom actions — pads above nav/gesture and the soft keyboard when shown. */
+/**
+ * Sticky bottom actions.
+ * Surface draws edge-to-edge; buttons sit above the nav/gesture safe area and IME.
+ */
 @Composable
 fun SellerStickyBottomBar(
     modifier: Modifier = Modifier,
@@ -22,7 +25,6 @@ fun SellerStickyBottomBar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
             .imePadding(),
         shadowElevation = 6.dp,
         tonalElevation = 0.dp,
@@ -30,6 +32,7 @@ fun SellerStickyBottomBar(
     ) {
         Column(
             modifier = Modifier
+                .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             content = content,

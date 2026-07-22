@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -54,16 +55,25 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         when {
-            state.loading -> CircularProgressIndicator(modifier = Modifier.padding(24.dp))
+            state.loading -> CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(padding)
+                    .navigationBarsPadding()
+                    .padding(24.dp),
+            )
             state.errorCode != null -> Text(
                 s.profile.loadFailed,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier
+                    .padding(padding)
+                    .navigationBarsPadding()
+                    .padding(16.dp),
             )
             else -> Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),

@@ -1,0 +1,11 @@
+# Ignore secrets; keep examples and docs tracked via parent paths
+vps.env
+env/*.env
+ssh/id_*
+!env/*.example
+!ssh/README.md
+!ssh/*.pub
+!*.example
+!README.md
+!deploy-to-vps.sh
+!.gitignore

@@ -86,7 +86,7 @@ test.describe('Admin orders list', () => {
 
     await page.goto('/login');
     await page.getByLabel('Email').fill('admin@test.com');
-    await page.getByLabel('Password').fill('secret123');
+    await page.getByRole('textbox', { name: 'Password' }).fill('secret123');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await expect(page).toHaveURL('/');
   });

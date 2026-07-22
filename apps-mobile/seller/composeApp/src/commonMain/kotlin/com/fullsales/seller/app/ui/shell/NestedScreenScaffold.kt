@@ -7,7 +7,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-/** No extra system-bar padding — [SellerShellScaffold] already handles insets. */
+/** Nested screens own system-bar insets (sticky bars / scroll content). */
 val NestedScreenWindowInsets: WindowInsets = WindowInsets(0, 0, 0, 0)
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -3,7 +3,6 @@ package com.fullsales.seller.app.ui.shell
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,11 +45,9 @@ fun SellerShellScaffold(
     val textSizePreset by accessibilityViewModel.preset.collectAsState()
     val showBottomBar = SellerRoutes.showsBottomBar(currentRoute)
     val offlineBanner = LocalOfflineBannerUi.current
-    // Bottom nav already consumes nav-bar insets; without it, pad content so snackbars clear the system bar.
-    val contentInsets =
-        if (showBottomBar) NestedScreenWindowInsets else WindowInsets.navigationBars
+    // Bottom nav / sticky action bars draw edge-to-edge and apply their own nav-bar insets.
     Scaffold(
-        contentWindowInsets = contentInsets,
+        contentWindowInsets = NestedScreenWindowInsets,
         topBar = {
             Column {
                 TopAppBar(

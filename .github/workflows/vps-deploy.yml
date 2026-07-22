@@ -1,0 +1,88 @@
+name: VPS deploy
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vps-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    steps:
+      - name: Check secrets
+        id: gate
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -z "$VPS_HOST" ] || [ -z "$VPS_USER" ] || [ -z "$VPS_SSH_KEY" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skip deploy — set VPS_HOST, VPS_USER, VPS_SSH_KEY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.configured == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Write SSH key
+        if: steps.gate.outputs.configured == 'true'
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p production/ssh
+          echo "$VPS_SSH_KEY" > production/ssh/id_ed25519_fullsales
+          chmod 600 production/ssh/id_ed25519_fullsales
+
+      - name: Ensure remote env exists
+        if: steps.gate.outputs.configured == 'true'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          # CI must not overwrite production secrets; only sync code.
+          # First boot: operator runs ./production/deploy-to-vps.sh once.
+          ssh -i production/ssh/id_ed25519_fullsales \
+            -o StrictHostKeyChecking=accept-new \
+            "${VPS_USER}@${VPS_HOST}" \
+            "test -f /var/www/fullsales/production/env/api.env"
+
+      - name: Rsync + remote deploy
+        if: steps.gate.outputs.configured == 'true'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          rsync -az --delete \
+            -e "ssh -i production/ssh/id_ed25519_fullsales -o StrictHostKeyChecking=accept-new" \
+            --exclude node_modules --exclude .pnpm-store --exclude dist \
+            --exclude target --exclude .git --exclude .local \
+            --exclude test-results --exclude coverage --exclude apps-mobile \
+            --exclude 'production/env/*.env' --exclude production/vps.env \
+            --exclude 'production/ssh/id_*' \
+            ./ "${VPS_USER}@${VPS_HOST}:/var/www/fullsales/"
+          ssh -i production/ssh/id_ed25519_fullsales \
+            -o StrictHostKeyChecking=accept-new \
+            "${VPS_USER}@${VPS_HOST}" \
+            "cd /var/www/fullsales && chmod +x infra/scripts/*.sh && SKIP_GIT_PULL=1 ./infra/scripts/vps-full-deploy.sh"
+
+      - name: Smoke health
+        if: steps.gate.outputs.configured == 'true'
+        run: curl -fsS --retry 5 --retry-delay 5 https://api.vendas.comerc.app.br/health
