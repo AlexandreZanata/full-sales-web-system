@@ -2,6 +2,7 @@
 .gradle/
 build/
 local.properties
+.env.mobile
 .idea/
 .DS_Store
 captures/
