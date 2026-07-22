@@ -24,9 +24,10 @@ Requires dev seed (`pnpm seed:dev`) and API on `:8080`. **Driver accounts are re
 
 | Platform | URL |
 |----------|-----|
-| Android emulator | `http://10.0.2.2:8080/v1` |
+| Android emulator (debug) | `http://10.0.2.2:8080/v1` |
 | iOS simulator | `http://127.0.0.1:8080/v1` |
-| Physical device (LAN) | `http://<host-lan-ip>:8080/v1` |
+| Physical device (LAN debug) | `http://<host-lan-ip>:8080/v1` |
+| **Android release (Play)** | `https://api.vendas.comerc.app.br/v1` |
 
 Override at build time:
 
@@ -36,17 +37,35 @@ SELLER_API_BASE_URL=http://172.19.2.162:8080/v1 ./gradlew :androidApp:installDeb
 
 # Or local.properties
 # seller.api.base.url=http://172.19.2.162:8080/v1
+
+# Release / staging override
+SELLER_RELEASE_API_BASE_URL=https://staging.example/v1 ./gradlew :androidApp:bundleRelease
 ```
 
 USB without LAN: `adb reverse tcp:8080 tcp:8080` then keep emulator default `10.0.2.2` (or `127.0.0.1` on device with reverse).
 
 Wrong/unreachable host → sticky Offline banner (server reason) via periodic `GET /health` probe — not a silent empty UI.
 
+## Play Store readiness (Phase 21)
+
+| Item | Value |
+|------|-------|
+| `applicationId` | `com.fullsales.seller` |
+| Version | `1` / `1.0.0` |
+| `allowBackup` | `false` |
+| Cleartext | Debug only |
+| Privacy | `https://vendas.comerc.app.br/privacy-seller.html` |
+| Preflight | `pnpm mobile:seller:play-preflight` |
+
+Runbook: [docs/mobile/seller-play-store.md](../mobile/seller-play-store.md).
+
+
 ## Commands
 
 ```bash
 # From repo root
 pnpm mobile:seller:check
+pnpm mobile:seller:play-preflight
 
 # Full quality gate (Phase 65E)
 cd apps-mobile/seller
@@ -55,7 +74,7 @@ cd apps-mobile/seller
 ./gradlew :shared:compileKotlinIosSimulatorArm64 :composeApp:compileKotlinIosSimulatorArm64  # macOS only
 pnpm verify:backend   # from repo root
 
-# Instrumented tests (emulator required)
+# Instrumented tests (emulator required) — includes LaunchSmokeInstrumentedTest
 ./gradlew :androidApp:connectedDebugAndroidTest
 ```
 

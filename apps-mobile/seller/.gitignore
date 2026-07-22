@@ -7,3 +7,10 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Play / signing secrets (never commit)
+*.jks
+*.keystore
+keystore.properties
+play-service-account.json
+.preflight-upload.jks

@@ -27,6 +27,13 @@ production/ssh/id_*
 !production/ssh/*.pub
 !production/ssh/README.md
 
+# Android / Play signing secrets (Phase 21)
+*.jks
+*.keystore
+**/keystore.properties
+**/play-service-account.json
+**/.preflight-upload.jks
+
 # IDE
 .idea/
 *.swp

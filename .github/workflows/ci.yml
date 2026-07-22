@@ -176,6 +176,10 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Refuse Android secrets in git
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/verify-no-android-secrets.sh
+
       - name: Seller Gradle check, lint, and assembleDebug
         run: ./gradlew :shared:check :composeApp:compileDebugKotlinAndroid :androidApp:lint :androidApp:assembleDebug
 

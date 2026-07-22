@@ -17,6 +17,9 @@ val localProperties = Properties().apply {
 val sellerApiBaseUrl: String = System.getenv("SELLER_API_BASE_URL")
     ?: localProperties.getProperty("seller.api.base.url")
     ?: "http://10.0.2.2:8080/v1"
+val sellerReleaseApiBaseUrl: String = System.getenv("SELLER_RELEASE_API_BASE_URL")
+    ?: localProperties.getProperty("seller.release.api.base.url")
+    ?: "https://api.vendas.comerc.app.br/v1"
 
 kotlin {
     androidTarget {
@@ -111,7 +114,7 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"$sellerApiBaseUrl\"")
         }
         release {
-            buildConfigField("String", "API_BASE_URL", "\"https://api.fullsales.example/v1\"")
+            buildConfigField("String", "API_BASE_URL", "\"$sellerReleaseApiBaseUrl\"")
         }
     }
 

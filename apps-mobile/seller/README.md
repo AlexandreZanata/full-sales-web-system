@@ -24,6 +24,24 @@ SELLER_API_BASE_URL=http://<lan-ip>:8080/v1 ./gradlew :androidApp:installDebug
 adb reverse tcp:8080 tcp:8080   # USB alternative
 ```
 
+### Release / Play Store (Phase 21)
+
+| Item | Value |
+|------|-------|
+| `applicationId` | `com.fullsales.seller` |
+| Release API | `https://api.vendas.comerc.app.br/v1` |
+| Version | `versionCode=1` / `versionName=1.0.0` |
+| `allowBackup` | `false` |
+| Privacy | `https://vendas.comerc.app.br/privacy-seller.html` |
+
+```bash
+# From repo root — mandatory before Play upload
+pnpm mobile:seller:play-preflight
+pnpm verify:no-android-secrets
+```
+
+Full runbook: [docs/mobile/seller-play-store.md](../../docs/mobile/seller-play-store.md).
+
 ### Catalog share link
 
 Share URLs come from the API: `GET /v1/me/seller-share` → `shareUrl` (built from backend `PORTAL_PUBLIC_ORIGIN` + `/s/{code}`).
@@ -53,12 +71,14 @@ sdk.dir=/path/to/Android/sdk
 cd apps-mobile/seller
 ./gradlew :shared:check :composeApp:compileDebugKotlinAndroid :androidApp:lint :androidApp:assembleDebug
 ./gradlew :shared:compileKotlinIosSimulatorArm64 :composeApp:compileKotlinIosSimulatorArm64  # macOS only
+./scripts/play-preflight.sh   # release AAB gate (Play)
 ```
 
 From repo root:
 
 ```bash
 pnpm mobile:seller:check
+pnpm mobile:seller:play-preflight
 ```
 
 ## Run
@@ -213,4 +233,4 @@ iOS simulator API: `http://127.0.0.1:8080/v1`. See [iosApp/README.md](iosApp/REA
 
 Spec: [docs/features/seller-mobile-app.md](../../../docs/features/seller-mobile-app.md) (Material 3 section).
 
-**Updated:** 2026-07-05
+**Updated:** 2026-07-22

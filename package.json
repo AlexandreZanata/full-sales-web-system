@@ -34,6 +34,8 @@
     "dev:field": "pnpm --filter @full-sales/field dev",
     "dev:platform-admin": "pnpm --filter @full-sales/platform-admin dev",
     "mobile:seller:check": "cd apps-mobile/seller && ./gradlew :shared:check :composeApp:compileDebugKotlinAndroid :androidApp:lint :androidApp:assembleDebug",
+    "mobile:seller:play-preflight": "bash apps-mobile/seller/scripts/play-preflight.sh",
+    "verify:no-android-secrets": "bash scripts/verify-no-android-secrets.sh",
     "seed:dev": "cd backend && ALLOW_DEV_SEED=1 cargo run -p dev-seed",
     "seed:dev:reset": "bash backend/crates/dev-seed/scripts/reset-dev-catalog.sh",
     "validate:deploy": "bash deploy/scripts/validate-deploy.sh",

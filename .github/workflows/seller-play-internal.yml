@@ -1,0 +1,64 @@
+name: Seller Android Play Internal
+
+# Tag seller-android-v* → preflight + signed AAB artifact.
+on:
+  push:
+    tags:
+      - "seller-android-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  play-preflight-aab:
+    runs-on: ubuntu-latest
+    environment: play-internal
+    defaults:
+      run:
+        working-directory: apps-mobile/seller
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Refuse Android secrets in git
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/verify-no-android-secrets.sh
+
+      - name: Write upload keystore from secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANDROID_KEYSTORE_BASE64:-}" ]]; then
+            echo "No ANDROID_KEYSTORE_BASE64 — preflight will use ephemeral keystore (not for Play)"
+            exit 0
+          fi
+          echo "${ANDROID_KEYSTORE_BASE64}" | base64 -d > upload-keystore.jks
+          printf '%s\n' \
+            "storeFile=upload-keystore.jks" \
+            "storePassword=${ANDROID_KEYSTORE_PASSWORD}" \
+            "keyAlias=${ANDROID_KEY_ALIAS}" \
+            "keyPassword=${ANDROID_KEY_PASSWORD}" \
+            > keystore.properties
+
+      - name: Play preflight (check + lint + bundleRelease)
+        working-directory: ${{ github.workspace }}
+        run: bash apps-mobile/seller/scripts/play-preflight.sh
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: seller-android-release-aab
+          path: apps-mobile/seller/androidApp/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

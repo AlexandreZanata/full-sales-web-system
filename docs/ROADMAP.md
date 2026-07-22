@@ -74,6 +74,7 @@ Build phases aligned with domain dependencies. Local task breakdown: `.local/pha
 - Compose Multiplatform shared UI (`composeApp`) — Android Room + iOS SQLDelight LocalStore
 - CI: `seller-kmp`, `seller-ios` jobs; quality gate in `pnpm mobile:seller:check`
 - Docs: [features/seller-mobile-app.md](features/seller-mobile-app.md), [ADR-051](adr/ADR-051-seller-kmp-app.md) (incl. Phase 16 amendment)
+- Play readiness: [docs/mobile/seller-play-store.md](mobile/seller-play-store.md) — release AAB, HTTPS API, `pnpm mobile:seller:play-preflight`
 
 **Exit criteria:** Shared unit tests (API, sync, repositories); Android lint + assemble; iOS simulator compile; documented routes and manual acceptance script.
 
