@@ -40,7 +40,8 @@ pnpm mobile:seller:play-preflight
 pnpm verify:no-android-secrets
 ```
 
-Full runbook: [docs/mobile/seller-play-store.md](../../docs/mobile/seller-play-store.md).
+Full runbook: [docs/mobile/seller-play-store.md](../../docs/mobile/seller-play-store.md).  
+Release signing / AAB: [docs/mobile/seller-release-build.md](../../docs/mobile/seller-release-build.md).
 
 ### Catalog share link
 

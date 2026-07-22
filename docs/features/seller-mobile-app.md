@@ -55,7 +55,8 @@ Wrong/unreachable host → sticky Offline banner (server reason) via periodic `G
 | `allowBackup` | `false` |
 | Cleartext | Debug only |
 | Privacy | `https://vendas.comerc.app.br/privacy-seller.html` |
-| Preflight | `pnpm mobile:seller:play-preflight` |
+| Preflight | `pnpm mobile:seller:play-preflight` (validated 2026-07-22) |
+| Release notes | [docs/mobile/seller-release-build.md](../mobile/seller-release-build.md) |
 
 Runbook: [docs/mobile/seller-play-store.md](../mobile/seller-play-store.md).
 

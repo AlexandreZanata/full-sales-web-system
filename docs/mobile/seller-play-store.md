@@ -24,11 +24,14 @@
 | `applicationId` | `com.fullsales.seller` |
 | Namespace | `com.fullsales.seller.android` |
 | Store / label | Full Sales Seller (`android:label`) |
-| Permissions | `INTERNET`, `ACCESS_NETWORK_STATE` only |
+| Permissions (manifest) | `INTERNET`, `ACCESS_NETWORK_STATE` |
+| Permissions (merged) | Plus WorkManager merges: `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, `FOREGROUND_SERVICE` (no ads ID) |
 | `allowBackup` | `false` |
 | Cleartext | Debug only (`src/debug`); release HTTPS-only |
 | Icons | Adaptive + round mipmaps (Phase 18) |
 | Min / target SDK | 26 / 35 |
+| First store versions | `versionCode=1`, `versionName=1.0.0` |
+| Preflight validated | 2026-07-22 — `pnpm mobile:seller:play-preflight` green (ephemeral upload key) |
 
 ## Versioning policy
 
@@ -53,7 +56,9 @@ Debug keeps emulator/LAN defaults (`SELLER_API_BASE_URL` / `seller.api.base.url`
 
 ## Signing (local)
 
-See [RELEASE-BUILD.md](../../.local/phases/21-seller-play-store-ready/documentation/RELEASE-BUILD.md) (local) and committed notes in seller README.
+See [seller-release-build.md](seller-release-build.md) and [apps-mobile/seller/README.md](../../apps-mobile/seller/README.md).
+
+**Play upload:** use a durable upload keystore (backed up offline), never the preflight ephemeral `.preflight-upload.jks`.
 
 ```bash
 cd apps-mobile/seller
