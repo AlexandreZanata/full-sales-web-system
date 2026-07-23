@@ -43,15 +43,16 @@ use crate::media::{
 use crate::platform::auth::platform_auth_middleware;
 use crate::platform::export::{get_settings_data_export, start_settings_data_export};
 use crate::platform::{
-    add_blocklist_entry, create_tenant, delete_blocklist_entry, disable_platform_user,
-    enable_platform_user, end_impersonation, get_platform_user, get_tenant, get_tenant_export,
-    get_tenant_stats, health_history, health_matrix, list_fraud_events, list_platform_audit_events,
-    list_platform_tenants, list_platform_users, list_tenant_orders_support,
-    list_tenant_products_support, list_tenant_sales_support, list_tenant_workforce,
-    offboard_tenant, patch_platform_user, patch_tenant, patch_tenant_features, platform_login,
-    platform_logout, platform_mfa_verify, platform_refresh, reactivate_tenant,
-    reset_platform_user_password, resolve_fraud_event, run_dunning_job, run_offboarding_job,
-    schedule_maintenance, start_impersonation, start_tenant_export, suspend_tenant,
+    add_blocklist_entry, create_platform_tenant_user, create_tenant, delete_blocklist_entry,
+    disable_platform_user, enable_platform_user, end_impersonation, get_platform_user, get_tenant,
+    get_tenant_export, get_tenant_stats, health_history, health_matrix, list_fraud_events,
+    list_platform_audit_events, list_platform_tenants, list_platform_users,
+    list_tenant_orders_support, list_tenant_products_support, list_tenant_sales_support,
+    list_tenant_workforce, offboard_tenant, patch_platform_user, patch_tenant,
+    patch_tenant_features, platform_login, platform_logout, platform_mfa_verify, platform_refresh,
+    reactivate_tenant, reset_platform_user_password, resolve_fraud_event, run_dunning_job,
+    run_offboarding_job, schedule_maintenance, start_impersonation, start_tenant_export,
+    suspend_tenant,
 };
 use crate::portal::{
     cancel_portal_order, create_portal_order, create_public_portal_lead,
@@ -392,7 +393,7 @@ pub fn v1_router(state: AppState) -> Router {
         )
         .route(
             "/v1/platform/tenants/{id}/users",
-            get(list_tenant_workforce),
+            get(list_tenant_workforce).post(create_platform_tenant_user),
         )
         .route("/v1/platform/tenants/{id}/stats", get(get_tenant_stats))
         .route(

@@ -8,29 +8,21 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
 /**
- * Contract (Phase 14A): Offline immediate; Online only after stable validated window;
- * rapid flaps coalesce to a single Online transition.
+ * Contract: cold start Connecting (no Offline flash); Online after stable window without
+ * restarting on redundant true; Offline only after stable unreachability; promoteOnlineNow.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class DebouncedConnectivityTest {
     @Test
-    fun given_validated_when_flaps_then_single_online_after_stable_window() = runTest {
-        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 2_000L)
-        assertEquals(ConnectivityState.Offline, gate.state.value)
+    fun given_cold_start_when_validated_then_online_after_stable_window() = runTest {
+        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 1_000L, offlineStableMs = 500L)
+        assertEquals(ConnectivityState.Connecting, gate.state.value)
 
         gate.onValidatedChanged(true)
         runCurrent()
         assertEquals(ConnectivityState.Connecting, gate.state.value)
 
-        gate.onValidatedChanged(false)
-        runCurrent()
-        assertEquals(ConnectivityState.Offline, gate.state.value)
-
-        gate.onValidatedChanged(true)
-        runCurrent()
-        assertEquals(ConnectivityState.Connecting, gate.state.value)
-
-        advanceTimeBy(1_999L)
+        advanceTimeBy(999L)
         runCurrent()
         assertEquals(ConnectivityState.Connecting, gate.state.value)
 
@@ -40,31 +32,64 @@ class DebouncedConnectivityTest {
     }
 
     @Test
-    fun given_online_when_validated_lost_then_offline_immediate() = runTest {
-        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 2_000L)
+    fun given_connecting_when_redundant_true_then_timer_does_not_restart() = runTest {
+        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 1_000L, offlineStableMs = 500L)
         gate.onValidatedChanged(true)
-        advanceTimeBy(2_000L)
+        runCurrent()
+        advanceTimeBy(800L)
+        runCurrent()
+        // Xiaomi-style storm: repeated true must not reset the 1s window.
+        gate.onValidatedChanged(true)
+        gate.onValidatedChanged(true)
+        runCurrent()
+        advanceTimeBy(200L)
+        runCurrent()
+        assertEquals(ConnectivityState.Online, gate.state.value)
+    }
+
+    @Test
+    fun given_online_when_brief_loss_then_stays_online_until_offline_stable() = runTest {
+        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 100L, offlineStableMs = 800L)
+        gate.onValidatedChanged(true)
+        advanceTimeBy(100L)
         runCurrent()
         assertEquals(ConnectivityState.Online, gate.state.value)
 
         gate.onValidatedChanged(false)
         runCurrent()
+        advanceTimeBy(400L)
+        runCurrent()
+        assertEquals(ConnectivityState.Online, gate.state.value)
+
+        gate.onValidatedChanged(true)
+        runCurrent()
+        assertEquals(ConnectivityState.Online, gate.state.value)
+    }
+
+    @Test
+    fun given_online_when_validated_lost_stable_then_offline() = runTest {
+        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 100L, offlineStableMs = 500L)
+        gate.onValidatedChanged(true)
+        advanceTimeBy(100L)
+        runCurrent()
+        assertEquals(ConnectivityState.Online, gate.state.value)
+
+        gate.onValidatedChanged(false)
+        runCurrent()
+        advanceTimeBy(500L)
+        runCurrent()
         assertEquals(ConnectivityState.Offline, gate.state.value)
     }
 
     @Test
-    fun given_connecting_when_flap_restarts_stable_window() = runTest {
-        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 2_000L)
-        gate.onValidatedChanged(true)
-        advanceTimeBy(1_500L)
-        runCurrent()
+    fun given_offline_when_promoteOnlineNow_then_online_immediate() = runTest {
+        val gate = DebouncedConnectivity(backgroundScope, onlineStableMs = 2_000L, offlineStableMs = 100L)
         gate.onValidatedChanged(false)
-        gate.onValidatedChanged(true)
+        advanceTimeBy(100L)
         runCurrent()
-        advanceTimeBy(1_500L)
-        runCurrent()
-        assertEquals(ConnectivityState.Connecting, gate.state.value)
-        advanceTimeBy(500L)
+        assertEquals(ConnectivityState.Offline, gate.state.value)
+
+        gate.promoteOnlineNow()
         runCurrent()
         assertEquals(ConnectivityState.Online, gate.state.value)
     }

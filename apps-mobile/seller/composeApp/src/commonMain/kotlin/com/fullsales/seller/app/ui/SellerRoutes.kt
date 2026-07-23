@@ -21,6 +21,15 @@ object SellerRoutes {
     fun commerceDetail(commerceId: String) = "commerces/$commerceId"
     fun productDetail(productId: String) = "products/$productId"
 
+    fun isCommerceRegistrationFlow(route: String?): Boolean =
+        route == COMMERCE_REGISTRATIONS ||
+            route == COMMERCE_REGISTRATION_MODE ||
+            route == COMMERCE_REGISTRATION_CNPJ ||
+            route == COMMERCE_REGISTRATION_FORM
+
+    fun isCommerceTabSelected(route: String?): Boolean =
+        route == COMMERCES || isCommerceRegistrationFlow(route)
+
     fun showsBottomBar(route: String?): Boolean =
-        route == SALES || route == COMMERCES
+        route == SALES || route == COMMERCES || isCommerceRegistrationFlow(route)
 }

@@ -1,6 +1,7 @@
 package com.fullsales.seller.app.ui.sales
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,14 +35,23 @@ fun CatalogShareBar(
     enabled: Boolean,
     onShare: () -> Unit,
     onCopy: () -> Unit,
+    onOpen: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val s = LocalSellerStrings.current
+    val canUse = enabled && catalogUrl != null
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(CatalogShareBlue)
+            .then(
+                if (canUse) {
+                    Modifier.clickable(onClick = onOpen)
+                } else {
+                    Modifier
+                },
+            )
             .padding(horizontal = 14.dp, vertical = 10.dp)
             .semantics { contentDescription = s.sales.catalogLinkTitle },
         verticalAlignment = Alignment.CenterVertically,
@@ -70,18 +80,18 @@ fun CatalogShareBar(
                 )
             }
         }
-        IconButton(onClick = onShare, enabled = enabled) {
+        IconButton(onClick = onShare, enabled = canUse) {
             Icon(
                 Icons.Default.Share,
                 contentDescription = s.sales.catalogLinkShare,
-                tint = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                tint = if (canUse) Color.White else Color.White.copy(alpha = 0.4f),
             )
         }
-        IconButton(onClick = onCopy, enabled = enabled) {
+        IconButton(onClick = onCopy, enabled = canUse) {
             Icon(
                 Icons.Default.ContentCopy,
                 contentDescription = s.sales.catalogLinkCopy,
-                tint = if (enabled) Color.White else Color.White.copy(alpha = 0.4f),
+                tint = if (canUse) Color.White else Color.White.copy(alpha = 0.4f),
             )
         }
     }

@@ -1,17 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
+import { TenantDetailPanels } from '@/components/tenants/TenantDetailPanels';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PageBackLink } from '@/components/ui/PageBackLink';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { Input } from '@/components/ui/Input';
-import { JsonBlock } from '@/components/ui/JsonBlock';
 import { Tabs } from '@/components/ui/Tabs';
 import { Textarea } from '@/components/ui/Textarea';
 import { fetchPlatformAuditEvents } from '@/lib/api/audit';
@@ -24,9 +21,6 @@ import {
   suspendTenant,
 } from '@/lib/api/tenants';
 import { fetchTenantStats, fetchTenantWorkforce } from '@/lib/api/users';
-import type { PlatformUser } from '@/lib/api/types';
-import { formatDateTime } from '@/lib/formatDateTime';
-import { formatMoneyMinor } from '@/lib/i18n/labels';
 import { useI18n } from '@/lib/i18n/context';
 import { useToast } from '@/hooks/useToast';
 
@@ -98,12 +92,6 @@ function TenantDetailPage() {
     return <EmptyState title={t('common.noResults')} />;
   }
 
-  const userColumns: DataTableColumn<PlatformUser>[] = [
-    { id: 'name', header: t('common.name'), cell: (row) => row.name },
-    { id: 'email', header: t('common.email'), cell: (row) => row.email },
-    { id: 'role', header: 'Role', cell: (row) => row.role },
-  ];
-
   const tabItems = [
     { id: 'overview', label: t('tenants.overview') },
     { id: 'users', label: t('tenants.workforce') },
@@ -118,6 +106,11 @@ function TenantDetailPage() {
       <PageHeader
         title={tenant.data.displayName}
         back={<PageBackLink to="/tenants" label={t('tenants.title')} />}
+        actions={
+          <Link to="/tenants" search={{ modal: 'edit', id }}>
+            <Button variant="secondary">{t('tenants.edit')}</Button>
+          </Link>
+        }
       />
       <div className="flex flex-wrap gap-2">
         <Button
@@ -146,66 +139,20 @@ function TenantDetailPage() {
         </Button>
       </div>
       <Tabs tabs={tabItems} activeId={tab} onChange={setTab}>
-        {tab === 'overview' ? (
-          <Card className="grid gap-2 p-4 text-sm md:grid-cols-2">
-            <p>
-              <strong>{t('common.status')}:</strong> {tenant.data.status}
-            </p>
-            <p>
-              <strong>Users:</strong> {tenant.data.counts.users}
-            </p>
-            <p>
-              <strong>Orders:</strong> {tenant.data.counts.orders}
-            </p>
-          </Card>
-        ) : null}
-        {tab === 'billing' && stats.data ? (
-          <Card className="space-y-3 p-4 text-sm">
-            <p>MRR: {formatMoneyMinor(stats.data.mrrMinor, stats.data.mrrCurrency)}</p>
-            <p>Orders: {stats.data.orders}</p>
-            <div className="flex flex-wrap items-end gap-2">
-              <Input
-                label={t('tenants.changePlan')}
-                value={planId || tenant.data.planId || ''}
-                onChange={(e) => {
-                  setPlanId(e.target.value);
-                }}
-              />
-              <Button
-                onClick={() => {
-                  changePlan.mutate();
-                }}
-                disabled={!planId.trim()}
-              >
-                {t('common.save')}
-              </Button>
-            </div>
-          </Card>
-        ) : null}
-        {tab === 'settings' ? <JsonBlock value={tenant.data.settings} /> : null}
-        {tab === 'users' && workforce.data ? (
-          <DataTable columns={userColumns} rows={workforce.data.data} getRowKey={(row) => row.id} />
-        ) : null}
-        {tab === 'domains' && domains.data ? (
-          <ul className="space-y-2 text-sm">
-            {domains.data.data
-              .filter((d) => d.tenantId === id)
-              .map((d) => (
-                <li key={d.id} className="rounded border border-hairline p-3">
-                  {d.hostname} — {d.status}
-                </li>
-              ))}
-          </ul>
-        ) : null}
-        {tab === 'audit' && audit.data ? (
-          <ul className="space-y-2 text-sm">
-            {audit.data.data.map((event) => (
-              <li key={event.id} className="rounded border border-hairline p-3">
-                {event.action} · {formatDateTime(event.createdAt)}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <TenantDetailPanels
+          tab={tab}
+          tenantId={id}
+          tenant={tenant.data}
+          planId={planId}
+          onPlanIdChange={setPlanId}
+          onChangePlan={() => {
+            changePlan.mutate();
+          }}
+          stats={stats.data}
+          workforce={workforce.data}
+          domains={domains.data}
+          audit={audit.data}
+        />
       </Tabs>
       <ConfirmDialog
         open={suspendOpen}

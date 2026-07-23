@@ -37,6 +37,7 @@ export type Messages = {
     previous: string;
     next: string;
     cancel: string;
+    close: string;
     confirm: string;
     save: string;
     search: string;
@@ -88,6 +89,8 @@ export type Messages = {
   tenants: {
     title: string;
     new: string;
+    edit: string;
+    view: string;
     suspend: string;
     reactivate: string;
     offboard: string;
@@ -99,9 +102,18 @@ export type Messages = {
     workforce: string;
     suspendReason: string;
     changePlan: string;
+    legalName: string;
+    displayName: string;
+    planId: string;
+    updated: string;
+    readOnlyFields: string;
   };
   users: {
     title: string;
+    new: string;
+    view: string;
+    created: string;
+    selectTenant: string;
     disable: string;
     enable: string;
     resetPassword: string;

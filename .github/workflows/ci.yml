@@ -1,9 +1,10 @@
 name: CI
 
+# Full suite runs on push (and manual dispatch). Same-repo PR branches are covered
+# by push events; keep local pre-commit light via scripts/verify-changed.sh commit.
 on:
   push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   rust:

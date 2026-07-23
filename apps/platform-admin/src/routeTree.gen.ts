@@ -23,6 +23,7 @@ import { Route as AuthenticatedAuditIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedUsersIdRouteImport } from './routes/_authenticated/users/$id'
 import { Route as AuthenticatedTenantsNewRouteImport } from './routes/_authenticated/tenants/new'
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants/$id'
+import { Route as AuthenticatedTenantsIdEditRouteImport } from './routes/_authenticated/tenants/$id.edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -98,11 +99,17 @@ const AuthenticatedTenantsIdRoute = AuthenticatedTenantsIdRouteImport.update({
   path: '/tenants/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedTenantsIdEditRoute =
+  AuthenticatedTenantsIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedTenantsIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
-  '/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/tenants/$id': typeof AuthenticatedTenantsIdRouteWithChildren
   '/tenants/new': typeof AuthenticatedTenantsNewRoute
   '/users/$id': typeof AuthenticatedUsersIdRoute
   '/audit/': typeof AuthenticatedAuditIndexRoute
@@ -113,11 +120,12 @@ export interface FileRoutesByFullPath {
   '/maintenance/': typeof AuthenticatedMaintenanceIndexRoute
   '/tenants/': typeof AuthenticatedTenantsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/tenants/$id/edit': typeof AuthenticatedTenantsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
-  '/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/tenants/$id': typeof AuthenticatedTenantsIdRouteWithChildren
   '/tenants/new': typeof AuthenticatedTenantsNewRoute
   '/users/$id': typeof AuthenticatedUsersIdRoute
   '/audit': typeof AuthenticatedAuditIndexRoute
@@ -128,13 +136,14 @@ export interface FileRoutesByTo {
   '/maintenance': typeof AuthenticatedMaintenanceIndexRoute
   '/tenants': typeof AuthenticatedTenantsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/tenants/$id/edit': typeof AuthenticatedTenantsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRouteWithChildren
   '/_authenticated/tenants/new': typeof AuthenticatedTenantsNewRoute
   '/_authenticated/users/$id': typeof AuthenticatedUsersIdRoute
   '/_authenticated/audit/': typeof AuthenticatedAuditIndexRoute
@@ -145,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated/maintenance/': typeof AuthenticatedMaintenanceIndexRoute
   '/_authenticated/tenants/': typeof AuthenticatedTenantsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/tenants/$id/edit': typeof AuthenticatedTenantsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/maintenance/'
     | '/tenants/'
     | '/users/'
+    | '/tenants/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/tenants'
     | '/users'
+    | '/tenants/$id/edit'
   id:
     | '__root__'
     | '/_authenticated'
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
     | '/_authenticated/maintenance/'
     | '/_authenticated/tenants/'
     | '/_authenticated/users/'
+    | '/_authenticated/tenants/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -300,12 +313,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTenantsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/tenants/$id/edit': {
+      id: '/_authenticated/tenants/$id/edit'
+      path: '/edit'
+      fullPath: '/tenants/$id/edit'
+      preLoaderRoute: typeof AuthenticatedTenantsIdEditRouteImport
+      parentRoute: typeof AuthenticatedTenantsIdRoute
+    }
   }
 }
 
+interface AuthenticatedTenantsIdRouteChildren {
+  AuthenticatedTenantsIdEditRoute: typeof AuthenticatedTenantsIdEditRoute
+}
+
+const AuthenticatedTenantsIdRouteChildren: AuthenticatedTenantsIdRouteChildren =
+  {
+    AuthenticatedTenantsIdEditRoute: AuthenticatedTenantsIdEditRoute,
+  }
+
+const AuthenticatedTenantsIdRouteWithChildren =
+  AuthenticatedTenantsIdRoute._addFileChildren(
+    AuthenticatedTenantsIdRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedTenantsIdRoute: typeof AuthenticatedTenantsIdRoute
+  AuthenticatedTenantsIdRoute: typeof AuthenticatedTenantsIdRouteWithChildren
   AuthenticatedTenantsNewRoute: typeof AuthenticatedTenantsNewRoute
   AuthenticatedUsersIdRoute: typeof AuthenticatedUsersIdRoute
   AuthenticatedAuditIndexRoute: typeof AuthenticatedAuditIndexRoute
@@ -320,7 +354,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedTenantsIdRoute: AuthenticatedTenantsIdRoute,
+  AuthenticatedTenantsIdRoute: AuthenticatedTenantsIdRouteWithChildren,
   AuthenticatedTenantsNewRoute: AuthenticatedTenantsNewRoute,
   AuthenticatedUsersIdRoute: AuthenticatedUsersIdRoute,
   AuthenticatedAuditIndexRoute: AuthenticatedAuditIndexRoute,

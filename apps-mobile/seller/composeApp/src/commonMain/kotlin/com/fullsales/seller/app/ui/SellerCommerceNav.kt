@@ -42,7 +42,14 @@ internal fun NavGraphBuilder.commerceRoutes(
     accessibilityViewModel: AccessibilityViewModel,
 ) {
     composable(SellerRoutes.COMMERCE_REGISTRATION_MODE) {
-        DetailShell(navController, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+        ShellScaffold(
+            SellerRoutes.COMMERCE_REGISTRATION_MODE,
+            navController,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+        ) {
             val registrationViewModel: CommerceRegistrationViewModel = viewModel(factory = factory)
             RegistrationModeScreen(
                 onCnpjLookup = { navController.navigate(SellerRoutes.COMMERCE_REGISTRATION_CNPJ) },
@@ -55,7 +62,14 @@ internal fun NavGraphBuilder.commerceRoutes(
         }
     }
     composable(SellerRoutes.COMMERCE_REGISTRATION_CNPJ) {
-        DetailShell(navController, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+        ShellScaffold(
+            SellerRoutes.COMMERCE_REGISTRATION_CNPJ,
+            navController,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+        ) {
             val lookupViewModel: CnpjLookupViewModel = viewModel(factory = factory)
             val registrationViewModel: CommerceRegistrationViewModel = viewModel(factory = factory)
             CnpjLookupScreen(
@@ -68,7 +82,14 @@ internal fun NavGraphBuilder.commerceRoutes(
         }
     }
     composable(SellerRoutes.COMMERCE_REGISTRATION_FORM) {
-        DetailShell(navController, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+        ShellScaffold(
+            SellerRoutes.COMMERCE_REGISTRATION_FORM,
+            navController,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+        ) {
             val registrationViewModel: CommerceRegistrationViewModel = viewModel(factory = factory)
             CommerceRegistrationFormScreen(
                 viewModel = registrationViewModel,
@@ -84,7 +105,14 @@ internal fun NavGraphBuilder.commerceRoutes(
         }
     }
     composable(SellerRoutes.COMMERCE_REGISTRATIONS) {
-        DetailShell(navController, syncBadge, authViewModel, localeViewModel, accessibilityViewModel) {
+        ShellScaffold(
+            SellerRoutes.COMMERCE_REGISTRATIONS,
+            navController,
+            syncBadge,
+            authViewModel,
+            localeViewModel,
+            accessibilityViewModel,
+        ) {
             val registrationsViewModel: MyRegistrationsViewModel = viewModel(factory = factory)
             MyRegistrationsScreen(viewModel = registrationsViewModel)
         }

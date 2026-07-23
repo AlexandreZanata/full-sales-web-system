@@ -20,7 +20,7 @@ export HUSKY=0 CI=true
 NODE_ENV=development pnpm install --frozen-lockfile
 
 echo "==> Building SPAs"
-NODE_ENV=production pnpm --filter @full-sales/portal --filter @full-sales/admin --filter @full-sales/platform-admin build
+NODE_ENV=production pnpm --filter @full-sales/portal --filter @full-sales/admin --filter @full-sales/platform-admin --filter @full-sales/field build
 
 echo "==> Data layer + API"
 "${ROOT}/infra/scripts/up-data-layer.sh"

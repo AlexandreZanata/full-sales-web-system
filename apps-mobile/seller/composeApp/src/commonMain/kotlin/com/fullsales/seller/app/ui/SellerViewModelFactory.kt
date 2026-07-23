@@ -43,7 +43,12 @@ class SellerViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T = when (modelClass) {
         AuthViewModel::class ->
-            AuthViewModel(container.apiClient, container.tokenStore) as T
+            AuthViewModel(
+                container.apiClient,
+                container.tokenStore,
+                container.networkMonitor,
+                container::requestSync,
+            ) as T
         SettingsViewModel::class ->
             SettingsViewModel(
                 container.apiClient,

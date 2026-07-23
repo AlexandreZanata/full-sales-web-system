@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fullsales.seller.app.a11y.AccessibilityViewModel
 import com.fullsales.seller.app.i18n.LocaleViewModel
-import com.fullsales.seller.app.platform.isDebugBuild
 import com.fullsales.seller.app.ui.a11y.screenTitle
 import com.fullsales.seller.app.ui.components.SellerPrimaryButton
 import com.fullsales.seller.app.ui.components.SellerSurfaceCard
@@ -48,12 +47,8 @@ fun LoginScreen(
     val locale by localeViewModel.locale.collectAsState()
     val textSizePreset by accessibilityViewModel.preset.collectAsState()
     val s = LocalSellerStrings.current
-    var email by rememberSaveable {
-        mutableStateOf(if (isDebugBuild()) "seller@test.com" else "")
-    }
-    var password by rememberSaveable {
-        mutableStateOf(if (isDebugBuild()) "secret123" else "")
-    }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = Modifier

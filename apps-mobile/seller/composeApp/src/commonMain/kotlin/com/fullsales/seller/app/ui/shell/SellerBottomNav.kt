@@ -74,7 +74,7 @@ fun SellerBottomNav(
                 contentDescription = s.a11y.newSale,
             )
             SellerNavSlot(
-                selected = currentRoute == SellerRoutes.COMMERCES,
+                selected = SellerRoutes.isCommerceTabSelected(currentRoute),
                 onClick = onNavigateCommerces,
                 icon = Icons.Default.Store,
                 label = s.nav.commerces,

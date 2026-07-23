@@ -1064,6 +1064,15 @@ Derived from signed canonical JSON — verification remains on `GET …/verify`.
 
 **Implemented:** Phase 8.
 
+### `POST /v1/platform/tenants/{id}/users`
+
+- **Auth:** PlatformAdmin
+- **Body:** `{ "name", "email", "role": "Admin" | "Driver" | "Seller" | "CommerceContact", "commerceId"? }`
+- **Response 201:** `{ "user": <platform user item>, "temporaryPassword" }`
+- **Audit:** `user.create`
+
+**Implemented:** Phase 8+ (platform create user).
+
 ### `GET /v1/platform/tenants/{id}/stats`
 
 - **Auth:** PlatformAdmin

@@ -89,6 +89,7 @@ fun SalesListScreen(
                     enabled = state.catalogShareActive,
                     onShare = viewModel::shareCatalogLink,
                     onCopy = viewModel::copyCatalogLink,
+                    onOpen = viewModel::openCatalogLink,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
                 SalesListBody(

@@ -5,4 +5,6 @@ expect object CatalogLinkShare {
     fun shareText(text: String, title: String)
 
     fun copyToClipboard(text: String, label: String)
+
+    fun openUrl(url: String)
 }

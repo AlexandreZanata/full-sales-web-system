@@ -32,6 +32,7 @@ copy_if_missing "${ENV_DIR}/api.env.example" "${ENV_DIR}/api.env"
 copy_if_missing "${ENV_DIR}/portal.env.example" "${ENV_DIR}/portal.env"
 copy_if_missing "${ENV_DIR}/admin.env.example" "${ENV_DIR}/admin.env"
 copy_if_missing "${ENV_DIR}/platform-admin.env.example" "${ENV_DIR}/platform-admin.env"
+copy_if_missing "${ENV_DIR}/field.env.example" "${ENV_DIR}/field.env"
 copy_if_missing "${ROOT}/production/vps.env.example" "${ROOT}/production/vps.env"
 
 DB_PASS="$(random_hex 16)"

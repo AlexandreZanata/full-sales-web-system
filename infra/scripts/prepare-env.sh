@@ -85,11 +85,14 @@ STORAGE_REGION=us-east-1
 MEDIA_BUCKET=${MINIO_BUCKET:-media}
 PORTAL_PUBLIC_ORIGIN=${PORTAL_ORIGIN}
 PLATFORM_APEX_HOST=${DOMAIN},${CATALOG_HOST}
+PUBLIC_CATALOG_TENANT_ID=01900001-0000-7000-8000-000000000001
+DEV_OBJECT_STORAGE_PATH=/var/lib/fullsales/object-storage
 EOF
 
 printf 'VITE_API_BASE_URL=/v1\n' > "${ENV_DIR}/portal.env"
 printf 'VITE_API_BASE_URL=/v1\nVITE_BASE=/admin/\n' > "${ENV_DIR}/admin.env"
-printf 'VITE_API_BASE_URL=/v1\nVITE_BASE=/platform/\n' > "${ENV_DIR}/platform-admin.env"
+printf 'VITE_API_BASE_URL=/v1\nVITE_BASE=/admin/super/\n' > "${ENV_DIR}/platform-admin.env"
+printf 'VITE_API_BASE_URL=/v1\nVITE_BASE=/field/\n' > "${ENV_DIR}/field.env"
 
 chmod 600 "${ENV_DIR}/"*.env
 echo "prepare-env.sh: ${SCHEME} portal=${PORTAL_ORIGIN} app=${APP_ORIGIN} api=${API_PUBLIC_HOST}"

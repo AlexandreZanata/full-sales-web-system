@@ -10,6 +10,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import com.fullsales.seller.shared.connectivity.ConnectivityState
@@ -19,6 +20,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Device path observer (guia-cidade ADR-007 pattern).
+ * OS capabilities drive the gate; successful HTTP uses [reportPathReachable] and must not
+ * be conflated with API host errors (server banner stays separate).
+ */
 internal class AndroidNetworkMonitor : NetworkMonitor {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val gate = DebouncedConnectivity(scope)
@@ -26,6 +32,7 @@ internal class AndroidNetworkMonitor : NetworkMonitor {
     private val cm =
         appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile private var pathReachableUntilElapsedMs: Long = 0L
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) = schedulePublish("available")
@@ -35,26 +42,29 @@ internal class AndroidNetworkMonitor : NetworkMonitor {
         override fun onUnavailable() = schedulePublish("unavailable")
     }
 
-    private val broadcastReceiver = object : BroadcastReceiver() {
+    private val airplaneReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            schedulePublish(intent?.action ?: "broadcast")
+            schedulePublish(intent?.action ?: "airplane")
         }
     }
 
     init {
         cm.registerDefaultNetworkCallback(callback)
-        val filter = IntentFilter().apply {
-            @Suppress("DEPRECATION")
-            addAction(ConnectivityManager.CONNECTIVITY_ACTION)
-            addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED)
-        }
+        val filter = IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED)
         if (Build.VERSION.SDK_INT >= 33) {
-            appContext.registerReceiver(broadcastReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            appContext.registerReceiver(airplaneReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             @Suppress("UnspecifiedRegisterReceiverFlag")
-            appContext.registerReceiver(broadcastReceiver, filter)
+            appContext.registerReceiver(airplaneReceiver, filter)
         }
         schedulePublish("init")
+    }
+
+    override fun reportPathReachable() {
+        pathReachableUntilElapsedMs = SystemClock.elapsedRealtime() + PATH_GRACE_MS
+        Log.i(TAG, "reportPathReachable before=${gate.state.value}")
+        gate.promoteOnlineNow()
+        Log.i(TAG, "reportPathReachable after=${gate.state.value}")
     }
 
     private fun schedulePublish(reason: String) {
@@ -67,30 +77,43 @@ internal class AndroidNetworkMonitor : NetworkMonitor {
             Settings.Global.AIRPLANE_MODE_ON,
             0,
         ) == 1
+        val pathGrace = SystemClock.elapsedRealtime() < pathReachableUntilElapsedMs
         // MIUI can keep a stale validated Wi‑Fi agent briefly after airplane; trust the setting.
-        val online = !airplaneOn && cm.activeUsableInternet()
+        // Path grace blocks OEM false-negatives after a proven HTTP round-trip.
+        val online = !airplaneOn && (cm.anyUsableInternet() || pathGrace)
         val active = cm.activeNetwork
         val caps = active?.let { cm.getNetworkCapabilities(it) }
+        val before = gate.state.value
         Log.i(
             TAG,
-            "publish reason=$reason airplane=$airplaneOn online=$online state=${gate.state.value} " +
-                "active=$active transports=${caps?.transportSummary()} " +
+            "publish reason=$reason airplane=$airplaneOn online=$online pathGrace=$pathGrace " +
+                "state=$before active=$active transports=${caps?.transportSummary()} " +
                 "internet=${caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)} " +
                 "validated=${caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)}",
         )
         gate.onValidatedChanged(online)
-        Log.i(TAG, "afterGate state=${gate.state.value}")
+        val after = gate.state.value
+        if (after != before) {
+            Log.i(TAG, "afterGate state=$after")
+        }
     }
 
     private companion object {
         const val TAG = "SellerNet"
+        const val PATH_GRACE_MS = 60_000L
     }
 }
 
-private fun ConnectivityManager.activeUsableInternet(): Boolean {
-    val network = activeNetwork ?: return false
-    val caps = getNetworkCapabilities(network) ?: return false
-    return caps.isUsableInternet()
+/** Prefer activeNetwork; fall back to any network (OEM quirks where activeNetwork is null). */
+private fun ConnectivityManager.anyUsableInternet(): Boolean {
+    val active = activeNetwork
+    if (active != null) {
+        val caps = getNetworkCapabilities(active)
+        if (caps != null && caps.isUsableInternet()) return true
+    }
+    return allNetworks.any { network ->
+        getNetworkCapabilities(network)?.isUsableInternet() == true
+    }
 }
 
 private fun NetworkCapabilities.isUsableInternet(): Boolean {

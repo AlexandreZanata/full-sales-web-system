@@ -5,18 +5,18 @@ import androidx.lifecycle.viewModelScope
 import com.fullsales.seller.app.platform.CatalogLinkShare
 import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.shared.api.SellerApiClient
+import com.fullsales.seller.shared.api.catalogBaseUrl
 import com.fullsales.seller.shared.connectivity.ConnectivityState
 import com.fullsales.seller.shared.connectivity.isDefinitelyOffline
 import com.fullsales.seller.shared.repository.SaleRepository
 import com.fullsales.seller.shared.sales.localSalesToListItems
+import com.fullsales.seller.shared.share.resolveCatalogShareUrl
 import com.fullsales.seller.shared.sync.SellerSyncCoordinator
 import com.fullsales.seller.shared.ui.ListEmptyReason
 import com.fullsales.seller.shared.ui.resolveListEmptyReason
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -44,7 +44,12 @@ class SalesListViewModel(
     private val networkMonitor: NetworkMonitor,
     private val apiClient: SellerApiClient,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(SalesListUiState())
+    private val _state = MutableStateFlow(
+        SalesListUiState(
+            catalogUrl = catalogBaseUrl.trim().trimEnd('/').takeIf { it.isNotBlank() },
+            catalogShareActive = catalogBaseUrl.isNotBlank(),
+        ),
+    )
     val state: StateFlow<SalesListUiState> = _state.asStateFlow()
 
     init {
@@ -59,19 +64,21 @@ class SalesListViewModel(
             }
         }
         viewModelScope.launch {
-            networkMonitor.connectivity
-                .map { it == ConnectivityState.Online }
-                .distinctUntilChanged()
-                .collect { online ->
-                    if (online) {
+            networkMonitor.connectivity.collect { connectivity ->
+                when (connectivity) {
+                    ConnectivityState.Online -> {
+                        _state.update { it.copy(isOffline = false) }
                         loadCatalogShare()
                         if (!_state.value.everSynced) refresh()
-                    } else {
-                        _state.update {
-                            it.copy(isOffline = networkMonitor.connectivity.value.isDefinitelyOffline())
-                        }
+                    }
+                    ConnectivityState.Connecting -> {
+                        _state.update { it.copy(isOffline = false) }
+                    }
+                    ConnectivityState.Offline -> {
+                        _state.update { it.copy(isOffline = true) }
                     }
                 }
+            }
         }
     }
 
@@ -88,6 +95,11 @@ class SalesListViewModel(
         val url = _state.value.catalogUrl ?: return
         CatalogLinkShare.copyToClipboard(url, "catalog")
         _state.update { it.copy(snackbarCode = "CATALOG_COPIED") }
+    }
+
+    fun openCatalogLink() {
+        val url = _state.value.catalogUrl ?: return
+        CatalogLinkShare.openUrl(url)
     }
 
     fun reloadCatalogShare() {
@@ -124,16 +136,27 @@ class SalesListViewModel(
     }
 
     private suspend fun loadCatalogShare() {
-        if (!networkMonitor.canAttemptNetwork()) return
+        val fallback = catalogBaseUrl.trim().trimEnd('/').takeIf { it.isNotBlank() }
+        if (!networkMonitor.canAttemptNetwork()) {
+            _state.update {
+                it.copy(
+                    catalogUrl = fallback ?: it.catalogUrl,
+                    catalogShareActive = (fallback ?: it.catalogUrl) != null,
+                )
+            }
+            return
+        }
         runCatching { apiClient.getSellerShare() }
             .onSuccess { share ->
-                val url = share.shareUrl.takeIf { share.shareLinkActive && it.isNotBlank() }
+                val url = resolveCatalogShareUrl(share)
                 _state.update {
                     it.copy(catalogUrl = url, catalogShareActive = url != null)
                 }
             }
             .onFailure {
-                _state.update { it.copy(catalogUrl = null, catalogShareActive = false) }
+                _state.update {
+                    it.copy(catalogUrl = fallback, catalogShareActive = fallback != null)
+                }
             }
     }
 }

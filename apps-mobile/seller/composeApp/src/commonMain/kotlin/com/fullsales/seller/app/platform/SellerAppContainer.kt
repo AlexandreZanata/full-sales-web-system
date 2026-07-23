@@ -32,6 +32,12 @@ interface NetworkMonitor {
     fun canAttemptNetwork(): Boolean =
         connectivity.value == ConnectivityState.Online ||
             connectivity.value == ConnectivityState.Connecting
+
+    /**
+     * Promote Online when an API call succeeded while OS connectivity still reports Offline
+     * (OEM false-negatives on activeNetwork / VALIDATED).
+     */
+    fun reportPathReachable() {}
 }
 
 interface SellerAppContainer {

@@ -63,4 +63,8 @@ internal class IosPathNetworkMonitor : NetworkMonitor {
         nw_path_monitor_set_queue(monitor, dispatch_get_main_queue())
         nw_path_monitor_start(monitor)
     }
+
+    override fun reportPathReachable() {
+        gate.promoteOnlineNow()
+    }
 }

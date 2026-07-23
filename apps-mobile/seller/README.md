@@ -45,7 +45,8 @@ Release signing / AAB: [docs/mobile/seller-release-build.md](../../docs/mobile/s
 
 ### Catalog share link
 
-Share URLs come from the API: `GET /v1/me/seller-share` → `shareUrl` (built from backend `PORTAL_PUBLIC_ORIGIN` + `/s/{code}`).
+Share URLs: `GET /v1/me/seller-share` when active, else app env `SELLER_CATALOG_BASE_URL`
+(`https://catalogo.comerc.app.br`). Tap the bar to open; share/copy use the same URL.
 
 Configure on the API (not in the Android app):
 

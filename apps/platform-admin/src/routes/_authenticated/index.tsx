@@ -142,7 +142,7 @@ function DashboardPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Link to="/tenants/new">
+        <Link to="/tenants" search={{ modal: 'create' }}>
           <Button className="gap-2">
             <Plus className="size-4" aria-hidden />
             {t('dashboard.createTenant')}

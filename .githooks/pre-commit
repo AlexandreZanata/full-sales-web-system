@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Runs verify-changed on staged files. Skip: SKIP_VERIFY=1 git commit ...
+# Fast gate on staged files (secrets, touched-package lint/test, cargo fmt+check).
+# Full suite: pre-push + GitHub Actions on push. Skip: SKIP_VERIFY=1 git commit ...
 set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 if [[ "${SKIP_VERIFY:-}" == "1" ]]; then

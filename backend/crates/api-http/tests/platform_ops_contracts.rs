@@ -4,6 +4,7 @@
 //! `/v1/platform/users/{id}/disable`
 //! `/v1/platform/users/{id}/enable`
 //! `/v1/platform/tenants/{id}/users`
+//! T-17-177 POST /v1/platform/tenants/{id}/users
 //! `/v1/platform/tenants/{id}/stats`
 //! `/v1/platform/tenants/{id}/orders`
 //! `/v1/platform/tenants/{id}/sales`
@@ -116,4 +117,29 @@ async fn given_platform_admin_when_users_and_tenant_reads_then_ok() {
     )
     .await;
     assert!(feat_st.is_success(), "{feat_st}");
+
+    // T-17-177
+    let (create_st, create_body) = request(
+        &env,
+        "POST",
+        &format!("/v1/platform/tenants/{tenant}/users"),
+        Some(&token),
+        Some(
+            json!({
+                "name": "Platform Created Seller",
+                "email": "plat-created-seller@test.com",
+                "role": "Seller"
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    assert_eq!(create_st, StatusCode::CREATED, "{create_body}");
+    assert!(
+        create_body
+            .get("temporaryPassword")
+            .and_then(|v| v.as_str())
+            .is_some(),
+        "{create_body}"
+    );
 }

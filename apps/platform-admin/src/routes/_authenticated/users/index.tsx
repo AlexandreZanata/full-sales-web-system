@@ -1,7 +1,10 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
+import { CreateUserDialog } from '@/components/users/CreateUserDialog';
+import { UserDetailDialog } from '@/components/users/UserDetailDialog';
+import { Button } from '@/components/ui/Button';
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
@@ -21,6 +24,8 @@ function UsersPage() {
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const [emailPrefix, setEmailPrefix] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [viewUserId, setViewUserId] = useState<string | null>(null);
   const pageSize = 20;
 
   const users = useQuery({
@@ -36,19 +41,21 @@ function UsersPage() {
   const columns: DataTableColumn<PlatformUser>[] = [
     { id: 'name', header: t('common.name'), cell: (row) => row.name },
     { id: 'email', header: t('common.email'), cell: (row) => row.email },
-    { id: 'tenant', header: 'Tenant', cell: (row) => row.tenant.displayName },
-    { id: 'role', header: 'Role', cell: (row) => row.role },
+    { id: 'tenant', header: t('users.tenant'), cell: (row) => row.tenant.displayName },
+    { id: 'role', header: t('users.role'), cell: (row) => row.role },
     {
       id: 'actions',
       header: t('common.actions'),
       cell: (row) => (
-        <Link
-          to="/users/$id"
-          params={{ id: row.id }}
+        <button
+          type="button"
           className="text-sm underline-offset-2 hover:underline"
+          onClick={() => {
+            setViewUserId(row.id);
+          }}
         >
-          View
-        </Link>
+          {t('users.view')}
+        </button>
       ),
     },
   ];
@@ -57,7 +64,18 @@ function UsersPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title={t('users.title')} />
+      <PageHeader
+        title={t('users.title')}
+        actions={
+          <Button
+            onClick={() => {
+              setCreateOpen(true);
+            }}
+          >
+            {t('users.new')}
+          </Button>
+        }
+      />
       <Input
         label={t('common.search')}
         value={emailPrefix}
@@ -84,6 +102,18 @@ function UsersPage() {
       ) : users.isSuccess ? (
         <EmptyState title={t('common.noResults')} />
       ) : null}
+      <CreateUserDialog
+        open={createOpen}
+        onClose={() => {
+          setCreateOpen(false);
+        }}
+      />
+      <UserDetailDialog
+        userId={viewUserId}
+        onClose={() => {
+          setViewUserId(null);
+        }}
+      />
     </div>
   );
 }

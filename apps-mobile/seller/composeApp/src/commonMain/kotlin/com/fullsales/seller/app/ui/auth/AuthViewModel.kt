@@ -2,6 +2,7 @@ package com.fullsales.seller.app.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fullsales.seller.app.platform.NetworkMonitor
 import com.fullsales.seller.app.platform.SellerTokenStore
 import com.fullsales.seller.shared.api.ApiException
 import com.fullsales.seller.shared.api.SellerApiClient
@@ -23,6 +24,8 @@ data class AuthUiState(
 class AuthViewModel(
     private val apiClient: SellerApiClient,
     private val tokenStore: SellerTokenStore,
+    private val networkMonitor: NetworkMonitor? = null,
+    private val onAuthenticated: (() -> Unit)? = null,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AuthUiState(isAuthenticated = hasValidSession()))
     val state: StateFlow<AuthUiState> = _state.asStateFlow()
@@ -43,7 +46,9 @@ class AuthViewModel(
                 when (val gate = gateSellerAccessToken(response.accessToken)) {
                     is SellerRoleGateResult.Accepted -> {
                         tokenStore.saveTokens(response.accessToken, response.refreshToken)
+                        networkMonitor?.reportPathReachable()
                         _state.value = AuthUiState(isAuthenticated = true)
+                        onAuthenticated?.invoke()
                         onSuccess()
                     }
                     SellerRoleGateResult.NotSeller -> {

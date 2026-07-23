@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Runs verify-changed on commits being pushed. Skip: SKIP_VERIFY=1 git push ...
+# Full local gate before push (lint/test, clippy, cargo test, E2E, mobile).
+# Mirrors GitHub CI; skip if you rely on CI only: SKIP_VERIFY=1 git push ...
 set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 if [[ "${SKIP_VERIFY:-}" == "1" ]]; then

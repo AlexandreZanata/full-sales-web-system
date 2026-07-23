@@ -21,6 +21,11 @@ actual object CatalogLinkShare {
         UIPasteboard.generalPasteboard.string = text
     }
 
+    actual fun openUrl(url: String) {
+        val nsUrl = platform.Foundation.NSURL.URLWithString(url) ?: return
+        UIApplication.sharedApplication.openURL(nsUrl)
+    }
+
     private fun topPresenter(root: UIViewController): UIViewController {
         var current = root
         while (true) {

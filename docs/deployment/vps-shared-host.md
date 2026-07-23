@@ -8,8 +8,9 @@
 |---------|----------|
 | Portal (catalog) | `https://catalogo.comerc.app.br` |
 | Admin | `https://vendas.comerc.app.br/admin/` |
+| Super Admin | `https://vendas.comerc.app.br/admin/super/` |
+| Field PWA | `https://vendas.comerc.app.br/field/` |
 | API | `https://vendas.comerc.app.br/v1` (same-origin `/health`, `/v1`) |
-| Platform admin | `https://vendas.comerc.app.br/platform/` |
 
 App directory on VPS: `/var/www/fullsales`. Origin IP: `YOUR_VPS_IP` (shared with other sites — do not remove their nginx vhosts).
 

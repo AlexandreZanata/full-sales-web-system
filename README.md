@@ -61,7 +61,9 @@ cp .env.example .env
 # Full verify (TypeScript + Rust)
 pnpm verify
 
-# Git hooks (auto via pnpm install / prepare): verify changed code on commit + push
+# Git hooks (auto via pnpm install / prepare)
+#   pre-commit → fast checks (touched packages only)
+#   pre-push   → full suite (also runs on GitHub Actions on push)
 pnpm hooks:install
 # Emergency skip: SKIP_VERIFY=1 git commit|push ...
 

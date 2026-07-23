@@ -15,4 +15,5 @@ install_file() {
 install_file "${SRC}/portal.env" "${ROOT}/apps/portal/.env.production"
 install_file "${SRC}/admin.env" "${ROOT}/apps/admin/.env.production"
 install_file "${SRC}/platform-admin.env" "${ROOT}/apps/platform-admin/.env.production"
+install_file "${SRC}/field.env" "${ROOT}/apps/field/.env.production"
 echo "install-env.sh: done"

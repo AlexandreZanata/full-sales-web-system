@@ -44,4 +44,4 @@ if [[ "${template}" == "fullsales.domain-bootstrap.conf" ]]; then
 else
   echo "install-nginx-domain.sh: HTTPS enabled"
 fi
-echo "install-nginx-domain.sh: app=${DOMAIN} catalog=${CATALOG_HOST} admin=https://${DOMAIN}/admin"
+echo "install-nginx-domain.sh: app=${DOMAIN} catalog=${CATALOG_HOST} admin=https://${DOMAIN}/admin super=https://${DOMAIN}/admin/super"

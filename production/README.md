@@ -6,7 +6,8 @@
 |---------|-----|
 | API | https://vendas.comerc.app.br/v1 |
 | Admin | https://vendas.comerc.app.br/admin/ |
-| Platform | https://vendas.comerc.app.br/platform/ |
+| Super Admin | https://vendas.comerc.app.br/admin/super/ |
+| Field PWA | https://vendas.comerc.app.br/field/ |
 | Catalog | https://catalogo.comerc.app.br |
 
 Data (Postgres / Redis / MinIO) stays **on the VPS** Docker volumes.

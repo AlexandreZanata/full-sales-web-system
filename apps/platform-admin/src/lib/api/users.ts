@@ -80,6 +80,13 @@ export async function fetchTenantWorkforce(
   );
 }
 
+export async function createPlatformTenantUser(
+  tenantId: string,
+  body: { name: string; email: string; role: string; commerceId?: string },
+): Promise<{ user: PlatformUser; temporaryPassword: string }> {
+  return apiPost(`/platform/tenants/${tenantId}/users`, body);
+}
+
 export async function fetchTenantStats(
   tenantId: string,
 ): Promise<import('@/lib/api/types').TenantStats> {

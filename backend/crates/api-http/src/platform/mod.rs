@@ -31,7 +31,7 @@ pub use tenants::{
     reactivate_tenant, run_dunning_job, run_offboarding_job, suspend_tenant,
 };
 pub use users::{
-    disable_platform_user, enable_platform_user, get_platform_user, list_platform_users,
-    patch_platform_user, reset_platform_user_password,
+    create_platform_tenant_user, disable_platform_user, enable_platform_user, get_platform_user,
+    list_platform_users, patch_platform_user, reset_platform_user_password,
 };
 pub use workforce::{get_tenant_stats, list_tenant_workforce};

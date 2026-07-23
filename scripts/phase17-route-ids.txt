@@ -177,4 +177,5 @@ T-17-173 PATCH /v1/commerces/{id}/activate
 T-17-174 PATCH /v1/me/seller-profile
 T-17-175 PATCH /v1/users/{id}
 T-17-176 PATCH /v1/users/{id}/reactivate
-T-17-177 POST /v1/public/commerce-leads
+T-17-177 POST /v1/platform/tenants/{id}/users
+T-17-178 POST /v1/public/commerce-leads

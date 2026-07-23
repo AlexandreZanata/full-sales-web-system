@@ -20,6 +20,12 @@ val sellerApiBaseUrl: String = System.getenv("SELLER_API_BASE_URL")
 val sellerReleaseApiBaseUrl: String = System.getenv("SELLER_RELEASE_API_BASE_URL")
     ?: localProperties.getProperty("seller.release.api.base.url")
     ?: "https://vendas.comerc.app.br/v1"
+val sellerCatalogBaseUrl: String = System.getenv("SELLER_CATALOG_BASE_URL")
+    ?: localProperties.getProperty("seller.catalog.base.url")
+    ?: "https://catalogo.comerc.app.br"
+val sellerReleaseCatalogBaseUrl: String = System.getenv("SELLER_RELEASE_CATALOG_BASE_URL")
+    ?: localProperties.getProperty("seller.release.catalog.base.url")
+    ?: sellerCatalogBaseUrl
 
 kotlin {
     androidTarget {
@@ -106,15 +112,18 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
         buildConfigField("String", "API_BASE_URL", "\"$sellerApiBaseUrl\"")
+        buildConfigField("String", "CATALOG_BASE_URL", "\"$sellerCatalogBaseUrl\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"$sellerApiBaseUrl\"")
+            buildConfigField("String", "CATALOG_BASE_URL", "\"$sellerCatalogBaseUrl\"")
         }
         release {
             buildConfigField("String", "API_BASE_URL", "\"$sellerReleaseApiBaseUrl\"")
+            buildConfigField("String", "CATALOG_BASE_URL", "\"$sellerReleaseCatalogBaseUrl\"")
         }
     }
 

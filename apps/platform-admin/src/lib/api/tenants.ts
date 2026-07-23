@@ -49,10 +49,14 @@ export async function createTenant(body: CreateTenantBody): Promise<ProvisionTen
   return apiPost<ProvisionTenantResponse>('/platform/tenants', body);
 }
 
-export async function patchTenant(
-  id: string,
-  body: { planId?: string; status?: string },
-): Promise<TenantDetail> {
+export type PatchTenantBody = {
+  displayName?: string;
+  planId?: string;
+  graceExtendedUntil?: string;
+  settings?: Record<string, unknown>;
+};
+
+export async function patchTenant(id: string, body: PatchTenantBody): Promise<TenantDetail> {
   return apiPatch<TenantDetail>(`/platform/tenants/${id}`, body);
 }
 

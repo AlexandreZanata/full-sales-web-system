@@ -86,7 +86,14 @@ services:
       - "127.0.0.1:${API_HOST_PORT:-8108}:8080"
     env_file:
       - ../production/env/api.env
+    environment:
+      DEV_OBJECT_STORAGE_PATH: /var/lib/fullsales/object-storage
+      MEDIA_LOCAL_PATH: /var/lib/fullsales/object-storage
+      PUBLIC_CATALOG_TENANT_ID: "01900001-0000-7000-8000-000000000001"
+    volumes:
+      - object_storage_data:/var/lib/fullsales/object-storage
 
 volumes:
   postgres_prod_data:
   minio_prod_data:
+  object_storage_data:

@@ -94,13 +94,27 @@ class SyncStatusViewModel(
     }
 
     private suspend fun refreshBanner(connectivity: ConnectivityState) {
-        if (connectivity == ConnectivityState.Online) {
-            serverUnreachable = !container.apiClient.probeReachable()
-        } else {
-            serverUnreachable = false
+        when (connectivity) {
+            ConnectivityState.Online -> {
+                serverUnreachable = !container.apiClient.probeReachable()
+            }
+            ConnectivityState.Connecting -> {
+                serverUnreachable = false
+            }
+            ConnectivityState.Offline -> {
+                // Device Offline ≠ API down (guia ADR-007). Health success promotes Online.
+                serverUnreachable = false
+                if (container.apiClient.probeReachable()) {
+                    networkMonitor.reportPathReachable()
+                }
+            }
         }
         val pending = outbox.listPendingFifo().size
-        _offlineBanner.value = resolveOfflineBanner(connectivity, serverUnreachable, pending)
+        _offlineBanner.value = resolveOfflineBanner(
+            networkMonitor.connectivity.value,
+            serverUnreachable,
+            pending,
+        )
     }
 
     private suspend fun updateBadge(

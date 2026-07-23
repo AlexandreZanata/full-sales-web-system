@@ -1,22 +1,70 @@
-package com.fullsales.seller.shared.share
-
+/**
+ * Contract: catalog share URL uses portal origin + sharePath, with env catalog fallback.
+ */
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import com.fullsales.seller.shared.model.SellerShare
+import com.fullsales.seller.shared.share.buildCatalogShareUrl
+import com.fullsales.seller.shared.share.resolveCatalogShareUrl
 
 class CatalogShareUrlTest {
     @Test
-    fun builds_absolute_url_from_origin_and_path() {
+    fun build_joins_origin_and_path() {
         assertEquals(
-            "http://192.168.15.15:5175/s/dev-seller",
-            buildCatalogShareUrl("http://192.168.15.15:5175", "/s/dev-seller"),
+            "https://catalogo.comerc.app.br/s/abc",
+            buildCatalogShareUrl("https://catalogo.comerc.app.br/", "/s/abc"),
         )
     }
 
     @Test
-    fun trims_trailing_slash_on_origin() {
-        assertEquals(
-            "https://portal.example/s/maria",
-            buildCatalogShareUrl("https://portal.example/", "s/maria"),
+    fun resolve_prefers_active_share_url() {
+        val share = SellerShare(
+            publicCode = "abc",
+            sharePath = "/s/abc",
+            shareUrl = "https://catalogo.comerc.app.br/s/abc",
+            shareLinkActive = true,
         )
+        assertEquals(
+            "https://catalogo.comerc.app.br/s/abc",
+            resolveCatalogShareUrl(share, "https://catalogo.comerc.app.br"),
+        )
+    }
+
+    @Test
+    fun resolve_builds_from_path_when_share_url_blank() {
+        val share = SellerShare(
+            publicCode = "abc",
+            sharePath = "/s/abc",
+            shareUrl = "",
+            shareLinkActive = true,
+        )
+        assertEquals(
+            "https://catalogo.comerc.app.br/s/abc",
+            resolveCatalogShareUrl(share, "https://catalogo.comerc.app.br"),
+        )
+    }
+
+    @Test
+    fun resolve_falls_back_to_catalog_origin_when_inactive() {
+        val share = SellerShare(
+            publicCode = "abc",
+            sharePath = "/s/abc",
+            shareUrl = "https://catalogo.comerc.app.br/s/abc",
+            shareLinkActive = false,
+        )
+        assertEquals(
+            "https://catalogo.comerc.app.br",
+            resolveCatalogShareUrl(share, "https://catalogo.comerc.app.br"),
+        )
+    }
+
+    @Test
+    fun resolve_null_share_uses_origin() {
+        assertEquals(
+            "https://catalogo.comerc.app.br",
+            resolveCatalogShareUrl(null, "https://catalogo.comerc.app.br"),
+        )
+        assertNull(resolveCatalogShareUrl(null, ""))
     }
 }
