@@ -10,7 +10,7 @@
     ]
   },
   "scripts": {
-    "prepare": "bash scripts/install-git-hooks.sh",
+    "prepare": "bash -c 'if [ -f scripts/install-git-hooks.sh ]; then bash scripts/install-git-hooks.sh; fi'",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "build": "pnpm -r build",

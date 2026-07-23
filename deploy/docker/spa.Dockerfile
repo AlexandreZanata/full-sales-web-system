@@ -23,6 +23,8 @@ COPY apps/platform-admin/package.json apps/platform-admin/
 COPY apps/field/package.json apps/field/
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/
+# Root prepare may call this; script no-ops without .git (see install-git-hooks.sh).
+COPY scripts/install-git-hooks.sh scripts/
 
 RUN pnpm install --filter "@full-sales/${APP_NAME}" --frozen-lockfile
 
