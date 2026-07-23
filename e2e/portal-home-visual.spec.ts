@@ -11,8 +11,8 @@ test.describe('Portal home visual regression', () => {
   });
 
   test('given_home_when_loaded_then_key_regions_match_snapshots', async ({ page }) => {
-    // CI vs local Chromium font AA: allow ≤2% pixel drift without masking layout regressions.
-    const shot = { maxDiffPixelRatio: 0.02 };
+    // CI vs local Chromium font AA / subpixel: allow small drift; size must still match snapshot.
+    const shot = { maxDiffPixelRatio: 0.03, maxDiffPixels: 400 };
     await expect(page.locator('.portal-header')).toHaveScreenshot('portal-header.png', shot);
     await expect(page.getByTestId('hero-banner')).toHaveScreenshot('portal-hero.png', shot);
     await expect(page.getByTestId('featured-items')).toHaveScreenshot('portal-featured.png', shot);

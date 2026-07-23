@@ -21,7 +21,10 @@ test.describe('Portal catalog flow', () => {
     await mockPortalApi(page);
     await page.goto('/');
 
-    await page.getByLabel('Main').getByRole('link', { name: 'Cardápio', exact: true }).click();
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Cardápio', exact: true })
+      .click();
     await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
     await expect(page.getByRole('tab', { name: MOCK_CATEGORY.name })).toHaveAttribute(
       'aria-current',
@@ -49,7 +52,10 @@ test.describe('Portal catalog flow', () => {
     await mockPortalApi(page);
     await page.goto('/');
 
-    await page.getByLabel('Main').getByRole('link', { name: 'Cardápio', exact: true }).click();
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Cardápio', exact: true })
+      .click();
     await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
 
     await page.getByTestId('catalog-menu').getByLabel(MOCK_PRODUCT.name).click();

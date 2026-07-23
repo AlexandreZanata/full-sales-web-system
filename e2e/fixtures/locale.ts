@@ -8,11 +8,19 @@ export async function seedEnglishLocale(page: Page): Promise<void> {
 }
 
 /**
- * Force portal pt-BR so selectors like "Cardápio" / "Carrinho" match CI runners
- * whose browser language is en-US (default would be English "Menu").
+ * Force portal pt-BR (localStorage + navigator language).
+ * Complements playwright.portal.config.ts `locale: 'pt-BR'` for CI en-US browsers.
  */
 export async function seedPortalPtBrLocale(page: Page): Promise<void> {
   await page.addInitScript(() => {
     localStorage.setItem('portal-locale', 'pt-BR');
+    Object.defineProperty(navigator, 'language', {
+      get: () => 'pt-BR',
+      configurable: true,
+    });
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['pt-BR', 'pt'],
+      configurable: true,
+    });
   });
 }

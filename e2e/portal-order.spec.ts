@@ -124,7 +124,10 @@ test.describe('Portal order flow', () => {
 
     await loginPortal(page);
 
-    await page.getByLabel('Main').getByRole('link', { name: 'Cardápio', exact: true }).click();
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Cardápio', exact: true })
+      .click();
     await expect(page).toHaveURL(new RegExp(`category=${MOCK_CATEGORY.slug}`));
     await expect(page.getByTestId('catalog-menu')).toBeVisible();
     await page.getByTestId('catalog-menu').getByRole('button', { name: 'Adicionar ao carrinho' }).first().click();
